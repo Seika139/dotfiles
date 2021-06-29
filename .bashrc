@@ -1,9 +1,18 @@
-echo ' ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
-echo ' ┃'
-echo ' ┃ .bashrc has been Read'
-echo ' ┃ type "hlp" if you want some help'
-echo ' ┃'
-echo ' ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+#!/usr/bin/env bash
+
+cat <<EOS
+       )
+    ／⌒⌒⌒ヽ                     ／⌒⌒⌒ヽ
+   ﾉ ﾉﾉLL人ﾊ     きょう も     ((ﾉﾉ从从⭐️
+  (_Cﾘﾟ‐ﾟﾉﾘ)     いちにち      ﾉ从ﾟヮﾟ人
+  ﾉﾉ⊂)卯(つヽ    がんばろう   （(⊂ｿ辷ｿつ)
+（( くzzzz> ))                  くzzzz>
+     し∪                          し∪
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.bashrc has been Read'
+type "hlp" if you want some help'
+EOS
 
 # 上で使ってる太線は http://bubuzuke.s7.xrea.com/ISO10646/ruled.html で手に入れた
 
