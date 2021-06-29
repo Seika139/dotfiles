@@ -5,6 +5,7 @@
 
 ln -sfv "${PWD}/.bash_profile" ~/
 ln -sfv "${PWD}/.bashrc" ~/
+ln -sfv "${PWD}/.gitignore_global" ~/
 
 # ln コマンドのオプション
 # -s : シンボリックリンク(無いとハードリンクになる)
