@@ -10,13 +10,84 @@ cat <<EOS
      し∪                          し∪
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-.bashrc has been Read'
-type "hlp" if you want some help'
+.bashrc has been Read
+type "hlp" if you want some help
 EOS
 
 # 上で使ってる太線は http://bubuzuke.s7.xrea.com/ISO10646/ruled.html で手に入れた
 
-# direnv
+# less -M を常に有効化する
+export LESS="-M"
+
+#-------------------------------------
+# 0. DOTFILES_ROOT
+#-------------------------------------
+# dotfilesのディレクトリを探す。
+# このファイルがシンボリックリンクの場合は実体を参照する。
+# Mac の readlink には -f オプション(再帰的な探索)がないため、
+# 複数を経由したリンクだとうまく行かない。
+#
+# BASH_SOURCEは「呼び出されたファイル自身の絶対パス」でbashでしか使えない
+# SEE: https://qiita.com/yudoufu/items/48cb6fb71e5b498b2532
+
+if [ -L $BASH_SOURCE ]; then
+    DOTFILES_ROOT=$(dirname $(readlink $BASH_SOURCE))
+else
+    DOTFILES_ROOT=$(dirname $BASH_SOURCE)
+fi
+
+#----------------------------------------------------------
+# 1. 自分用のチートシートをまとめたファイルを見るためのコマンド集
+#----------------------------------------------------------
+
+# ファイルが存在する場合はその中身を出力する
+function cat_file() {
+    if [ -f $1 ]; then
+        while IFS= read -r line; do
+            echo -e $line
+        done <$1
+    else
+        echo "No file exists with name of $1"
+    fi
+}
+
+# 文字に色をつけたファイルをlessで表示する
+# 一旦 cat_fileを挟まないとうまく色がつかないのでこうしている
+function less_color() {
+    cat_file $1 | less -R
+}
+
+# 自作helpのトップ
+function hlp() {
+    less ${DOTFILES_ROOT}/docs/home.txt
+}
+
+function hlp_less() {
+    less ${DOTFILES_ROOT}/docs/linux/less.txt
+}
+
+function hlp_cursor() {
+    less ${DOTFILES_ROOT}/docs/linux/cursor.txt
+}
+
+function hlp_find() {
+    less ${DOTFILES_ROOT}/docs/linux/find.txt
+}
+
+function hlp_curl() {
+    open https://github.com/Seika139/library/blob/master/curl/index.md
+}
+
+#----------------------------------------------------------
+# TODO
+# コマンド履歴 p214
+# ワイルドカード p39
+#----------------------------------------------------------
+
+#----------------------------------------------------------
+# 2. direnv
+#----------------------------------------------------------
+
 eval "$(direnv hook bash)"
 
 # gitignore.io のコマンド
@@ -25,22 +96,9 @@ function gi() {
     echo
 }
 
-# 自作helpのトップ
-
-function hlp() {
-    echo 'help service produced by Seika139 !'
-    echo
-    echo 'code ~/.bashrc : bashrcをVSCodeで開く'
-    echo
-    echo 'gh    : git に関する help'
-    echo 'bh    : bash に関する help'
-    echo 'fh    : find に関する help'
-    echo 'curlh : curl に関する help (Githubに飛びます)'
-}
-
-<<comment
-git関連のエイリアス
-comment
+#----------------------------------------------------------
+# 3. git関連のエイリアス
+#----------------------------------------------------------
 
 # git branch
 alias gb='git branch'
@@ -111,48 +169,4 @@ function gh() {
     echo 'git branch -m [old_branch_name] [new_branch_name] : ローカルのブランチ名を変更'
     echo 'git branch -m [new_branch_name]                   : 現在のローカルブランチ名を変更する'
     echo 'git push origin :[branch_name]                    : リモートのブランチを削除'
-}
-
-function bh() {
-    echo 'source ~/.bashrc : .bashrcを再読み込み'
-    echo
-    echo 'ctrl + a : カーソルを左端に移動'
-    echo 'ctrl + e : カーソルを右端に移動'
-    echo 'ctrl + u : カーソルから左側を削除'
-    echo 'ctrl + k : カーソルから右側を削除'
-    echo ''
-    echo '以下の2つはカスタムで追加 : https://qiita.com/YumaInaura/items/e242d1426756f4da1bab'
-    echo 'alt + ← : カーソルを1単語分左に移動'
-    echo 'alt + → : カーソルを1単語分右に移動'
-}
-
-function fh() {
-    echo 'find ~/.bashrc : ファイルを探す'
-    echo '-type f : ファイルのみを対象とする'
-    echo '-type d : ディレクトリのみを対象とする'
-    echo
-    echo '-not / ! : 否定'
-    echo 'find /test ! -name "*.py"'
-    echo
-    echo '-and / -a : and検索'
-    echo 'find /test -name "*.sh" -a -mtime -1'
-    echo
-    echo '-or / -o : or検索'
-    echo 'find /test -name "*.dat" -o -name "*.sh"'
-    echo
-    echo 'ファイルの中のテキストで検索'
-    echo 'find ~/cms/app -type f -print | xargs grep "environment"'
-    echo
-    echo 'knowledges 内にあるmdファイルで「primary」の文字が含まれるものを探す'
-    echo 'find ~/knowledges/ -name "*.md" -a -type f -print | xargs grep "primary"'
-    echo
-    echo 'さらに .py のファイルからのみ検索したい場合'
-    echo 'find * -type f -print | xargs grep "all" --include="*.py"'
-    echo
-    echo 'さらにjsファイルのうち一部のファイルを除いて検索したい場合'
-    echo 'find . -not -name "*plugins.js" -not -name "*bootstrap.min.js" -type f -print | xargs grep "export" --include="*.js"'
-}
-
-function curlh() {
-    open https://github.com/Seika139/library/blob/master/curl/index.md
 }

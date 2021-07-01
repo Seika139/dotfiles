@@ -1,0 +1,47 @@
+find オプション 基点ディレクトリ 検索条件 アクション
+
+[オプション]
+-P : シンボリックリンクをたどらない(デフォルト)
+-L : 全てのシンボリックリンクをたどる
+
+[検索条件]
+-name [pattern]  : パターンと一致するファイル(ワイルドカードが使える。ワイルドカードを使う場合は「"」で囲う)
+-lname [pattern] : シンボリックリンクのリンク先ファイル名がパターンと一致するファイル
+-path [pattern]  : パスがパターンと一致するファイル
+-regex [pattern] : ファイル名がパターンと一致するファイル、パターンに正規表現が指定可能
+* それぞれ iname, ilname, ipath, iregex とすると大文字と小文字の区別をしなくなる
+
+-type [filetype]  : 下記のファイルタイプに該当するものを探す
+    [filetype] (一部抜粋)
+    d : ディレクトリ
+    f : 通常のファイアル
+    l : シンボリックリンク
+
+[アクション]
+-print  : 検索結果をファイル名だけで表示(デフォルト)
+-ls     : 検索結果を ls -dils 形式で出力する
+
+-a   : 条件を and で結ぶ
+-o   : 条件を or で結ぶ
+-not : 条件を否定する
+
+-depth N    : 検索するディレクトリの深さを指定
+-maxdepth N : 検索するディレクトリの最大の深さを指定(0だと基点ディレクトリのみ)
+-maxdepth N : 検索するディレクトリの最大の深さを指定(1だと基点ディレクトリより深いディレクトリを探す)
+-prune      : ディレクトリに降りない
+
+
+[ユースケース]
+
+ファイルの中のテキストで検索
+find ~/cms/app -type f -print | xargs grep "environment"
+
+src 内にある js ファイルで「primary」の文字が含まれるものを探す
+find ./src/ -name "*.js" -a -type f -print | xargs grep "primary"
+
+.py のファイルからのみ検索したい場合
+find * -type f -print | xargs grep "all" --include="*.py"
+
+さらにjsファイルのうち一部のファイルを除いて検索したい場合
+find . -not -name "*plugins.js" -not -name "*bootstrap.min.js" -type f -print | xargs grep "export" --include="*.js"
+

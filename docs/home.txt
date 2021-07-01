@@ -1,0 +1,15 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HeLP service produced by Seika139 !
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+code ~/.bashrc : bashrcをVS Codeで開く
+
+hlp_XXX : コマンドのチートシートが見られます
+
+[linux系]
+hlp_cursor : コマンドラインでのカーソル移動に関する help
+hlp_less   : lessコマンド
+hlp_find   : findコマンド
+hlp_curl   : curlコマンド(GitHubに飛びます)
+
+gh    : git に関する help
