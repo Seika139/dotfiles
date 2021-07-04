@@ -35,9 +35,9 @@ alias ls='ls -GF'
 # SEE: https://qiita.com/yudoufu/items/48cb6fb71e5b498b2532
 
 if [ -L $BASH_SOURCE ]; then
-    DOTFILES_ROOT=$(dirname $(readlink $BASH_SOURCE))
+    export DOTFILES_ROOT=$(dirname $(readlink $BASH_SOURCE))
 else
-    DOTFILES_ROOT=$(dirname $BASH_SOURCE)
+    export DOTFILES_ROOT=$(dirname $BASH_SOURCE)
 fi
 
 #----------------------------------------------------------
@@ -138,8 +138,6 @@ alias gd='git diff'
 
 alias gr='git remote'
 alias grp='git remote prune origin'
-
-alias gsl='git stash list'
 
 function hlp_less() {
     less ${DOTFILES_ROOT}/docs/git.txt
