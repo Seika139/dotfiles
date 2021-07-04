@@ -136,49 +136,6 @@ alias grp='git remote prune origin'
 
 alias gsl='git stash list'
 
-function gh() {
-    echo 'ssh-add ~/.ssh/id_rsa : sshキーを聞かれる時はこのコマンド'
-    echo
-    echo 'gi macOS,python >> */.gitignore'
-    echo 'gitignore.ioで.gitignoreをお手軽に作成する'
-    echo
-    echo 'git diff >> gd'
-    echo '--cached : addしたあとで差分を確認'
-    echo '--stat   : ファイルの変更量を確認'
-    echo '-w       : 改行コードや空白を無視'
-    echo
-    echo 'git remote >> gr'
-    echo 'show origin            : remoteブランチを単純参照'
-    echo 'prune --dry-run origin : remoteブランチでは削除されているが、ローカルに参照が残っているブランチを表示'
-    echo 'prune origin >> grp    : すでに削除されているremoteブランチのローカル参照を削除してきれいにする'
-    echo
-    echo 'git log + option >> gl'
-    echo 'gl  : git log をさらにシンプルに表示、直前10件'
-    echo 'glr : グラフ表示'
-    echo 'gll : ファイルごとの追加・削除行数を表示'
-    echo '-- "*.vue" : vueファイルの変更があるコミットのみを対象にする'
-    echo
-    echo 'git stash (save)        : 変更をスタッシュにプッシュする'
-    echo 'list >> gsl             : 退避した作業の一覧を見る'
-    echo 'apply stash@{N}         : stash@{N}の作業をもとに戻す'
-    echo 'apply stash@{N} --index : stageして退避した作業はstageされたまま戻る'
-    echo 'drop stash@{N}          : stash@{N}の作業を消す stash@{N}を省略するとスタッシュの一番上を削除する'
-    echo 'pop stash@{N}           : stash@{N}の作業をもとに戻すと同時に、退避作業の中から削除'
-    echo 'clear                   : stashのリストを全て削除(要注意!)'
-    echo
-    echo 'git diff stash@{N}        : HEADとstashの差分を確認する'
-    echo 'git diff stash@{N} [file] : ファイルの指定も可能'
-    echo
-    echo 'git remote -v           : 登録されているリモートリポジトリの確認'
-    echo
-    echo '--date=[option]                : git log や git stash list などで日付を表示するときに使う'
-    echo 'local                           : Mon Nov 23 21:26:47 2020'
-    echo 'iso-local                       : 2020-11-23 21:26:47 +0900'
-    echo 'relative                        : 4 months ago'
-    echo "format-local:'%Y/%m/%d %H:%M:%S : 2020/11/23 21:26:47 -> カスタム表示、localをつけないと世界標準時になりうる"
-    echo
-    echo 'git branch -D [branch_name]                       : ローカルのブランチを削除'
-    echo 'git branch -m [old_branch_name] [new_branch_name] : ローカルのブランチ名を変更'
-    echo 'git branch -m [new_branch_name]                   : 現在のローカルブランチ名を変更する'
-    echo 'git push origin :[branch_name]                    : リモートのブランチを削除'
+function hlp_less() {
+    less ${DOTFILES_ROOT}/docs/git.txt
 }

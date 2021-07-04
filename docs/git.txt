@@ -1,0 +1,44 @@
+ssh-add ~/.ssh/id_rsa : sshキーを聞かれる時はこのコマンド
+
+gi macOS,python >> */.gitignore
+gitignore.ioで.gitignoreをお手軽に作成する
+
+git diff >> gd
+--cached : addしたあとで差分を確認
+--stat   : ファイルの変更量を確認
+-w       : 改行コードや空白を無視
+
+git remote >> gr
+show origin            : remoteブランチを単純参照
+prune --dry-run origin : remoteブランチでは削除されているが、ローカルに参照が残っているブランチを表示
+prune origin >> grp    : すでに削除されているremoteブランチのローカル参照を削除してきれいにする
+
+git log + option >> gl
+gl  : git log をさらにシンプルに表示、直前10件
+glr : グラフ表示
+gll : ファイルごとの追加・削除行数を表示
+-- "*.vue" : vueファイルの変更があるコミットのみを対象にする
+
+git stash (save)        : 変更をスタッシュにプッシュする
+list >> gsl             : 退避した作業の一覧を見る
+apply stash@{N}         : stash@{N}の作業をもとに戻す
+apply stash@{N} --index : stageして退避した作業はstageされたまま戻る
+drop stash@{N}          : stash@{N}の作業を消す stash@{N}を省略するとスタッシュの一番上を削除する
+pop stash@{N}           : stash@{N}の作業をもとに戻すと同時に、退避作業の中から削除
+clear                   : stashのリストを全て削除(要注意!)
+
+git diff stash@{N}        : HEADとstashの差分を確認する
+git diff stash@{N} [file] : ファイルの指定も可能
+
+git remote -v           : 登録されているリモートリポジトリの確認
+
+--date=[option]                : git log や git stash list などで日付を表示するときに使う
+local                           : Mon Nov 23 21:26:47 2020
+iso-local                       : 2020-11-23 21:26:47 +0900
+relative                        : 4 months ago
+ "format-local:'%Y/%m/%d %H:%M:%S : 2020/11/23 21:26:47 -> カスタム表示、localをつけないと世界標準時になりうる"
+
+git branch -D [branch_name]                       : ローカルのブランチを削除
+git branch -m [old_branch_name] [new_branch_name] : ローカルのブランチ名を変更
+git branch -m [new_branch_name]                   : 現在のローカルブランチ名を変更する
+git push origin :[branch_name]                    : リモートのブランチを削除
