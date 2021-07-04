@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 
 # とりあえずのインストーラ
-# シンボリックリンクを貼る
 
-ln -sfv "${DOTFILES_ROOT}/.bash_profile" ~/
-ln -sfv "${DOTFILES_ROOT}/.bashrc" ~/
-ln -sfv "${DOTFILES_ROOT}/.gitconfig" ~/
-ln -sfv "${DOTFILES_ROOT}/.gitignore_global" ~/
-ln -sfv "${DOTFILES_ROOT}/.gitmessage" ~/
+# NOTE: 必ずホームディレクトリにクローンするものとする
+ROOT="${HOME}/dotfiles"
+if [ ! -e $ROOT ]; then
+    exit 1
+fi
+
+# シンボリックリンクを貼る
+ln -sfv "${ROOT}/.bash_profile" ~/
+ln -sfv "${ROOT}/.bashrc" ~/
+ln -sfv "${ROOT}/.gitconfig" ~/
+ln -sfv "${ROOT}/.gitignore_global" ~/
+ln -sfv "${ROOT}/.gitmessage" ~/
 
 # ln コマンドのオプション
 # -s : シンボリックリンク(無いとハードリンクになる)
@@ -20,7 +26,7 @@ ln -sfv "${DOTFILES_ROOT}/.gitmessage" ~/
 #-------------------------------------
 
 # 無い場合は作成する
-file="${DOTFILES_ROOT}/.gituser"
+file="${ROOT}/.gituser"
 if [ ! -e $file ]; then
     echo ".gituser を作成してください"
     read -p "git name = " name
