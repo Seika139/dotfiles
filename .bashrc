@@ -112,6 +112,11 @@ function gi() {
 # 3. git関連のエイリアス
 #----------------------------------------------------------
 
+alias g="git"
+# gだけの時でも補完が効くようにする
+# TODO completeについてはまだわかって無いことが多い
+complete -o bashdefault -o default -o nospace -F __git_wrap__git_main g
+
 # git branch
 alias gb='git branch'
 # リモートも表示する
