@@ -5,11 +5,6 @@ export PATH="$HOME/anaconda/bin:$PATH"
 # The original version is saved in .bash_profile.pysave
 PATH="/Library/Frameworks/Python.framework/Versions/3.6/bin:${PATH}"
 export PATH
-
-# Setting PATH for Python 3.6
-# The original version is saved in .bash_profile.pysave
-PATH="/Library/Frameworks/Python.framework/Versions/3.6/bin:${PATH}"
-export PATH
 eval "$(rbenv init -)"
 
 # MacPorts Installer addition on 2017-11-06_at_23:05:02: adding an appropriate PATH variable for use with MacPorts.
@@ -31,9 +26,6 @@ export PATH="$HOME/.rbenv/bin:$PATH"
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
     . $(brew --prefix)/etc/bash_completion
 fi
-
-# ls color ←見いにくいので消した
-# alias ls='ls -color=auto'
 
 # show git branch
 # https://github.com/git/git/blob/master/contrib/completion/git-prompt.sh
