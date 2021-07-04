@@ -24,6 +24,7 @@
 [commit]
 	template = ~/.gitmessage
 [alias]
+	br = branch
 	co = checkout
 	cp = cherry-pick
 	st = status
