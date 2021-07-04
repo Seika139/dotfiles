@@ -3,3 +3,16 @@ alias name="exec" : nameという名前でexecをエイリアスに設定する
 unalias name      : nameで登録されたaliasを解除する
 
 aliasとunaliasは、ターミナルの画面を閉じる、ログアウト、コンピュータのシャットダウンでリセットされる。
+
+---
+
+complete [オプション] [name]
+
+nameは基本的にコマンドやファイル名を設定する。
+シェルでnameを入力した後にTabを入力するとcompleteコマンドで設定した補完が表示される。
+
+complete            : completeの一覧を表示
+complete | grep git : completeの一覧からgitを含むものを抽出
+complete -r name    : nameのcompleteを削除する
+
+* SEE : https://linuxcommand.net/complete/
