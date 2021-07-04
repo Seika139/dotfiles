@@ -74,6 +74,10 @@ function hlp_find() {
     less ${DOTFILES_ROOT}/docs/linux/find.txt
 }
 
+function hlp_wc() {
+    less ${DOTFILES_ROOT}/docs/linux/wc.txt
+}
+
 function hlp_curl() {
     open https://github.com/Seika139/library/blob/master/curl/index.md
 }
