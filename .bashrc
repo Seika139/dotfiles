@@ -66,8 +66,12 @@ function hlp() {
     less ${DOTFILES_ROOT}/docs/home.txt
 }
 
-function hlp_less() {
-    less ${DOTFILES_ROOT}/docs/linux/less.txt
+function hlp_alias() {
+    less ${DOTFILES_ROOT}/docs/linux/alias.txt
+}
+
+function hlp_curl() {
+    open https://github.com/Seika139/library/blob/master/curl/index.md
 }
 
 function hlp_cursor() {
@@ -78,12 +82,12 @@ function hlp_find() {
     less ${DOTFILES_ROOT}/docs/linux/find.txt
 }
 
-function hlp_wc() {
-    less ${DOTFILES_ROOT}/docs/linux/wc.txt
+function hlp_less() {
+    less ${DOTFILES_ROOT}/docs/linux/less.txt
 }
 
-function hlp_curl() {
-    open https://github.com/Seika139/library/blob/master/curl/index.md
+function hlp_wc() {
+    less ${DOTFILES_ROOT}/docs/linux/wc.txt
 }
 
 #----------------------------------------------------------
