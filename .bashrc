@@ -139,6 +139,13 @@ alias gd='git diff'
 alias gr='git remote'
 alias grp='git remote prune origin'
 
-function hlp_less() {
+# 新しく作ったブランチをプッシュするのがめんどい時のコマンド
+function gp_set() {
+    branch_name=$(git symbolic-ref --short HEAD)
+    git push --set-upstream origin $branch_name
+    unset branch_name
+}
+
+function hlp_git() {
     less ${DOTFILES_ROOT}/docs/git.txt
 }
