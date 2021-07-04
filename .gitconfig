@@ -6,6 +6,7 @@
 [core]
 	excludesfile = ~/.gitignore_global
 	pager = less -R
+	quotepath = false # git statusなどで日本語ファイル名をエンコードせずに表示してくれる
 [init]
 	defaultBranch = main
 [include]
