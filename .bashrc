@@ -35,9 +35,9 @@ alias ls='ls -GF'
 # SEE: https://qiita.com/yudoufu/items/48cb6fb71e5b498b2532
 
 if [ -L $BASH_SOURCE ]; then
-    export DOTFILES_ROOT=$(dirname $(readlink $BASH_SOURCE))
+    DOTFILES_ROOT=$(dirname $(readlink $BASH_SOURCE))
 else
-    export DOTFILES_ROOT=$(dirname $BASH_SOURCE)
+    DOTFILES_ROOT=$(dirname $BASH_SOURCE)
 fi
 
 #----------------------------------------------------------
@@ -147,5 +147,5 @@ function gp_set() {
 }
 
 function hlp_git() {
-    less ${DOTFILES_ROOT}/docs/git.txt
+    less_color ${DOTFILES_ROOT}/docs/git.txt
 }
