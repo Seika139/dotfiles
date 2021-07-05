@@ -48,7 +48,9 @@ fi
 function cat_file() {
     if [ -f $1 ]; then
         while IFS= read -r line; do
-            echo -e $line
+            # echo はダブルクォートで囲わないと連続するスペースが1つになってしまう
+            # See : https://maku77.github.io/linux/io/echo-spaces.html
+            echo -e "$line"
         done <$1
     else
         echo "No file exists with name of $1"
