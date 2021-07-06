@@ -35,3 +35,5 @@
 	st = status
 	ts = status
 	ss = stash
+	pl = pull
+	ps = push
