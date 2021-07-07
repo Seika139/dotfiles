@@ -65,7 +65,17 @@ function less_color() {
 
 # 自作helpのトップ
 function hlp() {
-    less ${DOTFILES_ROOT}/docs/home.txt
+    # TODO
+    # case分岐で hlp option 風に実行したい
+    # だが、タブ補完も実装したくなるので一旦保留
+    case $1 in
+    "alias")
+        hlp_alias
+        ;;
+    *)
+        less ${DOTFILES_ROOT}/docs/home.txt
+        ;;
+    esac
 }
 
 function hlp_alias() {
