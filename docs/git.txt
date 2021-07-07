@@ -19,8 +19,13 @@ glr : グラフ表示
 gll : ファイルごとの追加・削除行数を表示
 -- "*.vue" : vueファイルの変更があるコミットのみを対象にする
 
-\x1b[92mgit stash (save)\x1b[m        : 変更をスタッシュにプッシュする
-list                    : 退避した作業の一覧を見る
+\x1b[92mgit stash (save)\x1b[m        : 変更をスタッシュにプッシュする。ステージされていない新規ファイル(未追跡ファイルはスタッシュされない)
+save -u                 : untrackファイル(未追跡ファイル)も含めてスタッシュ
+save -k / --keep-index  : スタッシュしてもステージの状態はそのままにする
+save "message"          : メッセージをつけてスタッシュする
+list \x1b[92m>> gsl\x1b[m             : 退避した作業の一覧を見る
+show stash@{N}          : N番目にスタッシュしたファイルの一覧を表示
+stash show -p stash@{N} : N番目にスタッシュしたファイルの変更差分を表示
 apply stash@{N}         : stash@{N}の作業をもとに戻す
 apply stash@{N} --index : stageして退避した作業はstageされたまま戻る
 drop stash@{N}          : stash@{N}の作業を消す stash@{N}を省略するとスタッシュの一番上を削除する

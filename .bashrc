@@ -141,6 +141,8 @@ alias gd='git diff'
 alias gr='git remote'
 alias grp='git remote prune origin'
 
+alias gsl='git stash list'
+
 # 新しく作ったブランチをプッシュするのがめんどい時のコマンド
 function gp_set() {
     branch_name=$(git symbolic-ref --short HEAD)
