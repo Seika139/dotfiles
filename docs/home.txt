@@ -7,9 +7,12 @@ code ~/.bashrc : bashrcをVS Codeで開く
 hlp_XXX : コマンドのチートシートが見られます
 
 [linux系]
-hlp_cursor : コマンドラインでのカーソル移動に関する help
-hlp_less   : lessコマンド
-hlp_find   : findコマンド
-hlp_curl   : curlコマンド(GitHubに飛びます)
+hlp_alias   : alias関連
+hlp_curl    : curlコマンド(GitHubに飛びます)
+hlp_cursor  : コマンドラインでのカーソル移動に関する help
+hlp_find    : findコマンド
+hlp_history : コマンドの履歴
+hlp_less    : lessコマンド
+hlp_wc      : wcコマンド
 
-gh    : git に関する help
+hlp_git     : git に関する help

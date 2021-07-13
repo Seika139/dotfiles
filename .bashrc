@@ -84,6 +84,10 @@ function hlp_find() {
     less ${DOTFILES_ROOT}/docs/linux/find.txt
 }
 
+function hlp_history() {
+    less ${DOTFILES_ROOT}/docs/linux/history.txt
+}
+
 function hlp_less() {
     less ${DOTFILES_ROOT}/docs/linux/less.txt
 }
