@@ -7,6 +7,10 @@ history : 実行したコマンドの履歴を表示する
 !?STR?  : STRを含む最新コマンドを実行する
 !STR:p  : STRから始まる最新コマンドをecho表示する(実行はしない)
 
+もっと詳しい使い方は以下のリンクを参照
+- https://orebibou.com/ja/home/201606/20160630_001/
+- https://mseeeen.msen.jp/bash-history-expansion/
+
 ctrl + R  : historyの検索をする
   - enter : 実行する
   - esc   : 検索を終了する
