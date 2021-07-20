@@ -22,6 +22,7 @@ export LESS="-g -i -M -R -S -W"
 
 # lsにデフォで色をつける
 alias ls='ls -GF'
+alias ll="ls -al"
 
 #-------------------------------------
 # 0. DOTFILES_ROOT
@@ -166,6 +167,6 @@ function hlp_git() {
 
 export HISTCONTROL=ignoreboth
 # ignorespace(空白文字で始まる行を保存しない) と ignoredups(ひとつ前の履歴エントリと一致する行を保存しない) の両方
-export HISTSIZE=5000                                             # historyの履歴を増やす
-export HISTTIMEFORMAT='%F %T '                                   # 日時を前に追加
-export HISTIGNORE='history:pwd:cd *:ls:ls *:ll:w:top:df *:hlp_*' # 保存しないコマンド
+export HISTSIZE=5000                                        # historyの履歴を増やす
+export HISTTIMEFORMAT='%F %T '                              # 日時を前に追加
+export HISTIGNORE='history:pwd:cd *:ls:ll:w:top:df *:hlp_*' # 保存しないコマンド
