@@ -5,7 +5,8 @@ gitignore.ioで.gitignoreをお手軽に作成する
 
 \x1b[92mgit diff >> gd\x1b[m
 --cached : addしたあとで差分を確認
---stat   : ファイルの変更量を確認
+--stat   : 変更量をファイル単位で確認
+--stat=N : 表示するファイル名をN文字までにする。長い場合は省略する。デフォルトは80文字
 -w       : 改行コードや空白を無視
 
 \x1b[92mgit remote >> gr\x1b[m
