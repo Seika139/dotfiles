@@ -32,6 +32,7 @@
 [alias]
 	br = branch
 	co = checkout
+	cm = commit
 	cp = cherry-pick
 	st = status
 	ts = status
