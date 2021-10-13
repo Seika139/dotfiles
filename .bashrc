@@ -152,7 +152,7 @@ alias grp='git remote prune origin'
 alias gsl='git stash list'
 
 # 新しく作ったブランチをプッシュするのがめんどい時のコマンド
-function gp_set() {
+function gpsu() {
     branch_name=$(git symbolic-ref --short HEAD)
     git push --set-upstream origin $branch_name
     unset branch_name
