@@ -7,5 +7,5 @@ ideas/
 stashes/
 
 # 環境ごとに内容を変える為のフォルダ
-private/*
-!private/.gitkeep
+**/private/*
+!**/private/.gitkeep
