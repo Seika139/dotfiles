@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+export DOTPATH="${HOME}/dotfiles"
+export BDOTDIR="${DOTPATH}/bash"
+
+source "${BDOTDIR}/.bash_profile"

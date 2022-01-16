@@ -2,27 +2,37 @@
 
 # とりあえずのインストーラ
 
+#-------------------------------------
+# 1. link files
+#-------------------------------------
+
 # NOTE: 必ずホームディレクトリにクローンするものとする
 ROOT="${HOME}/dotfiles"
 if [ ! -e $ROOT ]; then
+    echo "No such directory ${ROOT}"
     exit 1
 fi
 
 # シンボリックリンクを貼る
-ln -sfv "${ROOT}/.bash_profile" ~/
-ln -sfv "${ROOT}/.bashrc" ~/
-ln -sfv "${ROOT}/.gitconfig" ~/
-ln -sfv "${ROOT}/.gitignore_global" ~/
-ln -sfv "${ROOT}/.gitmessage" ~/
+files_to_link=(
+    ".bashrc"
+    ".gitconfig"
+    ".gitignore_global"
+    ".gitmessage"
+)
+for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
+    ln -sfv "${ROOT}/${file}" ~/
+    # ln コマンドのオプション
+    # -s : シンボリックリンク(無いとハードリンクになる)
+    # -i : 別名となるパス名が存在する時は確認する
+    # -f : 別名となるパス名が存在する時も強制実行する
+    # -v : 詳細を表示
+done
 
-# ln コマンドのオプション
-# -s : シンボリックリンク(無いとハードリンクになる)
-# -i : 別名となるパス名が存在する時は確認する
-# -f : 別名となるパス名が存在する時も強制実行する
-# -v : 詳細を表示
+unset files_to_link file
 
 #-------------------------------------
-# 1. .gituser
+# 2. .gituser
 #-------------------------------------
 
 # 無い場合は作成する
@@ -43,3 +53,39 @@ fi
 # シンボリックリンクを貼る
 ln -sfv $file ~/
 unset file
+
+#-------------------------------------
+# 3. finish install
+#-------------------------------------
+
+# シンボリックリンクを貼り終わったのでシェルを読み込む
+
+source "${HOME}/.bashenv"
+
+#-------------------------------------
+# 11. homwbrew
+#-------------------------------------
+
+if is_osx && ! executable brew; then
+    # home brew をインストールする
+    info "homebrew をインストールします"
+    notice "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
+    url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    if [[ $(curl ${url} -o /dev/null -w '%{http_code}\n' -s) = "200" ]]; then
+        /bin/bash -c "$(curl -fsSL ${url})" # 書き換える必要性が起こりうるコマンド
+    else
+        warn "次のURLが存在しませんでした。${url}"
+        warn "https://brew.sh/index_ja を見て最新のコマンドに書き換えてください"
+    fi
+fi
+
+if executable brew; then
+    brew upgrade # homwbrew および homoebrewで管理しているパッケージをアップデートする
+
+    # TODO : brewfile をもとに brew install したい
+    # ref : https://tech.gootablog.com/article/homebrew-brewfile/
+
+    # とりあえず必要なやつだけインストールする
+    brew install "bash-completion"
+    brew install "git"
+fi
