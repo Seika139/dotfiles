@@ -5,3 +5,7 @@ ideas/
 
 # もとのファイル退避用フォルダ
 stashes/
+
+# 環境ごとに内容を変える為のフォルダ
+private/*
+!private/.gitkeep
