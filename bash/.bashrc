@@ -23,7 +23,7 @@ DIRS=(
 for dir in ${DIRS[@]}; do
     # .gitkeep を除くファイルが存在する時にそれらを読み込む
     if [[ $(find "${dir}" -type f | grep -v ".gitkeep" | wc -l) -gt 0 ]]; then
-        for bashrc in "${dir}/*"; do
+        for bashrc in ${dir}/*; do
             # echo "loading ${bashrc}"
             source ${bashrc}
         done
