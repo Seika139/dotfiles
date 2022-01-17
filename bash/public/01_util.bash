@@ -39,7 +39,6 @@ function orange() {
     echo -e "\033[38;2;250;180;100m$@\033[0m"
 }
 
-
 # 02 : logging
 
 function now() {
@@ -48,19 +47,19 @@ function now() {
 
 function log() {
     if [[ $1 = "" ]]; then
-        error "Argument Error: too few argument"
+        error "Argument Error: too few arguments"
         error "Usage: log LOGLEVEL message"
         return 1
     fi
     case $1 in
-        debug|info|notice|warn|error)
-            local label=$1
-            shift
+    debug | info | notice | warn | error)
+        local label=$1
+        shift
         ;;
-        *)
-            error "Argument Error: unknown LOGLEVEL $1"
-            error "Usage: log LOGLEVEL message"
-            return 1
+    *)
+        error "Argument Error: unknown LOGLEVEL $1"
+        error "Usage: log LOGLEVEL message"
+        return 1
         ;;
     esac
     echo "$(now) [${label:u}]: $@"
@@ -92,19 +91,18 @@ function error() {
     red $(log error $@) 1>&2
 }
 
-
 # 03 : OS distinction
 # ref : https://www.trhrkmk.com/posts/bashrc-os-check/
 
 function os() {
     case ${OSTYPE} in
-        solaris*) echo "SOLARIS" ;;
-        darwin*) echo "OSX" ;;
-        linux*) echo "LINUX" ;;
-        bsd*) echo "BSD" ;;
-        cygwin*) echo "CYGWIN" ;; # POSIX compatibility layer and Linux environment emulation for Windows
-        msys*) echo "MSYS" ;; # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-        *) error "unknown" && return 1 ;;
+    solaris*) echo "SOLARIS" ;;
+    darwin*) echo "OSX" ;;
+    linux*) echo "LINUX" ;;
+    bsd*) echo "BSD" ;;
+    cygwin*) echo "CYGWIN" ;; # POSIX compatibility layer and Linux environment emulation for Windows
+    msys*) echo "MSYS" ;;     # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+    *) error "unknown" && return 1 ;;
     esac
 }
 
@@ -116,7 +114,6 @@ function is_msys() {
     [[ $(os) = "MSYS" ]]
 }
 
-
 # 04 : executable
 # コマンドが実行可能なら 0 を、そうでなければ 1 を返す
 
@@ -125,10 +122,10 @@ function is_msys() {
 
 function executable() {
     if [[ $1 = "" ]]; then
-        error "too few argument"
+        error "too few arguments"
         return 1
     fi
-    type $1>/dev/null 2>&1
+    type $1 >/dev/null 2>&1
 }
 
 # 05 : add path
@@ -136,7 +133,7 @@ function executable() {
 
 function add_path() {
     if [[ $1 = "" ]]; then
-        error "too few argument"
+        error "too few arguments"
         return 1
     fi
     export PATH="$1:${PATH}"
