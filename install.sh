@@ -21,19 +21,17 @@ files_to_link=(
     ".gitmessage"
 )
 
-echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。古いものは消えてしまうので注意してください"
+echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。"
 echo -e "${files_to_link[@]}\033[0m"
 echo ""
 
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
-    ln -siv "${ROOT}/${file}" "${HOME}"
+    ln -sf "${ROOT}/${file}" "${HOME}"
     # ln コマンドのオプション
     # -s : シンボリックリンク(無いとハードリンクになる)
     # -i : 別名となるパス名が存在する時は確認する
     # -f : 別名となるパス名が存在する時も強制実行する
     # -v : 詳細を表示
-
-    # TODO : diff コマンドで差分表示したい
 done
 
 unset files_to_link file
@@ -76,7 +74,7 @@ EOF
 fi
 
 # シンボリックリンクを貼る
-ln -siv "${file}" "${HOME}"
+ln -sf "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
