@@ -15,10 +15,21 @@ EOS
 # 上で使ってる太線は http://bubuzuke.s7.xrea.com/ISO10646/ruled.html で手に入れた
 
 # それぞれのファイルで定義した設定を読み込む
-for bashrc in ${BDOTDIR}/public/* ${BDOTDIR}/private/*; do
-    # echo "loading ${bashrc}" いちいちうるさいので消した
-    source ${bashrc}
+DIRS=(
+    "${BDOTDIR}/public"
+    "${BDOTDIR}/private"
+)
+
+for dir in ${DIRS[@]}; do
+    # .gitkeep を除くファイルが存在する時にそれらを読み込む
+    if [[ $(find "${dir}" -type f | grep -v ".gitkeep" | wc -l) -gt 0 ]]; then
+        for bashrc in "${dir}/*"; do
+            # echo "loading ${bashrc}"
+            source ${bashrc}
+        done
+    fi
 done
+unset DIRS dir bashrc
 
 cat <<EOS
 
