@@ -21,7 +21,7 @@ files_to_link=(
     ".gitmessage"
 )
 
-echo -e "\033[00;33m以下のファイルのシンボリックリンクを作成します。古いものは消えてしまうので注意してください"
+echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。古いものは消えてしまうので注意してください"
 echo -e "${files_to_link[@]}\033[0m"
 echo ""
 
@@ -105,9 +105,7 @@ if is_osx && ! executable brew; then
 fi
 
 if executable brew; then
-    yellow "brew upgrade を行いますか？時間がかかる場合があります [y/N]: "
-    read ANS
-
+    read -p "$(yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
     case $ANS in
     [Yy]*)
         brew upgrade # homwbrew および homoebrewで管理しているパッケージをアップデートする
