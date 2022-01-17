@@ -16,7 +16,7 @@ EOS
 
 # それぞれのファイルで定義した設定を読み込む
 for bashrc in ${BDOTDIR}/public/* ${BDOTDIR}/private/*; do
-    echo "loading ${bashrc}"
+    # echo "loading ${bashrc}" いちいちうるさいので消した
     source ${bashrc}
 done
 

@@ -1,1 +1,1 @@
-/Users/suzukikenichi/dotfiles/bash/.bashenv
+bash/.bashenv
