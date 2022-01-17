@@ -26,7 +26,7 @@ echo -e "${files_to_link[@]}\033[0m"
 echo ""
 
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
-    ln -sf "${ROOT}/${file}" "${HOME}"
+    ln -sfv "${ROOT}/${file}" "${HOME}"
     # ln コマンドのオプション
     # -s : シンボリックリンク(無いとハードリンクになる)
     # -i : 別名となるパス名が存在する時は確認する
@@ -74,7 +74,7 @@ EOF
 fi
 
 # シンボリックリンクを貼る
-ln -sf "${file}" "${HOME}"
+ln -sfv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
