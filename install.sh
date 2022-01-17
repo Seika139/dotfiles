@@ -6,32 +6,6 @@
 # 1. link files
 #-------------------------------------
 
-function ln_safe() {
-    if [[ $1 = "" || $2 = "" ]]; then
-        # $1 のシンボリックリンクを $2 に貼る
-        echo -e "\033[00;31m[Error] ln_safe requires 2 arguments\033[0m"
-        return 1
-    elif [[ ! -e $1 ]]; then
-        echo -e "\033[00;31m[Error] $1 does not exists\033[0m"
-        return 1
-    fi
-    # ファイルのシンボリックリンクの場合は差分を表示して確認を取る
-    if [[ -e $2 && -f $2 && $(diff $1 $2) ]]; then
-        echo -e "\033[00;33m"
-        diff $1 $2
-        echo -e "\033[0m"
-        ln -siv $1 $2
-    else
-        ln -sfv $1 $2
-
-        # ln コマンドのオプション
-        # -s : シンボリックリンク(無いとハードリンクになる)
-        # -i : 別名となるパス名が存在する時は確認する
-        # -f : 別名となるパス名が存在する時も強制実行する
-        # -v : 詳細を表示
-    fi
-}
-
 # NOTE: 必ずホームディレクトリにクローンするものとする
 ROOT="${HOME}/dotfiles"
 if [ ! -e $ROOT ]; then
@@ -52,15 +26,14 @@ echo -e "${files_to_link[@]}\033[0m"
 echo ""
 
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
+    ln -siv "${ROOT}/${file}" "${HOME}"
+    # ln コマンドのオプション
+    # -s : シンボリックリンク(無いとハードリンクになる)
+    # -i : 別名となるパス名が存在する時は確認する
+    # -f : 別名となるパス名が存在する時も強制実行する
+    # -v : 詳細を表示
 
-    ln_safe "${ROOT}/${file}" "${HOME}"
-    # ファイルに差分がある時だけ確認を取る
-    # if [[ -e "${HOME}/${file}" && -f "${HOME}/${file}" && $(diff "${ROOT}/${file}" "${HOME}/${file}") ]]; then
-    #     diff "${ROOT}/${file}" "${HOME}/${file}"
-    #     ln -siv "${ROOT}/${file}" "${HOME}"
-    # else
-    #     ln -sfv "${ROOT}/${file}" "${HOME}"
-    # fi
+    # TODO : diff コマンドで差分表示したい
 done
 
 unset files_to_link file
@@ -103,7 +76,7 @@ EOF
 fi
 
 # シンボリックリンクを貼る
-ln_safe "${file}" "${HOME}"
+ln -siv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
