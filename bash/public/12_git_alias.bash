@@ -42,6 +42,11 @@ function gpsu() {
     unset branch_name
 }
 
+# .gitmessageを表示する
+function gmsg() {
+    less_color ${DOTPATH}/.gitmessage
+}
+
 function hlp_git() {
     less_color ${DOTPATH}/docs/git.txt
 }
