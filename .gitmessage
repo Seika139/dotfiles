@@ -4,36 +4,52 @@
 #
 # See : https://gitmoji.dev/
 #
-# 追加・作成系
-# 🎉  :tada:                      プロジェクトの開始
-# ✨  :sparkles:                  新機能の追加
+# 追加・作成
+# 🎉  :tada:                      プロジェクトの開始 / 祝福すべき大きな機能追加
+# ✨  :sparkles:                  新機能の追加・改善
 # 🚀  :rocket:                    デプロイ
 #
-# 作業中系
-# 🚧  :construction:              Work in progress(作業中)
+# 作業中
+# 🚧  :construction:              Work In Progress(作業中)
 # 💩  :poop:                      修正すべきコード
 #
-# 移動・削除系
+# 移動・削除
 # 🔥  :fire:                      コードやファイルの削除
 # 🚚  :truck:                     ファイルの移動やリネーム
 #
-# 修正系
+# 修正
 # ♻️  :recycle:                   リファクタリング
 # 🐛  :bug:                       バグ修正
 # 🚑  :ambulance:                 HOTFIX(緊急修正)
 # ✏️   :pencil2:                   タイポ修正
-# 💚  :green_heart:               CI ビルドの修正
 # 🚨  :rotating_light:            コンパイラ、リンターのエラーを解消
 #
 # メインコード以外の変更
-# 🍱  :bento:                     アセットの追加やアップグレード
+# 💡  :bulb:                      ソースコードのコメントを追加・更新
 # 📝  :memo:                      ドキュメントの追加・更新
+# 💬  :speech_balloon:            テキストやリテラルを追加・更新
 # 💄  :lipstick:                  UIやスタイルシートの改善
-# ✅  :white_check_mark:          テストの追加・更新
+# 🍱  :bento:                     アセットの追加や更新
 # 🔒  :lock:                      セキュリティの改善
 # 🔧  :wrench:                    設定ファイルの変更
 #
+# データベース
+# 🗃️  :card_file_box:             データベース関連の変更
+# 🌱  :seeding:                   シードファイルを追加・更新
+#
+# テスト
+# ✅  :white_check_mark:          テストの追加・更新
+#
+# ログ
+# 🔊  :loud_sound:                ログの追加・更新
+# 🔇  :mute:                      ログの削除
+#
+# CI/CD
+# 👷  :construction_worker:       CI ビルドの追加・更新
+# 💚  :green_heart:               CI ビルドの修正
+#
 # git関連
+# 🙈  :see_no_evil:               .gitignore の追加・更新
 # 🔀  :twisted_rightwards_arrows: ブランチのマージ
 # ⏪️  :rewind:                    変更を戻す
 
@@ -52,4 +68,3 @@
 # 7. Use the body to explain what and why vs. how
 #
 # How to Write a Git Commit Message http://chris.beams.io/posts/git-commit/
-
