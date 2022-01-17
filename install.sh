@@ -32,6 +32,8 @@ for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
     # -i : 別名となるパス名が存在する時は確認する
     # -f : 別名となるパス名が存在する時も強制実行する
     # -v : 詳細を表示
+
+    # TODO : diff コマンドで差分表示したい
 done
 
 unset files_to_link file
