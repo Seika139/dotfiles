@@ -39,22 +39,40 @@ done
 unset files_to_link file
 
 #-------------------------------------
-# 2. .gituser
+# 2. .gitconfig.local
 #-------------------------------------
 
 # 無い場合は作成する
-file="${ROOT}/.gituser"
+file="${ROOT}/.gitconfig.local"
 if [ ! -e $file ]; then
-    echo ".gituser を作成してください"
-    read -p "git name = " name
-    read -p "git email = " email
-    cat <<GITUSER >$file
-[user]
-	name = ${name}
-	email = ${email}
+    echo ".gitconfig.local を作成します"
+    read -p "git config user.name = " NAME
+    read -p "git config user.email = " EMAIL
+    DEFAULT_CORE_EXCLUDES_FILE="~/.gitignore_global"
+    read -p "git config core.excludesfile = [${DEFAULT_CORE_EXCLUDES_FILE}]" CORE_EXCLUDES_FILE
+    DEFAULT_SOURCETREE_CMD='~/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"'
+    read -p "git config mergetool.sourcetree.cmd = [${DEFAULT_SOURCETREE_CMD}]" SOURCETREE_CMD
 
-GITUSER
-    unset name email
+    # gitコマンドで確認・追加するときは次のようにやる
+    #
+    # git congfig [key] : 確認 / --list で一覧表示
+    #
+    # git congfig [key] [設定内容] : 新たにその値に設定する
+    #   --global で HOME ディレクトリ下の .gitconfig に書き込む
+    #   --file [PATH] で PATH の示すファイルに設定に書き込む
+
+    cat <<EOF >${file}
+[user]
+	name = ${NAME}
+	email = ${EMAIL}
+
+[core]
+	excludesfile = ${CORE_EXCLUDES_FILE:-${DEFAULT_CORE_EXCLUDES_FILE}}
+
+[mergetool "sourcetree"]
+	cmd = ${SOURCETREE_CMD:-${DEFAULT_SOURCETREE_CMD}}
+EOF
+    unset NAME EMAIL DEFAULT_CORE_EXCLUDES_FILE CORE_EXCLUDES_FILE DEFAULT_SOURCETREE_CMD SOURCETREE_CMD
 fi
 
 # シンボリックリンクを貼る
@@ -67,7 +85,7 @@ unset file
 
 # シンボリックリンクを貼り終わったのでシェルを読み込む
 
-source "${HOME}/.bash_profile"
+source "${HOME}/.bash_profile" >/dev/null
 
 #-------------------------------------
 # 11. homwbrew
@@ -75,8 +93,8 @@ source "${HOME}/.bash_profile"
 
 if is_osx && ! executable brew; then
     # home brew をインストールする
-    info "homebrew をインストールします"
-    notice "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
+    yellow "homebrew をインストールします"
+    yellow "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
     url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
     if [[ $(curl ${url} -o /dev/null -w '%{http_code}\n' -s) = "200" ]]; then
         /bin/bash -c "$(curl -fsSL ${url})" # 書き換える必要性が起こりうるコマンド
