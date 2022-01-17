@@ -1,0 +1,1 @@
+/Users/suzukikenichi/dotfiles/bash/.bashenv

@@ -15,13 +15,19 @@ fi
 
 # シンボリックリンクを貼る
 files_to_link=(
-    ".bashrc"
+    ".bash_profile"
     ".gitconfig"
     ".gitignore_global"
     ".gitmessage"
 )
+
+echo -e "\033[00;33m以下のファイルのシンボリックリンクを作成します。\033[0m"
+echo -e "\033[00;33m${files_to_link[@]}\033[0m"
+echo -e "\033[00;33m古いものは消えてしまうので注意してください\033[0m"
+echo ""
+
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
-    ln -sfv "${ROOT}/${file}" ~/
+    ln -siv "${ROOT}/${file}" "${HOME}"
     # ln コマンドのオプション
     # -s : シンボリックリンク(無いとハードリンクになる)
     # -i : 別名となるパス名が存在する時は確認する
@@ -51,7 +57,7 @@ GITUSER
 fi
 
 # シンボリックリンクを貼る
-ln -sfv $file ~/
+ln -siv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
@@ -60,7 +66,7 @@ unset file
 
 # シンボリックリンクを貼り終わったのでシェルを読み込む
 
-source "${HOME}/.bashenv"
+source "${HOME}/.bash_profile"
 
 #-------------------------------------
 # 11. homwbrew
@@ -80,12 +86,20 @@ if is_osx && ! executable brew; then
 fi
 
 if executable brew; then
-    brew upgrade # homwbrew および homoebrewで管理しているパッケージをアップデートする
+    yellow "brew upgrade を行いますか？時間がかかる場合があります [y/N]: "
+    read ANS
 
-    # TODO : brewfile をもとに brew install したい
-    # ref : https://tech.gootablog.com/article/homebrew-brewfile/
+    case $ANS in
+    [Yy]*)
+        brew upgrade # homwbrew および homoebrewで管理しているパッケージをアップデートする
 
-    # とりあえず必要なやつだけインストールする
-    brew install "bash-completion"
-    brew install "git"
+        # TODO : brewfile をもとに brew install したい
+        # ref : https://tech.gootablog.com/article/homebrew-brewfile/
+
+        # とりあえず必要なやつだけインストールする
+        brew install "bash-completion" && brew upgrade "bash-completion"
+        brew install "git" && brew upgrade "git"
+        ;;
+    esac
+    unset ANS
 fi
