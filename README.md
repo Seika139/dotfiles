@@ -12,6 +12,18 @@ source install.sh
 source uninstall.sh
 ```
 
+## Change `__git_ps1`
+
+Windows の GitBash が `__git_ps1` を読み込むのに時間をかけているので、ブランチ名だけを表示する簡易的な `__git_ps1` を作成した。
+これにより、デフォルトでは Windows の GitBash では git によるファイル差分が表示されなくなっている。
+
+以下のコマンドで表示を切り替えることができる。
+
+```bash
+lighten_ps1 # 軽くする(gitによるファイル差分を表示しない)
+normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
+```
+
 ## dotfiles とは
 
 ホームディレクトリに置いてあるドット(.)から始まる設定ファイル(.bashrc とか)を管理しているリポジトリのこと。
@@ -35,3 +47,6 @@ source uninstall.sh
 ## TODO
 
 - ライセンスを追加したい
+- zsh
+  <!-- TODO bash_profile や bashrc を環境(PC)ごとに変えられるようにする -->
+  <!-- TODO 勝手なpushを抑制する -->
