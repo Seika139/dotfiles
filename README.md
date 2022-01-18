@@ -1,5 +1,17 @@
 # dotfiles
 
+## install
+
+```bash
+bash install.sh
+```
+
+## uninstall
+
+```bash
+source uninstall.sh
+```
+
 ## dotfiles とは
 
 ホームディレクトリに置いてあるドット(.)から始まる設定ファイル(.bashrc とか)を管理しているリポジトリのこと。

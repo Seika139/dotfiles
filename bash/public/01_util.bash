@@ -148,6 +148,7 @@ function add_path() {
 
 # 06 : absolute_path
 # 任意のファイルの絶対パスを取得する
+# ref : https://maku77.github.io/linux/path/absolute-path-of-file.html
 
 function abs_path() {
     if [[ $1 = "" ]]; then
