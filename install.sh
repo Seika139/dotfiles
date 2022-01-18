@@ -25,6 +25,13 @@ echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成
 echo -e "${files_to_link[@]}\033[0m"
 echo ""
 
+# Windows の Git Bash でシンボリックリンクを作成するには一手間かかる
+# ref : https://onl.la/wFBsfCN
+# ref : https://qiita.com/ucho/items/c5ea0beb8acf2f1e4772
+if [[ "${OSTYPE}" == msys* ]]; then
+    export MSYS=winsymlinks:nativestrict
+fi
+
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
     ln -sfv "${ROOT}/${file}" "${HOME}"
     # ln コマンドのオプション
