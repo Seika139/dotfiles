@@ -11,6 +11,7 @@ TIME='\[\e[95m\]\t'
 DIR='\[\e[96m\]\w\[\e[49m\]'
 if executable __git_ps1; then
     GIT='\[\e[1;32m\]`__git_ps1 "(%s)"`'
+    # MEMO : $(__git_ps1 "(%s)") とすると win の GitBash でエラーになった
 else
     GIT=""
     warn "__git_ps1 がありません。git-prompt.shが読み込まれていないようです。"
