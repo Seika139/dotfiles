@@ -11,7 +11,7 @@
 USER='\[\e[40;92m\]\u@\h'
 TIME='\[\e[95m\]\t'
 DIR='\[\e[96m\]\w\[\e[49m\]'
-GIT='\[\e[1;32m\]$(__git_ps1 "(%s)")'
+GIT="\[\e[1;32m\]$(__git_ps1 '(%s)')"
 LAST='\[\e[0m\]\n\$ '
 export PS1="${USER} ${TIME} ${DIR} ${GIT} ${LAST}"
 unset USER TIME DIR GIT LAST
