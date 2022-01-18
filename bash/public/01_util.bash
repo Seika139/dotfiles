@@ -145,3 +145,19 @@ function add_path() {
     fi
     export PATH="$1:${PATH}"
 }
+
+# 06 : absolute_path
+# 任意のファイルの絶対パスを取得する
+
+function abs_path() {
+    if [[ $1 = "" ]]; then
+        error "too few arguments"
+        return 1
+    elif [[ ! -e $1 ]]; then
+        warn "abs_path: $1 : No such file or directory"
+    fi
+    echo $(
+        cd $(dirname $1)
+        pwd
+    )/$(basename $1)
+}
