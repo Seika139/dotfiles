@@ -30,6 +30,13 @@ echo ""
 # ref : https://qiita.com/ucho/items/c5ea0beb8acf2f1e4772
 if [[ "${OSTYPE}" == msys* ]]; then
     export MSYS=winsymlinks:nativestrict
+
+    # .bash_profile のシンボリックリンクも貼り直す必要がある
+    CURRENT_DIR=$(pwd)
+    cd "${ROOT}"
+    ln -sf "bash/.bashenv" ".bash_profile"
+    cd "${CURRENT_DIR}"
+    unset CURRENT_DIR
 fi
 
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
