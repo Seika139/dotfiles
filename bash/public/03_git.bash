@@ -17,7 +17,7 @@ if executable brew; then
     done
     unset file full_path
 elif is_msys; then
-    full_path= "/c/Program\ Files/Git/etc/profile.d/git-prompt.sh"
+    full_path= "/c/Program Files/Git/etc/profile.d/git-prompt.sh"
     if [ ! -e ${full_path} ]; then
         warn "${full_path} が存在しません(違う場所にある可能性もあります)"
     fi
