@@ -3,7 +3,7 @@
 ## install
 
 ```bash
-bash install.sh
+source install.sh
 ```
 
 ## uninstall
