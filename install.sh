@@ -15,6 +15,7 @@ fi
 
 # シンボリックリンクを貼る
 files_to_link=(
+    ".bash_logout"
     ".bash_profile"
     ".gitconfig"
     ".gitignore_global"
