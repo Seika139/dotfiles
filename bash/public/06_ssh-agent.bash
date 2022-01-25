@@ -12,9 +12,8 @@ SSHAGENT=/usr/bin/ssh-agent
 SSHAGENTARGS="-s"
 
 function start_agent {
-    echo -n $(yellow "新しい SSH Agent をインストールします... ")
+    yellow '新しい SSH Agent をインストールします'
     ${SSHAGENT} | sed 's/^echo/#echo/' >"${SSH_ENV}"
-    yellow 'Succeeded !'
     chmod 600 "${SSH_ENV}"
     . "${SSH_ENV}" >/dev/null
     ssh-add # 秘密鍵のパスフレーズを入力させる
