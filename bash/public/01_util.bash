@@ -4,39 +4,84 @@
 # ref: https://qiita.com/ko1nksm/items/095bdb8f0eca6d327233#256%E8%89%B2
 
 function black() {
-    echo -e "\033[00;30m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;30m$@\033[0m"
+    else
+        echo -e "\033[00;30m$@\033[0m"
+    fi
 }
 
 function red() {
-    echo -e "\033[00;31m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;31m$@\033[0m"
+    else
+        echo -e "\033[00;31m$@\033[0m"
+    fi
 }
 
 function green() {
-    echo -e "\033[00;32m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;32m$@\033[0m"
+    else
+        echo -e "\033[00;32m$@\033[0m"
+    fi
 }
 
 function yellow() {
-    echo -e "\033[00;33m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;33m$@\033[0m"
+    else
+        echo -e "\033[00;33m$@\033[0m"
+    fi
 }
 
 function blue() {
-    echo -e "\033[00;34m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;34m$@\033[0m"
+    else
+        echo -e "\033[00;34m$@\033[0m"
+    fi
 }
 
 function magenta() {
-    echo -e "\033[00;35m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;35m$@\033[0m"
+    else
+        echo -e "\033[00;35m$@\033[0m"
+    fi
 }
 
 function cyan() {
-    echo -e "\033[00;36m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;36m$@\033[0m"
+    else
+        echo -e "\033[00;36m$@\033[0m"
+    fi
 }
 
 function white() {
-    echo -e "\033[01;37m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[00;37m$@\033[0m"
+    else
+        echo -e "\033[01;37m$@\033[0m"
+    fi
 }
 
 function orange() {
-    echo -e "\033[38;2;250;180;100m$@\033[0m"
+    if [[ $1 = '-n' ]]; then
+        shift
+        echo -ne "\033[38;2;250;180;100m$@\033[0m"
+    else
+        echo -e "\033[38;2;250;180;100m$@\033[0m"
+    fi
 }
 
 # 02 : logging
