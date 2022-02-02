@@ -18,16 +18,16 @@ function cat_file() {
 # 文字に色をつけたファイルをlessで表示する
 # 一旦 cat_fileを挟まないとうまく色がつかないのでこうしている
 function less_color() {
-    cat_file $1 | less -R
+    cat_file $1 | less_lf
 }
 
 # 自作helpのトップ
 function hlp() {
-    less ${DOTPATH}/docs/home.txt
+    less_lf ${DOTPATH}/docs/home.txt
 }
 
 function hlp_alias() {
-    less ${DOTPATH}/docs/linux/alias.txt
+    less_lf ${DOTPATH}/docs/linux/alias.txt
 }
 
 function hlp_curl() {
@@ -35,23 +35,23 @@ function hlp_curl() {
 }
 
 function hlp_cursor() {
-    less ${DOTPATH}/docs/linux/cursor.txt
+    less_lf ${DOTPATH}/docs/linux/cursor.txt
 }
 
 function hlp_find() {
-    less ${DOTPATH}/docs/linux/find.txt
+    less_lf ${DOTPATH}/docs/linux/find.txt
 }
 
 function hlp_history() {
-    less ${DOTPATH}/docs/linux/history.txt
+    less_lf ${DOTPATH}/docs/linux/history.txt
 }
 
 function hlp_less() {
-    less ${DOTPATH}/docs/linux/less.txt
+    less_lf ${DOTPATH}/docs/linux/less.txt
 }
 
 function hlp_wc() {
-    less ${DOTPATH}/docs/linux/wc.txt
+    less_lf ${DOTPATH}/docs/linux/wc.txt
 }
 
 #----------------------------------------------------------

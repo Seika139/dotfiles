@@ -155,6 +155,10 @@ function is_osx() {
     [[ $(os) = "OSX" ]]
 }
 
+function is_win() {
+    [[ $(os) = "MSYS" || $(os) = "CYGWIN" ]]
+}
+
 function is_msys() {
     [[ $(os) = "MSYS" ]]
 }

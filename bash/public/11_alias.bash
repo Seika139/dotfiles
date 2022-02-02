@@ -3,9 +3,15 @@
 # lessのオプション設定 SEE : https://qiita.com/delphinus/items/b04752bb5b64e6cc4ea9
 export LESS="-g -i -M -R -S -W"
 
-function less_m() {
-    # windows で ^M がたくさん表示される時につかう
-    sed s/^M//g $1 | less $LESS
+function less_lf() {
+    # Linux は改行コードが LF だが windows は改行コードが CR + LFのため
+    # windows で less を実行すると ^M がたくさん表示されることがある
+    # そのための対応策
+    if is_win; then
+        sed s/^M//g $1 | less $LESS
+    else
+        less $LESS $1
+    fi
 }
 
 # lsにデフォで色をつける
