@@ -21,7 +21,7 @@ function light__git_ps1() {
 function lighten_ps1() {
     local USER='\[\e[40;92m\]\u@\h'
     local TIME='\[\e[95m\]\t'
-    local DIR='\[\e[96m\]\w\[\e[49m\]'
+    local DIR='\[\e[93m\]\w\[\e[49m\]'
     local GIT='\[\e[1;32m\]`light__git_ps1`'
     local LAST='\[\e[0m\]\n\$ '
     export PS1="${USER} ${TIME} ${DIR} ${GIT} ${LAST}"
@@ -30,7 +30,7 @@ function lighten_ps1() {
 function normalize_ps1() {
     local USER='\[\e[40;92m\]\u@\h'
     local TIME='\[\e[95m\]\t'
-    local DIR='\[\e[96m\]\w\[\e[49m\]'
+    local DIR='\[\e[93m\]\w\[\e[49m\]'
     if executable __git_ps1; then
         local GIT='\[\e[1;32m\]`__git_ps1 "(%s)"`'
         # MEMO : $(__git_ps1 "(%s)") とすると win の GitBash でエラーになった
