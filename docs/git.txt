@@ -1,20 +1,26 @@
-ssh-add ~/.ssh/id_rsa : sshキーを聞かれる時はこのコマンド
+\x1b[96m┏━━━━━━━━━━━━━━━━━━\x1b[m
+\x1b[96m┃ git チートシート\x1b[m
+\x1b[96m┗━━━━━━━━━━━━━━━━━━\x1b[m
 
-gi macOS,python >> */.gitignore
-gitignore.ioで.gitignoreをお手軽に作成する
+\x1b[93m- この太線は「けいせん」と入力して変換すると出てくる\x1b[m
+\x1b[93m- 以降の黄色い文字は alias に対応している\x1b[m
 
-\x1b[92mgit diff >> gd\x1b[m
+\x1b[96m┃ gitignore の作成\x1b[m
+$ gi macos,python,visualstudiocode,windows > */.gitignore
+\x1b[94mgitignore.io\x1b[m で .gitignore をお手軽に作成する
+
+\x1b[92m┃ git diff \x1b[93m| gd\x1b[m
 --cached : addしたあとで差分を確認
 --stat   : 変更量をファイル単位で確認
 --stat=N : 表示するファイル名をN文字までにする。長い場合は省略する。デフォルトは80文字
 -w       : 改行コードや空白を無視
 
-\x1b[92mgit remote >> gr\x1b[m
+\x1b[92m┃ git remote \x1b[93m| gr\x1b[m
 show origin            : remoteブランチを単純参照
 prune --dry-run origin : remoteブランチでは削除されているが、ローカルに参照が残っているブランチを表示
 prune origin >> grp    : すでに削除されているremoteブランチのローカル参照を削除してきれいにする
 
-\x1b[92mgit log [option] >> gl\x1b[m
+\x1b[92m┃ git log [option] \x1b[93m| gl\x1b[m
 gl  : git log をさらにシンプルに表示、直前10件
 glr : グラフ表示
 gll : ファイルごとの追加・削除行数を表示
@@ -60,3 +66,12 @@ git push origin :[branch_name]                    : リモートのブランチ�
 git merge --abort            : マージを中止する
 git checkout --ours [file]   : チェックアウトしているブランチ側の変更を反映する
 git checkout --theirs [file] : マージさせたいブランチ側の変更を反映する
+
+\x1b[92m[過去を無かったことにしたい時]\x1b[m
+git revert [commit id] : 指定したコミットIDの内容と逆の内容をコミットする。結果的にコミットをなかったことにできる。コミットの歴史を改変することはないので安心
+
+git reset 
+        
+--soft  : HEAD()
+--mixed :
+--hard  :
