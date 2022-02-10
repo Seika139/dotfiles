@@ -21,12 +21,21 @@ alias gs='git status -sb'
 alias ga='git add'
 # git commit
 alias gc='git commit'
+
 # git log … シンプル表示・10件のみ表示
-alias gl='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" -10'
+GL='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" -10'
+alias gl="yellow ${GL}; ${GL}"
+unset GL
+
 # git log … グラフ表示
-alias glr='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" --graph'
+GLR='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" --graph'
+alias glr="yellow ${GLR}; ${GLR}"
+unset GLR
+
 # git log … 修正ライン数が分かる
-alias gll='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" --numstat'
+GLL='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" --numstat'
+alias gll="yellow ${GLL}; ${GLL}"
+unset GLL
 
 alias gd='git diff'
 

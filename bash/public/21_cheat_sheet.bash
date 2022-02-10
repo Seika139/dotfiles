@@ -42,6 +42,10 @@ function hlp_find() {
     less_lf ${DOTPATH}/docs/linux/find.txt
 }
 
+function hlp_grep() {
+    less_color ${DOTPATH}/docs/linux/grep.txt
+}
+
 function hlp_history() {
     less_lf ${DOTPATH}/docs/linux/history.txt
 }

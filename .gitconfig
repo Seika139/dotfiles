@@ -23,6 +23,9 @@
 	trustExitCode = true
 [commit]
 	template = ~/.gitmessage
+[grep]
+	lineNumber = true
+	column = true
 [pager]
 	# LESSを設定するとgit branch や stash が less や more っぽい pager で表示されるのでそれを回避する
 	# SEE : https://qiita.com/furu8ma/items/9cf4680171f06c1f95bc
