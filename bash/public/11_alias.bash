@@ -21,5 +21,7 @@ export LSCOLORS=cxfxgxdxbxegedabagacad
 # [Terminal.appでlsのファイル色を変える - by edvakf in hatena](https://edvakf.hatenadiary.org/entry/20080413/1208042916)
 # [Terminalで「ls」したら「ls -G」が実行されるようにして、色も設定する。 - taoru's memo](https://taoru.hateblo.jp/entry/20120418/1334713778)
 
-# grepの検索条件に該当する部分にデフォルトで色を付ける
-export GREP_OPTIONS='--color=auto'
+# grepの検索条件に該当する部分にデフォルトで色を付ける。GREP_OPTIONS は非推奨になったのでエイリアスで対応した
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
