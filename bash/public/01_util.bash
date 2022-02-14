@@ -69,7 +69,7 @@ function cyan() {
 function white() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;37m$@\033[0m"
+        echo -ne "\033[01;37m$@\033[0m"
     else
         echo -e "\033[01;37m$@\033[0m"
     fi
