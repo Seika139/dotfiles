@@ -91,7 +91,7 @@ function now() {
 }
 
 function log() {
-    if [[ $1 = "" ]]; then
+    if [[ $# -lt 1 ]]; then
         error "Argument Error: too few arguments"
         error "Usage: log LOGLEVEL message"
         return 1
@@ -177,8 +177,8 @@ fi
 # https://qiita.com/ritukiii/items/b3d91e97b71ecd41d4ea
 
 function executable() {
-    if [[ $1 = "" ]]; then
-        error "too few arguments"
+    if [[ $# -ne 1 ]]; then
+        error "executable : requires only 1 argument"
         return 1
     fi
     type $1 >/dev/null 2>&1
@@ -188,8 +188,8 @@ function executable() {
 # PATHは先にある方が優先されることに留意する
 
 function add_path() {
-    if [[ $1 = "" ]]; then
-        error "too few arguments"
+    if [[ $# -ne 1 ]]; then
+        error "add_path : requires only 1 argument"
         return 1
     fi
     export PATH="$1:${PATH}"
@@ -200,8 +200,8 @@ function add_path() {
 # ref : https://maku77.github.io/linux/path/absolute-path-of-file.html
 
 function abs_path() {
-    if [[ $1 = "" ]]; then
-        error "too few arguments"
+    if [[ $# -ne 1 ]]; then
+        error "abs_path : requires only 1 argument"
         return 1
     elif [[ ! -e $1 ]]; then
         warn "abs_path: $1 : No such file or directory"
