@@ -58,6 +58,10 @@ function hlp_wc() {
     less_lf ${DOTPATH}/docs/linux/wc.txt
 }
 
+function hlp_xargs() {
+    less_color ${DOTPATH}/docs/linux/xargs.txt
+}
+
 #----------------------------------------------------------
 # TODO
 # コマンド履歴 p214
