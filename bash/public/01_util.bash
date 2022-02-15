@@ -203,8 +203,6 @@ function abs_path() {
     if [[ $# -ne 1 ]]; then
         error "abs_path : requires only 1 argument"
         return 1
-    elif [[ ! -e $1 ]]; then
-        warn "abs_path: $1 : No such file or directory"
     fi
     echo $(
         cd $(dirname $1)
