@@ -50,7 +50,7 @@ I オプションを使うことでコマンド 2 の任意の位置にコマン
 xargs ではプレースホルダーが現れるすべての箇所を標準入力の文字列で置き換える。この際標準入力中にクォートされていない空白があっても入力項目の区切りにはならない。区切りの指標は改行文字だけになる。
 したがって配列/スペース区切りの文字列で xargs に複数の引数を与えたいときは空白ではなく改行文字で区切るように留意する。
 
-\x1b[95m$ echo -e "AAA BBB\nCCC\nDDD" |xargs -I{} echo {} is {}\x1b[m
+\x1b[95m$ echo -e "AAA BBB\\nCCC\\nDDD" |xargs -I{} echo {} is {}\x1b[m
 \x1b[95mAAA BBB is AAA BBB\x1b[m
 \x1b[95mCCC is CCC\x1b[m
 \x1b[95mDDD is DDD\x1b[m
