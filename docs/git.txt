@@ -23,12 +23,12 @@ HEAD やブランチの概念は参考の記事がわかりやすい。
 
 \x1b[96m┃ 過去のコミットの表し方\x1b[m
 
-\x1b[92mチルダ `~` はn世代前の親を表す\x1b[m
+\x1b[92mチルダ ~ はn世代前の親を表す\x1b[m
 @~        : HEAD の親(1世代前)
 @~~ / @~2 : HEAD の親の親(2世代前)
 @~n       : n世代前
 
-\x1b[92mキャレット `^` はn番目の親を表す\x1b[m
+\x1b[92mキャレット ^ はn番目の親を表す\x1b[m
 ブランチをマージすると親が複数になるのでその時に使用する。
 \x1b[92mman git-rev-parse\x1b[m でドキュメントが表示されるのでそれを見ると良い。
 
@@ -126,17 +126,18 @@ git grep [option] [検索条件] [tree] : tree(コミットIDやブランチ名)
 
 
 \x1b[92mgit stash (save) \x1b[93m| g ss\x1b[m : 変更をスタッシュにプッシュする。ステージされていない新規ファイル(未追跡ファイルはスタッシュされない)
+                          stash@{N} は省略して \x1b[92mN\x1b[m としても良い。
 save -u                 : untrackファイル(未追跡ファイル)も含めてスタッシュ
 save -k / --keep-index  : スタッシュしてもステージの状態はそのままにする
 save "message"          : メッセージをつけてスタッシュする
 list \x1b[93m| gsl\x1b[m              : 退避した作業の一覧を見る
 show stash@{N}          : N番目にスタッシュしたファイルの一覧を表示
-stash show -p stash@{N} : N番目にスタッシュしたファイルの変更差分を表示
-apply stash@{N}         : stash@{N}の作業をもとに戻す
-apply stash@{N} --index : stageして退避した作業はstageされたまま戻る
-drop stash@{N}          : stash@{N}の作業を消す stash@{N}を省略するとスタッシュの一番上を削除する
-pop stash@{N}           : stash@{N}の作業をもとに戻すと同時に、退避作業の中から削除
-clear                   : stashのリストを全て削除(要注意!)
+show -p stash@{N}       : N番目にスタッシュしたファイルの変更差分を表示
+apply stash@{N}         : stash@{N} の作業をもとに戻す
+apply stash@{N} --index : stage して退避した作業は stage されたまま戻る
+drop stash@{N}          : stash@{N} の作業を消す stash@{N} を省略するとスタッシュの一番上を削除する
+pop stash@{N}           : stash@{N} の作業をもとに戻すと同時に、退避作業の中から削除
+clear                   : stash のリストを全て削除(要注意!)
 
 git diff stash@{N}        : HEADとstashの差分を確認する
 git diff stash@{N} [file] : ファイルの指定も可能
