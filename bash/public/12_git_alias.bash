@@ -47,6 +47,7 @@ alias gsl='git stash list'
 # 新しく作ったブランチをプッシュするのがめんどい時のコマンド
 function gpsu() {
     branch_name=$(git symbolic-ref --short HEAD)
+    yellow "Executing alias : git push --set-upstream origin ${branch_name}"
     git push --set-upstream origin $branch_name
     unset branch_name
 }
