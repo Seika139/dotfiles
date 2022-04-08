@@ -24,17 +24,17 @@ alias gc='git commit'
 
 # git log … シンプル表示・10件のみ表示
 GL='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" -10'
-alias gl="yellow ${GL}; ${GL}"
+alias gl="echo_yellow ${GL}; ${GL}"
 unset GL
 
 # git log … グラフ表示
 GLR='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" --graph'
-alias glr="yellow ${GLR}; ${GLR}"
+alias glr="echo_yellow ${GLR}; ${GLR}"
 unset GLR
 
 # git log … 修正ライン数が分かる
 GLL='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Cyan)%cd %C(Reset)%s %C(Blue)[%cn]%C(Red)%d" --numstat'
-alias gll="yellow ${GLL}; ${GLL}"
+alias gll="echo_yellow ${GLL}; ${GLL}"
 unset GLL
 
 alias gd='git diff'
@@ -47,7 +47,7 @@ alias gsl='git stash list'
 # 新しく作ったブランチをプッシュするのがめんどい時のコマンド
 function gpsu() {
     branch_name=$(git symbolic-ref --short HEAD)
-    yellow "Executing alias : git push --set-upstream origin ${branch_name}"
+    echo_yellow "Executing alias : git push --set-upstream origin ${branch_name}"
     git push --set-upstream origin $branch_name
     unset branch_name
 }

@@ -12,7 +12,7 @@ SSHAGENT=/usr/bin/ssh-agent
 SSHAGENTARGS="-s"
 
 function start_agent {
-    yellow '新しい SSH Agent をインストールします'
+    echo_yellow '新しい SSH Agent をインストールします'
     ${SSHAGENT} | sed 's/^echo/#echo/' >"${SSH_ENV}"
     chmod 600 "${SSH_ENV}"
     . "${SSH_ENV}" >/dev/null

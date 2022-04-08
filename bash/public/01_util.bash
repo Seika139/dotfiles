@@ -3,7 +3,8 @@
 # 01 : colors
 # ref: https://qiita.com/ko1nksm/items/095bdb8f0eca6d327233#256%E8%89%B2
 
-function black() {
+# python のリンター black との競合を回避
+function echo_black() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;30m$@\033[0m"
@@ -12,7 +13,7 @@ function black() {
     fi
 }
 
-function red() {
+function echo_red() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;31m$@\033[0m"
@@ -21,7 +22,7 @@ function red() {
     fi
 }
 
-function green() {
+function echo_green() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;32m$@\033[0m"
@@ -30,7 +31,7 @@ function green() {
     fi
 }
 
-function yellow() {
+function echo_yellow() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;33m$@\033[0m"
@@ -39,7 +40,7 @@ function yellow() {
     fi
 }
 
-function blue() {
+function echo_blue() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;34m$@\033[0m"
@@ -48,7 +49,7 @@ function blue() {
     fi
 }
 
-function magenta() {
+function echo_magenta() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;35m$@\033[0m"
@@ -57,7 +58,7 @@ function magenta() {
     fi
 }
 
-function cyan() {
+function echo_cyan() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[00;36m$@\033[0m"
@@ -66,7 +67,7 @@ function cyan() {
     fi
 }
 
-function white() {
+function echo_white() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[01;37m$@\033[0m"
@@ -75,7 +76,7 @@ function white() {
     fi
 }
 
-function orange() {
+function echo_orange() {
     if [[ $1 = '-n' ]]; then
         shift
         echo -ne "\033[38;2;250;180;100m$@\033[0m"
@@ -111,29 +112,29 @@ function log() {
 }
 
 function success() {
-    green $(log info $@)
+    echo_green $(log info $@)
 }
 
 function debug() {
     if [[ ${ENABLE_DEBUG} = 1 ]]; then
-        white $(log debug $@)
+        echo_white $(log debug $@)
     fi
 }
 
 function info() {
-    white $(log info $@)
+    echo_white $(log info $@)
 }
 
 function notice() {
-    yellow $(log notice $@)
+    echo_yellow $(log notice $@)
 }
 
 function warn() {
-    orange $(log warn $@)
+    echo_orange $(log warn $@)
 }
 
 function error() {
-    red $(log error $@) 1>&2
+    echo_red $(log error $@) 1>&2
 }
 
 # 03 : OS distinction

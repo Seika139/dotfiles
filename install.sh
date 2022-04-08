@@ -106,8 +106,8 @@ source "${HOME}/.bash_profile" >/dev/null
 
 if is_osx && ! executable brew; then
     # home brew をインストールする
-    yellow "homebrew をインストールします"
-    yellow "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
+    echo_yellow "homebrew をインストールします"
+    echo_yellow "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
     url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
     if [[ $(curl ${url} -o /dev/null -w '%{http_code}\n' -s) = "200" ]]; then
         /bin/bash -c "$(curl -fsSL ${url})" # 書き換える必要性が起こりうるコマンド
@@ -118,7 +118,7 @@ if is_osx && ! executable brew; then
 fi
 
 if executable brew; then
-    read -p "$(yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
+    read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
     case $ANS in
     [Yy]*)
         brew upgrade # homwbrew および homoebrewで管理しているパッケージをアップデートする
