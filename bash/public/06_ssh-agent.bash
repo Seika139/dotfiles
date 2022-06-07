@@ -32,8 +32,14 @@ if [ -f "${SSH_ENV}" ]; then
     ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ >/dev/null || {
         start_agent
     }
+
+    # 登録されている鍵を表示
+    echo_yellow "ssh-add -l"
+    ssh-add -l
+
     # ssh-add -l で登録されている鍵がなければ登録する
-    if [[ -z $(ssh-add -l | grep "${HOME}/.ssh/id_") ]]; then
+    # mac の場合は問答無用でスルー
+    if ! is_osx && [[ -z $(ssh-add -l) ]]; then
         ssh-add
     fi
 else
