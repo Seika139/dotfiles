@@ -19,9 +19,11 @@ function start_agent {
     ssh-add # 秘密鍵のパスフレーズを入力させる
 }
 
-# Source SSH settings, if applicable
-
-if [ -f "${SSH_ENV}" ]; then
+# mac では ssh-agent が自動的に立ち上がるので ssh-agent の面倒は見ない
+if is_osx; then
+    :
+elif [ -f "${SSH_ENV}" ]; then
+    # Source SSH settings, if applicable
     . "${SSH_ENV}" >/dev/null
 
     # SSH_AGENT_PID がない場合は start_agentを実行する
@@ -32,10 +34,6 @@ if [ -f "${SSH_ENV}" ]; then
     ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ >/dev/null || {
         start_agent
     }
-
-    # 登録されている鍵を表示
-    echo_yellow "ssh-add -l"
-    ssh-add -l
 
     # ssh-add -l で登録されている鍵がなければ登録する
     if [[ -z $(ssh-add -l) ]]; then
