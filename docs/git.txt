@@ -167,6 +167,8 @@ git checkout --ours [file]   : チェックアウトしているブランチ側�
 git checkout --theirs [file] : マージさせたいブランチ側の変更を反映する
 
 \x1b[96m┃ 過去を無かったことにしたい時\x1b[m
+\x1b[92mgit checkout [commit id] [path]\x1b[m : パスに含まれるファイルを指定したコミットIDの状態にする。一部のファイルを元に戻したいときに有効。
+
 \x1b[92mgit revert [commit id]\x1b[m : 指定したコミットIDの内容と逆の内容をコミットする。リモートにプッシュ済みのコミットでも安全に差分を元に戻すことができる。
 
 \x1b[92mgit reset [option] [commit id]\x1b[m : HEAD(現在のコミットid)の位置を過去のコミットidに戻す。\x1b[91mreset はリモートに push した後の状態では基本的に使わない。\x1b[m
