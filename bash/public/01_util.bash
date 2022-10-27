@@ -85,6 +85,36 @@ function echo_orange() {
     fi
 }
 
+function echo_rgb() {
+    local no_newline=false # -n オプションをつけるか否か
+    if [[ $1 = '-n' ]]; then
+        no_newline=true
+        shift
+    fi
+
+    local red=255
+    local green=255
+    local blue=255
+    local text=""
+    for color in red green blue; do
+        if is_integer $1; then
+            eval "${color}=$1"
+            shift
+        fi
+    done
+    text="$@"
+
+    if "${no_newline}"; then
+        echo -ne "\033[38;2;${red};${green};${blue}m${text}\033[0m"
+    else
+        echo -e "\033[38;2;${red};${green};${blue}m${text}\033[0m"
+    fi
+}
+
+function is_integer() {
+    [[ "$1" =~ ^[0-9]+$ ]]
+}
+
 # 02 : logging
 
 function now() {
