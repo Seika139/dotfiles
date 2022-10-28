@@ -61,27 +61,58 @@ function hlp_git() {
     less_color ${DOTPATH}/docs/git.txt
 }
 
+function tags_from_commit() {
+    # git のコミットに対応するタグ・ブランチを取得する
+    local tags=$(git branch -a --points-at=$1)
+    echo $(echo ${tags//'*'/} | sed -e 's/->//' -e 's/ +/ /')
+}
+
+function commit_with_tags() {
+    local tags=$(tags_from_commit $1)
+    echo_yellow -n "$1"
+    if [[ -n "${tags}" ]]; then
+        echo_red -n " (${tags})"
+    fi
+}
+
 function gcl() {
+
+    if [[ $1 == '--help' ]]; then
+        less <<EOS
+usage: gcl commit1 commit2 [option] [path]
+
+commit1 & commit2 : Commit object. Not only hash but also branch name and tags are supported.
+option (optional) : Options for 'git log' are acceptable, such as --stat, --numstat
+path   (optional) : Same usage as 'git log -p'
+EOS
+    fi
+
     # $1 と $2 の共通祖先のコミットである $ancestor を探し
     # $1 と $ancestor、および $2 と $ancestor の差分を表示する
     # $3 以降の引数で検索する差分の範囲を絞り込むことができる
+
     if [[ $# -lt 2 ]]; then
         echo_yellow 'このエイリアスは最低2つの引数を必要とします'
+        echo_yellow "See : gcl --help"
         return 1
     fi
+
+    # 引数が適切なコミットを指していない場合を弾く
+    for arg in $1 $2; do
+        if [[ $(git show $arg | wc -l) -eq 0 ]]; then
+            echo
+            echo_red -n '不適切なコミット '
+            echo_yellow "$arg"
+            return 1
+        fi
+    done
 
     # 2つのコミットの共通祖先
     local ancestor=$(git merge-base $1 $2)
 
-    # $1 と $2 の コミットid
+    # $1 と $2 の コミットハッシュ
     local commit_id_a=$(git rev-parse $1)
     local commit_id_b=$(git rev-parse $2)
-
-    # $1 と $2 のに対応するブランチ・タグの一覧
-    local tags_a=$(git branch --points-at=$commit_id_a)
-    local tags_b=$(git branch --points-at=$commit_id_b)
-    tags_a=$(echo ${tags_a//'*'/} | sed 's/ +/ /')
-    tags_b=$(echo ${tags_b//'*'/} | sed 's/ +/ /')
 
     if [[ ${ancestor} == ${commit_id_a} ]]; then
         local descendant=$commit_id_b
@@ -90,16 +121,9 @@ function gcl() {
         local descendant=$commit_id_a
     fi
 
-    if [[ $ancestor == $descendant ]]; then
+    if [[ ${ancestor} == ${descendant} ]]; then
         # 2つが同じコミットを指していた場合
-        local tags_ancestor=$(git branch --points-at=$ancestor)
-        tags_ancestor=$(echo ${tags_ancestor//'*'/} | sed 's/ +/ /')
-
-        echo_yellow -n "${ancestor}"
-        if [[ -n "${tags_ancestor}" ]]; then
-            echo_red -n " (${tags_ancestor})"
-        fi
-
+        echo -n $(commit_with_tags $ancestor)
         echo_cyan ' [SAME COMMIT]'
         return 0
     fi
@@ -107,58 +131,33 @@ function gcl() {
     echo
     if [[ -n ${descendant} ]]; then
         # どちらかがもう一方の祖先だった場合
-
-        local tags_ancestor=$(git branch --points-at=$ancestor)
-        tags_ancestor=$(echo ${tags_ancestor//'*'/} | sed 's/ +/ /')
-        local tags_descendant=$(git branch --points-at=$descendant)
-        tags_descendant=$(echo ${tags_descendant//'*'/} | sed 's/ +/ /')
-
-        echo_yellow -n "${ancestor}"
-        if [[ -n "${tags_ancestor}" ]]; then
-            echo_red -n " (${tags_ancestor})"
-        fi
+        echo -n $(commit_with_tags $ancestor)
         echo_rgb -n 120 120 120 ' ________ '
-        echo_yellow -n $descendant
-        if [[ -n "${tags_descendant}" ]]; then
-            echo_red " (${tags_descendant})"
-        else
-            echo
-        fi
-
+        echo $(commit_with_tags $descendant)
         echo
-        echo_rgb 180 255 180 "git log --cc ${ancestor}..${descendant} -p ${@:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${descendant}" -p "${@:3}"
+        echo_rgb 180 255 180 "git log --cc ${ancestor}..${descendant} ${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${descendant}" "${@:3}"
 
     else
         # 両者のどちらとも同一でない祖先が存在する場合
         echo_rgb -n 180 180 100 "${ancestor}"
         echo_rgb -n 120 120 120 ' ________ '
-        echo_yellow $commit_id_a
-        if [[ -n "${tags_a}" ]]; then
-            echo_red " (${tags_a})"
-        else
-            echo
-        fi
+        echo $(commit_with_tags $commit_id_a)
         echo_rgb -n 120 120 120 "                                          \______ "
-        echo_yellow -n $commit_id_b
-        if [[ -n "${tags_b}" ]]; then
-            echo_red " (${tags_b})"
-        else
-            echo
-        fi
+        echo $(commit_with_tags $commit_id_b)
 
         # diff を表示するバージョン
-        # echo_rgb 180 255 180 "git diff --histogram -w $1 $ancestor -- ${@:3}"
-        # echo_rgb 180 255 180 "git diff --histogram -w $2 $ancestor -- ${@:3}"
-        # git diff --histogram -w $1 $ancestor -- ${@:3}
-        # git diff --histogram -w $2 $ancestor -- ${@:3}
+        # echo_rgb 180 255 180 "git diff --histogram -w $1 $ancestor ${@:3}"
+        # echo_rgb 180 255 180 "git diff --histogram -w $2 $ancestor ${@:3}"
+        # git diff --histogram -w $1 $ancestor ${@:3}
+        # git diff --histogram -w $2 $ancestor ${@:3}
 
         echo
-        echo_rgb 180 255 180 "git log --cc ${ancestor}..${commit_id_a} -p ${@:3}"
-        echo_rgb 180 255 180 "git log --cc ${ancestor}..${commit_id_b} -p ${@:3}"
+        echo_rgb 180 255 180 "git log --cc ${ancestor}..${commit_id_a} ${@:3}"
+        echo_rgb 180 255 180 "git log --cc ${ancestor}..${commit_id_b} ${@:3}"
 
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${commit_id_a}" -p "${@:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${commit_id_b}" -p "${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${commit_id_a}" "${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${commit_id_b}" "${@:3}"
 
     fi
 }
