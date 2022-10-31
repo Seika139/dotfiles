@@ -85,6 +85,7 @@ commit1 & commit2 : Commit object. Not only hash but also branch name and tags a
 option (optional) : Options for 'git log' are acceptable, such as --stat, --numstat
 path   (optional) : Same usage as 'git log -p'
 EOS
+        return 0
     fi
 
     # $1 と $2 の共通祖先のコミットである $ancestor を探し
