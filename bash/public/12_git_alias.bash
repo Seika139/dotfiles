@@ -22,8 +22,8 @@ alias ga='git add'
 # git commit
 alias gc='git commit'
 
-# git log … シンプル表示・10件のみ表示
-GL='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" -10'
+# git log … 飾り付けて表示
+GL='git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d"'
 alias gl="echo_yellow ${GL}; ${GL}"
 unset GL
 
@@ -136,8 +136,8 @@ EOS
         echo_rgb -n 120 120 120 ' ________ '
         echo $(commit_with_tags $descendant)
         echo
-        echo_rgb 180 255 180 "git log --cc ${ancestor}..${descendant} ${@:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${descendant}" "${@:3}"
+        echo_rgb 180 255 180 "git log ${ancestor}..${descendant} ${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" "${ancestor}".."${descendant}" "${@:3}"
 
     else
         # 両者のどちらとも同一でない祖先が存在する場合
@@ -154,11 +154,11 @@ EOS
         # git diff --histogram -w $2 $ancestor ${@:3}
 
         echo
-        echo_rgb 180 255 180 "git log --cc ${ancestor}..${commit_id_a} ${@:3}"
-        echo_rgb 180 255 180 "git log --cc ${ancestor}..${commit_id_b} ${@:3}"
+        echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_a} ${@:3}"
+        echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_b} ${@:3}"
 
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${commit_id_a}" "${@:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" --cc "${ancestor}".."${commit_id_b}" "${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" "${ancestor}".."${commit_id_a}" "${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"%C(Yellow)%h %C(Magenta)%cd %C(Reset)%s %C(Cyan)[%cn]%C(Red)%d" "${ancestor}".."${commit_id_b}" "${@:3}"
 
     fi
 }
