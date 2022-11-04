@@ -50,7 +50,7 @@ git diff                     : \x1b[92m作業ディレクトリ\x1b[mと\x1b[91m
 git diff --cached / --staged : \x1b[92mステージングエリア\x1b[mと\x1b[91mHEAD\x1b[mの差分。つまり次にコミットされうる内容。
 git diff A...B               : ドットが3つの時は\x1b[92m A と B の共通の祖先\x1b[mと \x1b[91mB\x1b[m との差分を比較する。
 
-(オプション)
+\x1b[01;37;90mオプション\x1b[m
 -- [filepath]               : 対象ファイルの変更のみを表示する
 --stat                      : 変更量をファイル単位で確認
 --stat=[n]                  : 表示するファイル名を n 文字までにする。長い場合は省略する。デフォルトは80文字
@@ -66,6 +66,27 @@ git diff A...B               : ドットが3つの時は\x1b[92m A と B の共�
 - \x1b[94mhttps://git.command-ref.com/cmd-git-diff.html\x1b[m
 - \x1b[94mhttps://qiita.com/shibukk/items/8c9362a5bd399b9c56be\x1b[m
 - \x1b[94mhttps://qiita.com/yuya_presto/items/ef199e08021dea777715#2-1\x1b[m
+
+\x1b[92mgit log [オプション] [リビジョン範囲] [[--] パス]\x1b[m
+
+\x1b[01;37;90mリビジョン範囲\x1b[m
+git log [commit]     : commit から到達できるコミットログ（履歴）を表示する。省略するとHEADからの履歴になる
+git log foo bar \x1b[91m^baz\x1b[m : foo または bar から到達できるが baz から到達できないコミットログ（履歴）を表示する
+git log foo..bar     : foo から bar までのコミットログを表示する。 \x1b[92mgit log ^foo bar\x1b[m と同等
+
+\x1b[01;37;90mオプション\x1b[m
+-n / --max-count=n             : 出力するコミット数を制限する
+--since=<date> --after=<date>  : 指定した日付よりも新しいコミットを表示
+--until=<date> --before=<date> : 指定した日付よりも古いコミットを表示
+--first-parent                 : マージコミットが表示されたら、最初の親コミットのみに従う。詳細は後述
+
+\x1b[96m┃ 消えた差分を見つける\x1b[m
+　\x1b[92m--first-parent\x1b[m は「マージコミットが表示されたら最初の親コミットのみに従う」ことを利用して、
+コンフリクト解消などで消えた差分を簡単に見つけることができる。
+つまり特定のブランチを追跡するときに、それ以外のコミットは無視されて、マージされた時に生じた差分として表示される。
+つまり、「追加したはずの差分がどこかのコンフリクト解消で誤って消えてしまった」という状況のコミットも表示されるようになる。
+図で見たい場合は英語だが \x1b[94m https://marcgg.com/blog/2015/08/04/git-first-parent-log/\x1b[m がわかりやすい。
+　また、差分の詳しい中身を見る場合は \x1b[92m-p -m --first-parent\x1b[m とする。
 
 \x1b[92mgit remote \x1b[93m| gr\x1b[m
 show origin            : remoteブランチを単純参照
