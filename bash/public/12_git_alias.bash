@@ -41,6 +41,7 @@ alias gd='git diff'
 
 alias gr='git remote'
 alias grp='git remote prune origin'
+alias grpo='git remote prune origin'
 
 alias gsl='git stash list'
 
