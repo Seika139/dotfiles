@@ -43,3 +43,5 @@
 	ss = stash
 	pl = pull
 	ps = push
+[push]
+	autoSetupRemote = true
