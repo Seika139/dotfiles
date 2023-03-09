@@ -3,6 +3,8 @@
 	diff = auto
 	status = auto
 	branch = auto
+[color "diff"]
+	meta = yellow
 [core]
 	pager = less -R
 	quotepath = false # git statusなどで日本語ファイル名をエンコードせずに表示してくれる
