@@ -41,6 +41,17 @@ HEAD やブランチの概念は参考の記事がわかりやすい。
 \x1b[96m┃ man git コマンド\x1b[m
 各 git コマンドの man を調べるときは \x1b[92mman git-[command]\x1b[m とする。(例) man git-grep
 
+\x1b[96m┃ 自作 git 拡張コマンド\x1b[m
+
+\x1b[92mgdd author commit1 [commit2] [option]\x1b[m
+commit1 と commit2 の間で author が作成した差分を一覧表示する
+commit2 がない場合は commit1 と HEAD を比較する
+
+\x1b[92mgcl commit1 commit2 [option] [path]\x1b[m
+commit1 と commit2 の共通祖先を探す
+option は git log のオプションと同じ
+path を入力することで、その path に該当するファイルが変更されたコミットだけに絞り込むことができる
+
 \x1b[96m┃ よく使う git コマンド\x1b[m
 
 \x1b[92mgit diff \x1b[93m| gd\x1b[m
@@ -75,7 +86,8 @@ git log foo bar \x1b[91m^baz\x1b[m : foo または bar から到達できるが 
 git log foo..bar     : foo から bar までのコミットログを表示する。 \x1b[92mgit log ^foo bar\x1b[m と同等
 
 \x1b[01;37;90mオプション\x1b[m
--n / --max-count=n             : 出力するコミット数を制限する
+-p                             : 差分の中身を表示する。 -n や foo..bar などでログの範囲を制限しないとなぜかエラーを返す
+-n / --max-count=n             : 出力するコミット数を n 個に制限する
 --since=<date> --after=<date>  : 指定した日付よりも新しいコミットを表示
 --until=<date> --before=<date> : 指定した日付よりも古いコミットを表示
 --first-parent                 : マージコミットが表示されたら、最初の親コミットのみに従う。詳細は後述
