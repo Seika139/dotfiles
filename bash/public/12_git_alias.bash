@@ -68,13 +68,12 @@ function hlp_git() {
 function gdd() {
     if [[ $1 == '--help' ]]; then
         less <<EOS
-usage: gdd author commit1 [commit2] [option]
+usage: gdd author commit1 commit2 [option]
 
 commit1 & commit2 : Commit object. Not only hash but also branch name and tags are supported.
 option (optional) : Options for 'git diff' are acceptable, such as --stat, -w
 
 commit1 と commit2 の間で author が作成した差分を一覧表示する
-commit2 がない場合は commit1 と HEAD を比較する
 author を - にすると author で絞り込まない
 
 おすすめオプション
@@ -84,22 +83,14 @@ EOS
         return 0
     fi
 
-    if [[ $# -lt 2 ]]; then
-        echo_yellow 'このエイリアスは最低2つの引数を必要とします'
+    if [[ $# -lt 3 ]]; then
+        echo_yellow 'このエイリアスは最低3つの引数を必要とします'
         echo_yellow "See : gdd --help"
         return 1
     fi
 
-    if [[ "$3" == -* ]]; then
-        local commit_after="@"
-        local options="${@:3}"
-    else
-        local commit_after="$3"
-        local options="${@:4}"
-    fi
-
     # 引数が適切なコミットを指していない場合を弾く
-    for arg in $2 $commit_after; do
+    for arg in $2 $3; do
         if [[ $(git show $arg | wc -l) -eq 0 ]]; then
             echo
             echo_red -n '不適切なコミット '
@@ -108,16 +99,18 @@ EOS
         fi
     done
 
-    if [[ "$1" == - ]]; then
+    local command=""
+    if [[ "$1" == "-" ]]; then
         # $1 を - にすると author で絞り込まない
-        git log --pretty=format:"%H" --no-merges $2..$commit_after |
-            xargs -n1 git --no-pager diff --name-only | sort -u |
-            xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" $options $2..$commit_after --
+        command="git log --pretty=format:\"%H\" --no-merges $2..$3"
     else
-        git log --pretty=format:"%H" --no-merges --author="$1" $2..$commit_after |
-            xargs -n1 git --no-pager diff --name-only | sort -u |
-            xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" $options $2..$commit_after --
+        command="git log --pretty=format:\"%H\" --no-merges --author=\"${1}\" $2..$3"
     fi
+
+    echo_yellow "$command | xargs -n1 git --no-pager diff --name-only | sort -u | xargs git diff $2..$3 ${@:4}"
+
+    $command | xargs -n1 git --no-pager diff --name-only | sort -u |
+        xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" $2..$3 "${@:4}"
 }
 
 function tags_from_commit() {
