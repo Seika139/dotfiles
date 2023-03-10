@@ -99,17 +99,32 @@ EOS
         fi
     done
 
-    local command=""
+    # $2 と $3 の間のコミットのコミットハッシュを取得
+    local command1=""
     if [[ "$1" == "-" ]]; then
         # $1 を - にすると author で絞り込まない
-        command="git log --pretty=format:\"%H\" --no-merges $2..$3"
+        command1="git log --pretty=format:\"%H\" --no-merges $2..$3"
     else
-        command="git log --pretty=format:\"%H\" --no-merges --author=\"${1}\" $2..$3"
+        command1="git log --pretty=format:\"%H\" --no-merges --author=${1} $2..$3"
     fi
 
-    echo_yellow "$command | xargs -n1 git --no-pager diff --name-only | sort -u | xargs git diff $2..$3 ${@:4}"
+    # コミットハッシュごとに変更があったファイルを取得
+    command2="xargs -n1 git --no-pager diff --name-only"
 
-    $command | xargs -n1 git --no-pager diff --name-only | sort -u |
+    # 取得したファイルから重複を取り除く
+    command3="sort -u"
+
+    # 現在の自分のディレクトリにないフォルダについて command5 を実行するとエラーになるので除く
+    # (他のブランチの変更を見るときに起こりがちだったので)
+    command4="xargs -IXXX sh -c 'if [[ -e \"XXX\" ]]; then echo \"XXX\"; fi'"
+
+    # これまでのコマンドで絞り込んだファイルに対して $2 と $3 の間の git diff を出力する
+    command5="xargs git diff $2..$3 ${@:4}"
+
+    echo_yellow "$command1 | $command2 | $command3 | $command4 | $command5"
+
+    $command1 | $command2 | $command3 |
+        xargs -IXXX sh -c 'if [[ -e "XXX" ]]; then echo "XXX"; fi' |
         xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" $2..$3 "${@:4}"
 }
 

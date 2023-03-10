@@ -46,6 +46,7 @@ HEAD やブランチの概念は参考の記事がわかりやすい。
 \x1b[92mgdd author commit1 commit2 [option]\x1b[m
 commit1 と commit2 の間で author が作成した差分を一覧表示する
 author を - にすると author で絞り込まない
+option は git diff に用いられるものが使えるが、「commit1 と commit2 の間で author が作成した差分」を渡している以上、ファイルの絞り込みはできない。
 
 \x1b[92mgcl commit1 commit2 [option] [path]\x1b[m
 commit1 と commit2 の共通祖先を探す
