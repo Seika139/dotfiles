@@ -45,7 +45,7 @@ alias gr='git remote'
 alias grp='git remote prune origin'
 alias grpo='git remote prune origin'
 
-alias gsl='git stash list'
+alias gsl='git stash list --date=iso-local'
 
 # 新しく作ったブランチをプッシュするのがめんどい時のコマンド
 function gpsu() {
