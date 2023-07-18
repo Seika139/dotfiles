@@ -12,3 +12,5 @@ stashes/
 
 **/random_note/*
 !**/random_note/.gitkeep
+
+.ssh/config.secret

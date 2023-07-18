@@ -52,6 +52,22 @@ done
 unset files_to_link file
 
 #-------------------------------------
+# 1-1. link files (.ssh/config)
+# .ssh/config.secret は .gitignore の対象なので、存在しない場合は作る
+# 元々あった .ssh/config が消されないよう .ssh/config.secret にコピーする
+#-------------------------------------
+ssh_config_secret="${ROOT}/.ssh/config.secret"
+
+if [ ! -e $ssh_config_secret ]; then
+    touch $ssh_config_secret
+    if [ -e "${HOME}/.ssh/config" ]; then
+        cp "${HOME}/.ssh/config" $ssh_config_secret
+    fi
+fi
+ln -sfv "${ROOT}/.ssh/config" "${HOME}/.ssh"
+ln -sfv $ssh_config_secret "${HOME}/.ssh"
+
+#-------------------------------------
 # 2. .gitconfig.local
 #-------------------------------------
 
