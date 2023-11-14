@@ -15,8 +15,8 @@ function less_lf() {
 }
 
 # lsにデフォで色をつける
-alias ls='ls -GF'
-alias ll="ls -al"
+alias ls='ls -GF --color=auto'
+alias ll="ls -al --color=auto"
 export LSCOLORS=cxfxgxdxbxegedabagacad
 # [Terminal.appでlsのファイル色を変える - by edvakf in hatena](https://edvakf.hatenadiary.org/entry/20080413/1208042916)
 # [Terminalで「ls」したら「ls -G」が実行されるようにして、色も設定する。 - taoru's memo](https://taoru.hateblo.jp/entry/20120418/1334713778)

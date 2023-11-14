@@ -30,6 +30,9 @@ echo ""
 # ref : https://onl.la/wFBsfCN
 # ref : https://qiita.com/ucho/items/c5ea0beb8acf2f1e4772
 if [[ "${OSTYPE}" == msys* ]]; then
+    echo -en "\033[00;33mWindowsのgit bashで実行してシンボリックリンクの作成に失敗するする場合は、"
+    echo -e "git bashを管理者権限で開いて実行してください。\033[0m"
+
     export MSYS=winsymlinks:nativestrict
 
     # .bash_profile のシンボリックリンクも貼り直す必要がある
@@ -137,7 +140,7 @@ if executable brew; then
     read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
     case $ANS in
     [Yy]*)
-        brew upgrade # homwbrew および homoebrewで管理しているパッケージをアップデートする
+        brew upgrade # homebrew および homebrewで管理しているパッケージをアップデートする
 
         # TODO : brewfile をもとに brew install したい
         # ref : https://tech.gootablog.com/article/homebrew-brewfile/
