@@ -47,6 +47,9 @@ alias grpo='git remote prune origin'
 
 alias gsl='git stash list --date=iso-local'
 
+# 今いる git リポジトリのルートディレクトリへのパスを取得する
+alias grd='git rev-parse --show-superproject-working-tree --show-toplevel | head -1'
+
 # 新しく作ったブランチをプッシュするのがめんどい時のコマンド
 function gpsu() {
     branch_name=$(git symbolic-ref --short HEAD)
