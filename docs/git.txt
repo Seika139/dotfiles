@@ -63,7 +63,7 @@ git diff --cached / --staged : \x1b[92mステージングエリア\x1b[mと\x1b[
 git diff A...B               : ドットが3つの時は\x1b[92m A と B の共通の祖先\x1b[mと \x1b[91mB\x1b[m との差分を比較する。
 
 \x1b[01;37;90mオプション\x1b[m
--- [filepath]               : 対象ファイルの変更のみを表示する
+-- [path]               : 対象ファイルの変更のみを表示する
 --stat                      : 変更量をファイル単位で確認
 --stat=[n]                  : 表示するファイル名を n 文字までにする。長い場合は省略する。デフォルトは80文字
 --color-words               : 行単位ではなく、単語単位で差分を表示する
@@ -92,6 +92,10 @@ git log foo..bar     : foo から bar までのコミットログを表示する
 --since=<date> --after=<date>  : 指定した日付よりも新しいコミットを表示
 --until=<date> --before=<date> : 指定した日付よりも古いコミットを表示
 --first-parent                 : マージコミットが表示されたら、最初の親コミットのみに従う。詳細は後述
+
+\x1b[96m┃ 無視(ignore)されたファイル\x1b[m
+git status --ignored       : ignore されているファイルが表示される
+git check-ignore -v [path] : path が ignore されている原因となる設定の場所が分かる。(複数値可)
 
 \x1b[96m┃ 消えた差分を見つける\x1b[m
 　\x1b[92m--first-parent\x1b[m は「マージコミットが表示されたら最初の親コミットのみに従う」ことを利用して、
@@ -136,8 +140,8 @@ git grep [option] [検索条件] [tree] : tree(コミットIDやブランチ名)
 -[n] / -C [n] / --context [n] : 検索結果の前後 n 行を表示
 -A [n] / --after-context [n]  : 検索結果の後 n 行を表示
 -B [n] / --before-context [n] : 検索結果の前 n 行を表示
--- [filepath]                 : filepath 内のディレクトリを検索する
--- [:!filepath]               : filepath 内のディレクトリを以外を検索する。[:^filepath] でも良い
+-- [path]                     : path 内のディレクトリを検索する
+-- [:!path]                   : path 内のディレクトリを以外を検索する。[:^path] でも良い
 -W / --function-context       : 関数名を含む前の行から次の関数名の前の行までのテキストを表示する。YAMLやテキストファイルでは微妙な使い味
 
 -G / --basic-regexp           : 検索条件に基本正規表現(BRE)を使用する。デフォルトはこれ。
