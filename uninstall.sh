@@ -17,6 +17,7 @@ if [[ $ANS1 != [yY] ]]; then
     return 0
 fi
 unset ANS1
+
 echo_orange 'GitHubにあげていないファイルに関しては二度と復元できません'
 read -p "$(echo_orange 'それでもよろしいですか？ [y/N]: ')" ANS2
 if [[ $ANS2 != [yY] ]]; then
@@ -24,6 +25,14 @@ if [[ $ANS2 != [yY] ]]; then
     return 0
 fi
 unset ANS2
+
+echo_red '保存していない場合に private フォルダに入っているファイルの復元が絶望的になります'
+read -p "$(echo_red 'それでもよろしいですか？ [y/N]: ')" ANS3
+if [[ $ANS3 != [yY] ]]; then
+    info "アンインストールをキャンセルしました"
+    return 0
+fi
+unset ANS3
 
 # $HOME のシンボリックリンクを削除する
 LINKED_FILES=(
