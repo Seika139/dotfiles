@@ -118,7 +118,7 @@ function is_integer() {
 # 02 : logging
 
 function now() {
-    echo $(date +'%Y/%m/%d %H:%M:%S')
+    echo $(date +'%Y-%m-%d_%H:%M:%S')
 }
 
 function log() {
