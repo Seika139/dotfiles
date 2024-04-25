@@ -5,6 +5,7 @@
 source bash/public/01_util.bash
 
 if [[ $BASH_SOURCE == "$0" ]]; then
+    # ref: https://qiita.com/kawaz/items/e909ae05ea67c60abb0e
     warn "このコマンドは source uninstall.sh で実行してください"
     exit
 fi
