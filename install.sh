@@ -8,7 +8,7 @@
 
 # NOTE: 必ずホームディレクトリにクローンするものとする
 ROOT="${HOME}/dotfiles"
-if [ ! -e $ROOT ]; then
+if [ ! -e "{$ROOT}" ]; then
     echo "No such directory ${ROOT}"
     exit 1
 fi
@@ -61,7 +61,7 @@ unset files_to_link file
 #-------------------------------------
 ssh_config_secret="${ROOT}/.ssh/config.secret"
 
-if [ ! -e $ssh_config_secret ]; then
+if [ ! -e "{$ssh_config_secret}" ]; then
     touch $ssh_config_secret
     if [ -e "${HOME}/.ssh/config" ]; then
         cp "${HOME}/.ssh/config" $ssh_config_secret
@@ -76,7 +76,7 @@ ln -sfv $ssh_config_secret "${HOME}/.ssh"
 
 # 無い場合は作成する
 file="${ROOT}/.gitconfig.local"
-if [ ! -e $file ]; then
+if [ ! -e "{$file}" ]; then
     echo ".gitconfig.local を作成します"
     read -p "git config user.name = " NAME
     read -p "git config user.email = " EMAIL
