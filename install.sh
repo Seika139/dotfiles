@@ -124,7 +124,7 @@ source "${HOME}/.bash_profile" >/dev/null
 #-------------------------------------
 
 if is_osx && ! executable brew; then
-    # home brew をインストールする
+    # homebrew をインストールする
     echo_yellow "homebrew をインストールします"
     echo_yellow "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
     url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
@@ -152,3 +152,16 @@ if executable brew; then
     esac
     unset ANS
 fi
+
+# フォーミュラがインストール済みの場合はアップデートを行い、未インストールの場合はインストールを行う
+function brew_upstall {
+    for FORMULA in "$@"; do
+        if brew ls --versions $FORMULA >/dev/null; then
+            echo_yellow "$FORMULA はインストール済みです。アップグレードを実施します..."
+            brew upgrade $FORMULA
+        else
+            echo_yellow "$FORMULA は未インストールです。インストールを実施します..."
+            brew install $FORMULA
+        fi
+    done
+}
