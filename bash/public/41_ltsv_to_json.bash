@@ -33,10 +33,10 @@ ltsv_to_json() {
         done
         first_line=false
         echo
-        echo '}'
+        echo -n '}'
     done
     echo
-    echo ']'
+    echo -n ']'
 }
 
 # 使い方
