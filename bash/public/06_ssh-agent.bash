@@ -30,13 +30,19 @@ elif [ -f "${SSH_ENV}" ]; then
     # || の前が true だと後ろは実行されないことを利用している
     # ref : http://okazu.air-nifty.com/blog/2010/04/bash-f628.html
 
-    #ps ${SSH_AGENT_PID} doesn’t work under cywgin
-    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ >/dev/null || {
+    if [ -z "${SSH_AGENT_PID}" ] || ! ps -p ${SSH_AGENT_PID} >/dev/null 2>&1; then
+        echo -n 'SSH_AGENT_PID が未設定のため、'
         start_agent
-    }
+    fi
+
+    # SSH_AUTH_SOCKが存在しない場合、新しいエージェントを開始
+    if [ ! -S "${SSH_AUTH_SOCK}" ]; then
+        echo -n 'SSH_AUTH_SOCK が未設定のため、'
+        start_agent
+    fi
 
     # ssh-add -l で登録されている鍵がなければ登録する
-    if [[ -z $(ssh-add -l) ]]; then
+    if ! ssh-add -l >/dev/null 2>&1; then
         ssh-add
     fi
 else
