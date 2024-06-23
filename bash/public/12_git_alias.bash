@@ -21,6 +21,10 @@ alias gs='git status -sb'
 alias ga='git add'
 # git commit
 alias gc='git commit'
+# git worktree
+alias gw='git worktree'
+# git worktree list
+alias gwl='git worktree list'
 
 PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
 

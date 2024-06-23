@@ -180,6 +180,36 @@ clear                   : stash のリストを全て削除(要注意!)
 git diff stash@{N}        : HEADとstashの差分を確認する
 git diff stash@{N} [file] : ファイルの指定も可能
 
+
+\x1b[96m┃ git worktree で stash せずとも他ブランチに切り替えられる\x1b[m
+
+\x1b[92mgit worktree [subcommand] \x1b[93m| g wk [subcommand]\x1b[m
+
+list \x1b[93m| gwl\x1b[m : ワークツリーを次の形式で一覧表示する。\x1b[92mワークツリーへのパス コミットハッシュ 追加情報\x1b[m
+             \x1b[92m追加情報\x1b[m について
+             - チェックアウトされているブランチ名（存在しない場合は detached HEAD と表示される）
+             - locked（ワークツリーがロックされている場合）
+             - prunable（ワークツリーが prune コマンドで削除できる場合）
+
+add <path> [<commit-ish>] : <path> にワークツリーを作成し、<commit-ish> （commit id やブランチ名）をチェックアウトする。
+                            <commit-ish> を省略すると、新しいワークツリーは \x1b[92m$(basename <path>)\x1b[m にちなんで名付けられたブランチに関連付けられる。
+                            関連するブランチがない場合は HEAD に基づくブランチが自動的に作成される。
+
+remove [-f/--force] <worktree> : <worktree> を削除する。-f を使うと追跡されているファイルに変更がある場合や、新規の未追跡ファイルがある場合でも削除する。
+prune                          : rmコマンドなどで物理的に削除されたワークツリーを git worktree の管理から削除する。
+
+\x1b[96m┃ 作業中にプルリクレビューがきたときの例\x1b[m
+「git worktree add review branch_name」で ./review 内に branch_name が展開される。
+「cd review」でディレクトリの移動とともにブランチも移動する。review 内のファイルを見てコードレビューする。
+「git worktree remove review」で不要になったワークツリーを消す。
+
+(参考)
+- \x1b[94mhttps://git-scm.com/docs/git-worktree\x1b[m
+- \x1b[94mhttps://runebook.dev/ja/docs/git/git-worktree\x1b[m
+
+
+\x1b[96m┃ 日付形式\x1b[m
+
 \x1b[92m--date=[option]\x1b[m                  : git log や git stash list などで日付を表示するときに使う
 local                            : Mon Nov 23 21:26:47 2020
 iso-local                        : 2020-11-23 21:26:47 +0900

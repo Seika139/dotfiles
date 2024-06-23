@@ -45,5 +45,8 @@
 	ss = stash
 	pl = pull
 	ps = push
+	wk = worktree
+	wt = worktree
+	ww = worktree
 [push]
 	autoSetupRemote = true
