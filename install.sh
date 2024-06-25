@@ -30,8 +30,13 @@ echo ""
 # ref : https://onl.la/wFBsfCN
 # ref : https://qiita.com/ucho/items/c5ea0beb8acf2f1e4772
 if [[ "${OSTYPE}" == msys* ]]; then
-    echo -en "\033[00;33mWindowsのgit bashで実行してシンボリックリンクの作成に失敗するする場合は、"
-    echo -e "git bashを管理者権限で開いて実行してください。\033[0m"
+    echo "Windows では git bash を管理者権限で開いて実行しないとシンボリックリンクの作成に失敗することがあります。"
+    read -p "$(echo -e '\033[00;33mこのまま続けてよろしいですか？ [y/N]: \033[0m')" ANS1
+    if [[ $ANS1 != [yY] ]]; then
+        echo "処理を中断しました。管理者権限で開いた git bash で再実行してください。"
+        return 0
+    fi
+    unset ANS1
 
     export MSYS=winsymlinks:nativestrict
 
@@ -112,11 +117,25 @@ ln -sfv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
-# 3. load bash_profile
+# 3. pre load bash_profile
+#-------------------------------------
+
+# 初回の bash_profile 読み込み前に、必要な処理をする
+
+SSH_DIR="${HOME}/.ssh/"
+if [ ! -d "${SSH_DIR}" ]; then
+    # ~/.ssh がないと 06_ssh-agent.bash 内で start_agent の実行に失敗するので必ず ~/.ssh があることを保証する
+    mkdir -p "${SSH_DIR}"
+    chmod 700 "${SSH_DIR}"
+fi
+
+#-------------------------------------
+# 4. load bash_profile
 #-------------------------------------
 
 # シンボリックリンクを貼り終わったのでシェルを読み込む
 
+echo_yellow 'load ~/.bash_profile'
 source "${HOME}/.bash_profile" >/dev/null
 
 #-------------------------------------
