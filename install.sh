@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-# とりあえずのインストーラ
-
-#-------------------------------------
-# 1. link files
-#-------------------------------------
+# dotfiles を clone したらまず実行するインストーラ
 
 # NOTE: 必ずホームディレクトリにクローンするものとする
 ROOT="${HOME}/dotfiles"
@@ -13,17 +9,54 @@ if [ ! -e "${ROOT}" ]; then
     exit 1
 fi
 
-# シンボリックリンクを貼る
-files_to_link=(
-    ".bash_logout"
-    ".bash_profile"
-    ".gitconfig"
-    ".gitignore_global"
-    ".gitmessage"
-)
+#-------------------------------------
+# 0. install homwbrew (if OSX)
+#-------------------------------------
 
-echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。"
-echo -e "${files_to_link[@]}\033[0m"
+# homebrew インストール後にパスを追加する可能性があるため
+# homebrew が入っていない OSX の場合は先にインストールさせて再実行させる
+if [[ $(uname) = "Darwin" ]] && ! type brew >/dev/null 2>&1; then
+    echo -e "\033[00;33mhomebrew をインストールします"
+    echo -e "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください\033[0m"
+    url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    if [[ $(curl ${url} -o /dev/null -w '%{http_code}\n' -s) = "200" ]]; then
+        /bin/bash -c "$(curl -fsSL ${url})" # 書き換える必要性が起こりうるコマンド
+        echo -e "\033[00;33mhomebrew のインストールが完了しました。\033[0m"
+        echo -n '次のテキストがインストール時に表示され、 ~/.bash_profile への追記を促された場合は、'
+        echo '代わりに ~/dotfiles/bash/private/ 内に追記してください。'
+        echo -e "\033[01;37m- Run this command in your terminal to add Homebrew to your PATH:"
+        echo '    (echo; echo '"'"'eval "$(/opt/homebrew/bin/brew shellenv)"'"'"') >>' "${HOME}/.bash_profile"
+        echo -n '    eval "$(/opt/homebrew/bin/brew shellenv)"'
+        echo -e "\033[00;33m <- 後で ~/dotfiles/bash/private/ を読み込むことで実行されるので実行不要\033[0m"
+        echo ''
+
+        shellenv_file="${ROOT}/bash/private/00_shellenv.bash"
+        if [ ! -e "${shellenv_file}" ]; then
+            echo "${shellenv_file} が存在しません。"
+            echo -en '\033[00;33m`eval "$(/opt/homebrew/bin/brew shellenv)"` を'"${shellenv_file} に追加してよろしいですか？"
+            read -p "$(echo -e '[Y/n]: \033[0m')" ANS0
+            echo ''
+            if [[ $ANS0 != [nN] ]]; then
+                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${shellenv_file}"
+            else
+                echo -e "\033[00;33mbrew コマンドが実行できない可能性があるのでご注意ください。"
+            fi
+            unset ANS0
+        fi
+    else
+        echo -e "\033[38;2;250;180;100m次のURLが存在しませんでした。${url}"
+        echo -e "https://brew.sh/index_ja を見て最新のコマンドに書き換えてください\033[0m"
+        return 0
+    fi
+fi
+
+#-------------------------------------
+# 1. link files
+#-------------------------------------
+
+# デバイスの種類をチェックする
+echo -e 'Check uname: $(uname) is' "\033[01;37m$(uname)\033[0m"
+echo -e 'Check OS tpye: $OSTYPE is' "\033[01;37m${OSTYPE}\033[0m"
 echo ""
 
 # Windows の Git Bash でシンボリックリンクを作成するには一手間かかる
@@ -43,10 +76,23 @@ if [[ "${OSTYPE}" == msys* ]]; then
     # .bash_profile のシンボリックリンクも貼り直す必要がある
     CURRENT_DIR=$(pwd)
     cd "${ROOT}"
-    ln -sf "bash/.bashenv" ".bash_profile"
+    ln -sfv "bash/.bashenv" ".bash_profile"
     cd "${CURRENT_DIR}"
     unset CURRENT_DIR
 fi
+
+# シンボリックリンクを貼る
+files_to_link=(
+    ".bash_logout"
+    ".bash_profile"
+    ".gitconfig"
+    ".gitignore_global"
+    ".gitmessage"
+)
+
+echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。\033[0m"
+echo "${files_to_link[@]}"
+echo ""
 
 for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
     ln -sfv "${ROOT}/${file}" "${HOME}"
@@ -135,25 +181,15 @@ fi
 
 # シンボリックリンクを貼り終わったのでシェルを読み込む
 
-echo_yellow 'load ~/.bash_profile'
+echo ''
+echo 'loading ~/.bash_profile'
 source "${HOME}/.bash_profile" >/dev/null
+echo 'finish loading'
+echo ''
 
 #-------------------------------------
-# 11. homwbrew
+# 5. upgrade homwbrew (if OSX)
 #-------------------------------------
-
-if is_osx && ! executable brew; then
-    # homebrew をインストールする
-    echo_yellow "homebrew をインストールします"
-    echo_yellow "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください"
-    url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-    if [[ $(curl ${url} -o /dev/null -w '%{http_code}\n' -s) = "200" ]]; then
-        /bin/bash -c "$(curl -fsSL ${url})" # 書き換える必要性が起こりうるコマンド
-    else
-        warn "次のURLが存在しませんでした。${url}"
-        warn "https://brew.sh/index_ja を見て最新のコマンドに書き換えてください"
-    fi
-fi
 
 if executable brew; then
     read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
