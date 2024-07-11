@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Media Control Shortcut",
+  "version": "1.0",
+  "permissions": ["background", "commands"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "toggle-media-playback": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P"
+      },
+      "description": "Toggle media playback"
+    }
+  }
+}
