@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Media Control Shortcut",
   "version": "1.0",
-  "permissions": ["tabs", "scripting"],
+  "permissions": ["tabs", "scripting", "activeTab", "http://*/", "https://*/"],
   "background": {
     "service_worker": "background.js"
   },
