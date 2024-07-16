@@ -236,3 +236,51 @@ EOS
 
     fi
 }
+
+gln() {
+    if [ $# -eq 0 ]; then
+        echo "エラー: ファイル名を指定してください"
+        return 1
+    fi
+    echo_yellow 'コミットログから対象ファイルを誰がどれだけ編集したかを集計します'
+    git log --numstat --pretty="%an" -- "$@" |
+        awk '
+        BEGIN { author = ""; }
+        /^[^0-9]/ { author = $0; next; }
+        {
+            insertions[author] += $1;
+            deletions[author] += $2;
+        }
+        END {
+            for (author in insertions) {
+                total[author] = insertions[author] + deletions[author];
+                authors[++count] = author;
+            }
+
+            # Insertion sort by total modifications
+            for (i = 2; i <= count; i++) {
+                key = authors[i];
+                j = i - 1;
+                while (j > 0 && total[authors[j]] < total[key]) {
+                    authors[j + 1] = authors[j];
+                    j--;
+                }
+                authors[j + 1] = key;
+            }
+
+            printf "%8s  %8s  %8s  %-20s\n", "Added", "Removed", "Total", "Author";
+            for (i = 1; i <= count; i++) {
+                author = authors[i];
+                printf "%8d  %8d  %8d  %-20s\n", insertions[author], deletions[author], total[author], author;
+            }
+        }'
+}
+
+glh() {
+    if [ $# -eq 0 ]; then
+        echo "エラー: ファイル名を指定してください"
+        return 1
+    fi
+    echo_yellow '最初のコミットが古い順に作業者を表示します'
+    git log --pretty=format:"%ad %an" --date=short --reverse -- "$@" | awk '{if (!seen[$2]++) {print $0}}'
+}
