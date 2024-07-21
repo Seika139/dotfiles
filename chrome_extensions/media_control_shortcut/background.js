@@ -24,6 +24,42 @@ function toggleMediaPlayback() {
     const mediaElements = Array.from(document.querySelectorAll('audio, video'));
     console.log('Found media elements:', mediaElements);
 
+    // SoundCloud用のカスタムコード
+    const soundCloudPlayers = Array.from(document.querySelectorAll('.playControl'));
+    soundCloudPlayers.forEach(player => {
+        if (player.classList.contains('playing')) {
+            console.log('Pausing SoundCloud player:', player);
+            player.click();
+        } else {
+            console.log('Playing SoundCloud player:', player);
+            player.click();
+        }
+    });
+
+    // Radiko用のカスタムコード
+    const radikoPlayers = Array.from(document.querySelectorAll('.play-button'));
+    radikoPlayers.forEach(player => {
+        if (player.classList.contains('playing')) {
+            console.log('Pausing Radiko player:', player);
+            player.click();
+        } else {
+            console.log('Playing Radiko player:', player);
+            player.click();
+        }
+    });
+
+    // Mixcloud用のカスタムコード
+    const mixcloudPlayers = Array.from(document.querySelectorAll('.player-control'));
+    mixcloudPlayers.forEach(player => {
+        if (player.classList.contains('pause')) {
+            console.log('Pausing Mixcloud player:', player);
+            player.click();
+        } else {
+            console.log('Playing Mixcloud player:', player);
+            player.click();
+        }
+    });
+
     if (mediaElements.length > 0) {
         mediaElements.forEach(media => {
             console.log('Media element:', media);
@@ -48,5 +84,6 @@ function toggleMediaPlayback() {
     } else {
         console.log('No media elements found on this page.');
     }
-    return mediaElements.length > 0;
+
+    return mediaElements.length > 0 || soundCloudPlayers.length > 0 || radikoPlayers.length > 0 || mixcloudPlayers.length > 0;
 }
