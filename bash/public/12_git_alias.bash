@@ -2,7 +2,9 @@
 
 # gitignore.io のコマンド
 gi() {
-    curl -sL "https://www.toptal.com/developers/gitignore/api/$*"
+    local queries
+    queries="$(echo "$*" | tr ' ' ',')"
+    curl -sL "https://www.toptal.com/developers/gitignore/api/$queries"
     echo
 }
 
