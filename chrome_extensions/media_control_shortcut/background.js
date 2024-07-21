@@ -2,12 +2,9 @@ chrome.commands.onCommand.addListener((command) => {
     if (command === "toggle-media-playback") {
         chrome.tabs.query({ audible: true }, (tabs) => {
             tabs.forEach((tab) => {
-                // タブがアクティブかどうかを確認し、必要に応じてタブをアクティブにする
-                chrome.tabs.update(tab.id, { active: true }, () => {
-                    chrome.scripting.executeScript({
-                        target: { tabId: tab.id },
-                        func: toggleMediaPlayback
-                    });
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: toggleMediaPlayback
                 });
             });
         });
@@ -16,6 +13,7 @@ chrome.commands.onCommand.addListener((command) => {
 
 function toggleMediaPlayback() {
     const mediaElements = document.querySelectorAll('video, audio');
+    console.log('Found media elements:', mediaElements);
     if (mediaElements.length > 0) {
         mediaElements.forEach(media => {
             if (media.paused) {
