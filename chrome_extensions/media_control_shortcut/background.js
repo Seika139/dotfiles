@@ -20,10 +20,12 @@ chrome.commands.onCommand.addListener((command) => {
 function toggleMediaPlayback() {
     const mediaElements = document.querySelectorAll('video, audio');
     console.log('Found media elements:', mediaElements);
+
     if (mediaElements.length > 0) {
         mediaElements.forEach(media => {
+            console.log('Media element state:', media.paused ? 'paused' : 'playing');
             if (media.paused) {
-                console.log('Playing media:', media);
+                console.log('Attempting to play media:', media);
                 media.play().catch(error => {
                     console.error('Error playing media:', error);
                     // Chromeには自動再生ポリシーがあり
@@ -35,7 +37,7 @@ function toggleMediaPlayback() {
                     }).catch(error => console.error('Error playing muted media:', error));
                 });
             } else {
-                console.log('Pausing media:', media);
+                console.log('Attempting to pause media:', media);
                 media.pause();
             }
         });
