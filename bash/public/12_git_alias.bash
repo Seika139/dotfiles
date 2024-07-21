@@ -136,7 +136,7 @@ EOS
 
     # これまでのコマンドで絞り込んだファイルに対して $2 と $3 の間の git diff を出力する
     local command5
-    command5="xargs git diff $2..$3 ${@:4}"
+    command5="xargs git diff $2..$3 ${*:4}"
 
     echo_yellow "$command1 | $command2 | $command3 | $command4 | $command5"
 
@@ -148,13 +148,9 @@ EOS
 tags_from_commit() {
     # git のコミットに対応するタグ・ブランチを取得する
     local tags
-    tags="$(git branch -a --points-at "$1")"
+    tags=$(git branch -a --points-at "$1")
     tags="${tags//$'\n'/ }"
-    echo "$(echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /' -e 's/^ *//' -e 's/  */ /g')"
-    # echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /'
-    # echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /'
-    # echo "$(git branch -a --points-at "$1" | sed -e 's/^[* ]*//' -e 's/->//' -e 's/ +/ /' -e ':a;N;$!ba;s/\n/ /g' -e 's/  */ /g')"
-    # echo "$(git branch -a --points-at "$1" | sed -e 's/*/ /g' -e 's/->//' -e ':a;N;$!ba;s/\n/ /g' -e 's/  */ /g' -e 's/^ *//')"
+    echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /' -e 's/^ *//' -e 's/  */ /g'
 }
 
 commit_with_tags() {
@@ -251,8 +247,8 @@ EOS
         echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_a} ${*:3}"
         echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_b} ${*:3}"
 
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" ${ancestor}..${commit_id_a} ${@:3}
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" ${ancestor}..${commit_id_b} ${@:3}
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${commit_id_a}" "${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${commit_id_b}" "${@:3}"
 
     fi
 }
