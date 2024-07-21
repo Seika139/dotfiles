@@ -21,8 +21,9 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 function toggleMediaPlayback() {
-    const mediaElements = document.querySelectorAll('video, audio');
+    const mediaElements = Array.from(document.querySelectorAll('audio, video'));
     console.log('Found media elements:', mediaElements);
+
     if (mediaElements.length > 0) {
         mediaElements.forEach(media => {
             console.log('Media element:', media);
