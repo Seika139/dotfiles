@@ -7,9 +7,12 @@ chrome.commands.onCommand.addListener((command) => {
                     func: toggleMediaPlayback
                 }, (results) => {
                     if (chrome.runtime.lastError) {
-                        console.error(chrome.runtime.lastError.message);
+                        console.error('Runtime error:', chrome.runtime.lastError.message);
                     } else {
                         console.log('Script executed successfully:', results);
+                        if (results && results[0] && results[0].result) {
+                            console.log('Script result:', results[0].result);
+                        }
                     }
                 });
             });
@@ -20,7 +23,6 @@ chrome.commands.onCommand.addListener((command) => {
 function toggleMediaPlayback() {
     const mediaElements = document.querySelectorAll('video, audio');
     console.log('Found media elements:', mediaElements);
-
     if (mediaElements.length > 0) {
         mediaElements.forEach(media => {
             console.log('Media element state:', media.paused ? 'paused' : 'playing');
@@ -44,4 +46,5 @@ function toggleMediaPlayback() {
     } else {
         console.log('No media elements found on this page.');
     }
+    return mediaElements.length > 0;
 }
