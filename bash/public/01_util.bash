@@ -7,81 +7,81 @@
 function echo_black() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;30m$@\033[0m"
+        echo -ne "\033[00;30m$*\033[0m"
     else
-        echo -e "\033[00;30m$@\033[0m"
+        echo -e "\033[00;30m$*\033[0m"
     fi
 }
 
 function echo_red() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;31m$@\033[0m"
+        echo -ne "\033[00;31m$*\033[0m"
     else
-        echo -e "\033[00;31m$@\033[0m"
+        echo -e "\033[00;31m$*\033[0m"
     fi
 }
 
 function echo_green() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;32m$@\033[0m"
+        echo -ne "\033[00;32m$*\033[0m"
     else
-        echo -e "\033[00;32m$@\033[0m"
+        echo -e "\033[00;32m$*\033[0m"
     fi
 }
 
 function echo_yellow() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;33m$@\033[0m"
+        echo -ne "\033[00;33m$*\033[0m"
     else
-        echo -e "\033[00;33m$@\033[0m"
+        echo -e "\033[00;33m$*\033[0m"
     fi
 }
 
 function echo_blue() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;34m$@\033[0m"
+        echo -ne "\033[00;34m$*\033[0m"
     else
-        echo -e "\033[00;34m$@\033[0m"
+        echo -e "\033[00;34m$*\033[0m"
     fi
 }
 
 function echo_magenta() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;35m$@\033[0m"
+        echo -ne "\033[00;35m$*\033[0m"
     else
-        echo -e "\033[00;35m$@\033[0m"
+        echo -e "\033[00;35m$*\033[0m"
     fi
 }
 
 function echo_cyan() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;36m$@\033[0m"
+        echo -ne "\033[00;36m$*\033[0m"
     else
-        echo -e "\033[00;36m$@\033[0m"
+        echo -e "\033[00;36m$*\033[0m"
     fi
 }
 
 function echo_white() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[01;37m$@\033[0m"
+        echo -ne "\033[01;37m$*\033[0m"
     else
-        echo -e "\033[01;37m$@\033[0m"
+        echo -e "\033[01;37m$*\033[0m"
     fi
 }
 
 function echo_orange() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[38;2;250;180;100m$@\033[0m"
+        echo -ne "\033[38;2;250;180;100m$*\033[0m"
     else
-        echo -e "\033[38;2;250;180;100m$@\033[0m"
+        echo -e "\033[38;2;250;180;100m$*\033[0m"
     fi
 }
 
@@ -102,7 +102,7 @@ function echo_rgb() {
             shift
         fi
     done
-    text="$@"
+    text="$*"
 
     if "${no_newline}"; then
         echo -ne "\033[38;2;${red};${green};${blue}m${text}\033[0m"
@@ -117,11 +117,11 @@ function is_integer() {
 
 # 02 : logging
 
-function now() {
-    echo $(date +'%Y-%m-%d_%H:%M:%S')
+now() {
+    date +'%Y-%m-%d_%H:%M:%S'
 }
 
-function log() {
+log() {
     if [[ $# -lt 1 ]]; then
         error "Argument Error: too few arguments"
         error "Usage: log LOGLEVEL message"
@@ -138,33 +138,33 @@ function log() {
         return 1
         ;;
     esac
-    echo "$(now) [${label:u}]: $@"
+    echo "$(now) [${label:u}]: $*"
 }
 
 function success() {
-    echo_green $(log info $@)
+    echo_green "$(log info "$@")"
 }
 
 function debug() {
     if [[ ${ENABLE_DEBUG} = 1 ]]; then
-        echo_white $(log debug $@)
+        echo_white "$(log debug "$@")"
     fi
 }
 
 function info() {
-    echo_white $(log info $@)
+    echo_white "$(log info "$@")"
 }
 
 function notice() {
-    echo_yellow $(log notice $@)
+    echo_yellow "$(log notice "$@")"
 }
 
 function warn() {
-    echo_orange $(log warn $@)
+    echo_orange "$(log warn "$@")"
 }
 
 function error() {
-    echo_red $(log error $@) 1>&2
+    echo_red "$(log error "$@")" 1>&2
 }
 
 # 03 : OS distinction
