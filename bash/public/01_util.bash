@@ -4,88 +4,88 @@
 # ref: https://qiita.com/ko1nksm/items/095bdb8f0eca6d327233#256%E8%89%B2
 
 # python のリンター black との競合を回避
-function echo_black() {
+echo_black() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;30m$@\033[0m"
+        echo -ne "\033[00;30m$*\033[0m"
     else
-        echo -e "\033[00;30m$@\033[0m"
+        echo -e "\033[00;30m$*\033[0m"
     fi
 }
 
-function echo_red() {
+echo_red() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;31m$@\033[0m"
+        echo -ne "\033[00;31m$*\033[0m"
     else
-        echo -e "\033[00;31m$@\033[0m"
+        echo -e "\033[00;31m$*\033[0m"
     fi
 }
 
-function echo_green() {
+echo_green() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;32m$@\033[0m"
+        echo -ne "\033[00;32m$*\033[0m"
     else
-        echo -e "\033[00;32m$@\033[0m"
+        echo -e "\033[00;32m$*\033[0m"
     fi
 }
 
-function echo_yellow() {
+echo_yellow() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;33m$@\033[0m"
+        echo -ne "\033[00;33m$*\033[0m"
     else
-        echo -e "\033[00;33m$@\033[0m"
+        echo -e "\033[00;33m$*\033[0m"
     fi
 }
 
-function echo_blue() {
+echo_blue() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;34m$@\033[0m"
+        echo -ne "\033[00;34m$*\033[0m"
     else
-        echo -e "\033[00;34m$@\033[0m"
+        echo -e "\033[00;34m$*\033[0m"
     fi
 }
 
-function echo_magenta() {
+echo_magenta() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;35m$@\033[0m"
+        echo -ne "\033[00;35m$*\033[0m"
     else
-        echo -e "\033[00;35m$@\033[0m"
+        echo -e "\033[00;35m$*\033[0m"
     fi
 }
 
-function echo_cyan() {
+echo_cyan() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[00;36m$@\033[0m"
+        echo -ne "\033[00;36m$*\033[0m"
     else
-        echo -e "\033[00;36m$@\033[0m"
+        echo -e "\033[00;36m$*\033[0m"
     fi
 }
 
-function echo_white() {
+echo_white() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[01;37m$@\033[0m"
+        echo -ne "\033[01;37m$*\033[0m"
     else
-        echo -e "\033[01;37m$@\033[0m"
+        echo -e "\033[01;37m$*\033[0m"
     fi
 }
 
-function echo_orange() {
+echo_orange() {
     if [[ $1 = '-n' ]]; then
         shift
-        echo -ne "\033[38;2;250;180;100m$@\033[0m"
+        echo -ne "\033[38;2;250;180;100m$*\033[0m"
     else
-        echo -e "\033[38;2;250;180;100m$@\033[0m"
+        echo -e "\033[38;2;250;180;100m$*\033[0m"
     fi
 }
 
-function echo_rgb() {
+echo_rgb() {
     local no_newline=false # -n オプションをつけるか否か
     if [[ $1 = '-n' ]]; then
         no_newline=true
@@ -97,12 +97,12 @@ function echo_rgb() {
     local blue=255
     local text=""
     for color in red green blue; do
-        if is_integer $1; then
+        if is_integer "$1"; then
             eval "${color}=$1"
             shift
         fi
     done
-    text="$@"
+    text="$*"
 
     if "${no_newline}"; then
         echo -ne "\033[38;2;${red};${green};${blue}m${text}\033[0m"
@@ -111,17 +111,17 @@ function echo_rgb() {
     fi
 }
 
-function is_integer() {
+is_integer() {
     [[ "$1" =~ ^[0-9]+$ ]]
 }
 
 # 02 : logging
 
-function now() {
-    echo $(date +'%Y-%m-%d_%H:%M:%S')
+now() {
+    date +'%Y-%m-%d_%H:%M:%S'
 }
 
-function log() {
+log() {
     if [[ $# -lt 1 ]]; then
         error "Argument Error: too few arguments"
         error "Usage: log LOGLEVEL message"
@@ -138,39 +138,39 @@ function log() {
         return 1
         ;;
     esac
-    echo "$(now) [${label:u}]: $@"
+    echo "$(now) [${label:u}]: $*"
 }
 
-function success() {
-    echo_green $(log info $@)
+success() {
+    echo_green "$(log info "$@")"
 }
 
-function debug() {
+debug() {
     if [[ ${ENABLE_DEBUG} = 1 ]]; then
-        echo_white $(log debug $@)
+        echo_white "$(log debug "$@")"
     fi
 }
 
-function info() {
-    echo_white $(log info $@)
+info() {
+    echo_white "$(log info "$@")"
 }
 
-function notice() {
-    echo_yellow $(log notice $@)
+notice() {
+    echo_yellow "$(log notice "$@")"
 }
 
-function warn() {
-    echo_orange $(log warn $@)
+warn() {
+    echo_orange "$(log warn "$@")"
 }
 
-function error() {
-    echo_red $(log error $@) 1>&2
+error() {
+    echo_red "$(log error "$@")" 1>&2
 }
 
 # 03 : OS distinction
 # ref : https://www.trhrkmk.com/posts/bashrc-os-check/
 
-function os() {
+os() {
     case ${OSTYPE} in
     solaris*) echo "SOLARIS" ;;
     darwin*) echo "OSX" ;;
@@ -182,15 +182,15 @@ function os() {
     esac
 }
 
-function is_osx() {
+is_osx() {
     [[ $(os) = "OSX" ]]
 }
 
-function is_win() {
+is_win() {
     [[ $(os) = "MSYS" || $(os) = "CYGWIN" ]]
 }
 
-function is_msys() {
+is_msys() {
     [[ $(os) = "MSYS" ]]
 }
 
@@ -207,18 +207,18 @@ fi
 # >/dev/null 2>&1 → 標準エラー出力を標準出力にマージして /dev/null に捨てる
 # https://qiita.com/ritukiii/items/b3d91e97b71ecd41d4ea
 
-function executable() {
+executable() {
     if [[ $# -ne 1 ]]; then
         error "executable : requires only 1 argument"
         return 1
     fi
-    type $1 >/dev/null 2>&1
+    type "$1" >/dev/null 2>&1
 }
 
 # 05 : add path
 # PATHは先にある方が優先されることに留意する
 
-function add_path() {
+add_path() {
     if [[ $# -ne 1 ]]; then
         error "add_path : requires only 1 argument" >&2
         return 1
@@ -245,13 +245,13 @@ function add_path() {
 # 任意のファイルの絶対パスを取得する
 # ref : https://maku77.github.io/linux/path/absolute-path-of-file.html
 
-function abs_path() {
+abs_path() {
     if [[ $# -ne 1 ]]; then
         error "abs_path : requires only 1 argument"
         return 1
     fi
-    echo $(
-        cd $(dirname $1)
+    echo "$(
+        cd "$(dirname "$1")" || exit 1
         pwd
-    )/$(basename $1)
+    )"/"$(basename "$1")"
 }
