@@ -29,8 +29,8 @@ alias gwl='git worktree list'
 PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
 
 # git log … 飾り付けて表示
-GL=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}")
-alias gl='echo_yellow "${GL[*]}"; "${GL[@]}"'
+GL="git log --date=format-local:\"%Y/%m/%d %H:%M:%S\" --pretty=format:\"${PRETTY_FORMAT}\""
+alias gl="echo_yellow ${GL}; ${GL}"
 unset GL
 
 # git log … グラフ表示
@@ -40,7 +40,7 @@ unset GLR
 
 # git log … 修正ライン数が分かる
 GLL=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
-alias glr='echo_yellow "${GLL[*]}"; "${GLL[@]}"'
+alias gll='"echo_yellow" "${GLL[*]}"; "${GLL[@]}"'
 unset GLL
 
 alias gd='git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/"'
@@ -216,8 +216,8 @@ EOS
         echo_rgb -n 120 120 120 ' ________ '
         commit_with_tags "$descendant"
         echo
-        echo_rgb 180 255 180 "git log ${ancestor}..${descendant}" "${@:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}".."${descendant}" "${@:3}"
+        echo_rgb 180 255 180 "git log ${ancestor}..${descendant} ${*:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${descendant} ${*:3}"
 
     else
         # 両者のどちらとも同一でない祖先が存在する場合
@@ -237,8 +237,8 @@ EOS
         echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_a}" "${@:3}"
         echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_b}" "${@:3}"
 
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}".."${commit_id_a}" "${@:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}".."${commit_id_b}" "${@:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${commit_id_a} ${*:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${commit_id_b} ${*:3}"
 
     fi
 }
