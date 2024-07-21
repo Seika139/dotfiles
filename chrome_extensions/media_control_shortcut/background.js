@@ -25,7 +25,8 @@ function toggleMediaPlayback() {
     console.log('Found media elements:', mediaElements);
     if (mediaElements.length > 0) {
         mediaElements.forEach(media => {
-            console.log('Media element state:', media.paused ? 'paused' : 'playing');
+            console.log('Media element:', media);
+            console.log('Media element current state:', media.paused ? 'paused' : 'playing');
             if (media.paused) {
                 console.log('Attempting to play media:', media);
                 media.play().catch(error => {
