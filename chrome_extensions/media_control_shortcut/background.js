@@ -37,12 +37,12 @@ function toggleMediaPlayback() {
     });
 
     // Radiko用のカスタムコード
-    const radikoPlayers = Array.from(document.querySelectorAll('.play-button'));
+    const radikoPlayers = Array.from(document.querySelectorAll('.play-button, .stop-button'));
     radikoPlayers.forEach(player => {
-        if (player.classList.contains('playing')) {
+        if (player.classList.contains('is-playing')) {
             console.log('Pausing Radiko player:', player);
             player.click();
-        } else {
+        } else if (player.classList.contains('is-paused')) {
             console.log('Playing Radiko player:', player);
             player.click();
         }
