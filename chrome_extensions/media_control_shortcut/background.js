@@ -5,6 +5,12 @@ chrome.commands.onCommand.addListener((command) => {
                 chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: toggleMediaPlayback
+                }, (results) => {
+                    if (chrome.runtime.lastError) {
+                        console.error(chrome.runtime.lastError.message);
+                    } else {
+                        console.log('Script executed successfully:', results);
+                    }
                 });
             });
         });
