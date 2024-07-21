@@ -3,14 +3,22 @@
   "name": "Media Control Shortcut",
   "version": "1.0",
   "permissions": ["tabs", "scripting", "activeTab"],
-  "host_permissions": ["https://www.youtube.com/*", "https://abema.tv/*"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://abema.tv/*",
+    "https://radiko.jp/*",
+    "https://soundcloud.com/*",
+    "https://www.mixcloud.com/*",
+    "https://*/*",
+    "http://*/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "commands": {
     "toggle-media-playback": {
       "suggested_key": {
-        "default": "Ctrl+Shift+P"
+        "default": "Alt+P"
       },
       "description": "Toggle media playback"
     }
