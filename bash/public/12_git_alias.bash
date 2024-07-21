@@ -29,19 +29,28 @@ alias gwl='git worktree list'
 PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
 
 # git log … 飾り付けて表示
-GL="git log --date=format-local:\"%Y/%m/%d %H:%M:%S\" --pretty=format:\"${PRETTY_FORMAT}\""
-alias gl="echo_yellow ${GL}; ${GL}"
-unset GL
+gl() {
+    local command
+    command=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}")
+    echo_yellow "${command[*]}"
+    "${command[@]}"
+}
 
 # git log … グラフ表示
-GLR=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--graph")
-alias glr='echo_yellow "${GLR[*]}"; "${GLR[@]}"'
-unset GLR
+glr() {
+    local command
+    command=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--graph")
+    echo_yellow "${command[*]}"
+    "${command[@]}"
+}
 
 # git log … 修正ライン数が分かる
-GLL=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
-alias gll='"echo_yellow" "${GLL[*]}"; "${GLL[@]}"'
-unset GLL
+gll() {
+    local command
+    command=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
+    echo_yellow "${command[*]}"
+    "${command[@]}"
+}
 
 alias gd='git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/"'
 
@@ -64,11 +73,11 @@ gpsu() {
 
 # .gitmessageを表示する
 gmsg() {
-    less_color "${DOTPATH}"/.gitmessage
+    less_color "${DOTPATH}/.gitmessage"
 }
 
 hlp_git() {
-    less_color "${DOTPATH}"/docs/git.txt
+    less_color "${DOTPATH}/docs/git.txt"
 }
 
 # 自分がコミットした差分だけを確認したい
@@ -110,9 +119,9 @@ EOS
     local command1=""
     if [[ "$1" == "-" ]]; then
         # $1 を - にすると author で絞り込まない
-        command1="git log --pretty=format:\"%H\" --no-merges" "$2".."$3"
+        command1="git log --pretty=format:\"%H\" --no-merges $2..$3"
     else
-        command1="git log --pretty=format:\"%H\" --no-merges --author=${1}" "$2".."$3"
+        command1="git log --pretty=format:\"%H\" --no-merges --author=${1} $2..$3"
     fi
 
     # コミットハッシュごとに変更があったファイルを取得
@@ -127,25 +136,30 @@ EOS
 
     # これまでのコマンドで絞り込んだファイルに対して $2 と $3 の間の git diff を出力する
     local command5
-    command5="xargs git diff $2..$3" "${@:4}"
+    command5="xargs git diff $2..$3 ${@:4}"
 
     echo_yellow "$command1 | $command2 | $command3 | $command4 | $command5"
 
     $command1 | $command2 | $command3 |
         xargs -IXXX sh -c 'if [[ -e "XXX" ]]; then echo "XXX"; fi' |
-        xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" "$2".."$3" "${@:4}"
+        xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" $2..$3 "${@:4}"
 }
 
 tags_from_commit() {
     # git のコミットに対応するタグ・ブランチを取得する
     local tags
-    tags=$(git branch -a --points-at "$1")
-    echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /'
+    tags="$(git branch -a --points-at "$1")"
+    tags="${tags//$'\n'/ }"
+    echo "$(echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /' -e 's/^ *//' -e 's/  */ /g')"
+    # echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /'
+    # echo "${tags//'*'/}" | sed -e 's/->//' -e 's/ +/ /'
+    # echo "$(git branch -a --points-at "$1" | sed -e 's/^[* ]*//' -e 's/->//' -e 's/ +/ /' -e ':a;N;$!ba;s/\n/ /g' -e 's/  */ /g')"
+    # echo "$(git branch -a --points-at "$1" | sed -e 's/*/ /g' -e 's/->//' -e ':a;N;$!ba;s/\n/ /g' -e 's/  */ /g' -e 's/^ *//')"
 }
 
 commit_with_tags() {
     local tags
-    tags=$(tags_from_commit "$1")
+    tags="$(tags_from_commit "$1")"
     echo_yellow -n "$1"
     if [[ -n "${tags}" ]]; then
         echo_red -n " (${tags})"
@@ -186,13 +200,13 @@ EOS
 
     # 2つのコミットの共通祖先
     local ancestor
-    ancestor=$(git merge-base "$1" "$2")
+    ancestor="$(git merge-base "$1" "$2")"
 
     # $1 と $2 の コミットハッシュ
     local commit_id_a
-    commit_id_a=$(git rev-parse "$1")
+    commit_id_a="$(git rev-parse "$1")"
     local commit_id_b
-    commit_id_b=$(git rev-parse "$2")
+    commit_id_b="$(git rev-parse "$2")"
 
     local descendant
     if [[ "${ancestor}" == "${commit_id_a}" ]]; then
@@ -217,7 +231,7 @@ EOS
         commit_with_tags "$descendant"
         echo
         echo_rgb 180 255 180 "git log ${ancestor}..${descendant} ${*:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${descendant} ${*:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}".."${descendant}" "${@:3}"
 
     else
         # 両者のどちらとも同一でない祖先が存在する場合
@@ -234,11 +248,11 @@ EOS
         # git diff --histogram -w $2 $ancestor ${@:3}
 
         echo
-        echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_a}" "${@:3}"
-        echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_b}" "${@:3}"
+        echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_a} ${*:3}"
+        echo_rgb 180 255 180 "git log ${ancestor}..${commit_id_b} ${*:3}"
 
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${commit_id_a} ${*:3}"
-        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}..${commit_id_b} ${*:3}"
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" ${ancestor}..${commit_id_a} ${@:3}
+        git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" ${ancestor}..${commit_id_b} ${@:3}
 
     fi
 }
