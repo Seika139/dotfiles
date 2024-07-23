@@ -216,7 +216,7 @@ EOS
 
     if [[ "${ancestor}" == "${descendant}" ]]; then
         # 2つが同じコミットを指していた場合
-        echo -n "$(commit_with_tags "$ancestor")"
+        commit_with_tags "$ancestor"
         echo_cyan ' [SAME COMMIT]'
         return 0
     fi
@@ -224,9 +224,10 @@ EOS
     echo
     if [[ -n ${descendant} ]]; then
         # どちらかがもう一方の祖先だった場合
-        echo -n "$(commit_with_tags "$ancestor")"
+        commit_with_tags "$ancestor"
         echo_rgb -n 120 120 120 ' ________ '
         commit_with_tags "$descendant"
+        echo
         echo
         echo_rgb 180 255 180 "git log ${ancestor}..${descendant} ${*:3}"
         git log --date=format-local:"%Y/%m/%d %H:%M:%S" --pretty=format:"${PRETTY_FORMAT}" "${ancestor}".."${descendant}" "${@:3}"
@@ -236,8 +237,10 @@ EOS
         echo_rgb -n 180 180 100 "${ancestor}"
         echo_rgb -n 120 120 120 ' ________ '
         commit_with_tags "$commit_id_a"
+        echo
         echo_rgb -n 120 120 120 "                                          \______ "
         commit_with_tags "$commit_id_b"
+        echo
 
         # diff を表示するバージョン
         # echo_rgb 180 255 180 "git diff --histogram -w $1 $ancestor ${@:3}"
