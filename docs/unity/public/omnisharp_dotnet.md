@@ -3,10 +3,10 @@
 ## OmniSharp
 
 OmniSharp は、C#開発のためのクロスプラットフォーム開発ツールです。
-Visual Studio Code（VSCode）や他のエディタで C#コードの補完、ナビゲーション、リファクタリング、デバッグなどの機能を提供します。
+Visual Studio Code（VS Code）や他のエディタで C#コードの補完、ナビゲーション、リファクタリング、デバッグなどの機能を提供します。
 
-- **役割**: OmniSharp は、C#コードの静的解析を行い、コード補完やエラー検出、リファクタリングなどの機能を提供します。Unity の C#スクリプトを VSCode で編集する際に使用されます。
-- **設定**: VSCode の設定ファイル（`settings.json`）で OmniSharp の設定を調整できます。例えば、特定の.NET SDK を使用するように設定することができます。
+- **役割**: OmniSharp は、C#コードの静的解析を行い、コード補完やエラー検出、リファクタリングなどの機能を提供します。Unity の C#スクリプトを VS Code で編集する際に使用されます。
+- **設定**: VS Code の設定ファイル（`settings.json`）で OmniSharp の設定を調整できます。例えば、特定の .NET SDK を使用するように設定ができます。
 
   ```json
   {
@@ -15,41 +15,48 @@ Visual Studio Code（VSCode）や他のエディタで C#コードの補完、�
   }
   ```
 
+### さよなら OmniSharp
+
+> 2023 年中頃の VS Code の C# 拡張機能の更新 (v2.0.320) で、既定で Roslyn と Razor をベースとした新しい言語サーバーを利用するようになったため、 OmniSharp が使われなくなった。
+> このため、明示的に OmniSharp を有効 にしない限り、 omnisharp.json に書かれた設定は機能しなくなっている。
+
+[VS Code で C# のブロック {} 前後の改行の設定を変更する 2023 | Aqua Ware つぶやきブログ](https://aquasoftware.net/blog/?p=1975) より
+
 ### .NET
 
-.NET は、Microsoft が開発したフレームワークで、アプリケーションの開発と実行をサポートします。.NET には、.NET Framework、.NET Core、.NET 5/6/7 などのバージョンがあります。Unity は特定のバージョンの.NET をサポートしています。
+.NET は、Microsoft が開発したフレームワークで、アプリケーションの開発と実行をサポートします。.NET には、.NET Framework、.NET Core、.NET 5/6/7 などのバージョンがあります。Unity は特定のバージョンの .NET をサポートしています。
 
 - **役割**: .NET は、C#コードの実行環境を提供します。Unity では、.NET Standard 2.0 や 2.1 などを使用して、クロスプラットフォームの互換性を確保します。
-- **バージョン**: Unity のバージョンによってサポートされる.NET バージョンが異なります。例えば、Unity 2020 以降は.NET Standard 2.1 をサポートしています。
+- **バージョン**: Unity のバージョンによってサポートされる .NET バージョンが異なります。例えば、Unity 2020 以降は .NET Standard 2.1 をサポートしています。
 
 ### C\#
 
-C#は、Microsoft が開発したプログラミング言語で、.NET フレームワーク上で動作します。Unity では、スクリプトの記述に C#が使用されます。
+C#は、Microsoft が開発したプログラミング言語で、.NET Framework 上で動作します。Unity では、スクリプトの記述に C#が使用されます。
 
 - **役割**: C#は、Unity のゲームロジックやスクリプトを記述するための主要な言語です。オブジェクト指向プログラミングの特性を持ち、強力な型システムと豊富なライブラリを提供します。
 - **バージョン**: Unity のバージョンによってサポートされる C#のバージョンが異なります。例えば、Unity 2020 では C# 8.0 がサポートされています。
 
 ### Mono
 
-Mono は、.NET フレームワークのオープンソース実装で、クロスプラットフォームの互換性を提供します。Unity は、Mono を使用して C#スクリプトを実行します。
+Mono は、.NET Framework のオープンソース実装で、クロスプラットフォームの互換性を提供します。Unity は、Mono を使用して C#スクリプトを実行します。
 
 - **役割**: Mono は、Unity のスクリプトランタイムとして機能し、C#コードの実行をサポートします。これにより、Windows、macOS、Linux などの異なるプラットフォームで同じ C#コードを実行できます。
-- **設定**: Unity のプロジェクト設定で、スクリプトランタイムバージョンとして Mono を選択することができます。
+- **設定**: Unity のプロジェクト設定で、スクリプトランタイムバージョンとして Mono を選択できます。
   - **Edit > Project Settings > Player > Other Settings** で `Scripting Backend` を `Mono` に設定します。
 
 ---
 
-# VSCode で Unity の開発を行うための準備手順
+# VS Code で Unity の開発を行うための準備手順
 
 ## 1. Visual Studio Code のインストール
 
-まず、Visual Studio Code（VSCode）をインストールします。VSCode は Microsoft が提供する無料のコードエディタで、公式サイトからダウンロードできます。
+まず、Visual Studio Code（VS Code）をインストールします。VS Code は Microsoft が提供する無料のコードエディタで、公式サイトからダウンロードできます。
 
 ## 2. C#拡張機能のインストール
 
-VSCode で C#コードを快適に編集するために、Microsoft が提供する C#拡張機能をインストールします。
+VS Code で C#コードを快適に編集するために、Microsoft が提供する C#拡張機能をインストールします。
 
-1. VSCode を開きます。
+1. VS Code を開きます。
 2. 左側のサイドバーにある拡張機能アイコン（四角形のアイコン）をクリックします。
 3. 検索バーに「C#」と入力し、Microsoft が提供する「C#」拡張機能をインストールします。
 
@@ -70,9 +77,9 @@ Unity での開発に必要な設定を行います。
 
 ### OmniSharp の設定
 
-OmniSharp は、VSCode で C#コードの補完やナビゲーション、リファクタリング、デバッグなどの機能を提供します。必要に応じて、VSCode の設定ファイル（`settings.json`）で OmniSharp の設定を調整します。
+OmniSharp は、VS Code で C#コードの補完やナビゲーション、リファクタリング、デバッグなどの機能を提供します。必要に応じて、VS Code の設定ファイル（`settings.json`）で OmniSharp の設定を調整します。
 
-1. VSCode を開きます。
+1. VS Code を開きます。
 2. メニューから `File` > `Preferences` > `Settings` を選択します。
 3. 右上のアイコン（ファイルアイコン）をクリックして、`settings.json` を開きます。
 4. 以下の設定を追加します。
@@ -100,26 +107,26 @@ Unity は、Mono を使用して C#スクリプトを実行します。Mono は 
 4. `Other Settings` セクションを探し、`Scripting Backend` を `Mono` に設定します。
 5. `Api Compatibility Level` を `NET Standard 2.0` や `NET Standard 2.1` に設定します。
 
-## 6. Unity プロジェクトを VSCode で開く
+## 6. Unity プロジェクトを VS Code で開く
 
-Unity エディタで `Assets` フォルダ内の任意の C#スクリプトをダブルクリックすると、VSCode が開きます。これにより、Unity プロジェクトが VSCode で開かれ、C#スクリプトの編集が可能になります。
+Unity エディタで `Assets` フォルダ内の任意の C#スクリプトをダブルクリックすると、VS Code が開きます。これにより、Unity プロジェクトが VS Code で開かれ、C#スクリプトの編集が可能になります。
 
 ## 追加の設定とツール
 
 ### 1. Unity 拡張機能のインストール
 
-VSCode には、Unity 開発をサポートするための拡張機能がいくつかあります。これらをインストールすることで、開発体験が向上します。
+VS Code には、Unity 開発をサポートするための拡張機能がいくつかあります。これらをインストールすることで、開発体験が向上します。
 
 - [Unity for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=visualstudiotoolsforunity.vstuc)
 - Unity Code Snippets
 
-### 2. VSCode 設定ファイルの調整
+### 2. VS Code 設定ファイルの調整
 
-VSCode の設定ファイル（`settings.json`）を調整することで、開発環境をカスタマイズできます。
+VS Code の設定ファイル（`settings.json`）を調整することで、開発環境をカスタマイズできます。
 
 1. **ファイルの監視設定**:
 
-   - Unity が生成する大量のファイルに対して VSCode が過剰に反応しないように設定します。
+   - Unity が生成する大量のファイルに対して VS Code が過剰に反応しないように設定します。
 
    ```json
    {
@@ -162,7 +169,7 @@ Unity プロジェクトのデバッグを行うための設定を行います�
 
 1. **launch.json の設定**:
 
-   - デバッグ設定を行うために、VSCode のデバッグ設定ファイル（`launch.json`）を作成します。
+   - デバッグ設定を行うために、VS Code のデバッグ設定ファイル（`launch.json`）を作成します。
    - デバッグビューを開き、歯車アイコンをクリックして「Unity Editor」を選択します。これにより、`launch.json`が自動的に生成されます。
 
    ```json
@@ -188,7 +195,7 @@ C#コードのシンタックスハイライトとコード補完を強化する
 
 ### 5. Git 統合
 
-バージョン管理システムとして Git を使用している場合、VSCode の Git 統合機能を活用します。
+バージョン管理システムとして Git を使用している場合、VS Code の Git 統合機能を活用します。
 
 1. **GitLens**:
    - Git の履歴や変更を視覚的に確認できる拡張機能です。
