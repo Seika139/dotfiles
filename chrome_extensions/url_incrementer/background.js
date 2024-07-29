@@ -39,11 +39,30 @@ chrome.commands.onCommand.addListener((command) => {
                 }
             }
 
+            // If neither pathname nor hash part is updated, check query parameters
+            if (!updated) {
+                let searchParams = new URLSearchParams(url.search);
+                for (let [key, value] of searchParams.entries()) {
+                    if (/^\d+$/.test(value)) {
+                        let number = parseInt(value, 10);
+                        if (increase) {
+                            number++;
+                        } else {
+                            number--;
+                        }
+                        searchParams.set(key, number.toString());
+                        url.search = searchParams.toString();
+                        updated = true;
+                        break;
+                    }
+                }
+            }
+
             if (updated) {
                 console.log(`New URL: ${url.toString()}`);
                 chrome.tabs.update(tab.id, { url: url.toString() });
             } else {
-                console.log('No numeric part found in the URL path or hash.');
+                console.log('No numeric part found in the URL path, query, or hash.');
             }
         });
     }
