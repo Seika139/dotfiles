@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "URL Incrementer",
+  "version": "1.0",
+  "permissions": ["activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "increment": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Up"
+      },
+      "description": "Increment the URL"
+    },
+    "decrement": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Down"
+      },
+      "description": "Decrement the URL"
+    }
+  }
+}
