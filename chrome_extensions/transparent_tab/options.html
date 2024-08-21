@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Transparent-er Admin</title>
+        <link href="options.css" rel="stylesheet" type="text/css" media="all" />
+        <link href="toggle.css" rel="stylesheet" type="text/css" media="all" />
+    </head>
+    <body>
+        <h1>Transparent-er Admin</h1>
+        <div class="toggle-container" id="sort-toggle-container">
+            <label><input type="checkbox" switch id="sort-toggle-switch" />オンを上に表示する</label>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tab ID</th>
+                    <th>タイトル</th>
+                    <th>状態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="tabList"></tbody>
+        </table>
+        <script src="options.js"></script>
+    </body>
+</html>

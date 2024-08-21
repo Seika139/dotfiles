@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>タブ管理</title>
+        <style>
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            th {
+                background-color: #f2f2f2;
+                text-align: left;
+            }
+            .on {
+                background-color: #dff0d8; /* 緑色の背景 */
+                font-weight: bold;
+            }
+            .toggle-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>タブ管理</h1>
+        <div class="toggle-container" id="sort-toggle-container">
+            <span>Sort by On/Off</span>
+            <input type="checkbox" id="sort-toggle-switch" switch />
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tab ID</th>
+                    <th>タイトル</th>
+                    <th>状態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="tabList"></tbody>
+        </table>
+        <script src="options.js"></script>
+    </body>
+</html>

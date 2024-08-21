@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, sans-serif;
+    width: 128px;
+    font-size: 15px;
+}
+
+.div-content {
+    display: grid;
+    place-content: center;
+    border: 1px lightgray solid;
+    border-radius: 4px;
+    padding: 6px 2px;
+}
