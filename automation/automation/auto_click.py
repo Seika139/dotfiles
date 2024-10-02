@@ -1,16 +1,24 @@
 import sys
 import threading
 import time
-
-import keyboard
+import platform
 import pyautogui
+from pynput import keyboard
 
 clicking = True
-toggle_key = "alt+z"
-quit_key = "alt+q"
-quit_key2 = "esc"
 exit_flag = False
 duration = 1  # クリックの間隔（秒）
+current_keys = set()
+
+# プラットフォームの識別
+platform_name = platform.system()
+if platform_name == "Darwin":  # macOS
+    toggle_key = {keyboard.Key.ctrl, keyboard.KeyCode(char="z")}  # Ctrl+Z
+    quit_key = {keyboard.Key.ctrl, keyboard.KeyCode(char="x")}  # Ctrl+X
+elif platform_name == "Windows":  # Windows
+    toggle_key = {keyboard.Key.alt, keyboard.KeyCode(char="z")}  # Alt+Z
+    quit_key = {keyboard.Key.alt, keyboard.KeyCode(char="q")}  # Alt+Q
+quit_key2 = {keyboard.Key.esc}  # Esc
 
 
 def click_mouse():
@@ -38,21 +46,45 @@ def print_current_status(delete_last_line=False):
 
 def on_esc():
     global exit_flag
-    print("Esc key pressed. Exiting...")
+    print("Quit key pressed. Exiting...")
     exit_flag = True
 
 
-keyboard.add_hotkey(toggle_key, toggle_clicking)
-keyboard.add_hotkey(quit_key, on_esc)
-keyboard.add_hotkey(quit_key2, on_esc)
+def on_press(key):
+    current_keys.add(key)
+    if all(k in current_keys for k in toggle_key):
+        toggle_clicking()
+    elif all(k in current_keys for k in quit_key):
+        on_esc()
+    elif key in quit_key2:
+        on_esc()
 
+
+def on_release(key):
+    if key in current_keys:
+        current_keys.remove(key)
+
+
+# Keyboard listener
+listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+listener.start()
+
+# Start the clicking thread
 click_thread = threading.Thread(target=click_mouse)
 click_thread.daemon = True
 click_thread.start()
 
-print(f"{duration}秒ごとに自動でクリックします。")
-print(f"・{toggle_key} でクリックのオンオフを切り替えます。")
-print(f"・{quit_key} または {quit_key2} で終了します。")
+if platform_name == "Darwin":
+    print(f"{duration }秒ごとに自動でクリックします。")
+    print(f"・Ctrl+Z でクリックのオンオフを切り替えます。")
+    print(f"・Ctrl+X または Esc で終了します。")
+    print()
+elif platform_name == "Windows":
+    print(f"{duration}秒ごとに自動でクリックします。")
+    print(f"・Alt+Z でクリックのオンオフを切り替えます。")
+    print(f"・Alt+Q または Esc で終了します。")
+    print()
+
 print_current_status(False)
 
 # メインスレッドで無限ループを実行してホットキーを待機
@@ -61,4 +93,5 @@ try:
         time.sleep(0.1)
 finally:
     click_thread.join()
+    listener.stop()
     print("プログラムが終了しました")
