@@ -1,7 +1,8 @@
+import platform
 import sys
 import threading
 import time
-import platform
+
 import pyautogui
 from pynput import keyboard
 
@@ -16,8 +17,8 @@ if platform_name == "Darwin":  # macOS
     toggle_key = {keyboard.Key.ctrl, keyboard.KeyCode(char="z")}  # Ctrl+Z
     quit_key = {keyboard.Key.ctrl, keyboard.KeyCode(char="x")}  # Ctrl+X
 elif platform_name == "Windows":  # Windows
-    toggle_key = {keyboard.Key.alt, keyboard.KeyCode(char="z")}  # Alt+Z
-    quit_key = {keyboard.Key.alt, keyboard.KeyCode(char="q")}  # Alt+Q
+    toggle_key = {keyboard.Key.alt_l, keyboard.KeyCode(char="z")}  # Alt+Z
+    quit_key = {keyboard.Key.alt_l, keyboard.KeyCode(char="q")}  # Alt+Q
 quit_key2 = {keyboard.Key.esc}  # Esc
 
 
@@ -81,8 +82,8 @@ if platform_name == "Darwin":
     print()
 elif platform_name == "Windows":
     print(f"{duration}秒ごとに自動でクリックします。")
-    print(f"・Alt+Z でクリックのオンオフを切り替えます。")
-    print(f"・Alt+Q または Esc で終了します。")
+    print(f"・Left Alt+Z でクリックのオンオフを切り替えます。")
+    print(f"・Left Alt+Q または Esc で終了します。")
     print()
 
 print_current_status(False)
