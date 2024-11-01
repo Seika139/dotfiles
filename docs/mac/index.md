@@ -102,7 +102,7 @@ brew tap Homebrew/bundle
 
 ```bash
 touch Brewfile
-brew bundle
+brew bundle # brew bundle install も同じコマンド
 ```
 
 - `--global` ホームディレクトリのリストファイル`~/.Brewfile`を使用
@@ -118,7 +118,7 @@ brew bundle dump
 - 現在のディレクトリに `Brewfile` を作成しインストールリストを出力
 
   ```Brewfile
-  ap "homebrew/cask"
+  tap "homebrew/cask"
   tap "user/tap-repo", "https://user@bitbucket.org/user/homebrew-tap-repo.git"
   cask_args appdir: "/Applications"
 
