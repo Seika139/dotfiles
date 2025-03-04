@@ -1,0 +1,23 @@
+root = true
+
+# すべてのファイルに適用
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Python
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Shell script
+[*.{sh,bash}]
+indent_style = space
+indent_size = 4
+
+# その他の設定
+[*.{json,toml}]
+indent_style = space
+indent_size = 2
