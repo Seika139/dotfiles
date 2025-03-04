@@ -16,6 +16,8 @@ Volta は Node.js のバージョン管理とパッケージ管理を専門と�
 
 ## インストールする
 
+### Windows
+
 参考
 
 - [Windows で Node.js のバージョン管理 - VOLTA v1.1.1 ｜るらい](https://note.com/rurai/n/n47a3fb9c4508)
@@ -24,6 +26,12 @@ Volta は Node.js のバージョン管理とパッケージ管理を専門と�
 1. 開発者モードをオンにする
 2. インストーラーをダウンロード
 3. インストーラを起動し Volta をインストールする
+
+### Mac
+
+```bash
+brew install volta
+```
 
 ### VS Code のターミナルを利用している場合
 
