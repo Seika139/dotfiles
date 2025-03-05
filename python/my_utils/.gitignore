@@ -254,3 +254,5 @@ output/*
 
 my_utils/sample/*
 !my_utils/sample/.gitkeep
+!my_utils/sample/file1.txt
+!my_utils/sample/file2.txt
