@@ -251,3 +251,6 @@ $RECYCLE.BIN/
 # Customized ignores
 output/*
 !output/.gitkeep
+
+my_utils/sample/*
+!my_utils/sample/.gitkeep
