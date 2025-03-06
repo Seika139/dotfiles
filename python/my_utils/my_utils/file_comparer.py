@@ -1,7 +1,5 @@
 import argparse
 import difflib
-import re
-from datetime import datetime
 from pathlib import Path
 
 from file_scribe import FileScribe
@@ -50,24 +48,6 @@ class Comparer:
         )
 
 
-def process_line_break_chars(content: str, line_break_chars: list[str]) -> list[str]:
-    """
-    指定された line_break_chars を用いて、content を分割します
-    """
-    if not line_break_chars:
-        return [content]
-
-    # line_break_charsに含まれるすべての文字をエスケープして、正規表現パターンを作成します。
-    split_pattern = "(" + "|".join(re.escape(char) for char in line_break_chars) + ")"
-    # 正規表現パターンで content を分割します。
-    normalized_content = re.split(split_pattern, content)
-    normalized_content = [
-        part for part in normalized_content if not re.fullmatch(split_pattern, part)
-    ]
-    # 分割した結果のリストを返します。
-    return normalized_content
-
-
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Compare two files with optional settings."
@@ -100,6 +80,21 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def split_and_join(contents: list[str], split_char: str) -> list[str]:
+    """
+    文字列のリストについて、それぞれの要素を split_char で分割し、分割に使用した文字列を含めてリストにします。
+
+    例:
+    split_and_join(["a-b-c", "d-e-f"], "-") -> ["a-", "b-", "c", "d-", "e-", "f"]
+    """
+    result = []
+    for element in contents:
+        parts = element.split(split_char)
+        result.extend([part + split_char for part in parts[:-1]])
+        result.append(parts[-1])
+    return result
+
+
 def main():
     args = get_args()
 
@@ -109,55 +104,26 @@ def main():
     scribe2 = FileScribe()
     scribe2.read(args.fileB)
 
-    # content1 = scribe1.content.splitlines()
-    content1 = "),\n".join(scribe1.content.split("),")).splitlines()
-    # content1 = [
-    #     " ".join(
-    #         [l.strip() for l in scribe1.content.replace("\\r\\n", "\r\n").splitlines()]
-    #     )
-    # ]
-    # content2 = scribe2.content.splitlines()
-    content2 = "),\n".join(scribe2.content.split("),")).splitlines()
-    # content2 = [
-    #     " ".join(
-    #         [l.strip() for l in scribe2.content.replace("\\r\\n", "\r\n").splitlines()]
-    #     )
-    # ]
+    content1 = scribe1.content.splitlines()
+    content2 = scribe2.content.splitlines()
+    if len(content1) == 1 and len(content2) > 1:
+        content1 = [" ".join(content1)]
+        content2 = [" ".join(content2)]
+    elif len(content1) > 1 and len(content2) == 1:
+        content1 = [" ".join(content1)]
+        content2 = [" ".join(content2)]
 
-    line_count_1 = len(content1)
-    line_count_2 = len(content2)
-
-    max_text_length_1 = max(len(line) for line in content1)
-    max_text_length_2 = max(len(line) for line in content2)
-
-    print(f"About {scribe1.filepath}")
-    print(f"encode: {scribe1.encoding}")
-    print("行数:", line_count_1)
-    print("最大文字数:", max_text_length_1)
-    print()
-    print(f"About {scribe2.filepath}")
-    print(f"encode: {scribe2.encoding}")
-    print("行数:", line_count_2)
-    print("最大文字数:", max_text_length_2)
-    print()
+    # Optional: --line-break-chars オプションで指定された文字列でテキストを分割する
+    for split_char in args.line_break_chars:
+        content1 = split_and_join(content1, split_char)
+        content2 = split_and_join(content2, split_char)
 
     # Optional: --ignore-whitespace オプションで空白と改行の違いを無視する
     if args.ignore_whitespace:
         content1 = [line.strip() for line in content1]
+        content1 = [l for l in content1 if l != ""]
         content2 = [line.strip() for line in content2]
-
-    # Optional: --line-break-chars オプションで指定された文字列で改行を統一する
-    if args.line_break_chars:
-        content1 = [
-            part
-            for l in content1
-            for part in process_line_break_chars(l, args.line_break_chars)
-        ]
-        content2 = [
-            part
-            for l in content2
-            for part in process_line_break_chars(l, args.line_break_chars)
-        ]
+        content2 = [l for l in content2 if l != ""]
 
     # Optional: --wrap-length オプションで行を指定された長さで折り返す
     if args.wrap_length:
@@ -176,10 +142,20 @@ def main():
             temp_content2.append(line)
         content2 = temp_content2
 
-    # Optional: --ignore-whitespace オプションで空白と改行の違いを無視する
-    if args.ignore_whitespace:
-        content1 = [line.strip() for line in content1]
-        content2 = [line.strip() for line in content2]
+    line_count_1 = len(content1)
+    line_count_2 = len(content2)
+
+    max_text_length_1 = max(len(line) for line in content1)
+    max_text_length_2 = max(len(line) for line in content2)
+
+    print(f"{scribe1.filepath}")
+    print(
+        f"encode: {scribe1.encoding}\t行数: {line_count_1}\t 一行の最大文字数: {max_text_length_1}\n"
+    )
+    print(f"{scribe2.filepath}")
+    print(
+        f"encode: {scribe2.encoding}\t行数: {line_count_2}\t 一行の最大文字数: {max_text_length_2}\n"
+    )
 
     save_dir = (
         Path(__file__).parents[1]
@@ -189,17 +165,27 @@ def main():
     save_dir.mkdir(exist_ok=True)
 
     comparer = Comparer(content1, content2)
-    print("違いの概要:")
-    print("ndiff:", len(comparer.ndiff), "行")
-    print("short_diff:", len(comparer.short_diff), "行")
-
     comparer.save_ndiff(save_dir / "ndiff.txt")
     comparer.save_unified_diff(save_dir / "unified_diff.txt")
     comparer.save_short_diff(save_dir / "short_diff.txt")
-    comparer.save_html_diff(
-        save_dir / "diff.html", scribe1.filepath.name, scribe2.filepath.name
+    diff_html = save_dir / "diff.html"
+    comparer.save_html_diff(diff_html, scribe1.filepath.name, scribe2.filepath.name)
+
+    print(
+        "Result\nndiff:",
+        len(comparer.ndiff),
+        "行\tunified_diff:",
+        len(comparer.unified_diff),
+        "行\tshort_diff:",
+        len(comparer.short_diff),
+        "行\tHTML:",
+        diff_html,
     )
 
 
 if __name__ == "__main__":
+    """
+    実行例
+    python file_comparer.py sample/sample1.txt sample/sample2.txt -i -l '),' '\t' -w 60
+    """
     main()
