@@ -38,6 +38,8 @@ poetry で Python プロジェクトを開始・運用する際の手順をま�
 
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
+# Windows の Python ランチャーを使用している場合は下記のコマンドを実行する
+curl -sSL https://install.python-poetry.org | py -3 -
 ```
 
 を実行してインストールしても良い。

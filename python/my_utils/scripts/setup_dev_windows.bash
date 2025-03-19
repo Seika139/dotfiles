@@ -48,7 +48,7 @@ fi
 # Poetry がインストールされているか確認する
 if ! command -v poetry &>/dev/null; then
     log_info "Poetry not found. Installing Poetry..."
-    curl -sSL https://install.python-poetry.org | python3 -
+    curl -sSL https://install.python-poetry.org | py -3 -
     log_success "Poetry installed successfully"
 fi
 
