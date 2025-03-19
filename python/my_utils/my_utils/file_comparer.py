@@ -37,13 +37,14 @@ class Comparer:
         filepath: str | Path,
         fromdesc: str = "File A",
         todesc: str = "File B",
+        context: bool = False,
     ) -> None:
         # 2つのシーケンスの差分をHTML形式でファイルに保存します。
 
         FileScribe().write(
             filepath,
             difflib.HtmlDiff().make_file(
-                self.str_list_1, self.str_list_2, fromdesc=fromdesc, todesc=todesc
+                self.str_list_1, self.str_list_2, fromdesc, todesc, context
             ),
         )
 
@@ -75,9 +76,15 @@ def get_args() -> argparse.Namespace:
         default=0,
     )
 
-    print(parser.parse_args())
+    args = parser.parse_args()
+    max_arg_length = max(
+        len(arg) for arg in ["ignore_whitespace", "line_break_chars", "wrap_length"]
+    )
+    print("\n[Settings]")
+    for arg in ["ignore_whitespace", "line_break_chars", "wrap_length"]:
+        print(f"{arg.ljust(max_arg_length)}: {getattr(args, arg)}")
     print()
-    return parser.parse_args()
+    return args
 
 
 def split_and_join(contents: list[str], split_char: str) -> list[str]:
@@ -168,18 +175,32 @@ def main():
     comparer.save_ndiff(save_dir / "ndiff.txt")
     comparer.save_unified_diff(save_dir / "unified_diff.txt")
     comparer.save_short_diff(save_dir / "short_diff.txt")
-    diff_html = save_dir / "diff.html"
-    comparer.save_html_diff(diff_html, scribe1.filepath.name, scribe2.filepath.name)
+
+    # 全部の行を表示する
+    comparer.save_html_diff(
+        save_dir / "diff_all.html",
+        scribe1.filepath.name,
+        scribe2.filepath.name,
+        False,
+    )
+
+    # 差分の周辺のみを表示する
+    comparer.save_html_diff(
+        save_dir / "diff_context.html",
+        scribe1.filepath.name,
+        scribe2.filepath.name,
+        True,
+    )
 
     print(
-        "Result\nndiff:",
+        "[Result]\nndiff:",
         len(comparer.ndiff),
         "行\tunified_diff:",
         len(comparer.unified_diff),
         "行\tshort_diff:",
         len(comparer.short_diff),
-        "行\tHTML:",
-        diff_html,
+        "行\n差分は以下のディレクトリに保存されました:",
+        save_dir,
     )
 
 
