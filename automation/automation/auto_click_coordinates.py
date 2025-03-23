@@ -5,7 +5,7 @@ import time
 import pyautogui
 from pynput import keyboard, mouse
 
-clicking = False
+clicking = True
 exit_flag = False
 duration = 1  # クリックの間隔（秒）
 current_keys = set()
