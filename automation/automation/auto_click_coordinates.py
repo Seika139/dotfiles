@@ -65,7 +65,7 @@ def on_press(key):
         on_esc()
     elif key == keyboard.Key.enter:  # Enterキーで記録終了
         global recording
-        if not recording:
+        if recording:
             print("記録完了! 指定時間ごとに自動クリック開始")
         recording = False
 
