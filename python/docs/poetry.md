@@ -1,6 +1,7 @@
 # Poetry
 
 poetry で Python プロジェクトを開始・運用する際の手順をまとめる。
+poetry 自体の運用に Python3.9 以上が必要なことに注意する。
 
 - [Poetry](#poetry)
   - [poetry 自体のインストール](#poetry-自体のインストール)
@@ -11,6 +12,9 @@ poetry で Python プロジェクトを開始・運用する際の手順をま�
     - [4. インストーラを利用せずにプロジェクトを始める](#4-インストーラを利用せずにプロジェクトを始める)
   - [パッケージ管理](#パッケージ管理)
   - [仮想環境](#仮想環境)
+    - [poetry が v2.0.0 以上の場合](#poetry-が-v200-以上の場合)
+    - [poetry が v2.0.0 未満の場合](#poetry-が-v200-未満の場合)
+    - [IDE のインタープリタに仮想環境を設定する](#ide-のインタープリタに仮想環境を設定する)
   - [各種ライブラリおよび python の実行方法](#各種ライブラリおよび-python-の実行方法)
   - [poetry プロジェクトのディレクトリ構成](#poetry-プロジェクトのディレクトリ構成)
     - [`__init__.py`](#__init__py)
@@ -32,7 +36,7 @@ poetry で Python プロジェクトを開始・運用する際の手順をま�
 
 > ※ 後述の「[1. 作成済みのプロジェクトをクローンして始める場合](#1-作成済みのプロジェクトをクローンして始める場合)」または「[2. ドキュメント内にあるインストーラを活用する](#2-ドキュメント内にあるインストーラを活用する)」に該当する場合は、その手順に poetry のインストールが含まれているので、ここではスキップして良い。
 
-<https://python-poetry.org/docs/> を参照して、poetry をインストールのが確実。
+<https://python-poetry.org/docs/> を参照して、poetry をインストールするのが確実。
 
 [../setup_scripts/pyenv_and_poetry/copy_into_project/setup_dev_windows.bash](../setup_scripts/pyenv_and_poetry/copy_into_project/setup_dev_windows.bash) に書かれているように
 
@@ -154,10 +158,10 @@ pip コマンドでパッケージをインストールするのと同じ感覚�
 
 ```bash
 # プロジェクトに新しい依存関係を追加する
-poetry add requests
+poetry add numpy pandas
 
 # プロジェクトから依存関係を削除する
-poetry remove requests
+poetry remove numpy pandas
 
 # すべての依存関係を最新バージョンに更新する
 poetry update
@@ -166,37 +170,64 @@ poetry update
 poetry install
 ```
 
-この際、`poetry.lock` が更新され、`pyproject.toml` にも追記されるので、git 管理している場合は適宜コミットに含めること。
+依存関係を更新すると、`pyproject.toml` と `poetry.lock` が更新される。
+`poetry.lock` はプロジェクトの依存関係を固定するためのファイルで、他の開発者が同じ環境を再現できるようにするために使用されるので、 git 管理している場合はコミットに含めること。
 
 ## 仮想環境
 
+poetry のバージョンでコマンドが異なるので初めにバージョンを確認しておく。
+
 ```bash
 poetry --version
+```
 
-# poetry が v2.0.0 以上の場合
-poetry env activate # 仮想環境を起動する
-python [file] # 仮想環境内で python を実行
-poetry env deactivate # 仮想環境を終了する
+### poetry が v2.0.0 以上の場合
 
-# poetry が v2.0.0 未満の場合
+公式ページの情報をもとに書いています
+
+- [Commands | Documentation | Poetry](https://python-poetry.org/docs/cli)
+- [Managing environments | Documentation | Poetry](https://python-poetry.org/docs/managing-environments/)
+
+```bash
+# 現在のシェルで仮想環境をアクティブにするコマンドを出力する
+# このコマンド自体が仮想環境をアクティブにするわけではない
+poetry env activate
+
+# 現在のプロジェクトに対して新しい仮想環境をアクティブ化、または作成する
+poetry env use
+
+
+poetry env info # 現在アクティブになっている仮想環境の情報を表示する
+poetry env info --path # 現在アクティブになっている仮想環境のパスを表示する
+poetry env list # 現在のプロジェクトに関連付けられた仮想環境を一覧表示する
+
+# 仮想環境の削除
+# 現在アクティブになっている仮想環境を削除すると、自動的に非アクティブになる。
+poetry env remove [env_name] # 指定した仮想環境を削除する
+poetry env remove --all # すべての仮想環境を削除する
+```
+
+### poetry が v2.0.0 未満の場合
+
+```bash
 poetry shell # 仮想環境を起動する
 python [file] # 仮想環境内で python を実行
 exit # 仮想環境を終了する
 ```
 
+### IDE のインタープリタに仮想環境を設定する
+
+IDE のインタープリタに仮想環境を設定することで、IDE 内で仮想環境を使用することができる。
+
+- [PyCharm](https://www.jetbrains.com/help/pycharm/creating-virtual-environment.html)
+- [VSCode](https://code.visualstudio.com/docs/python/environments#_creating-a-virtual-environment)
+
+VS Code の場合は、コマンドパレットを開いて `Python: Select Interpreter` を選択し、仮想環境のパスを選択することで設定できる。
+VS Code の機能で仮想環境を作ることもできるが、poetry で作成した仮想環境を使用する場合は、この機能は使用しないこと。
+
 ## 各種ライブラリおよび python の実行方法
 
-仮想環境に入っている場合は下記のようにコマンドを実行する。
-
-```bash
-# Example
-python [script_name].py
-locust -f [script_name].py # 負荷試験で使用するライブラリ
-black [script_name].py # コードフォーマッタ
-pytest [script_name].py # テストランナー
-```
-
-仮想環境に入っていない場合は下記のように `poetry run` を前につけてコマンドを実行する。
+仮想環境を明示的にアクティベートしなくても、`poetry run` をつけてコマンドを実行することで仮想環境内のライブラリを使用することができる。
 
 ```bash
 # Example
@@ -338,7 +369,7 @@ pyenv で使用する Python のバージョンを指定する。
 
 ### pyproject.toml
 
-poetry の設定ファイルです。プロジェクトで使用するパッケージのバージョンや依存関係を記述する。
+poetry の設定ファイル。プロジェクトで使用するパッケージのバージョンや依存関係を記述する。
 
 ### poetry.lock
 
