@@ -1,6 +1,6 @@
 # Mac で複数バージョンの Python を使用する
 
-Mac で複数バージョンの Python インタプリタを利用する方法はいくつもあるが、2024年現在でスタンダードな方法のひとつである [asdf](https://asdf-vm.com/) を利用する。
+Mac で複数バージョンの Python インタプリタを利用する方法はいくつもあるが、2024 年現在でスタンダードな方法のひとつである [asdf](https://asdf-vm.com/) を利用する。
 
 ## Homebrew
 
@@ -8,7 +8,7 @@ Homebrew は macOS 上で動作するパッケージ管理ツール。
 git をはじめとしたさまざまなツールを管理できるので mac ユーザーには必須といってよい。
 Python をインストールする話の前提として必要になるので先に解説する。
 
-[【完全版】Homebrewとはなんぞや](https://zenn.dev/sawao/articles/e7e90d43f2c7f9)
+[【完全版】Homebrew とはなんぞや](https://zenn.dev/sawao/articles/e7e90d43f2c7f9)
 
 ### インストール方法
 
@@ -18,6 +18,8 @@ Python をインストールする話の前提として必要になるので先�
 - ターミナルで `brew -v` を実行してインストールできたことを確認する。
 
 ### 基本的な使い方
+
+<!-- markdownlint-disable MD014 -->
 
 ```bash
 $ brew install <パッケージ名> # パッケージをインストールする
@@ -32,6 +34,8 @@ $ brew upgrade <パッケージ名> # パッケージを個別にアップグレ
 Homebrew が使えることを確認したら、いよいよ [asdf](https://asdf-vm.com/) の導入に移る。
 
 asdf 公式では git clone してインストールする方法を推奨しているが、ここでは手軽さを重視して Homebrew でインストールする。
+
+<!-- markdownlint-disable MD033 -->
 
 <details>
 <summary><b>asdf 以外の選択肢</b></summary>
