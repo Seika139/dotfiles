@@ -33,6 +33,7 @@
   - [ENV](#env)
     - [ENV のスコープ](#env-のスコープ)
     - [ARG との相互作用](#arg-との相互作用)
+  - [VOLUME](#volume)
 
 ## Dockerfile の基本
 
@@ -398,8 +399,14 @@ ENV CONT_IMG_VER=${CONT_IMG_VER:-v1.0.0}
 RUN echo $CONT_IMG_VER
 ```
 
-<!--
-TODO
-- VOLUME
-- Docker compose
--->
+## VOLUME
+
+Dockerfile の VOLUME 命令は、コンテナ内にマウントポイントを作成し、外部からマウントされる匿名ボリュームを保持する場所としてマークするための命令である。
+
+ボリュームマウントの詳細は [006_storage.md](006_storage.md) を参照。
+
+```dockerfile
+# JSON配列形式、またはプレーンな文字列で指定する
+VOLUME ["/data"]
+VOLUME /var/log /var/db
+```
