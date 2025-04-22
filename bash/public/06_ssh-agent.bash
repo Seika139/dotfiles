@@ -8,13 +8,13 @@
 # ps -ef | grep ssh-agent
 
 SSH_ENV="${HOME}/.ssh/environment"
-SSHAGENT=/usr/bin/ssh-agent
-SSHAGENTARGS="-s"
+SSH_AGENT=/usr/bin/ssh-agent
+SSH_AGENT_ARGS="-s"
 PF_FILE="${HOME}/.ssh/pass_phrase.txt"
 
-function start_agent {
+start_agent() {
     echo_yellow '新しい SSH Agent をインストールします'
-    if ! ${SSHAGENT} ${SSHAGENTARGS} | sed 's/^echo/#echo/' >"${SSH_ENV}"; then
+    if ! ${SSH_AGENT} ${SSH_AGENT_ARGS} | sed 's/^echo/#echo/' >"${SSH_ENV}"; then
         echo "Error: Failed to start ssh-agent"
         return 1
     fi

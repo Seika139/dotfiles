@@ -10,7 +10,7 @@ if [ ! -e "${ROOT}" ]; then
 fi
 
 #-------------------------------------
-# 0. install homwbrew (if OSX)
+# 0. install homebrew (if OSX)
 #-------------------------------------
 
 # homebrew インストール後にパスを追加する可能性があるため
@@ -30,16 +30,16 @@ if [[ $(uname) = "Darwin" ]] && ! type brew >/dev/null 2>&1; then
         echo -e "\033[00;33m <- 後で ~/dotfiles/bash/private/ を読み込むことで実行されるので実行不要\033[0m"
         echo ''
 
-        shellenv_file="${ROOT}/bash/private/00_shellenv.bash"
-        if [ ! -e "${shellenv_file}" ]; then
-            echo "${shellenv_file} が存在しません。"
-            echo -en '\033[00;33m`eval "$(/opt/homebrew/bin/brew shellenv)"` を'"${shellenv_file} に追加してよろしいですか？"
+        shell_env_file="${ROOT}/bash/private/00_shellenv.bash"
+        if [ ! -e "${shell_env_file}" ]; then
+            echo "${shell_env_file} が存在しません。"
+            echo -en '\033[00;33m`eval "$(/opt/homebrew/bin/brew shellenv)"` を'"${shell_env_file} に追加してよろしいですか？"
             read -p "$(echo -e '[Y/n]: \033[0m')" ANS0
             echo ''
             if [[ $ANS0 != [nN] ]]; then
-                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${shellenv_file}"
+                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${shell_env_file}"
             else
-                echo -e "\033[00;33mbrew コマンドが実行できない可能性があるのでご注意ください。"
+                echo -e "\033[00;33m brew コマンドが実行できない可能性があるのでご注意ください。"
             fi
             unset ANS0
         fi
@@ -188,7 +188,7 @@ echo 'finish loading'
 echo ''
 
 #-------------------------------------
-# 5. upgrade homwbrew (if OSX)
+# 5. upgrade homebrew (if OSX)
 #-------------------------------------
 
 if executable brew; then

@@ -10,7 +10,8 @@
 # ref : https://neos21.net/blog/2018/12/31-01.html
 
 function light__git_ps1() {
-    local branch_name="$(git symbolic-ref --short HEAD 2>/dev/null)"
+    local branch_name
+    branch_name="$(git symbolic-ref --short HEAD 2>/dev/null)"
     if [ -z "$branch_name" ]; then
         # ブランチ名がなければ Git リポジトリ配下ではないと見なし、何も出力せず中断する
         exit 0
