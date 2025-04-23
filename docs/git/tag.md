@@ -16,6 +16,18 @@ git tag -a v0.1.0 5afdbea
 git tag -a v0.1.0 -m "Initial release with basic FileScribe functionality"
 ```
 
+## タグをリモートにプッシュする
+
+```bash
+git push origin [tag_name]
+```
+
+全部のタグをリモートにプッシュする場合は以下のコマンドを使用する。
+
+```bash
+git push --tags
+```
+
 ## タグの一覧を表示する
 
 ```bash
