@@ -187,7 +187,7 @@ is_osx() {
 }
 
 is_win() {
-    [[ $(os) = "MSYS" || $(os) = "CYGWIN" ]]
+    [[ $(os) =~ ^(MSYS|CYGWIN|winnt)$ ]]
 }
 
 is_msys() {
