@@ -16,6 +16,7 @@ Docker Compose は、複数の Docker コンテナを定義し、管理するた
     - [command](#command)
     - [configs](#configs)
     - [depends\_on](#depends_on)
+    - [env\_file](#env_file)
     - [environment](#environment)
     - [healthcheck](#healthcheck)
     - [image](#image)
@@ -187,6 +188,20 @@ secrets:
 `depends_on` セクションでサービスの起動順序を指定することができる。
 これは、サービスが密接に連携しており、起動順序がアプリケーションの機能に影響を与える場合に便利である。
 上記の例では、`app` サービスは `db` サービスに依存しているため、`db` サービスが起動してから `app` サービスが起動する。逆にサービスを停止する場合は、`app` サービスが先に停止される。
+
+### env_file
+
+`env_file` 属性は、コンテナに渡される環境変数を含む 1 つ以上のファイルを指定するために使用される。
+
+```yml
+env_file:
+  - .env
+  - ./config/.env
+```
+
+絶対パスを使用すると Compose ファイルの移植性が損なわれるため、compose ファイルのあるディレクトリからの相対パスを使用することが推奨される。
+複数のファイルで同じ環境変数が定義されている場合、後に指定されたファイルの値が優先される。
+`environment` セクションで宣言された環境変数はこれらの値を上書きする。値が空または未定義の場合でも、これは当てはまる。
 
 ### environment
 
@@ -367,6 +382,8 @@ secrets:
 サービス間の通信を管理する。
 
 ※ [Networks top-level elements | Docker Docs](https://docs.docker.com/reference/compose-file/networks/)
+
+ネットワークについての詳細は [008_network.md](./008_network.md) を参照。
 
 ### ipam
 
