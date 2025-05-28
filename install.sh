@@ -113,13 +113,13 @@ unset files_to_link file
 ssh_config_secret="${ROOT}/.ssh/config.secret"
 
 if [ ! -e "${ssh_config_secret}" ]; then
-    touch $ssh_config_secret
+    touch "${ssh_config_secret}"
     if [ -e "${HOME}/.ssh/config" ]; then
         cp "${HOME}/.ssh/config" "${ROOT}/.ssh/config_save_$(now | tr ' ' '_' | tr '/' '-')"
     fi
 fi
 ln -sfv "${ROOT}/.ssh/config" "${HOME}/.ssh"
-ln -sfv $ssh_config_secret "${HOME}/.ssh"
+ln -sfv "${ssh_config_secret}" "${HOME}/.ssh"
 
 #-------------------------------------
 # 2. .gitconfig.local
