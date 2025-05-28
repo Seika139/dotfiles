@@ -14,7 +14,25 @@
 [init]
 	defaultBranch = main
 [include]
+	# デフォルトの設定を読み込む
 	path = ~/.gitconfig.local
+
+# --- Conditional Includes ---
+# 例: ~/work/ ディレクトリ配下の場合は、会社用の設定を読み込む
+# "gitdir:" のパスはご自身の作業ディレクトリ構造に合わせて調整してください。
+# 末尾の "/" が重要で、そのディレクトリ配下全てを対象とします。
+[includeIf "gitdir:~/programs/second/"]
+	# シンボリックリンクの場合)
+	# path = ~/.gitconfig-second
+	# もしシンボリックリンクを貼らずdotfiles内を直接指定するなら:
+	# path = ~/dotfiles/.gitconfig-second
+
+# 他にも条件を追加可能
+# [includeIf "gitdir:~/personal_projects/special_project/"]
+#    path = ~/.gitconfig-special-personal
+
+# --- End Conditional Includes ---
+
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
