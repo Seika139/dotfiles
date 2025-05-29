@@ -23,9 +23,9 @@
 # 末尾の "/" が重要で、そのディレクトリ配下全てを対象とします。
 [includeIf "gitdir:~/programs/second/"]
 	# シンボリックリンクの場合)
-	# path = ~/.gitconfig-second
+	# path = ~/.gitconfig.second
 	# もしシンボリックリンクを貼らずdotfiles内を直接指定するなら:
-	# path = ~/dotfiles/.gitconfig-second
+	path = ~/dotfiles/.gitconfig.second
 
 # 他にも条件を追加可能
 # [includeIf "gitdir:~/personal_projects/special_project/"]
@@ -40,7 +40,7 @@
 	required = true
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [mergetool "sourcetree"]
 	trustExitCode = true
 [commit]
