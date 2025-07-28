@@ -1,0 +1,158 @@
+{
+  "cSpell.userWords": [
+    "Agones",
+    "akasha",
+    "bgmdb",
+    "CEDEC",
+    "Chara",
+    "Classful",
+    "cloudshell",
+    "Cygames",
+    "ecpu",
+    "elasticloadbalancingv",
+    "elbv",
+    "elif",
+    "entra",
+    "Fargate",
+    "gitdir",
+    "Intelephense",
+    "isort",
+    "JASRAC",
+    "Koebon",
+    "laravel",
+    "Mkdocs",
+    "mypy",
+    "NAPT",
+    "Pathlib",
+    "PDCA",
+    "pecl",
+    "phpbench",
+    "phpcbf",
+    "phpcs",
+    "phpredis",
+    "phpstan",
+    "phpunit",
+    "pinact",
+    "PITR",
+    "pkce",
+    "predis",
+    "pyproject",
+    "pytest",
+    "Qiita",
+    "Sercuit",
+    "typer",
+    "Umatoria",
+    "Valkey",
+    "wada"
+  ],
+  "editor.formatOnSave": false, // デフォルトでフォーマット無効
+  // "editor.defaultFormatter": "esbenp.prettier-vscode", // デフォルトフォーマッタを削除
+  "trailing-spaces.trimOnSave": true,
+
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "scminput": false
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+
+  // ↓ Markdown settings
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+  "markdownlint.run": "onSave",
+  "markdownlint.config": {
+    "default": true, // すべてのルールを有効にする
+    "MD010": { "code_blocks": false }, // コードブロック内ではインデントにタブを用いても良い
+    "MD014": false, // $ から始まるコードブロックにその出力がないと表示される警告を抑止する
+    "MD024": false, // 同じ見出しが複数あっても良い
+    "MD033": false, // inline HTML を許可する
+    "MD036": false // 強調されたテキスト見出しとして用いても良い
+  },
+  // ↑ Markdown settings
+
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
+    "editor.formatOnSave": true
+  },
+  "database-client.autoSync": true,
+
+  // ↓ SQL settings
+  "sqlfluff.dialect": "mysql",
+  "sqlfluff.linter.run": "onSave",
+  "sqlfluff.format.enabled": true,
+  "[sql]": {
+    "editor.defaultFormatter": "dorzey.vscode-sqlfluff",
+    "editor.formatOnSave": true
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  },
+  // ↑ SQL settings
+
+  // ↓ Prettier対象ファイルタイプの設定
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[yml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  // ↑ Prettier対象ファイルタイプの設定
+  "diffEditor.ignoreTrimWhitespace": false,
+  "window.zoomLevel": -0.9,
+  // "window.zoomLevel": 0.6,
+  "explorer.confirmDragAndDrop": false,
+  "workbench.editor.wrapTabs": true,
+  "git.blame.statusBarItem.enabled": false,
+  "files.watcherExclude": {
+    "": true
+  },
+  "files.exclude": {
+    "**/.git": false
+  },
+
+  // ↓ PHP settings
+  "intelephense.stubs": ["redis", "standard", "pcre", "date"],
+  "intelephense.environment.includePaths": ["vendor/jetbrains/phpstorm-stubs"],
+  "git.suggestSmartCommit": false,
+  "files.associations": {
+    "*.md": "markdown",
+    "*.yml": "yaml"
+  },
+  "workbench.editor.revealIfOpen": true,
+  "japanese-proofreading.textlint.ひらく漢字": false,
+  "japanese-proofreading.textlint.外来語カタカナ表記": false,
+  "japanese-proofreading.textlint.全角文字と半角文字の間": false,
+  "gitlens.views.commits.files.layout": "tree"
+  // ↑ php
+}

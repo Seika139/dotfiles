@@ -1,0 +1,303 @@
+{
+  "editor.formatOnSave": true,
+  "editor.renderWhitespace": "all",
+  "editor.accessibilitySupport": "on",
+  "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
+  "editor.rulers": [
+    44,
+    88,
+    132,
+    176,
+    220
+  ], // 垂直ルーラーの表示
+  // workbench
+  "workbench.iconTheme": "vscode-icons",
+  // git
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  // python
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "black-formatter.args": [
+    "--line-length=88"
+  ],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "markdown-pdf.styles": [
+    "~/pro-main/vscode-help/src/markdown/markdown-pdf.css"
+  ],
+  "markdown-pdf.displayHeaderFooter": false,
+  "todohighlight.keywords": [
+    {
+      "text": "TODO :",
+      "color": "red",
+      "border": "1px solid red",
+      "borderRadius": "2px", //NOTE: using borderRadius along with `border` or you will see nothing change
+      "backgroundColor": "rgba(0,0,0,.2)"
+    },
+    {
+      "text": "NOTE :",
+      "color": "#fff",
+      "backgroundColor": "#4c26"
+    }
+  ],
+  "diffEditor.ignoreTrimWhitespace": false,
+  "tabnine.experimentalAutoImports": true,
+  "files.insertFinalNewline": true, // 最終行は改行にする
+  // code-runner : https://murabitoleg.com/vscode-runner/
+  // "code-runner.clearPreviousOutput": true,
+  "code-runner.runInTerminal": true,
+  // 言語認識の関連付け
+  "files.associations": {
+    "*.txt": "Markdown",
+    "*.jslib": "javascript",
+    "*.conf": "nginx",
+    "nginx.conf": "nginx"
+  },
+  // emmet
+  "emmet.variables": {
+    "lang": "ja"
+  },
+  "emmet.includeLanguages": {
+    "vue-html": "html"
+  },
+  "emmet.triggerExpansionOnTab": true, // これをオンにしないと ctrl + e が効かない
+  "git.suggestSmartCommit": false,
+  "cSpell.userWords": [
+    "Abema",
+    "Anzu",
+    "arange",
+    "astype",
+    "Behaviour",
+    "Brotli",
+    "Caromof",
+    "CEDEC",
+    "Certbot",
+    "cgsf",
+    "cloudinary",
+    "ConoHa",
+    "Cygames",
+    "Cysharp",
+    "deletable",
+    "direnv",
+    "Doesnt",
+    "dotenv",
+    "dotfiles",
+    "envrc",
+    "Fernet",
+    "futaba",
+    "genai",
+    "gitattributes",
+    "gitdir",
+    "gmail",
+    "healthcheck",
+    "imgur",
+    "Inno",
+    "insta",
+    "instagrams",
+    "isort",
+    "isucon",
+    "Laravel",
+    "letsencrypt",
+    "manabi",
+    "manabitimes",
+    "marp",
+    "Mathf",
+    "mypy",
+    "mysqldump",
+    "ndarray",
+    "numpy",
+    "OOTD",
+    "pathlib",
+    "phpunit",
+    "pixabay",
+    "previewable",
+    "printf",
+    "pyautogui",
+    "pycromanager",
+    "pyenv",
+    "pynput",
+    "pyplot",
+    "pyproject",
+    "pytest",
+    "pytz",
+    "Qiita",
+    "Quali",
+    "readwrite",
+    "redash",
+    "repost",
+    "reposting",
+    "Seika",
+    "smallint",
+    "strcpy",
+    "struct",
+    "suzukikenichi",
+    "tada",
+    "teratail",
+    "timesheet",
+    "timesheets",
+    "tinyint",
+    "Tweening",
+    "UGUI",
+    "Unicursal",
+    "Unipack",
+    "VARCHAR",
+    "vuetify",
+    "webroot"
+  ],
+  "[html]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "files.exclude": {
+    "**/.git": false,
+    "**/*.meta": true,
+    "**/*.out": true
+  },
+  "search.exclude": {
+    "**/.git": true,
+    "**/node_modules": true
+  },
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
+  // テキスト校正くん
+  "japanese-proofreading.textlint.丸かっこ（）": false,
+  "japanese-proofreading.textlint.全角文字と半角文字の間": false,
+  "japanese-proofreading.textlint.外来語カタカナ表記": false,
+  "japanese-proofreading.textlint.ひらく漢字": false,
+  "japanese-proofreading.textlint.助詞の連続": false,
+  // yaml
+  "[yaml]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "gitlens.codeLens.scopes": [
+      "document"
+    ],
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    }
+  },
+  // docker-compose.yml
+  "[dockercompose]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    }
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "C_Cpp.updateChannel": "Insiders",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "markdown.marp.themes": [
+    "/Users/suzukikenichi/knowledges/reading_books/test.css"
+  ],
+  "notebook.cellToolbarLocation": {
+    "default": "right",
+    "jupyter-notebook": "left"
+  },
+  "redhat.telemetry.enabled": true,
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "path": "bash",
+      "args": [
+        "-l"
+      ],
+      "icon": "terminal-bash"
+    },
+    "zsh": {
+      "path": "zsh",
+      "args": [
+        "-l"
+      ]
+    },
+    "fish": {
+      "path": "fish",
+      "args": [
+        "-l"
+      ]
+    },
+    "tmux": {
+      "path": "tmux",
+      "icon": "terminal-tmux"
+    },
+    "pwsh": {
+      "path": "pwsh",
+      "icon": "terminal-powershell"
+    },
+    "dash": {
+      "path": "/bin/dash"
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "bash",
+  "terminal.integrated.gpuAcceleration": "off",
+  "terminal.integrated.unicodeVersion": "11",
+  "vsicons.dontShowNewVersionMessage": true,
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[csharp]": {
+    "editor.formatOnSave": true
+  },
+  "omnisharp.path": "latest",
+  "omnisharp.monoPath": "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono",
+  "omnisharp.useGlobalMono": "always",
+  "omnisharp.useModernNet": false,
+  "editor.formatOnPaste": true,
+  "jupyter.interactiveWindow.textEditor.executeSelection": true,
+  "workbench.editor.revealIfOpen": true,
+  "workbench.editor.wrapTabs": true,
+  "security.workspace.trust.untrustedFiles": "open",
+  "explorer.confirmPasteNative": false,
+  "github.copilot.enable": {
+    "*": true,
+    "markdown": true,
+    "scminput": true,
+    "plaintext": true
+  },
+  "accessibility.signals.onDebugBreak": {
+    "announcement": "off",
+    "sound": "off"
+  },
+  "accessibility.signals.noInlayHints": {
+    "announcement": "off",
+    "sound": "off"
+  },
+  "accessibility.signals.chatResponseReceived": {
+    "sound": "off"
+  },
+  "accessibility.signals.taskFailed": {
+    "sound": "off",
+    "announcement": "off"
+  },
+  "accessibility.signalOptions.volume": 0,
+  "makefile.configureOnOpen": true,
+  "python.analysis.typeCheckingMode": "standard",
+  "window.zoomLevel": -0.8,
+  "terminal.integrated.detectLocale": "auto"
+}
