@@ -1,15 +1,10 @@
-aaaaronzhou.nginx-config-formatter-vscode-extension
 aaron-bond.better-comments
 alefragnani.bookmarks
 annsk.alignment
-anysphere.cpptools
-anysphere.csharp
-anysphere.remote-containers
 batisteo.vscode-django
 bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
 chrmarti.regex
-coderabbit.coderabbit-vscode
 coenraads.bracket-pair-colorizer
 cpylua.language-postcss
 csstools.postcss
@@ -42,7 +37,6 @@ k--kato.docomment
 kevinrose.vsc-python-indent
 kleber-swf.unity-code-snippets
 koehlma.markdown-math
-llvm-vs-code-extensions.vscode-clangd
 mads-hartmann.bash-ide-vscode
 marp-team.marp-vscode
 mechatroner.rainbow-csv
@@ -69,7 +63,6 @@ ms-toolsai.vscode-jupyter-slideshow
 ms-vscode-remote.remote-containers
 ms-vscode-remote.remote-ssh
 ms-vscode-remote.remote-ssh-edit
-ms-vscode.cmake-tools
 ms-vscode.cpptools
 ms-vscode.makefile-tools
 ms-vscode.remote-explorer
@@ -96,7 +89,6 @@ timonwong.shellcheck
 tobiah.unity-tools
 tomoki1207.pdf
 tomoki1207.vscode-input-sequence
-vadimcn.vscode-lldb
 visualstudioexptteam.intellicode-api-usage-examples
 visualstudioexptteam.vscodeintellicode
 visualstudiotoolsforunity.vstuc
