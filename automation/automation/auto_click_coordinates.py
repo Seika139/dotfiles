@@ -7,10 +7,10 @@ from pynput import keyboard, mouse
 
 clicking = True
 exit_flag = False
-duration = 1  # クリックの間隔（秒）
+duration = 0.5  # クリックの間隔（秒）
 current_keys = set()
 click_positions = []  # 記録用リスト
-recording = True  # 記録モード
+recording = False  # 記録モード（初期状態はFalse）
 
 # プラットフォームの識別
 platform_name = platform.system()
@@ -63,11 +63,14 @@ def on_press(key):
         on_esc()
     elif key in quit_key2:
         on_esc()
-    elif key == keyboard.Key.enter:  # Enterキーで記録終了
+    elif key == keyboard.Key.enter:  # Enterキーで記録開始/終了
         global recording
-        if recording:
+        if not recording:
+            print("記録モード開始! クリックして座標を記録してください")
+            recording = True
+        else:
             print("記録完了! 指定時間ごとに自動クリック開始")
-        recording = False
+            recording = False
 
 
 def on_release(key):
@@ -89,7 +92,11 @@ mouse_listener.start()
 listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 listener.start()
 
-print("クリックして座標を記録してください (Enterキーで終了)")
+print("Enterキーを押して記録モードを開始してください")
+while not recording:
+    time.sleep(0.1)
+
+print("記録モード開始! クリックして座標を記録してください (Enterキーで終了)")
 while recording:
     time.sleep(0.1)
 
@@ -114,7 +121,7 @@ print_current_status(False)
 # メインスレッドで無限ループを実行してホットキーを待機
 try:
     while not exit_flag:
-        time.sleep(0.1)
+        time.sleep(0.01)
 finally:
     click_thread.join()
     listener.stop()
