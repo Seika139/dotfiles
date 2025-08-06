@@ -21,6 +21,7 @@
     "Koebon",
     "laravel",
     "Mkdocs",
+    "musicdb",
     "mypy",
     "NAPT",
     "Pathlib",
@@ -40,6 +41,7 @@
     "pytest",
     "Qiita",
     "Sercuit",
+    "songdb",
     "typer",
     "Umatoria",
     "Valkey",
@@ -48,7 +50,6 @@
   "editor.formatOnSave": false, // デフォルトでフォーマット無効
   // "editor.defaultFormatter": "esbenp.prettier-vscode", // デフォルトフォーマッタを削除
   "trailing-spaces.trimOnSave": true,
-
   "git.autofetch": true,
   "git.confirmSync": false,
   "github.copilot.enable": {
@@ -58,7 +59,6 @@
     "scminput": false
   },
   "github.copilot.nextEditSuggestions.enabled": true,
-
   // ↓ Markdown settings
   "[markdown]": {
     "editor.formatOnSave": true,
@@ -67,20 +67,20 @@
   "markdownlint.run": "onSave",
   "markdownlint.config": {
     "default": true, // すべてのルールを有効にする
-    "MD010": { "code_blocks": false }, // コードブロック内ではインデントにタブを用いても良い
+    "MD010": {
+      "code_blocks": false
+    }, // コードブロック内ではインデントにタブを用いても良い
     "MD014": false, // $ から始まるコードブロックにその出力がないと表示される警告を抑止する
     "MD024": false, // 同じ見出しが複数あっても良い
     "MD033": false, // inline HTML を許可する
     "MD036": false // 強調されたテキスト見出しとして用いても良い
   },
   // ↑ Markdown settings
-
   "[shellscript]": {
     "editor.defaultFormatter": "foxundermoon.shell-format",
     "editor.formatOnSave": true
   },
   "database-client.autoSync": true,
-
   // ↓ SQL settings
   "sqlfluff.dialect": "mysql",
   "sqlfluff.linter.run": "onSave",
@@ -93,7 +93,6 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
   // ↑ SQL settings
-
   // ↓ Prettier対象ファイルタイプの設定
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -140,10 +139,16 @@
   "files.exclude": {
     "**/.git": false
   },
-
   // ↓ PHP settings
-  "intelephense.stubs": ["redis", "standard", "pcre", "date"],
-  "intelephense.environment.includePaths": ["vendor/jetbrains/phpstorm-stubs"],
+  "intelephense.stubs": [
+    "redis",
+    "standard",
+    "pcre",
+    "date"
+  ],
+  "intelephense.environment.includePaths": [
+    "vendor/jetbrains/phpstorm-stubs"
+  ],
   "git.suggestSmartCommit": false,
   "files.associations": {
     "*.md": "markdown",

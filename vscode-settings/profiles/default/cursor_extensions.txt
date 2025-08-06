@@ -103,3 +103,4 @@ wscats.eno
 xabikos.javascriptsnippets
 yzane.markdown-pdf
 yzhang.markdown-all-in-one
+jackiotyu.git-worktree-manager

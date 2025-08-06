@@ -97,5 +97,9 @@
     "key": "ctrl+[Minus]",
     "command": "-workbench.action.navigateBack",
     "when": "canNavigateBack"
+  },
+  {
+    "key": "cmd+e",
+    "command": "composerMode.background"
   }
 ]

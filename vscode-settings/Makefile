@@ -127,6 +127,11 @@ status-vscode-extensions:
 		if [ -n "$${extra_exts}" ]; then \
 			echo "  ⚠️  Extra installed extensions (not in vscode_extensions.txt):"; \
 			echo "$${extra_exts}" | sed 's/^/    - /'; \
+			read -p "  追加の拡張機能をvscode_extensions.txtに追記しますか？ (y/N): " confirm; \
+			if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+				echo "$${extra_exts}" >> "$(PROFILE_PATH)/vscode_extensions.txt"; \
+				echo "  ✅ 追加の拡張機能を \033[36m$(PROFILE_PATH)/vscode_extensions.txt\033[0m に追記しました。"; \
+			fi; \
 		fi; \
 		rm -f "$$tmp_installed_exts" "$$tmp_missing_exts"; \
 	else \
@@ -157,6 +162,11 @@ status-cursor-extensions:
 		if [ -n "$${extra_exts}" ]; then \
 			echo "  ⚠️  Extra installed extensions (not in cursor_extensions.txt):"; \
 			echo "$${extra_exts}" | sed 's/^/    - /'; \
+			read -p "  追加の拡張機能をcursor_extensions.txtに追記しますか？ (y/N): " confirm; \
+			if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+				echo "$${extra_exts}" >> "$(PROFILE_PATH)/cursor_extensions.txt"; \
+				echo "  ✅ 追加の拡張機能を \033[36m$(PROFILE_PATH)/cursor_extensions.txt\033[0m に追記しました。"; \
+			fi; \
 		fi; \
 		rm -f "$$tmp_installed_exts" "$$tmp_missing_exts"; \
 	else \
@@ -309,15 +319,25 @@ sync-vscode-extensions: # vscode_extensions.txt にあるが未インストー�
 		tmp_installed_exts=$$(mktemp); \
 		code --list-extensions 2>/dev/null > "$$tmp_installed_exts"; \
 		extensions_to_install=$$(grep -vxF -f "$$tmp_installed_exts" "$(PROFILE_PATH)/vscode_extensions.txt" | tr '\n' ' '); \
+		extra_exts=$$(grep -Fxvf "$(PROFILE_PATH)/vscode_extensions.txt" "$$tmp_installed_exts"); \
 		if [ -z "$$extensions_to_install" ]; then \
 			echo "  ✅ No extensions to install."; \
-			rm -f "$$tmp_installed_exts"; \
-			exit 0; \
+		else \
+			for ext in $$extensions_to_install; do \
+				echo "  Installing extension: \033[36m$$ext\033[0m"; \
+				code --install-extension $$ext --force >/dev/null 2>&1; \
+			done; \
+			echo "  ✅ VS Code extensions installation complete!"; \
 		fi; \
-		for ext in $$extensions_to_install; do \
-			echo "  Installing extension: \033[36m$$ext\033[0m"; \
-			code --install-extension $$ext --force >/dev/null 2>&1; \
-		done; \
+		if [ -n "$${extra_exts}" ]; then \
+			echo "  ⚠️  Extra installed extensions (not in vscode_extensions.txt):"; \
+			echo "$${extra_exts}" | sed 's/^/    - /'; \
+			read -p "  追加の拡張機能をvscode_extensions.txtに追記しますか？ (y/N): " confirm; \
+			if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+				echo "$${extra_exts}" >> "$(PROFILE_PATH)/vscode_extensions.txt"; \
+				echo "  ✅ 追加の拡張機能を \033[36m$(PROFILE_PATH)/vscode_extensions.txt\033[0m に追記しました。"; \
+			fi; \
+		fi; \
 		rm -f "$$tmp_installed_exts"; \
 		echo "  ✅ VS Code extensions sync complete!"; \
 	else \
@@ -335,15 +355,25 @@ sync-cursor-extensions: # cursor_extensions.txt にあるが未インストー�
 		tmp_installed_exts=$$(mktemp); \
 		cursor --list-extensions 2>/dev/null > "$$tmp_installed_exts"; \
 		extensions_to_install=$$(grep -vxF -f "$$tmp_installed_exts" "$(PROFILE_PATH)/cursor_extensions.txt" | tr '\n' ' '); \
+		extra_exts=$$(grep -Fxvf "$(PROFILE_PATH)/cursor_extensions.txt" "$$tmp_installed_exts"); \
 		if [ -z "$$extensions_to_install" ]; then \
 			echo "  ✅ No extensions to install."; \
-			rm -f "$$tmp_installed_exts"; \
-			exit 0; \
+		else \
+			for ext in $$extensions_to_install; do \
+				echo "  Installing extension: \033[36m$$ext\033[0m"; \
+				cursor --install-extension $$ext --force; \
+			done; \
+			echo "  ✅ Cursor extensions installation complete!"; \
 		fi; \
-		for ext in $$extensions_to_install; do \
-			echo "  Installing extension: \033[36m$$ext\033[0m"; \
-			cursor --install-extension $$ext --force; \
-		done; \
+		if [ -n "$${extra_exts}" ]; then \
+			echo "  ⚠️  Extra installed extensions (not in cursor_extensions.txt):"; \
+			echo "$${extra_exts}" | sed 's/^/    - /'; \
+			read -p "  追加の拡張機能をcursor_extensions.txtに追記しますか？ (y/N): " confirm; \
+			if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+				echo "$${extra_exts}" >> "$(PROFILE_PATH)/cursor_extensions.txt"; \
+				echo "  ✅ 追加の拡張機能を \033[36m$(PROFILE_PATH)/cursor_extensions.txt\033[0m に追記しました。"; \
+			fi; \
+		fi; \
 		rm -f "$$tmp_installed_exts"; \
 		echo "  ✅ Cursor extensions sync complete!"; \
 	else \
