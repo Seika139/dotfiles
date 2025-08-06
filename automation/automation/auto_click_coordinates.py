@@ -10,6 +10,7 @@ exit_flag = False
 duration = 0.5  # クリックの間隔（秒）
 current_keys = set()
 click_positions = []  # 記録用リスト
+click_timestamps = []  # クリックのタイムスタンプを記録
 recording = False  # 記録モード（初期状態はFalse）
 
 # プラットフォームの識別
@@ -25,13 +26,44 @@ quit_key2 = {keyboard.Key.esc}  # Esc
 
 def click_mouse():
     global exit_flag
+    if not click_positions:
+        print("記録されたクリックがありません")
+        return
+
+    print("記録された間隔でクリックを開始します...")
     i = 0
     while not exit_flag:
-        if clicking and click_positions:
+        if clicking:
             x, y = click_positions[i % len(click_positions)]
             pyautogui.click(x, y)
             i += 1
-        time.sleep(duration)
+
+            # 次のクリックまでの待機時間を計算
+            if len(click_timestamps) > 1:
+                next_index = i % len(click_positions)
+                if next_index == 0 and i > 0:
+                    # 1周目が終わった場合、最初のクリックまでの間隔を使用
+                    wait_time = click_timestamps[1] - click_timestamps[0]
+                else:
+                    # 次のクリックまでの間隔を使用
+                    current_index = (i - 1) % len(click_positions)
+                    next_index = i % len(click_positions)
+                    if next_index == 0:
+                        # 最後のクリックから最初のクリックまでの間隔
+                        wait_time = click_timestamps[0] - click_timestamps[-1]
+                    else:
+                        wait_time = (
+                            click_timestamps[next_index]
+                            - click_timestamps[current_index]
+                        )
+
+                time.sleep(wait_time)
+            else:
+                # 1つのクリックしか記録されていない場合
+                time.sleep(duration)
+        else:
+            time.sleep(0.1)
+
     print("Click thread exiting...")
 
 
@@ -69,7 +101,17 @@ def on_press(key):
             print("記録モード開始! クリックして座標を記録してください")
             recording = True
         else:
-            print("記録完了! 指定時間ごとに自動クリック開始")
+            if len(click_positions) > 0:
+                print(f"記録完了! {len(click_positions)}個のクリックを記録しました")
+                if len(click_timestamps) > 1:
+                    intervals = []
+                    for i in range(1, len(click_timestamps)):
+                        interval = click_timestamps[i] - click_timestamps[i - 1]
+                        intervals.append(interval)
+                    avg_interval = sum(intervals) / len(intervals)
+                    print(f"平均間隔: {avg_interval:.2f}秒")
+            else:
+                print("記録されたクリックがありません")
             recording = False
 
 
@@ -81,7 +123,8 @@ def on_release(key):
 def on_click(x, y, button, pressed):
     if recording and pressed:
         click_positions.append((x, y))
-        print(f"記録: {x}, {y}")
+        click_timestamps.append(time.time())
+        print(f"記録: {x}, {y} (時刻: {time.strftime('%H:%M:%S')})")
 
 
 # マウスリスナーでクリックを記録
@@ -106,12 +149,12 @@ click_thread.daemon = True
 click_thread.start()
 
 if platform_name == "Darwin":
-    print(f"{duration}秒ごとに自動でクリックします。")
+    print(f"記録された間隔で自動でクリックします。")
     print(f"・Ctrl+Z でクリックのオンオフを切り替えます。")
     print(f"・Ctrl+X または Esc で終了します。")
     print()
 elif platform_name == "Windows":
-    print(f"{duration}秒ごとに自動でクリックします。")
+    print(f"記録された間隔で自動でクリックします。")
     print(f"・Left Alt+Z でクリックのオンオフを切り替えます。")
     print(f"・Left Alt+Q または Esc で終了します。")
     print()
