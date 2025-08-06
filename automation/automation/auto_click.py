@@ -1,3 +1,4 @@
+import argparse
 import platform
 import sys
 import threading
@@ -6,9 +7,20 @@ import time
 import pyautogui
 from pynput import keyboard
 
+# コマンドライン引数の解析
+parser = argparse.ArgumentParser(description="自動クリックプログラム")
+parser.add_argument(
+    "-d",
+    "--duration",
+    type=float,
+    default=1.0,
+    help="デフォルトのクリック間隔（秒）",
+)
+args = parser.parse_args()
+
 clicking = True
 exit_flag = False
-duration = 1  # クリックの間隔（秒）
+duration = args.duration  # クリックの間隔（秒）
 current_keys = set()
 
 # プラットフォームの識別
@@ -76,7 +88,7 @@ click_thread.daemon = True
 click_thread.start()
 
 if platform_name == "Darwin":
-    print(f"{duration }秒ごとに自動でクリックします。")
+    print(f"{duration}秒ごとに自動でクリックします。")
     print(f"・Ctrl+Z でクリックのオンオフを切り替えます。")
     print(f"・Ctrl+X または Esc で終了します。")
     print()
