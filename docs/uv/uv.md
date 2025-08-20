@@ -30,6 +30,14 @@ uv init --existing
 
 ### 依存関係の管理
 
+--dev は実質 --group dev のショートカットで、dev グループは特別扱い（デフォルトで sync 対象）されます。
+fastapi は実行時依存なのでフラグ不要、pytest は開発依存なので基本は --dev、
+テスト専用に分けたいなら --group test を使い分ける、というのが公式推奨です。
+
+• 実行時依存（runtime）: フラグなし
+• 開発依存（dev）: --dev（≒--group dev）
+• 特定用途グループ: --group <name>
+
 ```bash
 # パッケージの追加
 uv add requests
@@ -43,7 +51,7 @@ uv remove requests
 uv sync
 
 # 依存関係の更新
-uv lock --upgrade
+uv update
 ```
 
 ### 仮想環境の管理
@@ -56,6 +64,8 @@ source .venv/bin/activate  # Linux/Mac
 
 # 特定のPythonバージョンで仮想環境を作成
 uv venv --python 3.11
+# 併せて pyproject.toml の [project] に Python 要件を明示しておくと良い:
+# requires-python = ">=3.11"
 ```
 
 ### スクリプトの実行
@@ -73,6 +83,8 @@ uv run --python 3.11 python script.py
 
 ### パッケージのインストール
 
+`uv pip install --system` はシステム環境を汚しやすいから、CLI ツールは `uv tool` / 一発実行は `uvx` を推したい
+
 ```bash
 # グローバルにパッケージをインストール
 uv pip install --system requests
@@ -82,6 +94,13 @@ uv pip install --system requests==2.31.0
 
 # パッケージのアンインストール
 uv pip uninstall --system requests
+
+# CLIツールのインストール（グローバル）
+uv tool install ruff
+# 一時実行（インストール不要）
+uvx ruff --version
+# ライブラリを使ったワンライナー実行例（from指定）
+uvx --from requests python -c "import requests,sys;print(requests.__version__)"
 ```
 
 ### プロジェクトの設定
@@ -101,7 +120,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
-    "black>=23.0.0",
+    "ruff>=0.5.0",
 ]
 test = [
     "pytest>=7.0.0",
@@ -165,15 +184,15 @@ uv <command> --help        # 特定コマンドのヘルプ
 
 既存の poetry プロジェクトから uv への移行：
 
+- 作業前に `pyproject.toml` と `poetry.lock` のバックアップを推奨します。
+- Poetry 特有のバージョン指定（`^3.12.0` など）は PEP 440 準拠表記（`~=3.12.0` 等）に書き換えておくと安全です。
+
 ```bash
-# pyproject.tomlが既に存在する場合
-uv init --existing
+# 既存の Poetry プロジェクトを uv 形式へマイグレート
+uvx migrate-to-uv
 
-# poetry.lockから依存関係を同期
+# 依存関係を同期して仮想環境を再作成
 uv sync
-
-# 仮想環境を再作成
-uv venv
 ```
 
 ## 参考リンク
