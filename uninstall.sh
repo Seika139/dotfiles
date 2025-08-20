@@ -41,9 +41,10 @@ LINKED_FILES=(
     ".gitconfig.local"
     ".gitignore_global"
     ".gitmessage"
+    ".cursor"
 )
 
-for FILE in ${LINKED_FILES[@]}; do
+for FILE in "${LINKED_FILES[@]}"; do
     ABS_PATH=$(abs_path ${HOME}/${FILE})
     if [[ -L ${ABS_PATH} && $(readlink ${ABS_PATH}) = *dotfiles* ]]; then
         rm ${ABS_PATH}

@@ -1,0 +1,7 @@
+# Cursor extensions directory (excluded from Git management)
+extensions/
+
+# Other files that should not be managed
+*.log
+*.tmp
+*.cache

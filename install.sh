@@ -88,13 +88,14 @@ files_to_link=(
     ".gitconfig"
     ".gitignore_global"
     ".gitmessage"
+    ".cursor"
 )
 
 echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。\033[0m"
 echo "${files_to_link[@]}"
 echo ""
 
-for file in ${files_to_link[@]}; do # [@] で全ての要素にアクセス
+for file in "${files_to_link[@]}"; do # [@] で全ての要素にアクセス
     ln -sfv "${ROOT}/${file}" "${HOME}"
     # ln コマンドのオプション
     # -s : シンボリックリンク(無いとハードリンクになる)
