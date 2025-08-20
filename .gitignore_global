@@ -308,3 +308,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,phpunit,windows,phpstorm,jetbrains,visualstudiocode
+
+# Serena（Oraios AIによるMCPサーバー）
+# .serenaディレクトリはプロジェクトの状態を保持するためのものであり、他の開発者と共有する必要はない
+.serena/
