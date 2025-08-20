@@ -120,6 +120,7 @@
     "OOTD",
     "pathlib",
     "phpunit",
+    "pipx",
     "pixabay",
     "previewable",
     "printf",
@@ -299,5 +300,7 @@
   "makefile.configureOnOpen": true,
   "python.analysis.typeCheckingMode": "standard",
   "window.zoomLevel": -0.8,
-  "terminal.integrated.detectLocale": "auto"
+  "terminal.integrated.detectLocale": "auto",
+  "docker.extension.enableComposeLanguageServer": false,
+  "workbench.activityBar.orientation": "vertical"
 }
