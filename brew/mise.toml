@@ -13,15 +13,23 @@ echo "BREWFILE_NAME   = {{env.BREWFILE_NAME}}"
 echo "DEFAULT_PROFILE = {{env.DEFAULT_PROFILE}}"
 """
 
-[tasks.check]
-description = "{{env.DEFAULT_PROFILE}} が存在するかを確認し、なければエラーを返す"
+[tasks.test_profile]
+description = "option(name=\"profile\") だと mise の組み込み --profile オプションと衝突するため他の名前を使用すること"
 run = """
-if [ -z "{{env.DEFAULT_PROFILE}}" ]; then
-  echo "❌ Error:{{env.DEFAULT_PROFILE}} is not set in environment variables" >&2
+echo "PROFILE={{option(name=\"profile\", default=\"default_profile\")}}"
+echo "PROF={{option(name=\"prof\", default=\"default_prof\")}}"
+"""
+
+[tasks.check]
+description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+if [ -z "$PROFILE" ]; then
+  echo "❌ Error: DEFAULT_PROFILE is not set in environment variables" >&2
   exit 1
 fi
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/{{env.DEFAULT_PROFILE}}"
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 echo "Checking profile path: $PROFILE_PATH"
 if [ ! -d "$PROFILE_PATH" ]; then
@@ -36,7 +44,7 @@ if [ ! -d "$PROFILE_PATH" ]; then
   } >&2
   exit 1
 fi
-echo "✅ Default profile '{{env.DEFAULT_PROFILE}}' exists"
+echo "✅ Default profile $PROFILE exists"
 """
 
 [tasks.dump]
@@ -56,9 +64,9 @@ echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR
 
 [tasks.status]
 description = "現在のBrewfileと実際のPCの状態の差分を確認し、差分がある場合はsyncを促す"
-depends = ["check"]
 run = """
-PROFILE={{option(name="profile", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 echo "🦄 Checking brew sync status for profile: $PROFILE"
 if [ ! -f "$BREWFILE_PATH" ]; then
@@ -78,9 +86,9 @@ fi
 
 [tasks.sync]
 description = "プロファイルのBrewfileに基づいてパッケージをインストール、アップデートし、PCにあるがファイルに書き出されていないパッケージを追記"
-depends = ["check"]
 run = """
-PROFILE={{option(name="profile", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
   echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
