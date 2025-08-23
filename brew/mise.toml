@@ -13,6 +13,16 @@ echo "BREWFILE_NAME   = {{env.BREWFILE_NAME}}"
 echo "DEFAULT_PROFILE = {{env.DEFAULT_PROFILE}}"
 """
 
+[tasks.brew_available]
+description = "brew コマンドが利用可能か確認し、なければエラーを返す"
+quiet = true
+run = """
+if ! command -v brew >/dev/null 2>&1; then
+  echo "❌ Error: brew command not found. Please install Homebrew." >&2
+  exit 1
+fi
+"""
+
 [tasks.test_profile]
 description = "option(name=\"profile\") だと mise の組み込み --profile オプションと衝突するため他の名前を使用すること"
 run = """
@@ -34,7 +44,7 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 echo "Checking profile path: $PROFILE_PATH"
 if [ ! -d "$PROFILE_PATH" ]; then
   {
-    echo "❌ Error: Default profile directory '$PROFILE_PATH' does not exist"
+    echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
     echo "   Available profiles:"
     if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
       ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
@@ -44,17 +54,18 @@ if [ ! -d "$PROFILE_PATH" ]; then
   } >&2
   exit 1
 fi
-echo "✅ Default profile $PROFILE exists"
+echo "✅ Profile $PROFILE exists"
 """
 
 [tasks.dump]
-description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump --profile <profile-name>)"
+description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump --prof <profile-name>)"
+depends = ["brew_available"]
 run = """
-PROFILE={{arg(name="profile")}}
+PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
   {
     echo "❌ Error: profile name is required."
-    echo "   Usage: mise run dump --profile <profile-name>"
+    echo "   Usage: mise run dump --prof <profile-name>"
     } >&2
   exit 1
 fi
@@ -66,6 +77,7 @@ echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR
 
 [tasks.status]
 description = "現在のBrewfileと実際のPCの状態の差分を確認し、差分がある場合はsyncを促す"
+depends = ["brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
