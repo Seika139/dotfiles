@@ -17,7 +17,7 @@ echo "DEFAULT_PROFILE = {{env.DEFAULT_PROFILE}}"
 description = "{{env.DEFAULT_PROFILE}} が存在するかを確認し、なければエラーを返す"
 run = """
 if [ -z "{{env.DEFAULT_PROFILE}}" ]; then
-  echo "❌ Error:{{env.DEFAULT_PROFILE}} is not set in environment variables"
+  echo "❌ Error:{{env.DEFAULT_PROFILE}} is not set in environment variables" >&2
   exit 1
 fi
 
@@ -25,13 +25,15 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/{{env.DEFAULT_PROFIL
 
 echo "Checking profile path: $PROFILE_PATH"
 if [ ! -d "$PROFILE_PATH" ]; then
-  echo "❌ Error: Default profile directory '$PROFILE_PATH' does not exist"
-  echo "   Available profiles:"
-  if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
-    ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
-  else
-    echo "   (No profiles directory found)"
-  fi
+  {
+    echo "❌ Error: Default profile directory '$PROFILE_PATH' does not exist"
+    echo "   Available profiles:"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    else
+      echo "   (No profiles directory found)"
+    fi
+  } >&2
   exit 1
 fi
 echo "✅ Default profile '{{env.DEFAULT_PROFILE}}' exists"
@@ -42,7 +44,7 @@ description = "現在インストールされているパッケージをプロ�
 run = """
 PROFILE={{arg(name="profile")}}
 if [ -z "$PROFILE" ]; then
-  echo "❌ Error: profile name is required."
+  echo "❌ Error: profile name is required." >&2
   echo "   Usage: mise run dump --profile <profile-name>"
   exit 1
 fi
@@ -60,14 +62,14 @@ PROFILE={{option(name="profile", default=env.DEFAULT_PROFILE)}}
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 echo "🦄 Checking brew sync status for profile: $PROFILE"
 if [ ! -f "$BREWFILE_PATH" ]; then
-  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'"
+  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
   exit 1
 fi
 echo "🦄 Checking packages in $BREWFILE_PATH"
 if brew bundle check --file="$BREWFILE_PATH"; then
   echo "✅ All packages are in sync"
 else
-  echo "⚠️ Some packages are not installed or up to date"
+  echo "⚠️ Some packages are not installed or up to date" >&2
   echo ""
   echo "Run 'mise run sync' to synchronize packages"
   exit 1
@@ -81,7 +83,7 @@ run = """
 PROFILE={{option(name="profile", default=env.DEFAULT_PROFILE)}}
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
-  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'"
+  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
   exit 1
 fi
 
