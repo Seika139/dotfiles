@@ -17,18 +17,22 @@ test = "npm test"
 - [Mise - Tasks](#mise---tasks)
   - [タスクの依存関係](#タスクの依存関係)
     - [depends](#depends)
-    - [depends\_post](#depends_post)
-    - [wait\_for](#wait_for)
+    - [depends_post](#depends_post)
+    - [wait_for](#wait_for)
   - [変数と環境変数](#変数と環境変数)
     - [デフォルトの環境変数](#デフォルトの環境変数)
     - [env](#env)
+      - [Tips: 環境変数の書き方](#tips-環境変数の書き方)
+        - [`$some` の書き方に軍配が上がる場合](#some-の書き方に軍配が上がる場合)
+          - [シェルの機能と組み合わせたいとき](#シェルの機能と組み合わせたいとき)
+          - [複雑なコマンドの中で自然に使える](#複雑なコマンドの中で自然に使える)
     - [vars](#vars)
   - [引数](#引数)
     - [positions argument](#positions-argument)
     - [option](#option)
     - [flag](#flag)
   - [その他のオプション](#その他のオプション)
-    - [run\_windows](#run_windows)
+    - [run_windows](#run_windows)
     - [description](#description)
     - [confirm](#confirm)
     - [quiet](#quiet)
@@ -70,13 +74,18 @@ run = "kubectl apply -f deployment.yaml"
 ソフトな依存関係を定義します。
 wait_for で指定されたタスクが実行中の場合にのみ、タスクが実行を待機します。
 
-※ 自分で色々試してみたが、どういう時に待機しているのかがよくわからなかった。
-
 ```toml
 [tasks.integration-test]
 wait_for = ["start-services"]  # Only waits if start-services is also being run
 run = "npm run test:integration"
 ```
+
+**実行シナリオ:**
+
+- `mise run integration-test` を実行した場合: `start-services` は実行対象ではないため、`integration-test` は何も待たずにすぐに開始されます。
+- `mise run start-services integration-test` を実行した場合: `start-services` が実行対象に含まれているため、`integration-test` は `start-services` が完了するのを待ってから開始されます。
+
+このように、`wait_for` は複数のタスクを同時に実行する際の順序を制御したい場合に便利です。
 
 ## 変数と環境変数
 
@@ -100,13 +109,58 @@ MISE_TASK_FILE: タスクスクリプトへのフルパス。
 タスクに環境変数を設定します。これで設定した環境変数はタスクの実行時にのみ有効で、他のタスクには影響しません。
 
 ```toml
+[env]
+TEST_ENV_VAR = "ABC"
+
 [tasks.test]
-env.TEST_ENV_VAR = "ABC"
 run = [
     "echo $TEST_ENV_VAR",
     "mise run some-other-task", # running tasks like this _will_ have TEST_ENV_VAR set of course
 ]
 ```
+
+#### Tips: 環境変数の書き方
+
+`{{env.SOME}}` と `$some` の両方が利用できますが、以下のような違いがあります。
+
+- `{{env.SOME}}`
+  - mise の独自のテンプレート構文を利用した書き方で、タスクのコマンドが実行される前に展開されます。
+  - つまり、コマンドが実行される前に変数の値が決定されます。
+  - シェルの種類に依存しないメリットがあります。
+- `$some`
+  - シェルの環境変数として解釈されます。
+  - つまり、コマンドが実行されるときにシェルが変数を展開します。
+  - シェルの種類（bash, zsh, sh, fish など）に依存する可能性があります。
+
+実際に [mise.toml](./mise.toml) のタスクで試してみると、一目瞭然です。
+
+```bash
+mise run test_env
+```
+
+を実行してみてください。
+
+##### `$some` の書き方に軍配が上がる場合
+
+###### シェルの機能と組み合わせたいとき
+
+```toml
+[tasks.default]
+run = "echo ${SOME:-default_value}"
+```
+
+- `${SOME:-...}` のようなシェルのデフォルト値展開
+- `${SOME%foo}` のようなパラメータ展開（文字列加工）
+- こうした表現は `{{env.SOME}}` では書けません。
+
+###### 複雑なコマンドの中で自然に使える
+
+```toml
+[tasks.compose]
+run = "docker compose -f compose.$SOME.yml up"
+```
+
+`compose.dev.yml` / `compose.prod.yml` の切り替えみたいに、そのままシェルコマンドで変数展開させた方がシンプル。
 
 ### vars
 
@@ -141,8 +195,8 @@ run = ['cargo test', './scripts/test-e2e.sh']
 `{{arg()}}` を使用して、位置引数を参照します。
 これを定義した場合は、実行時にその数だけ引数を渡す必要があります。
 
-以下の例では、`mise run test` を実行するには、2つの引数を渡す必要があります。
-`mise run test2` では2番目の引数は省略可能で、デフォルト値 `file2.txt` が使用されます。
+以下の例では、`mise run test` を実行するには、2 つの引数を渡す必要があります。
+`mise run test2` では 2 番目の引数は省略可能で、デフォルト値 `file2.txt` が使用されます。
 
 - `name=""` はヘルプやエラーメッセージで引数の名前を表示するために使用します。
 
@@ -185,7 +239,7 @@ run = 'echo {{flag(name="myflag")}}'
 ```toml
 [tasks.maybeClean]
 run = """
-if [ '{{flag(name='clean')}}' = 'true' ]; then
+if [ "{{flag(name=\"clean\")}}" = "true" ]; then
   echo 'cleaning'
 fi
 """
@@ -241,7 +295,7 @@ file = 'scripts/release.sh'
 
 - 例：`[build] $ cargo build`
 
-これを設定すると、miseはスクリプト自体の出力以外の出力を表示しません。
+これを設定すると、mise はスクリプト自体の出力以外の出力を表示しません。
 タスク自体の出力も非表示にしたい場合は silent を使用します。
 
 ### silent
