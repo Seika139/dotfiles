@@ -25,3 +25,6 @@ export LSCOLORS=cxfxgxdxbxegedabagacad
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
+
+# 2025.0824 追記: mise でタスク実行を簡単にする
+alias m='mise run'
