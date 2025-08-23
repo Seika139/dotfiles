@@ -52,8 +52,10 @@ description = "現在インストールされているパッケージをプロ�
 run = """
 PROFILE={{arg(name="profile")}}
 if [ -z "$PROFILE" ]; then
-  echo "❌ Error: profile name is required." >&2
-  echo "   Usage: mise run dump --profile <profile-name>"
+  {
+    echo "❌ Error: profile name is required."
+    echo "   Usage: mise run dump --profile <profile-name>"
+    } >&2
   exit 1
 fi
 echo "🦄 Dumping current brew packages to profile: $PROFILE"
@@ -77,9 +79,11 @@ echo "🦄 Checking packages in $BREWFILE_PATH"
 if brew bundle check --file="$BREWFILE_PATH"; then
   echo "✅ All packages are in sync"
 else
-  echo "⚠️ Some packages are not installed or up to date" >&2
-  echo ""
-  echo "Run 'mise run sync' to synchronize packages"
+  {
+    echo "⚠️ Some packages are not installed or up to date"
+    echo ""
+    echo "Run 'mise run sync' to synchronize packages"
+  } >&2
   exit 1
 fi
 """
