@@ -1,0 +1,4 @@
+[tasks.test_env]
+run = '''
+echo \{\{env.HOME\}\} : {{env.HOME}} && echo '$HOME        :' $HOME
+'''

@@ -302,5 +302,6 @@
   "window.zoomLevel": -0.8,
   "terminal.integrated.detectLocale": "auto",
   "docker.extension.enableComposeLanguageServer": false,
-  "workbench.activityBar.orientation": "vertical"
+  "workbench.activityBar.orientation": "vertical",
+  "diffEditor.codeLens": true
 }
