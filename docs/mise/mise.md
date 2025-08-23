@@ -1,48 +1,43 @@
 # mise
 
-mise は、複数のプログラミング言語やツールのバージョンを管理するためのツールです。以前の`rtx`から名前が変更されました。
+- GitHub: <https://github.com/jdx/mise>
+- 公式ドキュメント: <https://mise.jdx.dev/>
+
+## 概要
+
+以下の機能を併せ持つ万能ツール
+
+- asdf, (nvm, pyenv) などのようにプログラミング言語やツールのバージョンを管理する
+- direnv のようにプロジェクトやディレクトリごとに環境変数を設定できる
+- make のように、プロジェクトごとにコマンド（タスク）を定義できる
 
 ## インストール
+
+インストールしてシェルにフックします。
 
 ### Mac
 
 ```bash
 brew install mise
+# bash の場合
+echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+# zsh の場合
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+
+# 新しくターミナルを開くか、以下のコマンドで設定を再読み込み
+source ~/.bashrc  # または ~/.zshrc
 ```
 
-### Devcontainer (Debian/Ubuntu ベース)
+### Linux
 
 ```bash
 curl https://mise.run | sh
-```
-
-## シェル初期化
-
-インストール後、シェルの初期化設定が必要です。
-
-### Mac
-
-```bash
-# bash の場合
-echo 'eval "$(mise activate bash)"' >> ~/.bashrc
-
-# zsh の場合
-echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
-```
-
-### Devcontainer
-
-```bash
 # bash の場合
 echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
-
 # zsh の場合
 echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc
-```
 
-設定後、新しいターミナルを開くか、以下のコマンドで設定を再読み込みしてください：
-
-```bash
+# 新しくターミナルを開くか、以下のコマンドで設定を再読み込み
 source ~/.bashrc  # または ~/.zshrc
 ```
 
