@@ -15,6 +15,7 @@ test = "npm test"
 **目次**
 
 - [Mise - Tasks](#mise---tasks)
+  - [タスクの並列実行](#タスクの並列実行)
   - [タスクの依存関係](#タスクの依存関係)
     - [depends](#depends)
     - [depends_post](#depends_post)
@@ -37,6 +38,18 @@ test = "npm test"
     - [confirm](#confirm)
     - [quiet](#quiet)
     - [silent](#silent)
+    - [hide](#hide)
+
+## タスクの並列実行
+
+`:::` で区切ると、複数のコマンドを並列に実行できます。
+デフォルトの並列ジョブ数は 4 です（`--jobs` で変更できます）。
+
+- <https://mise.jdx.dev/cli/tasks/run.html>
+
+```bash
+mise run task1 args... ::: task2 args...
+```
 
 ## タスクの依存関係
 
@@ -74,18 +87,32 @@ run = "kubectl apply -f deployment.yaml"
 ソフトな依存関係を定義します。
 wait_for で指定されたタスクが実行中の場合にのみ、タスクが実行を待機します。
 
-```toml
-[tasks.integration-test]
-wait_for = ["start-services"]  # Only waits if start-services is also being run
-run = "npm run test:integration"
+参考のために [mise.toml](./mise.toml) のタスクで試してみましょう。
+
+```bash
+mise run wait ::: sleep ::: quick
 ```
 
-**実行シナリオ:**
+上記のコマンドでは wait, sleep, quick の 3 つのタスクが並列に実行されます。
+wait は sleep を wait_for に指定しているので、sleep が完了するまで待機します。一方で quick は wait とは無関係なので、すぐに実行されます。
 
-- `mise run integration-test` を実行した場合: `start-services` は実行対象ではないため、`integration-test` は何も待たずにすぐに開始されます。
-- `mise run start-services integration-test` を実行した場合: `start-services` が実行対象に含まれているため、`integration-test` は `start-services` が完了するのを待ってから開始されます。
+以下のような出力になるはずです。
 
-このように、`wait_for` は複数のタスクを同時に実行する際の順序を制御したい場合に便利です。
+※ `wait_for` は依存タスクを自動起動しません。同時に走っている場合のみ待機します。
+※ 所要時間や表示順は環境により異なります。数値は一例です。
+
+```bash
+mise run wait ::: sleep ::: quick
+[sleep] $ sleep 3
+[quick] $ echo 'Hello from task quick'
+[quick] Hello from task quick
+[quick] Finished in 19.5ms
+[sleep] Finished in 3.03s
+[wait] $ echo 'Hello from task wait'
+[wait] Hello from task wait
+[wait] Finished in 24.2ms
+Finished in 3.05s
+```
 
 ## 変数と環境変数
 
@@ -304,3 +331,17 @@ file = 'scripts/release.sh'
 - Default: `false`
 
 タスクからのすべての出力を抑制します。"stdout"または"stderr"に設定すると、そのストリームのみが抑制されます。
+
+### hide
+
+- Type: `bool`
+- Default: `false`
+
+help や自動補完、 mise tasks などにこのタスクを表示しないようにします。
+他のユーザーに簡単に見られたくない非推奨のタスクや内部タスクに便利です。
+
+```toml
+[tasks.internal]
+hide = true
+run = "echo my internal task"
+```

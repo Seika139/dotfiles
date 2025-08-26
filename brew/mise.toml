@@ -4,18 +4,10 @@ PROFILES_DIR = "profiles"
 BREWFILE_NAME = "Brewfile"
 DEFAULT_PROFILE = "hm-m1-mac"
 
-[tasks.vars]
-description = "変数の値を表示"
-quiet = true
-run = """
-echo "PROFILES_DIR    = {{env.PROFILES_DIR}}"
-echo "BREWFILE_NAME   = {{env.BREWFILE_NAME}}"
-echo "DEFAULT_PROFILE = {{env.DEFAULT_PROFILE}}"
-"""
-
 [tasks.brew_available]
 description = "brew コマンドが利用可能か確認し、なければエラーを返す"
 quiet = true
+hide = true
 run = """
 if ! command -v brew >/dev/null 2>&1; then
   echo "❌ Error: brew command not found. Please install Homebrew." >&2
@@ -25,6 +17,7 @@ fi
 
 [tasks.test_profile]
 description = "option(name=\"profile\") だと mise の組み込み --profile オプションと衝突するため他の名前を使用すること"
+hide = true
 run = """
 echo "PROFILE={{option(name=\"profile\", default=\"default_profile\")}}"
 echo "PROF={{option(name=\"prof\", default=\"default_prof\")}}"
@@ -32,6 +25,8 @@ echo "PROF={{option(name=\"prof\", default=\"default_prof\")}}"
 
 [tasks.check]
 description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+hide = true
+quiet = true
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 if [ -z "$PROFILE" ]; then
@@ -41,7 +36,7 @@ fi
 
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
-echo "Checking profile path: $PROFILE_PATH"
+# 成功時は無音、エラー時のみ詳細を表示する
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
@@ -54,18 +49,17 @@ if [ ! -d "$PROFILE_PATH" ]; then
   } >&2
   exit 1
 fi
-echo "✅ Profile $PROFILE exists"
 """
 
 [tasks.dump]
-description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump --prof <profile-name>)"
+description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
 depends = ["brew_available"]
 run = """
 PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
   {
     echo "❌ Error: profile name is required."
-    echo "   Usage: mise run dump --prof <profile-name>"
+    echo "   Usage: mise run dump <profile-name>"
     } >&2
   exit 1
 fi
@@ -82,7 +76,6 @@ run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
-echo "🦄 Checking brew sync status for profile: $PROFILE"
 if [ ! -f "$BREWFILE_PATH" ]; then
   echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
   exit 1
@@ -168,8 +161,8 @@ TMP_WANT_CASKS=$(mktemp)
 LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews  2>/dev/null | sort -u > "$TMP_WANT_BREWS"
 LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks  2>/dev/null | sort -u > "$TMP_WANT_CASKS"
 
-OUTDATED_FORMULA_RAW=$(brew outdated --formula --verbose 2>/dev/null || true)
-OUTDATED_CASK_RAW=$(brew outdated --cask --greedy 2>/dev/null || true)
+OUTDATED_FORMULA_RAW=$(LC_ALL=C brew outdated --formula --verbose 2>/dev/null || true)
+OUTDATED_CASK_RAW=$(LC_ALL=C brew outdated --cask --greedy 2>/dev/null || true)
 
 # 1列目（パッケージ名）を抽出して Brewfile 記載分だけに絞る
 OUTDATED_FORMULA=$(
@@ -204,7 +197,7 @@ outdated_count=$(
 
 echo "📊 Summary: missing=${missing_count}, outdated=${outdated_count}"
 echo "💡 Install/upgrade を実行　　　　　　　　　　　　　　　: mise run sync --prof \"$PROFILE\""
-echo "🧹 Brewfileに記載がないインストール済みパッケージを確認: mise run prune_dry_run --prof \"$PROFILE\""
+echo "🧹 Brewfileに記載がないインストール済みパッケージを確認: mise run prune --prof \"$PROFILE\""
 
 
 # Missing または Outdated があれば 1 を返す（“要対応” を終了コードで示す）
@@ -214,7 +207,8 @@ fi
 """
 
 [tasks.sync]
-description = "プロファイルのBrewfileに基づいてパッケージをインストール＆アップデートし、Brewfileを最新化"
+description = "Brewfileに基づいて install + upgrade を実行（Brewfileに変更は加えません）。--greedy でcaskの積極的アップグレードを実施します"
+depends = ["brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -224,24 +218,22 @@ if [ ! -f "$BREWFILE_PATH" ]; then
   exit 1
 fi
 
-echo ""
-echo "🦄 Installing missing packages from $BREWFILE_PATH"
+echo "🦄 Sync: install + upgrade by Brewfile"
+brew update
+# --greedy が指定されたら、auto_updates等も含めてcaskを積極アップグレード
+if {{flag(name="greedy")}}; then
+  echo "🧪 Greedy upgrade for casks (including auto_updates)"
+  brew upgrade --cask --greedy
+fi
 brew bundle install --file="$BREWFILE_PATH"
 
 echo ""
-echo "🦄 Upgrading existing packages"
-brew upgrade --formula
-brew upgrade --cask --greedy
-
-echo ""
-echo "🦄 Refreshing Brewfile (add newly installed packages)"
-brew bundle dump --file="$BREWFILE_PATH" --force
-
 echo "✅ Sync complete!"
+echo "Brewfileで管理されていないパッケージを削除する場合は: mise run prune --prof \"$PROFILE\""
 """
 
-[tasks.prune_dry_run]
-description = "Brewfile に無いパッケージの候補を確認（アンインストールはしない）"
+[tasks.prune]
+description = "Brewfile に無いパッケージを削除（デフォルトは dry-run。--apply で削除を実行）"
 depends = ["brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
@@ -252,15 +244,56 @@ if [ ! -f "$BREWFILE_PATH" ]; then
   exit 1
 fi
 
-echo "🦄 Dry-run: packages not in $BREWFILE_PATH (nothing will be uninstalled)"
-brew bundle cleanup --file="$BREWFILE_PATH"
-echo ""
-echo "※ 上記がアンインストール候補です。実行するには 'mise run prune --prof \"$PROFILE\"' を使ってください。"
+if {{flag(name="apply")}}; then
+  mise run prune_apply --prof "$PROFILE"
+else
+  echo "🦄 Dry-run: List packages NOT in $BREWFILE_PATH"
+
+  TMP_OUT=$(mktemp)
+  trap 'rm -f "$TMP_OUT"' EXIT
+  brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | tee "$TMP_OUT"
+
+  COUNTS=$(
+    awk '
+      /^Would uninstall formulae:/ {section="form"; next}
+      /^Would uninstall casks:/    {section="cask"; next}
+      /^Would uninstall taps:/     {section="tap"; next}
+      /^Would uninstall / || /^Run `brew bundle cleanup/ { if (section) section="" }
+      section && NF {counts[section]++}
+      END {
+        print counts["form"]+0
+        print counts["cask"]+0
+        print counts["tap"]+0
+      }
+    ' "$TMP_OUT"
+  )
+
+  FORM_COUNT=$(echo "$COUNTS" | sed -n 1p)
+  CASK_COUNT=$(echo "$COUNTS" | sed -n 2p)
+  TAP_COUNT=$(echo "$COUNTS" | sed -n 3p)
+
+  if [ "$TAP_COUNT" -eq 0 ]; then
+    TAP_COUNT=$(grep -c '^Would untap ' "$TMP_OUT" || true)
+  fi
+
+  TOTAL=$((FORM_COUNT + CASK_COUNT + TAP_COUNT))
+
+  echo ""
+  if [ "$TOTAL" -gt 0 ]; then
+    echo "⚠️ 削除候補があります（formulae=${FORM_COUNT}, casks=${CASK_COUNT}, taps=${TAP_COUNT} / total=${TOTAL}）"
+    echo "   実行するには: mise run prune --apply --prof \"$PROFILE\""
+    exit 1
+  else
+    echo "✅ 削除候補はありません（Brewfile と一致しています）"
+  fi
+fi
 """
 
-[tasks.prune]
-description = "Brewfile に無いパッケージを一括アンインストール（不可逆操作）"
+[tasks.prune_apply]
+description = "Brewfile に無いパッケージを削除（本適用）"
+hide = true
 depends = ["brew_available"]
+confirm = "選択したBrewfileに記載のないパッケージを削除します。よろしいですか？"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -272,5 +305,9 @@ fi
 
 echo "🦄 Uninstalling packages NOT listed in $BREWFILE_PATH"
 brew bundle cleanup --file="$BREWFILE_PATH" --force
+
+# （任意）依存関係として不要になったフォーミュラの自動削除
+# brew autoremove
+
 echo "✅ Prune complete!"
 """
