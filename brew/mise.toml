@@ -52,7 +52,7 @@ echo "✅ Profile $PROFILE exists"
 """
 
 [tasks.dump]
-description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump --prof <profile-name>)"
+description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
 depends = ["brew_available"]
 run = """
 PROFILE={{arg(name="prof")}}
