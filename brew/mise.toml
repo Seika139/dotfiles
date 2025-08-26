@@ -214,7 +214,7 @@ fi
 """
 
 [tasks.sync]
-description = "プロファイルのBrewfileに基づいてパッケージをインストール、アップデートし、PCにあるがファイルに書き出されていないパッケージを追記"
+description = "プロファイルのBrewfileに基づいてパッケージをインストール＆アップデートし、Brewfileを最新化"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -225,11 +225,16 @@ if [ ! -f "$BREWFILE_PATH" ]; then
 fi
 
 echo ""
-echo "🦄 Installing and Updating packages from $BREWFILE_PATH"
+echo "🦄 Installing missing packages from $BREWFILE_PATH"
 brew bundle install --file="$BREWFILE_PATH"
 
 echo ""
-echo "🦄 Adding missing packages to $BREWFILE_PATH"
+echo "🦄 Upgrading existing packages"
+brew upgrade --formula
+brew upgrade --cask --greedy
+
+echo ""
+echo "🦄 Refreshing Brewfile (add newly installed packages)"
 brew bundle dump --file="$BREWFILE_PATH" --force
 
 echo "✅ Sync complete!"
