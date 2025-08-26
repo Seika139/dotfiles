@@ -43,6 +43,7 @@ test = "npm test"
 ## タスクの並列実行
 
 `:::` で区切ると、複数のコマンドを並列に実行できます。
+デフォルトの並列ジョブ数は 4 です（`--jobs` で変更できます）。
 
 - <https://mise.jdx.dev/cli/tasks/run.html>
 
@@ -96,6 +97,9 @@ mise run wait ::: sleep ::: quick
 wait は sleep を wait_for に指定しているので、sleep が完了するまで待機します。一方で quick は wait とは無関係なので、すぐに実行されます。
 
 以下のような出力になるはずです。
+
+※ `wait_for` は依存タスクを自動起動しません。同時に走っている場合のみ待機します。
+※ 所要時間や表示順は環境により異なります。数値は一例です。
 
 ```bash
 mise run wait ::: sleep ::: quick
