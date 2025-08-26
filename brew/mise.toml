@@ -162,8 +162,8 @@ TMP_WANT_CASKS=$(mktemp)
 LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews  2>/dev/null | sort -u > "$TMP_WANT_BREWS"
 LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks  2>/dev/null | sort -u > "$TMP_WANT_CASKS"
 
-OUTDATED_FORMULA_RAW=$(brew outdated --formula --verbose 2>/dev/null || true)
-OUTDATED_CASK_RAW=$(brew outdated --cask --greedy 2>/dev/null || true)
+OUTDATED_FORMULA_RAW=$(LC_ALL=C brew outdated --formula --verbose 2>/dev/null || true)
+OUTDATED_CASK_RAW=$(LC_ALL=C brew outdated --cask --greedy 2>/dev/null || true)
 
 # 1列目（パッケージ名）を抽出して Brewfile 記載分だけに絞る
 OUTDATED_FORMULA=$(
@@ -208,7 +208,7 @@ fi
 """
 
 [tasks.sync]
-description = "Brewfileに基づいて install + upgrade を実行（Brewfileに変更は加えません）"
+description = "Brewfileに基づいて install + upgrade を実行（Brewfileに変更は加えません）。--greedy でcaskの積極的アップグレードを実施します"
 depends = ["brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
@@ -221,10 +221,15 @@ fi
 
 echo "🦄 Sync: install + upgrade by Brewfile"
 brew update
+# --greedy が指定されたら、auto_updates等も含めてcaskを積極アップグレード
+if {{flag(name="greedy")}}; then
+  echo "🧪 Greedy upgrade for casks (including auto_updates)"
+  brew upgrade --cask --greedy
+fi
 brew bundle install --file="$BREWFILE_PATH"
 
 echo ""
-echo "✅ Sync complete! "
+echo "✅ Sync complete!"
 echo "Brewfileで管理されていないパッケージを削除する場合は: mise run prune --prof \"$PROFILE\""
 """
 
