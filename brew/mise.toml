@@ -75,8 +75,8 @@ brew bundle dump --file="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/
 echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 """
 
-[tasks.status]
-description = "現在のBrewfileと実際のPCの状態の差分を確認し、差分がある場合はsyncを促す"
+[tasks.status_simple]
+description = "現在のBrewfileと実際のPCの状態の差分を確認し、差分がある場合はsyncを促す（statusの簡易版）"
 depends = ["brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
@@ -100,6 +100,119 @@ else
 fi
 """
 
+[tasks.status]
+description = "Brewfileに基づき、未インストール/要アップデートのパッケージを一覧表示する"
+depends = ["brew_available"]
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+
+BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+if [ ! -f "$BREWFILE_PATH" ]; then
+  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
+  exit 1
+fi
+
+echo "🦄 Target Brewfile: $BREWFILE_PATH"
+echo ""
+
+# ===== 未インストール（Brewfileにはあるが入っていない） =====
+echo "📦 Missing (Brewfileに記載されている未インストールパッケージ）"
+
+# brews (formula)
+TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews  2>/dev/null | sort -u > "$TMP_WANT"
+LC_ALL=C brew list --formula 2>/dev/null | sort -u > "$TMP_HAVE"
+MISSING_BREWS=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
+rm -f "$TMP_WANT" "$TMP_HAVE"
+
+# casks
+TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks  2>/dev/null | sort -u > "$TMP_WANT"
+LC_ALL=C brew list --cask    2>/dev/null | sort -u > "$TMP_HAVE"
+MISSING_CASK=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
+rm -f "$TMP_WANT" "$TMP_HAVE"
+
+# taps
+TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --taps   2>/dev/null | sort -u > "$TMP_WANT"
+LC_ALL=C brew tap               2>/dev/null | sort -u > "$TMP_HAVE"
+MISSING_TAP=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
+rm -f "$TMP_WANT" "$TMP_HAVE"
+
+# mas (任意)
+if command -v mas >/dev/null 2>&1; then
+  TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
+  # Brewfile に記載の mas アプリID一覧（先頭のID）
+  LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --mas 2>/dev/null | awk '{print $1}' | sort -u > "$TMP_WANT"
+  # 現在インストール済みの mas アプリID一覧
+  LC_ALL=C mas list 2>/dev/null | awk '{print $1}' | sort -u > "$TMP_HAVE"
+  MISSING_MAS=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
+  rm -f "$TMP_WANT" "$TMP_HAVE"
+fi
+
+if [ -z "$MISSING_BREWS$MISSING_CASK$MISSING_TAP${MISSING_MAS:-}" ]; then
+  echo "  (none)"
+else
+  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    echo "$MISSING_TAP"    | sed 's/^/    - /'; }
+  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   echo "$MISSING_BREWS"  | sed 's/^/    - /'; }
+  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   echo "$MISSING_CASK"   | sed 's/^/    - /'; }
+  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   echo "$MISSING_MAS"    | sed 's/^/    - /'; }
+fi
+echo ""
+
+# ===== 要アップデート（Brewfileに載っているものに限定） =====
+# Brewfileに記載のセット（あとでフィルタに使用）
+TMP_WANT_BREWS=$(mktemp)
+TMP_WANT_CASKS=$(mktemp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews  2>/dev/null | sort -u > "$TMP_WANT_BREWS"
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks  2>/dev/null | sort -u > "$TMP_WANT_CASKS"
+
+OUTDATED_FORMULA_RAW=$(brew outdated --formula --verbose 2>/dev/null || true)
+OUTDATED_CASK_RAW=$(brew outdated --cask --greedy 2>/dev/null || true)
+
+# 1列目（パッケージ名）を抽出して Brewfile 記載分だけに絞る
+OUTDATED_FORMULA=$(
+  echo "$OUTDATED_FORMULA_RAW" | awk '{print $1}' | LC_ALL=C grep -Fxf "$TMP_WANT_BREWS" || true
+)
+OUTDATED_CASK=$(
+  echo "$OUTDATED_CASK_RAW"    | awk '{print $1}' | LC_ALL=C grep -Fxf "$TMP_WANT_CASKS" || true
+)
+
+rm -f "$TMP_WANT_BREWS" "$TMP_WANT_CASKS"
+
+echo "🔄 Outdated (アップグレードが必要なパッケージ)"
+if [ -z "$OUTDATED_FORMULA$OUTDATED_CASK" ]; then
+  echo "  (none)"
+else
+  [ -n "$OUTDATED_FORMULA" ] && { echo "  Formula:"; printf "%s\n" "$OUTDATED_FORMULA" | sed 's/^/    - /'; }
+  [ -n "$OUTDATED_CASK"    ] && { echo "  Casks:";   printf "%s\n" "$OUTDATED_CASK"    | sed 's/^/    - /'; }
+fi
+
+echo ""
+
+# ===== サマリ & 終了コード =====
+missing_count=$(
+  printf "%s\n%s\n%s\n%s\n" \
+    "$MISSING_TAP" "$MISSING_BREWS" "$MISSING_CASK" "${MISSING_MAS:-}" \
+    | sed '/^$/d' | wc -l | awk '{print $1}'
+)
+outdated_count=$(
+  printf "%s\n%s\n" "$OUTDATED_FORMULA" "$OUTDATED_CASK" \
+    | sed '/^$/d' | wc -l | awk '{print $1}'
+)
+
+echo "📊 Summary: missing=${missing_count}, outdated=${outdated_count}"
+echo "💡 Install/upgrade を実行　　　　　　　　　　　　　　　: mise run sync --prof \"$PROFILE\""
+echo "🧹 Brewfileに記載がないインストール済みパッケージを確認: mise run prune_dry_run --prof \"$PROFILE\""
+
+
+# Missing または Outdated があれば 1 を返す（“要対応” を終了コードで示す）
+if [ "$missing_count" -gt 0 ] || [ "$outdated_count" -gt 0 ]; then
+  exit 1
+fi
+"""
+
 [tasks.sync]
 description = "プロファイルのBrewfileに基づいてパッケージをインストール、アップデートし、PCにあるがファイルに書き出されていないパッケージを追記"
 run = """
@@ -111,11 +224,48 @@ if [ ! -f "$BREWFILE_PATH" ]; then
   exit 1
 fi
 
-echo "\n🦄 Installing and Updating packages from $BREWFILE_PATH"
+echo ""
+echo "🦄 Installing and Updating packages from $BREWFILE_PATH"
 brew bundle install --file="$BREWFILE_PATH"
 
-echo "\n🦄 Adding missing packages to $BREWFILE_PATH"
+echo ""
+echo "🦄 Adding missing packages to $BREWFILE_PATH"
 brew bundle dump --file="$BREWFILE_PATH" --force
 
 echo "✅ Sync complete!"
+"""
+
+[tasks.prune_dry_run]
+description = "Brewfile に無いパッケージの候補を確認（アンインストールはしない）"
+depends = ["brew_available"]
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+if [ ! -f "$BREWFILE_PATH" ]; then
+  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
+  exit 1
+fi
+
+echo "🦄 Dry-run: packages not in $BREWFILE_PATH (nothing will be uninstalled)"
+brew bundle cleanup --file="$BREWFILE_PATH"
+echo ""
+echo "※ 上記がアンインストール候補です。実行するには 'mise run prune --prof \"$PROFILE\"' を使ってください。"
+"""
+
+[tasks.prune]
+description = "Brewfile に無いパッケージを一括アンインストール（不可逆操作）"
+depends = ["brew_available"]
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+if [ ! -f "$BREWFILE_PATH" ]; then
+  echo "❌ Error: Brewfile not found at '$BREWFILE_PATH'" >&2
+  exit 1
+fi
+
+echo "🦄 Uninstalling packages NOT listed in $BREWFILE_PATH"
+brew bundle cleanup --file="$BREWFILE_PATH" --force
+echo "✅ Prune complete!"
 """
