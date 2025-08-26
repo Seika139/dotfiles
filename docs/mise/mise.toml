@@ -2,3 +2,14 @@
 run = '''
 echo \{\{env.HOME\}\} : {{env.HOME}} && echo '$HOME        :' $HOME
 '''
+
+[tasks.sleep]
+hide = true
+run = ["sleep 3"]
+
+[tasks.wait]
+wait_for = "sleep"
+run = "echo 'Hello from task wait'"
+
+[tasks.quick]
+run = "echo 'Hello from task quick'"
