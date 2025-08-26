@@ -17,31 +17,47 @@ brew/
 
 ## 使い方
 
-すべての操作は `mise` タスクとして実行します。
+すべての操作は `mise` タスクとして実行します。プロファイルを指定しない場合、`mise.toml` で設定されたデフォルトプロファイルが使用されます。
 
 ```bash
 # 利用可能なタスクを一覧表示
 mise tasks
 
-# 設定変数を表示
-mise run vars
+# デフォルトプロファイルの同期状態を確認 (簡易版)
+mise run status_simple
 
-# デフォルトプロファイルの同期状態を確認
-mise run status
+# 特定のプロファイルの同期状態を確認 (詳細版)
+mise run status --prof hm-m1-mac
 
-# 特定のプロファイルの同期状態を確認
-mise run status --profile hm-m1-mac
-
-# デフォルトプロファイルでパッケージを同期
-# Brewfileからパッケージをインストールし、手動でインストールされたパッケージをBrewfileに追記します。
+# デフォルトプロファイルでパッケージを同期 (インストール・アップグレード)
 mise run sync
 
 # 特定のプロファイルでパッケージを同期
-mise run sync --profile hm-m1-mac
+mise run sync --prof hm-m1-mac
 
 # 現在の環境のパッケージを新しいプロファイルとして保存
-mise run dump --profile new-profile-name
+mise run dump new-profile-name
+
+# Brewfileにないパッケージの削除 (ドライラン)
+mise run prune --prof hm-m1-mac
+
+# Brewfileにないパッケージを実際に削除
+mise run prune --prof hm-m1-mac --apply
 ```
+
+## 利用可能なタスク
+
+`mise run <task-name>` で以下のタスクを実行できます。
+
+| Task            | Description                                                                                             |
+| :-------------- | :------------------------------------------------------------------------------------------------------ |
+| `status`        | Brewfile に基づき、未インストール/要アップデートのパッケージを一覧表示します。                          |
+| `status_simple` | 現在の Brewfile と実際の PC の状態の差分を確認し、差分がある場合は sync を促します（status の簡易版）。 |
+| `sync`          | Brewfile に基づいて `install` + `upgrade` を実行します（Brewfile に変更は加えません）。                 |
+| `dump`          | 現在インストールされているパッケージをプロファイルに書き出します。 (例: `mise run dump <profile-name>`) |
+| `prune`         | Brewfile に無いパッケージをリストアップします。                                                         |
+| `prune --apply` | Brewfile に無いパッケージを削除します。**注意して使用してください。**                                   |
+| `check`         | (内部用) 指定されたプロファイルが存在するか確認します。                                                 |
 
 ## プロファイル
 
@@ -56,7 +72,7 @@ mise run dump --profile new-profile-name
 1. 新しいプロファイル名を指定して `dump` タスクを実行します。
 
    ```bash
-   mise run dump --profile my-new-mac
+   mise run dump my-new-mac
    ```
 
 2. これにより、新しいディレクトリ (`profiles/my-new-mac/`) が作成され、その中に現在インストールされているすべての Homebrew パッケージを含む `Brewfile` が生成されます。
@@ -66,7 +82,7 @@ mise run dump --profile new-profile-name
 特定のプロファイルからすべてのパッケージをインストールするには：
 
 ```bash
-mise run sync --profile my-new-mac
+mise run sync --prof my-new-mac
 ```
 
 ## 設定
@@ -81,5 +97,5 @@ mise run sync --profile my-new-mac
 
 1. この dotfiles リポジトリをクローンします。
 2. `mise` と `brew` がインストールされていることを確認します。
-3. `mise run dump --profile <new-machine-name>` を実行して、新しいマシン用のプロファイルを作成します。
-4. または、既存のプロファイルを使用したい場合は、`mise run sync --profile <existing-profile-name>` を実行して、そのプロファイルで定義されているパッケージをインストールします。
+3. `mise run dump <new-machine-name>` を実行して、新しいマシン用のプロファイルを作成します。
+4. または、既存のプロファイルを使用したい場合は、`mise run sync --prof <existing-profile-name>` を実行して、そのプロファイルで定義されているパッケージをインストールします。
