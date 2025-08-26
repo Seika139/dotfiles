@@ -197,7 +197,7 @@ outdated_count=$(
 
 echo "📊 Summary: missing=${missing_count}, outdated=${outdated_count}"
 echo "💡 Install/upgrade を実行　　　　　　　　　　　　　　　: mise run sync --prof \"$PROFILE\""
-echo "🧹 Brewfileに記載がないインストール済みパッケージを確認: mise run prune_dry_run --prof \"$PROFILE\""
+echo "🧹 Brewfileに記載がないインストール済みパッケージを確認: mise run prune --prof \"$PROFILE\""
 
 
 # Missing または Outdated があれば 1 を返す（“要対応” を終了コードで示す）
@@ -224,7 +224,7 @@ brew bundle install --file="$BREWFILE_PATH"
 
 echo ""
 echo "✅ Sync complete! "
-echo "Brewfileで管理されていないパッケージを削除する場合は: mise run prune_dry_run --prof \"$PROFILE\""
+echo "Brewfileで管理されていないパッケージを削除する場合は: mise run prune --prof \"$PROFILE\""
 """
 
 [tasks.prune]
