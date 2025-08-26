@@ -247,35 +247,25 @@ else
   TMP_OUT=$(mktemp)
   brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | tee "$TMP_OUT"
 
-  # 「Would uninstall formulae: ...」の行数を数える
-  FORM_COUNT=$(
+  COUNTS=$(
     awk '
-      /^Would uninstall formulae:/ {cap=1; next}
-      /^Would uninstall / || /^Run `brew bundle cleanup/ { if (cap) cap=0 }
-      cap && NF {c++}
-      END {print c+0}
+      /^Would uninstall formulae:/ {section="form"; next}
+      /^Would uninstall casks:/    {section="cask"; next}
+      /^Would uninstall taps:/     {section="tap"; next}
+      /^Would uninstall / || /^Run `brew bundle cleanup/ { if (section) section="" }
+      section && NF {counts[section]++}
+      END {
+        print counts["form"]+0
+        print counts["cask"]+0
+        print counts["tap"]+0
+      }
     ' "$TMP_OUT"
   )
 
-  # 「Would uninstall casks: ...」の行数を数える
-  CASK_COUNT=$(
-    awk '
-      /^Would uninstall casks:/ {cap=1; next}
-      /^Would uninstall / || /^Run `brew bundle cleanup/ { if (cap) cap=0 }
-      cap && NF {c++}
-      END {print c+0}
-    ' "$TMP_OUT"
-  )
+  FORM_COUNT=$(echo "$COUNTS" | sed -n 1p)
+  CASK_COUNT=$(echo "$COUNTS" | sed -n 2p)
+  TAP_COUNT=$(echo "$COUNTS" | sed -n 3p)
 
-  # taps は環境により見出し/単発両方があるので両対応
-  TAP_COUNT=$(
-    awk '
-      /^Would uninstall taps:/ {cap=1; next}
-      /^Would uninstall / || /^Run `brew bundle cleanup/ { if (cap) cap=0 }
-      cap && NF {c++}
-      END {print c+0}
-    ' "$TMP_OUT"
-  )
   if [ "$TAP_COUNT" -eq 0 ]; then
     TAP_COUNT=$(grep -c '^Would untap ' "$TMP_OUT" || true)
   fi
@@ -291,7 +281,6 @@ else
   else
     echo "✅ 削除候補はありません（Brewfile と一致しています）"
     rm -f "$TMP_OUT"
-    # exit 0
   fi
 fi
 """
