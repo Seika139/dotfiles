@@ -26,6 +26,7 @@ echo "PROF={{option(name=\"prof\", default=\"default_prof\")}}"
 [tasks.check]
 description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
 hide = true
+quiet = true
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 if [ -z "$PROFILE" ]; then
@@ -35,7 +36,7 @@ fi
 
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
-echo "Checking profile path: $PROFILE_PATH"
+# 成功時は無音、エラー時のみ詳細を表示する
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
@@ -245,6 +246,7 @@ else
   echo "🦄 Dry-run: List packages NOT in $BREWFILE_PATH"
 
   TMP_OUT=$(mktemp)
+  trap 'rm -f "$TMP_OUT"' EXIT
   brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | tee "$TMP_OUT"
 
   COUNTS=$(
@@ -277,10 +279,12 @@ else
     echo "⚠️ 削除候補があります（formulae=${FORM_COUNT}, casks=${CASK_COUNT}, taps=${TAP_COUNT} / total=${TOTAL}）"
     echo "   実行するには: mise run prune --apply --prof \"$PROFILE\""
     rm -f "$TMP_OUT"
+    trap - EXIT
     exit 1
   else
     echo "✅ 削除候補はありません（Brewfile と一致しています）"
     rm -f "$TMP_OUT"
+    trap - EXIT
   fi
 fi
 """
@@ -289,7 +293,7 @@ fi
 description = "Brewfile に無いパッケージを削除（本適用）"
 hide = true
 depends = ["brew_available"]
-confirm = "Are you sure you want to remove packages not listed in the selected Brewfile?"
+confirm = "選択したBrewfileに記載のないパッケージを削除します。よろしいですか？"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
