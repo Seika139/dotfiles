@@ -94,7 +94,7 @@ else
   {
     echo "⚠️ Some packages are not installed or up to date"
     echo ""
-     echo "Run 'mise run sync --prof \"$PROFILE\"' to synchronize packages"
+    echo "Run 'mise run sync --prof \"$PROFILE\"' to synchronize packages"
   } >&2
   exit 1
 fi
