@@ -1,8 +1,26 @@
-# 環境変数の定義
-[env]
-PROFILES_DIR = "profiles"
-BREWFILE_NAME = "Brewfile"
-DEFAULT_PROFILE = "hm-m1-mac"
+[tasks.check_env]
+description = "環境変数がちゃんと設定されているか確認する"
+quiet = true
+hide = true
+run = """
+set -eu
+if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+  {
+    echo '[env]'
+    echo 'PROFILES_DIR="profiles"'
+    echo 'BREWFILE_NAME="Brewfile"'
+    echo 'DEFAULT_PROFILE=""'
+  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+  echo "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  echo "🚨 必要な環境変数をデフォルトでセットしました。"
+  echo "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_PROFILE:-}" ]; then
+  echo "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+"""
 
 [tasks.brew_available]
 description = "brew コマンドが利用可能か確認し、なければエラーを返す"
@@ -25,6 +43,7 @@ echo "PROF={{option(name=\"prof\", default=\"default_prof\")}}"
 
 [tasks.check]
 description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+depends = ["check_env"]
 hide = true
 quiet = true
 run = """
@@ -53,7 +72,7 @@ fi
 
 [tasks.dump]
 description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
-depends = ["brew_available"]
+depends = ["check_env", "brew_available"]
 run = """
 PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
@@ -71,7 +90,7 @@ echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR
 
 [tasks.status_simple]
 description = "現在のBrewfileと実際のPCの状態の差分を確認し、差分がある場合はsyncを促す（statusの簡易版）"
-depends = ["brew_available"]
+depends = ["check_env", "brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -95,8 +114,20 @@ fi
 
 [tasks.status]
 description = "Brewfileに基づき、未インストール/要アップデートのパッケージを一覧表示する"
-depends = ["brew_available"]
+depends = ["check_env", "brew_available"]
 run = """
+# POSIX 安全設定
+set -eu
+# bash のときだけ pipefail を有効化
+if [ -n "${BASH_VERSION:-}" ]; then set -o pipefail; fi
+
+# 使い捨ての一時ディレクトリ（終了時にまとめて削除）
+TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t mise)"
+cleanup(){ rm -rf "$TMP_DIR"; }
+trap cleanup EXIT
+
+make_tmp(){ mktemp "$TMP_DIR/tmp.XXXXXX"; }
+
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
 
@@ -113,51 +144,47 @@ echo ""
 echo "📦 Missing (Brewfileに記載されている未インストールパッケージ）"
 
 # brews (formula)
-TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
-LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews  2>/dev/null | sort -u > "$TMP_WANT"
+TMP_WANT=$(make_tmp); TMP_HAVE=$(make_tmp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews 2>/dev/null | sort -u > "$TMP_WANT"
 LC_ALL=C brew list --formula 2>/dev/null | sort -u > "$TMP_HAVE"
 MISSING_BREWS=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
-rm -f "$TMP_WANT" "$TMP_HAVE"
 
 # casks
-TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
-LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks  2>/dev/null | sort -u > "$TMP_WANT"
+TMP_WANT=$(make_tmp); TMP_HAVE=$(make_tmp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks 2>/dev/null | sort -u > "$TMP_WANT"
 LC_ALL=C brew list --cask    2>/dev/null | sort -u > "$TMP_HAVE"
 MISSING_CASK=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
-rm -f "$TMP_WANT" "$TMP_HAVE"
 
 # taps
-TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
-LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --taps   2>/dev/null | sort -u > "$TMP_WANT"
+TMP_WANT=$(make_tmp); TMP_HAVE=$(make_tmp)
+LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --taps 2>/dev/null | sort -u > "$TMP_WANT"
 LC_ALL=C brew tap               2>/dev/null | sort -u > "$TMP_HAVE"
 MISSING_TAP=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
-rm -f "$TMP_WANT" "$TMP_HAVE"
 
 # mas (任意)
 if command -v mas >/dev/null 2>&1; then
-  TMP_WANT=$(mktemp); TMP_HAVE=$(mktemp)
+  TMP_WANT=$(make_tmp); TMP_HAVE=$(make_tmp)
   # Brewfile に記載の mas アプリID一覧（先頭のID）
   LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --mas 2>/dev/null | awk '{print $1}' | sort -u > "$TMP_WANT"
   # 現在インストール済みの mas アプリID一覧
   LC_ALL=C mas list 2>/dev/null | awk '{print $1}' | sort -u > "$TMP_HAVE"
   MISSING_MAS=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
-  rm -f "$TMP_WANT" "$TMP_HAVE"
 fi
 
-if [ -z "$MISSING_BREWS$MISSING_CASK$MISSING_TAP${MISSING_MAS:-}" ]; then
+if [ -z "${MISSING_BREWS}${MISSING_CASK}${MISSING_TAP}${MISSING_MAS:-}" ]; then
   echo "  (none)"
 else
-  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    echo "$MISSING_TAP"    | sed 's/^/    - /'; }
-  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   echo "$MISSING_BREWS"  | sed 's/^/    - /'; }
-  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   echo "$MISSING_CASK"   | sed 's/^/    - /'; }
-  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   echo "$MISSING_MAS"    | sed 's/^/    - /'; }
+  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    printf "%s\n" "$MISSING_TAP"   | sed 's/^/    - /'; }
+  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   printf "%s\n" "$MISSING_BREWS" | sed 's/^/    - /'; }
+  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   printf "%s\n" "$MISSING_CASK"  | sed 's/^/    - /'; }
+  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   printf "%s\n" "$MISSING_MAS"   | sed 's/^/    - /'; }
 fi
 echo ""
 
 # ===== 要アップデート（Brewfileに載っているものに限定） =====
 # Brewfileに記載のセット（あとでフィルタに使用）
-TMP_WANT_BREWS=$(mktemp)
-TMP_WANT_CASKS=$(mktemp)
+TMP_WANT_BREWS=$(make_tmp)
+TMP_WANT_CASKS=$(make_tmp)
 LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --brews  2>/dev/null | sort -u > "$TMP_WANT_BREWS"
 LC_ALL=C brew bundle list --file="$BREWFILE_PATH" --casks  2>/dev/null | sort -u > "$TMP_WANT_CASKS"
 
@@ -172,10 +199,8 @@ OUTDATED_CASK=$(
   echo "$OUTDATED_CASK_RAW"    | awk '{print $1}' | LC_ALL=C grep -Fxf "$TMP_WANT_CASKS" || true
 )
 
-rm -f "$TMP_WANT_BREWS" "$TMP_WANT_CASKS"
-
 echo "🔄 Outdated (アップグレードが必要なパッケージ)"
-if [ -z "$OUTDATED_FORMULA$OUTDATED_CASK" ]; then
+if [ -z "${OUTDATED_FORMULA}${OUTDATED_CASK}" ]; then
   echo "  (none)"
 else
   [ -n "$OUTDATED_FORMULA" ] && { echo "  Formula:"; printf "%s\n" "$OUTDATED_FORMULA" | sed 's/^/    - /'; }
@@ -187,11 +212,11 @@ echo ""
 # ===== サマリ & 終了コード =====
 missing_count=$(
   printf "%s\n%s\n%s\n%s\n" \
-    "$MISSING_TAP" "$MISSING_BREWS" "$MISSING_CASK" "${MISSING_MAS:-}" \
+    "${MISSING_TAP:-}" "${MISSING_BREWS:-}" "${MISSING_CASK:-}" "${MISSING_MAS:-}" \
     | sed '/^$/d' | wc -l | awk '{print $1}'
 )
 outdated_count=$(
-  printf "%s\n%s\n" "$OUTDATED_FORMULA" "$OUTDATED_CASK" \
+  printf "%s\n%s\n" "${OUTDATED_FORMULA:-}" "${OUTDATED_CASK:-}" \
     | sed '/^$/d' | wc -l | awk '{print $1}'
 )
 
@@ -208,7 +233,7 @@ fi
 
 [tasks.sync]
 description = "Brewfileに基づいて install + upgrade を実行（Brewfileに変更は加えません）。--greedy でcaskの積極的アップグレードを実施します"
-depends = ["brew_available"]
+depends = ["check_env", "brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -234,7 +259,7 @@ echo "Brewfileで管理されていないパッケージを削除する場合は
 
 [tasks.prune]
 description = "Brewfile に無いパッケージを削除（デフォルトは dry-run。--apply で削除を実行）"
-depends = ["brew_available"]
+depends = ["check_env", "brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -292,7 +317,7 @@ fi
 [tasks.prune_apply]
 description = "Brewfile に無いパッケージを削除（本適用）"
 hide = true
-depends = ["brew_available"]
+depends = ["check_env", "brew_available"]
 confirm = "選択したBrewfileに記載のないパッケージを削除します。よろしいですか？"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
