@@ -3,6 +3,7 @@ description = "環境変数がちゃんと設定されているか確認する"
 quiet = true
 hide = true
 run = """
+set -eu
 if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
   {
     echo '[env]'
@@ -15,7 +16,7 @@ if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
   echo "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。"
   exit 1
 fi
-if [ -z "$DEFAULT_PROFILE" ]; then
+if [ -z "${DEFAULT_PROFILE:-}" ]; then
   echo "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
   exit 1
 fi
@@ -173,10 +174,10 @@ fi
 if [ -z "${MISSING_BREWS}${MISSING_CASK}${MISSING_TAP}${MISSING_MAS:-}" ]; then
   echo "  (none)"
 else
-  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    echo "$MISSING_TAP"   | sed 's/^/    - /'; }
-  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   echo "$MISSING_BREWS" | sed 's/^/    - /'; }
-  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   echo "$MISSING_CASK"  | sed 's/^/    - /'; }
-  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   echo "$MISSING_MAS"   | sed 's/^/    - /'; }
+  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    printf "%s\n" "$MISSING_TAP"   | sed 's/^/    - /'; }
+  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   printf "%s\n" "$MISSING_BREWS" | sed 's/^/    - /'; }
+  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   printf "%s\n" "$MISSING_CASK"  | sed 's/^/    - /'; }
+  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   printf "%s\n" "$MISSING_MAS"   | sed 's/^/    - /'; }
 fi
 echo ""
 
