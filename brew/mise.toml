@@ -270,7 +270,7 @@ if [ ! -f "$BREWFILE_PATH" ]; then
 fi
 
 if {{flag(name="apply")}}; then
-  mise run prune_apply --prof "$PROFILE"
+  mise run prune_apply -y --prof "$PROFILE"
 else
   echo "🦄 Dry-run: List packages NOT in $BREWFILE_PATH"
 

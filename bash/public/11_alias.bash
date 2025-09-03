@@ -15,16 +15,38 @@ function less_lf() {
 }
 
 # lsにデフォで色をつける
-alias ls='ls -GF --color=auto'
-alias ll="ls -al --color=auto"
+# 2025.09.03 追記: brewでインストールしたezaを使用
+if command -v eza &> /dev/null; then
+    alias ls='eza'
+    alias ll='eza -al'
+else
+    alias ls='ls -GF --color=auto'
+    alias ll="ls -al --color=auto"
+fi
 export LSCOLORS=cxfxgxdxbxegedabagacad
 # [Terminal.appでlsのファイル色を変える - by edvakf in hatena](https://edvakf.hatenadiary.org/entry/20080413/1208042916)
 # [Terminalで「ls」したら「ls -G」が実行されるようにして、色も設定する。 - taoru's memo](https://taoru.hateblo.jp/entry/20120418/1334713778)
 
 # grepの検索条件に該当する部分にデフォルトで色を付ける。GREP_OPTIONS は非推奨になったのでエイリアスで対応した
-alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
+# 2025.09.03 追記: brewでインストールしたripgrepを使用
+if command -v rg &> /dev/null; then
+    # --glob '!.git' を追加して、.gitディレクトリを"絶対に"検索しないようにする
+    # -S/--smart-case を追加して、賢い大文字小文字の区別を有効にする
+    alias grep='rg --color=auto --glob "!.git" -S'
 
-# 2025.0824 追記: mise でタスク実行を簡単にする
+    # 全てのファイル（隠しファイルや.gitignoreも）を検索するエイリアスを追加
+    alias rga='rg -uuu'
+else
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# catをbatに置き換える
+# 2025.09.03 追記: brewでインストールしたbatを使用
+if command -v bat &> /dev/null; then
+    alias cat='bat --paging=never --style=plain'
+fi
+
+# 2025.08.24 追記: mise でタスク実行を簡単にする
 alias m='mise run'

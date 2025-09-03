@@ -312,3 +312,6 @@ $RECYCLE.BIN/
 # Serena（Oraios AIによるMCPサーバー）
 # .serenaディレクトリはプロジェクトの状態を保持するためのものであり、他の開発者と共有する必要はない
 .serena/
+
+# Claude が勝手に作る設定ファイル
+.claude/settings.local.json
