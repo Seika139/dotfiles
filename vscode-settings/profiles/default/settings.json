@@ -303,5 +303,7 @@
   "terminal.integrated.detectLocale": "auto",
   "docker.extension.enableComposeLanguageServer": false,
   "workbench.activityBar.orientation": "vertical",
-  "diffEditor.codeLens": true
+  "diffEditor.codeLens": true,
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4"
 }
