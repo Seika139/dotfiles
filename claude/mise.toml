@@ -1,5 +1,5 @@
 [env]
-PROFILES_DIR="profiles"
+PROFILES_DIR = "profiles"
 
 [tasks.check_env]
 description = "環境変数がちゃんと設定されているか確認する"
