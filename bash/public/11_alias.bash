@@ -48,5 +48,39 @@ if command -v bat &> /dev/null; then
     alias cat='bat --paging=never --style=plain'
 fi
 
-# 2025.08.24 追記: mise でタスク実行を簡単にする
+alias d='docker'
+alias dc='docker compose'
 alias m='mise run'
+
+# 補完設定: bash-completionを読み込む
+if [ -f /opt/homebrew/etc/bash_completion ]; then
+    source /opt/homebrew/etc/bash_completion
+elif [ -f /usr/local/etc/bash_completion ]; then
+    source /usr/local/etc/bash_completion
+fi
+
+# 補完設定: dockerの補完を設定
+if command -v docker &> /dev/null; then
+    # 一時ファイルに補完スクリプトを保存して読み込む
+    _docker_completion_tmp="/tmp/docker_completion_$$"
+    docker completion bash > "$_docker_completion_tmp" 2>/dev/null
+    if [ -f "$_docker_completion_tmp" ]; then
+        # shellcheck source=/dev/null
+        source "$_docker_completion_tmp"
+        complete -F __start_docker d dc
+        rm -f "$_docker_completion_tmp"
+    fi
+fi
+
+# 補完設定: miseの補完を設定（シンプルな代替方法）
+if command -v mise &> /dev/null; then
+    # miseの基本的な補完（タスク名のみ）
+    _mise_complete() {
+        local cur="${COMP_WORDS[COMP_CWORD]}"
+        local tasks
+        tasks=$(mise tasks --no-header 2>/dev/null | awk '{print $1}')
+        # shellcheck disable=SC2207
+        COMPREPLY=($(compgen -W "$tasks" -- "$cur"))
+    }
+    complete -F _mise_complete m
+fi
