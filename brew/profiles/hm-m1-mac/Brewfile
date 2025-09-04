@@ -27,6 +27,7 @@ brew "python@3.12"
 brew "ripgrep"
 brew "streamlink"
 brew "tailscale", restart_service: :changed
+brew "terminal-notifier"
 brew "tree"
 brew "uv"
 brew "volta"
