@@ -143,11 +143,15 @@ cat > "$PROFILE_PATH/CLAUDE.md" << 'EOF'
 <!-- Note any specific restrictions or security considerations -->
 EOF
 
+# commands ディレクトリ作成
+mkdir -p "$PROFILE_PATH/commands"
+
 echo "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 echo "📝 Edit settings in:"
 echo "   - $PROFILE_PATH/settings.json"
 echo "   - $PROFILE_PATH/settings.local.json"
 echo "   - $PROFILE_PATH/CLAUDE.md"
+echo "   - $PROFILE_PATH/commands/"
 """
 
 [tasks.link]
@@ -174,6 +178,17 @@ for file in settings.json settings.local.json CLAUDE.md; do
   fi
 done
 
+# commands ディレクトリの処理
+commands_target="${HOME}/.claude/commands"
+if [ -L "$commands_target" ]; then
+  echo "   Removing existing symlink: $commands_target"
+  rm "$commands_target"
+elif [ -d "$commands_target" ]; then
+  backup="${commands_target}.backup.$(date +%Y%m%d_%H%M%S)"
+  echo "   既存のディレクトリをバックアップしました: $commands_target -> $backup"
+  mv "$commands_target" "$backup"
+fi
+
 # シンボリックリンク作成
 for file in settings.json settings.local.json CLAUDE.md; do
   source="$PROFILE_PATH/$file"
@@ -183,6 +198,12 @@ for file in settings.json settings.local.json CLAUDE.md; do
     ln -sfv "$source" "$target"
   fi
 done
+
+# commands ディレクトリのシンボリックリンク作成
+commands_source="$PROFILE_PATH/commands"
+if [ -d "$commands_source" ]; then
+  ln -sfv "$commands_source" "$commands_target"
+fi
 
 echo "✅ Linked Claude settings from profile '$PROFILE'"
 """
@@ -214,6 +235,13 @@ for file in settings.json settings.local.json CLAUDE.md; do
   fi
 done
 
+commands_source="$PROFILE_PATH/commands"
+if [ -d "$commands_source" ]; then
+  echo "   ✅ commands/"
+else
+  echo "   ❌ commands/ (missing)"
+fi
+
 echo ""
 echo "🔗 Symlink status in ~/.claude:"
 for file in settings.json settings.local.json CLAUDE.md; do
@@ -233,6 +261,23 @@ for file in settings.json settings.local.json CLAUDE.md; do
     echo "   ❌ $file (存在しない)"
   fi
 done
+
+# commands ディレクトリの状態確認
+commands_target="${HOME}/.claude/commands"
+commands_source="$PROFILE_PATH/commands"
+
+if [ -L "$commands_target" ]; then
+  link_target=$(readlink "$commands_target")
+  if [ "$link_target" = "$commands_source" ]; then
+    echo "   ✅ commands/ -> $commands_source"
+  else
+    echo "   ⚠️  commands/ -> $link_target (不一致)"
+  fi
+elif [ -d "$commands_target" ]; then
+  echo "   ❌ commands/ (通常ディレクトリ、シンボリックリンクではない)"
+else
+  echo "   ❌ commands/ (存在しない)"
+fi
 
 echo ""
 echo "💡 Commands:"
