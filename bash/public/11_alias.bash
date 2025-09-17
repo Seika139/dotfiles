@@ -84,3 +84,13 @@ if command -v mise &> /dev/null; then
     }
     complete -F _mise_complete m
 fi
+
+# AWS CLIの補完を有効化する
+aws_completer_path="$(which aws_completer 2>/dev/null || true)"
+if [[ -f "$aws_completer_path" ]]; then
+    complete -C "$aws_completer_path" aws
+elif command -v aws >/dev/null 2>&1; then
+    # aws コマンドが存在する場合でも、aws_completer が見つからないことがある場合は警告を表示
+    echo "Warning: aws command found, but aws_completer is missing."
+    echo "Please ensure AWS CLI is properly installed."
+fi
