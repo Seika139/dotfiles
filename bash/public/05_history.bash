@@ -5,6 +5,6 @@
 
 export HISTCONTROL=ignoreboth
 # ignorespace(空白文字で始まる行を保存しない) と ignoredups(ひとつ前の履歴エントリと一致する行を保存しない) の両方
-export HISTSIZE=5000                             # historyの履歴を増やす
-export HISTTIMEFORMAT='%F %T '                   # 日時を前に追加
-export HISTIGNORE='history:pwd:ls:ll:w:top:df *' # 保存しないコマンド
+export HISTSIZE=5000                          # historyの履歴を増やす
+export HISTTIMEFORMAT='%F %T '                # 日時を前に追加
+export HISTIGNORE='history:pwd:ls:ll:w:top *' # 保存しないコマンド
