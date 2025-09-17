@@ -1,15 +1,10 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(mkdir:*)",
-      "Bash(touch:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)"
-    ],
+    "allow": ["Bash(mkdir:*)", "Bash(touch:*)", "Bash(ls:*)", "Bash(cat:*)"],
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
-      "Read(.env:*)",
+      "Read(.env)",
       "Read(**/*token*)",
       "Read(**/secrets/**)"
     ],

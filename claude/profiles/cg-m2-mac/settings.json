@@ -1,9 +1,10 @@
 {
   "env": {
-    "ANTHROPIC_MODEL": "us.anthropic.claude-opus-4-20250514-v1:0",
+    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-20250514-v1:0",
     "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
     "AWS_REGION": "us-east-1",
-    "CLAUDE_CODE_USE_BEDROCK": "1"
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "API_TIMEOUT_MS": "1200000"
   },
   "permissions": {
     "allow": [
@@ -19,13 +20,13 @@
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
-      "Read(.env:*)",
+      "Read(.env)",
       "Read(**/*token*)",
       "Read(**/secrets/**)",
       "Read(**/*key*)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
-      "Read(cdk deploy:*)",
+      "Bash(cdk deploy:*)",
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(git merge:*)",
@@ -41,13 +42,14 @@
       "Bash(gh release delete:*)",
       "Bash(gh alias set:*)",
       "Bash(gh alias delete:*)",
-      "Bash(gh api POST*:*)",
-      "Bash(gh api PUT*:*)",
-      "Bash(gh api PATCH*:*)",
-      "Bash(gh api DELETE*:*)"
+      "Bash(gh api POST:*)",
+      "Bash(gh api PUT:*)",
+      "Bash(gh api PATCH:*)",
+      "Bash(gh api DELETE:*)"
     ],
     "defaultMode": "acceptEdits"
   },
+  "outputStyle": "Explanatory",
   "hooks": {
     "Stop": [
       {
@@ -56,6 +58,10 @@
           {
             "type": "command",
             "command": "terminal-notifier -title '🦄 Claude Code' -message 'Claude Code has stopped' -sound Glass"
+          },
+          {
+            "type": "command",
+            "command": "curl https://hooks.slack.com/triggers/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"
           }
         ]
       }
