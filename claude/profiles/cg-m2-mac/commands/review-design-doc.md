@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Bash(make:*), Bash(docker:*)
+allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Bash(make:*), Bash(mise:*), Bash(docker:*), Bash(ripgrep:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(cat:*), Bash(ls:*), Bash(cd:*)
 description: "Review a Pull Request About Design Docs (PR Number Required)"
 ---
 
@@ -17,7 +17,7 @@ description: "Review a Pull Request About Design Docs (PR Number Required)"
 
 ## プルリクエストの概要を把握する
 
-以下のコマンドを使用して、プルリクエストの概要を把握します。`ARGUMENT` はプルリクエスト番号またはURLを指定します。
+以下のコマンドを使用して、プルリクエストの概要を把握します。`ARGUMENT` はプルリクエスト番号または URL を指定します。
 
 ```bash
 gh pr view $ARGUMENT
@@ -28,7 +28,7 @@ gh pr view $ARGUMENT
 
 ## プルリクエストの内容確認
 
-以下のコマンドを使用して、対象PRの内容を確認します。`ARGUMENT` はプルリクエスト番号またはURLを指定します。
+以下のコマンドを使用して、対象 PR の内容を確認します。`ARGUMENT` はプルリクエスト番号または URL を指定します。
 
 ```bash
 gh pr diff $ARGUMENT
@@ -44,3 +44,8 @@ gh pr diff $ARGUMENT
 
 以上の確認項目をもとにレビューを実施し、修正が必要であるかどうかの判断をしてください。
 修正が必要ならば修正計画・コメント内容を考案します。
+
+## レビュー終了後にやること
+
+レビュー時に新しくチェックアウトしたブランチを削除します。
+新しくチェックアウトしていない場合は削除しなくて良いです。
