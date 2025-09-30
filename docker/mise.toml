@@ -1,0 +1,118 @@
+[tasks.container]
+description = "コンテナに関する操作"
+run = """
+selected_option={{option(name="opt", description="操作を選択してください", choices=["show-all", "show-deletable", "prune"])}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show-all\nshow-deletable\nprune\n" |
+  fzf --height 7 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show-all) echo "全コンテナを表示します" ;;
+          show-deletable) echo "削除可能なコンテナを表示します" ;;
+          prune) echo "停止中のコンテナを削除します" ;;
+        esac
+      ' \
+      --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show-all)
+    echo "show-all: 全コンテナを表示します"
+    echo "\\033[36m docker ps -a\\033[0m"
+    docker ps -a
+    ;;
+  show-deletable)
+    echo "show-deletable: 削除可能なコンテナを表示します"
+    echo ""
+    echo "停止中のコンテナ:\\033[36m docker ps -a -f status=exited\\033[0m"
+    docker ps -a -f status=exited
+    echo ""
+    echo "異常停止したコンテナ:\\033[36m docker ps -a -f status=dead\\033[0m"
+    docker ps -a -f status=dead
+    echo ""
+    ;;
+  prune)
+    echo "prune: 停止中のコンテナを削除します"
+    echo "\\033[36m docker container prune --force\\033[0m"
+    docker container prune --force
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
+
+[tasks.image]
+description = "イメージに関する操作"
+run = """
+selected_option={{option(name="opt", description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"])}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show-all\nshow-deletable\nprune\nprune-all\n" | fzf --height 8 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show-all) echo "全イメージを表示します" ;;
+          show-deletable) echo "削除可能なイメージを表示します" ;;
+          prune) echo "タグづけされてないイメージ(dangling image)を削除します" ;;
+          prune-all) echo "停止中のコンテナを含む全てのコンテナから参照されていないイメージを削除します" ;;
+        esac
+      ' \
+      --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show-all)
+    echo "show-all: 全イメージを表示します"
+    echo "\\033[36m docker image ls\\033[0m"
+    docker image ls
+    ;;
+  show-deletable)
+    echo "show-deletable: タグづけされてないイメージ(dangling image)を表示します"
+    echo ""
+    echo "\\033[36m docker images -f dangling=true\\033[0m"
+    docker images -f dangling=true
+    echo ""
+    USED_IDS_FILE="$(mktemp)"
+    {% raw %}
+    docker ps -aq | xargs -r docker inspect -f '{{.Image}}' | sort -u > "$USED_IDS_FILE"
+    {% endraw %}
+    echo "\\033[36m 未使用（= prune -a の削除対象）イメージ一覧\\033[0m"
+    {% raw %}
+    docker images --no-trunc \
+      --format '{{.ID}}\\t{{.Repository}}:{{.Tag}}\\t{{.CreatedSince}}\\t{{.Size}}' \
+    {% endraw %} \
+    | awk -F '\\\\|\\\\|\\\\|' -v f="$USED_IDS_FILE" '
+      BEGIN {
+        while ((getline line < f) > 0) used[line]=1; close(f);
+        print "IMAGE ID\tREPOSITORY:TAG\tCREATED\tSIZE"
+        print "--------\t--------------\t-------\t----"
+      }
+      {
+        id=$1;
+        if (!(id in used)) printf "%s\\t%s\\t%s\\t%s\\n", $1,$2,$3,$4;
+      }
+    ' | column -t -s $'\t'
+    rm -f "$USED_IDS_FILE"
+    ;;
+  prune)
+    echo "prune: タグづけされてないイメージ(dangling image)を削除します"
+    echo "\\033[36m docker image prune --force\\033[0m"
+    docker image prune --force
+    ;;
+  prune-all)
+    echo "prune-all: 停止中のコンテナを含む全てのコンテナから参照されていないイメージを削除します"
+    echo "\\033[36m docker image prune --all --force\\033[0m"
+    docker image prune --all --force
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
