@@ -62,3 +62,4 @@ yzane.markdown-pdf
 yzhang.markdown-all-in-one
 jackiotyu.git-worktree-manager
 anthropic.claude-code
+openai.chatgpt

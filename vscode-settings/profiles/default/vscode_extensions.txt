@@ -104,3 +104,5 @@ yzhang.markdown-all-in-one
 jackiotyu.git-worktree-manager
 google.geminicodeassist
 sourcegraph.cody-ai
+coderabbit.coderabbit-vscode
+openai.chatgpt
