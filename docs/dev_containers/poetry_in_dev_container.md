@@ -23,6 +23,18 @@ Makefile
 README.md
 ```
 
+```bash
+git init
+git config --local user.name "Your Name"
+git config --local user.email "dev@example.com"
+mkdir -p src tests docs .github .github/workflows
+touch README.md CHANGELOG.md DEVELOPMENT.md Makefile .github/copilot-instructions.md
+git add .
+git commit -m "Initial commit"
+cd <old_project_root>
+cp .editorconfig .gitignore .gitattributes <new_project_root>
+```
+
 ## poetry プロジェクトを作成する
 
 ### pyproject.toml を作成する
