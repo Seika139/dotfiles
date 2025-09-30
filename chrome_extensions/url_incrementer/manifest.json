@@ -9,13 +9,13 @@
   "commands": {
     "increment": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Up"
+        "default": "Alt+Shift+Up"
       },
       "description": "Increment the URL"
     },
     "decrement": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Down"
+        "default": "Alt+Shift+Down"
       },
       "description": "Decrement the URL"
     }
