@@ -1,7 +1,7 @@
 [tasks.container]
 description = "コンテナに関する操作"
 run = """
-selected_option={{option(name="opt", description="操作を選択してください", choices=["show-all", "show-deletable", "prune"])}}
+selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune"], default="")}}
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
@@ -13,30 +13,29 @@ if [ -z "${selected_option}" ]; then
           show-deletable) echo "削除可能なコンテナを表示します" ;;
           prune) echo "停止中のコンテナを削除します" ;;
         esac
-      ' \
-      --preview-window=right,50%
+      ' --preview-window=right,50%
   )
 fi
 
 case $selected_option in
   show-all)
     echo "show-all: 全コンテナを表示します"
-    echo "\\033[36m docker ps -a\\033[0m"
+    echo "\\033[36m$ docker ps -a\\033[0m"
     docker ps -a
     ;;
   show-deletable)
     echo "show-deletable: 削除可能なコンテナを表示します"
     echo ""
-    echo "停止中のコンテナ:\\033[36m docker ps -a -f status=exited\\033[0m"
+    echo "\\033[36m$ docker ps -a -f status=exited\\033[0m # 停止中のコンテナ"
     docker ps -a -f status=exited
     echo ""
-    echo "異常停止したコンテナ:\\033[36m docker ps -a -f status=dead\\033[0m"
+    echo "\\033[36m$ docker ps -a -f status=dead\\033[0m # 異常終了したコンテナ"
     docker ps -a -f status=dead
     echo ""
     ;;
   prune)
     echo "prune: 停止中のコンテナを削除します"
-    echo "\\033[36m docker container prune --force\\033[0m"
+    echo "\\033[36m$ docker container prune --force\\033[0m"
     docker container prune --force
     ;;
   *)
@@ -49,7 +48,7 @@ esac
 [tasks.image]
 description = "イメージに関する操作"
 run = """
-selected_option={{option(name="opt", description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"])}}
+selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"], default="")}}
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
@@ -61,28 +60,27 @@ if [ -z "${selected_option}" ]; then
           prune) echo "タグづけされてないイメージ(dangling image)を削除します" ;;
           prune-all) echo "停止中のコンテナを含む全てのコンテナから参照されていないイメージを削除します" ;;
         esac
-      ' \
-      --preview-window=right,50%
+      ' --preview-window=right,50%
   )
 fi
 
 case $selected_option in
   show-all)
     echo "show-all: 全イメージを表示します"
-    echo "\\033[36m docker image ls\\033[0m"
+    echo "\\033[36m$ docker image ls\\033[0m"
     docker image ls
     ;;
   show-deletable)
     echo "show-deletable: タグづけされてないイメージ(dangling image)を表示します"
     echo ""
-    echo "\\033[36m docker images -f dangling=true\\033[0m"
+    echo "\\033[36m$ docker images -f dangling=true\\033[0m"
     docker images -f dangling=true
     echo ""
     USED_IDS_FILE="$(mktemp)"
     {% raw %}
     docker ps -aq | xargs -r docker inspect -f '{{.Image}}' | sort -u > "$USED_IDS_FILE"
     {% endraw %}
-    echo "\\033[36m 未使用（= prune -a の削除対象）イメージ一覧\\033[0m"
+    echo "\\033[36m未使用（docker image prune -a の削除対象）イメージ一覧\\033[0m"
     {% raw %}
     docker images --no-trunc \
       --format '{{.ID}}\\t{{.Repository}}:{{.Tag}}\\t{{.CreatedSince}}\\t{{.Size}}' \
@@ -102,13 +100,336 @@ case $selected_option in
     ;;
   prune)
     echo "prune: タグづけされてないイメージ(dangling image)を削除します"
-    echo "\\033[36m docker image prune --force\\033[0m"
+    echo "\\033[36m$ docker image prune --force\\033[0m"
     docker image prune --force
     ;;
   prune-all)
     echo "prune-all: 停止中のコンテナを含む全てのコンテナから参照されていないイメージを削除します"
-    echo "\\033[36m docker image prune --all --force\\033[0m"
+    echo "\\033[36m$ docker image prune --all --force\\033[0m"
     docker image prune --all --force
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
+
+[tasks.network]
+description = "ネットワークに関する操作"
+run = """
+selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune"], default="")}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show-all\nshow-deletable\nprune\n" | fzf --height 7 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show-all) echo "全ネットワークを表示します" ;;
+          show-deletable) echo "削除可能なネットワークを表示します" ;;
+          prune) echo "未使用のネットワークを削除します" ;;
+        esac
+      ' --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show-all)
+    echo "show-all: 全ネットワークを表示します"
+    echo "\\033[36m$ docker network ls\\033[0m"
+    docker network ls
+    ;;
+  show-deletable)
+    echo "show-deletable: 削除可能なネットワークを表示します"
+    echo ""
+    echo "\\033[36m削除対象のカスタムネットワーク（未使用）\\033[0m"
+    echo ""
+    # デフォルトネットワーク（bridge, host, none）を除外し、未使用のネットワークを表示
+    echo "NETWORK ID\tNAME"
+    echo "------------\t----"
+    {% raw %}
+    docker network ls --format "{{.ID}} {{.Name}}" | \
+    {% endraw %} \
+    while read -r network_id network_name; do
+      case "$network_name" in
+        bridge|host|none) continue ;;
+      esac
+      # ネットワークに接続されているコンテナを確認
+      {% raw %}
+      containers=$(docker network inspect "$network_id" --format '{{len .Containers}}' 2>/dev/null || echo "0")
+      {% endraw %}
+      if [ "$containers" = "0" ]; then
+        echo "$network_id\t$network_name"
+      fi
+    done
+    echo ""
+    ;;
+  prune)
+    echo "prune: 未使用のネットワークを削除します"
+    echo "\\033[36m$ docker network prune --force\\033[0m"
+    docker network prune --force
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
+
+[tasks.volume]
+description = "ボリュームに関する操作"
+run = """
+selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"], default="")}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show-all\nshow-deletable\nprune\nprune-all\n" | fzf --height 8 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show-all) echo "全ボリュームを表示します" ;;
+          show-deletable) echo "削除可能なボリュームを表示します" ;;
+          prune) echo "未使用の匿名ボリュームを削除します" ;;
+          prune-all) echo "未使用の全ボリューム（名前付きも含む）を削除します" ;;
+        esac
+      ' --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show-all)
+    echo "show-all: 全ボリュームを表示します"
+    echo "\\033[36m$ docker volume ls\\033[0m"
+    docker volume ls
+    ;;
+  show-deletable)
+    echo "show-deletable: 削除可能なボリュームを表示します"
+    echo ""
+    echo "\\033[36m匿名ボリューム（mise run volume prune で削除）\\033[0m"
+    echo "SIZE\tVOLUME NAME"
+    echo "----\t-----------"
+    # 匿名ボリューム（64文字のハッシュ）で未使用のもの
+    docker system df -v | \
+    awk '
+      /^VOLUME NAME/ { in_volumes=1; next }
+      in_volumes && NF>=3 {
+        if ($2 == 0 && length($1) == 64 && $1 ~ /^[0-9a-f]+$/)
+          print $3"\t"$1
+      }
+    '
+    echo ""
+    echo "\\033[36m名前付きボリューム（mise run volume prune-all でのみ削除）\\033[0m"
+    echo "SIZE\tVOLUME NAME"
+    echo "----\t-----------"
+    # 名前付きボリュームで未使用のもの
+    docker system df -v | \
+    awk '
+      /^VOLUME NAME/ { in_volumes=1; next }
+      in_volumes && NF>=3 {
+        if ($2 == 0 && !(length($1) == 64 && $1 ~ /^[0-9a-f]+$/))
+          print $3"\t"$1
+      }
+    '
+    echo ""
+    ;;
+  prune)
+    echo "prune: 未使用の匿名ボリュームを削除します"
+    echo "\\033[36m$ docker volume prune --force\\033[0m"
+    docker volume prune --force
+    ;;
+  prune-all)
+    echo "prune-all: 未使用の全ボリューム（名前付きも含む）を削除します"
+    echo "\\033[36m$ docker volume prune --all --force\\033[0m"
+    docker volume prune --all --force
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
+
+[tasks.buildx]
+description = "Docker Buildx管理（ビルダー・キャッシュ）"
+run = """
+selected_option={{arg(description="操作を選択してください", choices=["show-builders", "show-cache", "show-deletable-builders", "prune-builders", "prune-cache", "prune-cache-all"], default="")}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show-builders\nshow-cache\nshow-deletable-builders\nprune-builders\nprune-cache\nprune-cache-all\n" | fzf --height 10 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show-builders) echo "全ビルダーインスタンスを表示します" ;;
+          show-cache) echo "ビルドキャッシュの使用状況を表示します" ;;
+          show-deletable-builders) echo "削除可能なビルダーを表示します" ;;
+          prune-builders) echo "デフォルト以外のビルダーを削除します" ;;
+          prune-cache) echo "ビルドキャッシュを削除します（基本）" ;;
+          prune-cache-all) echo "ビルドキャッシュを削除します（内部キャッシュ含む全て）" ;;
+        esac
+      ' --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show-builders)
+    echo "show-builders: 全ビルダーインスタンスを表示します"
+    echo "\\033[36m$ docker buildx ls\\033[0m"
+    docker buildx ls
+    ;;
+  show-cache)
+    echo "show-cache: ビルドキャッシュの使用状況を表示します"
+    echo "\\033[36m$ docker buildx du\\033[0m"
+    docker buildx du
+    echo ""
+    echo "\\033[33m注意: 表示されているキャッシュが prune-cache の削除対象です\\033[0m"
+    echo "\\033[33m--all オプション無しでは内部キャッシュは保持されます\\033[0m"
+    echo ""
+    ;;
+  show-deletable-builders)
+    echo "show-deletable-builders: 削除可能なビルダーを表示します"
+    echo ""
+    echo "\\033[36m削除対象のビルダー（デフォルト以外）\\033[0m"
+    echo ""
+    docker buildx ls | awk '
+      NR==1 { print; next }  # ヘッダー行をそのまま出力
+      NR>1 {
+        # ビルダー名（1列目）からアスタリスクを除去
+        gsub(/\\*$/, "", $1)
+        if ($1 != "default" && $1 != "desktop-linux") {
+          print
+        }
+      }
+    '
+    echo ""
+    ;;
+  prune-builders)
+    echo "prune-builders: デフォルト以外のビルダーを削除します"
+    echo ""
+    builders_to_delete=$(docker buildx ls | awk 'NR>1 { gsub(/\\*$/, "", $1); if ($1 != "default" && $1 != "desktop-linux") print $1 }')
+    if [ -z "$builders_to_delete" ]; then
+      echo "削除対象のビルダーはありません"
+    else
+      echo "削除対象:"
+      echo "$builders_to_delete"
+      echo ""
+      echo "\\033[36m$ docker buildx rm <builders>\\033[0m"
+      echo "$builders_to_delete" | xargs -I {} docker buildx rm {} 2>/dev/null || echo "一部のビルダー削除に失敗しました"
+    fi
+    ;;
+  prune-cache)
+    echo "prune-cache: ビルドキャッシュを削除します（基本）"
+    echo "\\033[36m$ docker buildx prune --force\\033[0m"
+    docker buildx prune --force
+    ;;
+  prune-cache-all)
+    echo "prune-cache-all: ビルドキャッシュを削除します（内部キャッシュ含む全て）"
+    echo "\\033[36m$ docker buildx prune --all --force\\033[0m"
+    docker buildx prune --all --force
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
+
+[tasks.context]
+description = "Docker Context管理"
+run = """
+selected_option={{arg(description="操作を選択してください", choices=["show", "show-deletable", "prune"], default="")}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show\nshow-deletable\nprune\n" | fzf --height 7 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show) echo "全コンテキストを表示します" ;;
+          show-deletable) echo "削除可能なコンテキストを表示します" ;;
+          prune) echo "システム以外のコンテキストを削除します" ;;
+        esac
+      ' --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show)
+    echo "show: 全コンテキストを表示します"
+    echo "\\033[36m$ docker context ls\\033[0m"
+    docker context ls
+    ;;
+  show-deletable)
+    echo "show-deletable: 削除可能なコンテキストを表示します"
+    echo ""
+    echo "\\033[36m削除対象のコンテキスト（システム以外）\\033[0m"
+    echo ""
+    echo "NAME\tENDPOINT"
+    echo "----\t--------"
+    {% raw %}
+    docker context ls --format "{{.Name}}\t{{.DockerEndpoint}}" | \
+    {% endraw %}
+    while IFS=$'\t' read -r name endpoint; do
+      case "$name" in
+        default|desktop-linux) continue ;;
+        *) echo "$name\t$endpoint" ;;
+      esac
+    done
+    echo ""
+    ;;
+  prune)
+    echo "prune: システム以外のコンテキストを削除します"
+    echo ""
+    {% raw %}
+    contexts_to_delete=$(docker context ls --format "{{.Name}}" | awk '!/^(default|desktop-linux)$/')
+    {% endraw %}
+    if [ -z "$contexts_to_delete" ]; then
+      echo "削除対象のコンテキストはありません"
+    else
+      echo "削除対象:"
+      echo "$contexts_to_delete"
+      echo ""
+      echo "\\033[36m$ docker context rm <contexts>\\033[0m"
+      echo "$contexts_to_delete" | xargs docker context rm 2>/dev/null || echo "一部のコンテキスト削除に失敗しました"
+    fi
+    ;;
+  *)
+    echo "無効なオプションです: $selected_option"
+    exit 1
+    ;;
+esac
+"""
+
+[tasks.system]
+description = "システム全体の管理"
+run = """
+selected_option={{arg(description="操作を選択してください", choices=["show", "prune"], default="")}}
+
+if [ -z "${selected_option}" ]; then
+  selected_option=$(
+  printf "show\nprune\n" | fzf --height 6 --border --prompt "選択: " \
+      --preview '
+        case {} in
+          show) echo "システム全体のリソース使用状況を表示します" ;;
+          prune) echo "未使用リソースを一括削除します（ビルドキャッシュ除く）" ;;
+        esac
+      ' --preview-window=right,50%
+  )
+fi
+
+case $selected_option in
+  show)
+    echo "show: システム全体のリソース使用状況を表示します"
+    echo "\\033[36m$ docker system df -v\\033[0m"
+    docker system df -v
+    echo ""
+    echo "\\033[33m注意: ビルドキャッシュは 'mise run buildx prune-cache' で削除してください\\033[0m"
+    ;;
+  prune)
+    echo "prune: 未使用リソースを一括削除します"
+    echo ""
+    echo "\\033[33m削除対象: 停止コンテナ + 未使用イメージ + 未使用ネットワーク + 未使用ボリューム\\033[0m"
+    echo "\\033[33m注意: ビルドキャッシュは含まれません\\033[0m"
+    echo ""
+    echo "\\033[36m$ docker system prune --all --volumes --force\\033[0m"
+    docker system prune --all --volumes --force
     ;;
   *)
     echo "無効なオプションです: $selected_option"
