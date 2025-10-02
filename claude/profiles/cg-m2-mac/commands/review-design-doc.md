@@ -1,5 +1,6 @@
 ---
 allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Bash(make:*), Bash(mise:*), Bash(docker:*), Bash(ripgrep:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(cat:*), Bash(ls:*), Bash(cd:*)
+argument-hint: "<PR Number or URL>"
 description: "Review a Pull Request About Design Docs (PR Number Required)"
 ---
 
