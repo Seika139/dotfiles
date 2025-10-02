@@ -2,8 +2,8 @@
 
 # dotfiles を clone したらまず実行するインストーラ
 
-# NOTE: 必ずホームディレクトリにクローンするものとする
-ROOT="${HOME}/dotfiles"
+# dotfiles のルートディレクトリを動的に取得
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/" && pwd)"
 if [ ! -e "${ROOT}" ]; then
     echo "No such directory ${ROOT}"
     exit 1
@@ -16,12 +16,12 @@ fi
 # homebrew インストール後にパスを追加する可能性があるため
 # homebrew が入っていない OSX の場合は先にインストールさせて再実行させる
 if [[ $(uname) = "Darwin" ]] && ! type brew >/dev/null 2>&1; then
-    echo -e "\033[00;33mhomebrew をインストールします"
+    echo -e "\033[00;33m💻homebrew をインストールします"
     echo -e "以下の /bin/bash から始まるインストールのコマンドは古い可能性があるので注意してください\033[0m"
     url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
     if [[ $(curl ${url} -o /dev/null -w '%{http_code}\n' -s) = "200" ]]; then
         /bin/bash -c "$(curl -fsSL ${url})" # 書き換える必要性が起こりうるコマンド
-        echo -e "\033[00;33mhomebrew のインストールが完了しました。\033[0m"
+        echo -e "\033[00;33m💡homebrew のインストールが完了しました。\033[0m"
         echo -n '次のテキストがインストール時に表示され、 ~/.bash_profile への追記を促された場合は、'
         echo '代わりに ~/dotfiles/bash/private/ 内に追記してください。'
         echo -e "\033[01;37m- Run this command in your terminal to add Homebrew to your PATH:"
@@ -75,10 +75,8 @@ if [[ "${OSTYPE}" == msys* ]]; then
 
     # .bash_profile のシンボリックリンクも貼り直す必要がある
     CURRENT_DIR=$(pwd)
-    cd "${ROOT}"
-    ln -sfv "bash/.bashenv" ".bash_profile"
-    cd "${CURRENT_DIR}"
-    unset CURRENT_DIR
+    cd "${ROOT}" && ln -sfv "bash/.bashenv" ".bash_profile"
+    cd "${CURRENT_DIR}" && unset CURRENT_DIR
 fi
 
 # シンボリックリンクを貼る
@@ -189,7 +187,61 @@ echo 'finish loading'
 echo ''
 
 #-------------------------------------
-# 5. upgrade homebrew (if OSX)
+# 5. setup Claude settings (if ~/.claude is empty)
+#-------------------------------------
+
+# ~/.claude が空または存在しない場合のみシンボリックリンクを作成
+if [ ! -d "${HOME}/.claude" ] || [ -z "$(ls -A "${HOME}/.claude" 2>/dev/null)" ]; then
+    echo -e "\\033[01;37m~/.claude が空です。Claude設定のシンボリックリンクを作成します。\\033[0m"
+
+    # ~/.claude ディレクトリを作成（存在しない場合）
+    mkdir -p "${HOME}/.claude"
+
+    # mise.local.tomlから DEFAULT_CLAUDE_PROFILE を読み取り
+    CLAUDE_MISE_LOCAL="${ROOT}/claude/mise.local.toml"
+    if [ -f "${CLAUDE_MISE_LOCAL}" ]; then
+        DEFAULT_CLAUDE_PROFILE=$(grep '^DEFAULT_CLAUDE_PROFILE=' "${CLAUDE_MISE_LOCAL}" | cut -d'"' -f2)
+
+        if [ -n "${DEFAULT_CLAUDE_PROFILE}" ]; then
+            CLAUDE_PROFILE_DIR="${ROOT}/claude/profiles/${DEFAULT_CLAUDE_PROFILE}"
+
+            if [ -d "${CLAUDE_PROFILE_DIR}" ]; then
+                echo "Claude profile '${DEFAULT_CLAUDE_PROFILE}' からシンボリックリンクを作成します"
+
+                # Claude設定ファイルのシンボリックリンクを作成
+                claude_files=("settings.json" "settings.local.json" "CLAUDE.md")
+                for file in "${claude_files[@]}"; do
+                    source_file="${CLAUDE_PROFILE_DIR}/${file}"
+                    target_file="${HOME}/.claude/${file}"
+
+                    if [ -f "${source_file}" ]; then
+                        ln -sfv "${source_file}" "${target_file}"
+                    fi
+                done
+
+                # commands ディレクトリのシンボリックリンクを作成
+                commands_source="${CLAUDE_PROFILE_DIR}/commands"
+                commands_target="${HOME}/.claude/commands"
+                if [ -d "${commands_source}" ]; then
+                    ln -sfv "${commands_source}" "${commands_target}"
+                fi
+
+                echo -e "\\033[32m✅ Claude設定を '${DEFAULT_CLAUDE_PROFILE}' プロファイルからリンクしました\\033[0m"
+            else
+                echo -e "\\033[33m⚠️ Claude profile directory '${CLAUDE_PROFILE_DIR}' が見つかりません\\033[0m"
+            fi
+        else
+            echo -e "\\033[33m⚠️ DEFAULT_CLAUDE_PROFILE が設定されていません\\033[0m"
+        fi
+    else
+        echo -e "\\033[33m⚠️ ${CLAUDE_MISE_LOCAL} が見つかりません\\033[0m"
+    fi
+else
+    echo -e "\\033[33m~/.claude に既存のファイルがあります。Claude設定のセットアップをスキップします。\\033[0m"
+fi
+
+#-------------------------------------
+# 6. upgrade homebrew (if OSX)
 #-------------------------------------
 
 if executable brew; then
