@@ -1,0 +1,130 @@
+[tasks.check_env]
+description = "環境変数がちゃんと設定されているか確認する"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+set -eu
+if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+  {
+    echo '[env]'
+    echo 'PROFILES_DIR="profiles"'
+    echo 'PACKAGE_IDS = "package-ids.txt"'
+    echo 'EXPORT_JSON = "winget-export.json"'
+    echo 'DEFAULT_PROFILE=""'
+  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+  echo "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  echo "🚨 必要な環境変数をデフォルトでセットしました。"
+  echo "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_PROFILE:-}" ]; then
+  echo "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+"""
+
+[tasks.winget_available]
+description = "winget コマンドが利用可能か確認し、なければエラーを返す"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+if ! command -v winget >/dev/null 2>&1; then
+  echo "❌ Error: winget command not found. Please install Winget." >&2
+  exit 1
+fi
+"""
+
+[tasks.check]
+description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+depends = ["check_env"]
+hide = true
+quiet = true
+shell = "bash -c"
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+if [ -z "$PROFILE" ]; then
+  echo "❌ Error: DEFAULT_PROFILE is not set in environment variables" >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+# 成功時は無音、エラー時のみ詳細を表示する
+if [ ! -d "$PROFILE_PATH" ]; then
+  {
+    echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
+    echo "   Available profiles:"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    else
+      echo "   (No profiles directory found)"
+    fi
+  } >&2
+  exit 1
+fi
+"""
+
+[tasks.dump]
+description = "現在インストールされているパッケージをプロファイルに書き出す（ただし update など他のコマンドに利用されるわけではない）"
+shell = "bash -c"
+depends = ["check_env", "winget_available"]
+run = """
+PROFILE={{arg(name="prof")}}
+if [ -z "$PROFILE" ]; then
+  {
+    echo "❌ Error: profile name is required."
+    echo "   Usage: mise run dump <profile-name>"
+    } >&2
+  exit 1
+fi
+echo "🦄 Dumping current winget packages to profile: $PROFILE"
+echo "⚠️「インストールされているパッケージはどのソースからも利用できません」という警告が出る場合がありますが、無視して構いません。"
+mkdir -p "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+winget export -o "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
+echo ""
+echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
+"""
+
+[tasks.update]
+description = "プロファイルに登録しているパッケージをアップグレードする"
+shell = "bash -c"
+depends = ["check_env", "winget_available"]
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+EXPORT_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.PACKAGE_IDS}}"
+if [ ! -f "$EXPORT_PATH" ]; then
+  echo "❌ Error: Export file not found at '$EXPORT_PATH'" >&2
+  exit 1
+fi
+echo "🦄 Update Packages"
+echo -e "  \\x1b[36m$EXPORT_PATH \\x1b[0mに記載されているパッケージについて順次アップデートを試みます"
+echo "  ユーザーアカウント制御 (UAC) の確認が出たら「はい」をクリックしてください。"
+echo "  UAC を出さないように実行する場合は、Git Bash を管理者権限で実行してください。"
+echo ""
+
+packages=$(cat "$EXPORT_PATH")
+for package in $packages; do
+  echo "  winget upgrade --accept-source-agreements --accept-package-agreements --id \"$package\""
+  winget upgrade --accept-source-agreements --accept-package-agreements --id "$package"
+done
+"""
+
+[tasks.show_update]
+description = "winget update を実行して、プロファイルに登録しているものを含むすべてのアップグレード可能なパッケージを表示する"
+depends = "exec-winget-update"
+shell = "bash -c"
+quiet = true
+run = """
+echo
+echo "🦄 特定のパッケージをアップグレードするには、以下のコマンドを実行してください:"
+echo "  winget upgrade --accept-source-agreements --accept-package-agreements --id <package-id>"
+"""
+
+[tasks.exec-winget-update]
+hide = true
+quiet = true
+shell = "bash -c"
+run = "winget update --include-unknown"
