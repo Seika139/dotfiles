@@ -126,6 +126,7 @@
     "OOTD",
     "pathlib",
     "phpunit",
+    "pipefail",
     "pipx",
     "pixabay",
     "previewable",
@@ -161,7 +162,8 @@
     "Unipack",
     "VARCHAR",
     "vuetify",
-    "webroot"
+    "webroot",
+    "winget"
   ],
   "[html]": {
     "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
