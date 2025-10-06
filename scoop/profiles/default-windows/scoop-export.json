@@ -1,0 +1,40 @@
+{
+    "buckets": [
+        {
+            "Name": "main",
+            "Source": "https://github.com/ScoopInstaller/Main.git",
+            "Updated": "2025-10-06T13:30:23+09:00",
+            "Manifests": 1404
+        }
+    ],
+    "apps": [
+        {
+            "Source": "main",
+            "Version": "2.81.0",
+            "Info": "",
+            "Updated": "2025-10-03T15:55:57.1391176+09:00",
+            "Name": "gh"
+        },
+        {
+            "Source": "main",
+            "Version": "1.8.1",
+            "Info": "",
+            "Updated": "2025-10-06T11:58:30.1610702+09:00",
+            "Name": "jq"
+        },
+        {
+            "Source": "main",
+            "Version": "4.4.1",
+            "Info": "",
+            "Updated": "2025-04-02T15:15:46.8781662+09:00",
+            "Name": "make"
+        },
+        {
+            "Source": "main",
+            "Version": "2025.10.2",
+            "Info": "",
+            "Updated": "2025-10-06T12:01:20.8639479+09:00",
+            "Name": "mise"
+        }
+    ]
+}

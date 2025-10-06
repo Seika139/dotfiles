@@ -1,0 +1,259 @@
+[tasks.check_env]
+description = "環境変数がちゃんと設定されているか確認する"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+set -eu
+if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+  {
+    echo '[env]'
+    echo 'PROFILES_DIR="profiles"'
+    echo 'EXPORT_FILENAME="scoop-export.json"'
+    echo 'DEFAULT_PROFILE=""'
+  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+  echo "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  echo "🚨 必要な環境変数をデフォルトでセットしました。"
+  echo "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_PROFILE:-}" ]; then
+  echo "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+"""
+
+[tasks.scoop_available]
+description = "scoop コマンドが利用可能か確認し、なければエラーを返す"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+if ! command -v scoop >/dev/null 2>&1; then
+  echo "❌ Error: scoop command not found. Please install Scoop." >&2
+  exit 1
+fi
+"""
+
+[tasks.check]
+description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+depends = ["check_env"]
+hide = true
+quiet = true
+shell = "bash -c"
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+if [ -z "$PROFILE" ]; then
+  echo "❌ Error: DEFAULT_PROFILE is not set in environment variables" >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+# 成功時は無音、エラー時のみ詳細を表示する
+if [ ! -d "$PROFILE_PATH" ]; then
+  {
+    echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
+    echo "   Available profiles:"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    else
+      echo "   (No profiles directory found)"
+    fi
+  } >&2
+  exit 1
+fi
+"""
+
+[tasks.dump]
+description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
+shell = "bash -c"
+depends = ["check_env", "scoop_available"]
+run = """
+PROFILE={{arg(name="prof")}}
+if [ -z "$PROFILE" ]; then
+  {
+    echo "❌ Error: profile name is required."
+    echo "   Usage: mise run dump <profile-name>"
+    } >&2
+  exit 1
+fi
+echo "🦄 Dumping current scoop packages to profile: $PROFILE"
+mkdir -p "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+scoop export > "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
+echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
+"""
+
+[tasks.status]
+description = "プロファイルに記録されているパッケージとインストール済みパッケージの差分を確認する"
+shell = "bash -c"
+depends = ["check_env", "scoop_available"]
+run = """
+# POSIX 安全設定
+set -eu
+# bash のときだけ pipefail を有効化
+if [ -n "${BASH_VERSION:-}" ]; then set -o pipefail; fi
+
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+
+EXPORT_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
+if [ ! -f "$EXPORT_PATH" ]; then
+  echo "❌ Error: Export file not found at '$EXPORT_PATH'" >&2
+  exit 1
+fi
+
+echo "🦄 Target profile: $EXPORT_PATH"
+echo ""
+
+# 現在のインストールされているパッケージ一覧
+CURRENT_APPS=$(scoop list | tr -d '\\r' | awk '/---/{flag=1; next} flag && NF{print $1}' | sort)
+
+# プロファイルに記載されているパッケージ一覧
+PROFILE_APPS=$(jq -r '.apps[].Name' "$EXPORT_PATH" | tr -d '\\r' | sort)
+
+# ===== 未インストール（エクスポートファイルにはあるが入っていない） =====
+echo "📦 Missing (プロファイルに記載されている未インストールパッケージ）"
+MISSING_APPS=$(comm -23 <(echo "$PROFILE_APPS") <(echo "$CURRENT_APPS") 2>/dev/null || echo "")
+if [ -z "$MISSING_APPS" ]; then
+  echo "  (none)"
+else
+  echo "$MISSING_APPS" | sed 's/^/  - /'
+fi
+echo ""
+
+# ===== 余分なパッケージ（インストールされているがプロファイルにない） =====
+echo "🔍 Extra (プロファイルに記載されていない余分なパッケージ)"
+EXTRA_APPS=$(comm -13 <(echo "$PROFILE_APPS") <(echo "$CURRENT_APPS") 2>/dev/null || echo "")
+if [ -z "$EXTRA_APPS" ]; then
+  echo "  (none)"
+else
+  echo "$EXTRA_APPS" | sed 's/^/  - /'
+fi
+echo ""
+
+# ===== バージョン不一致 =====
+echo "🔄 Version mismatch (バージョンが一致しないパッケージ)"
+APPS_TO_UPDATE=$(scoop status | awk '/---/{flag=1; next} flag && NF{print $1}' | tr -d '\\r')
+if [ -z "$APPS_TO_UPDATE" ]; then
+  echo "  (none)"
+else
+  printf "$APPS_TO_UPDATE" | sed 's/^/  - /'
+  echo ""
+fi
+
+# ===== サマリ & 終了コード =====
+if [ -z "$MISSING_APPS" ]; then
+  missing_count=0
+else
+  missing_count=$(echo "$MISSING_APPS" | grep -v "^$" | wc -l | awk '{print $1}')
+fi
+if [ -z "$EXTRA_APPS" ]; then
+  extra_count=0
+else
+  extra_count=$(echo "$EXTRA_APPS" | grep -v "^$" | wc -l | awk '{print $1}')
+fi
+if [ -z "$APPS_TO_UPDATE" ]; then
+  mismatch_count=0
+else
+  mismatch_count=$(printf "$APPS_TO_UPDATE" | grep -v "^$" | wc -l | awk '{print $1}')
+fi
+
+echo ""
+echo "📊 Summary: missing=${missing_count}, extra=${extra_count}, version_mismatch=${mismatch_count}"
+echo "💡 Install/upgradeを実行                    : mise run sync --prof \"$PROFILE\""
+echo "🧹 プロファイルに記載がないパッケージを削除 : mise run prune --prof \"$PROFILE\""
+
+# Missing または Version mismatch があれば 1 を返す（"要対応" を終了コードで示す）
+if [ "$missing_count" -gt 0 ] || [ "$mismatch_count" -gt 0 ]; then
+  echo "⚠️ 対応が必要な差分があります"
+  exit 1
+fi
+"""
+
+[tasks.sync]
+description = "プロファイルに基づいて install + upgrade を実行（プロファイルに変更は加えません）"
+shell = "bash -c"
+depends = ["check_env", "scoop_available"]
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+EXPORT_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
+if [ ! -f "$EXPORT_PATH" ]; then
+  echo "❌ Error: Export file not found at '$EXPORT_PATH'" >&2
+  exit 1
+fi
+echo "🦄 Sync: install + upgrade by profile $PROFILE"
+
+# scoop 自体を最新にする
+scoop update
+
+# プロファイルからアプリ名を抽出してインストール/更新
+echo "💾 Installing/updating apps from profile: $EXPORT_PATH"
+
+# アプリの一覧を取得
+# Windows の改行コード CRLF のせいでコマンド出力に影響が出ることがあるため tr でキャリッジリターンを削除する
+APPS_TO_UPDATE=$(scoop status | awk '/---/{flag=1; next} flag && NF{print $1}' | tr -d '\\r')
+
+if [ -z "$APPS_TO_UPDATE" ]; then
+  echo "💾 All apps are up to date"
+else
+  scoop update $APPS_TO_UPDATE
+  scoop export > "$EXPORT_PATH"
+  echo "✅ Sync complete!"
+fi
+echo ""
+echo -e "mise 自体を最新にするには:\\x1b[36m scoop update mise \\x1b[0mを直接実行してください"
+echo -e "プロファイルに記載されていないパッケージを削除する場合は:\\x1b[36m mise run prune --prof \"$PROFILE\" \\x1b[0m"
+"""
+
+[tasks.prune]
+description = "プロファイルに無いパッケージを削除（デフォルトは dry-run。--apply で削除を実行）"
+shell = "bash -c"
+depends = ["check_env", "scoop_available"]
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+mise run check --prof "$PROFILE"
+EXPORT_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
+if [ ! -f "$EXPORT_PATH" ]; then
+  echo "❌ Error: Export file not found at '$EXPORT_PATH'" >&2
+  exit 1
+fi
+
+# 現在のインストールされているパッケージ一覧
+CURRENT_APPS=$(scoop list | tr -d '\\r' | awk '/---/{flag=1; next} flag && NF{print $1}' | sort)
+
+# プロファイルに記載されているパッケージ一覧
+PROFILE_APPS=$(jq -r '.apps[].Name' "$EXPORT_PATH" | tr -d '\\r' | sort)
+
+# 余分なパッケージ（インストールされているがプロファイルにないもの）を抽出
+EXTRA_APPS=$(comm -13 <(echo "$PROFILE_APPS") <(echo "$CURRENT_APPS") 2>/dev/null || echo "")
+EXTRA_COUNT=$(echo "$EXTRA_APPS" | grep -v "^$" | wc -l | awk '{print $1}')
+
+if {{flag(name="apply")}}; then
+  if [ "$EXTRA_COUNT" -gt 0 ]; then
+    echo "🗑️ 削除するパッケージ:"
+    echo "$EXTRA_APPS" | sed 's/^/  - /'
+    echo ""
+    echo "🦄 プロファイルに記載のないパッケージを削除中..."
+    for APP in $EXTRA_APPS; do
+      echo "🗑️ Uninstalling $APP..."
+      scoop uninstall "$APP"
+    done
+    echo ""
+    echo "✅ プロファイルに記載のないパッケージを削除しました"
+  else
+    echo "✅ 削除候補はありません（プロファイルと一致しています）"
+  fi
+else
+  echo "🦄 Dry-run: List packages NOT in $EXPORT_PATH"
+  if [ "$EXTRA_COUNT" -gt 0 ]; then
+    echo "⚠️ 削除候補があります（合計: ${EXTRA_COUNT}）:"
+    echo "$EXTRA_APPS" | sed 's/^/  - /'
+    echo ""
+    echo "実行するには: mise run prune --apply --prof \"$PROFILE\""
+  else
+    echo "✅ 削除候補はありません（プロファイルと一致しています）"
+  fi
+fi
+"""
