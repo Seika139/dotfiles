@@ -75,6 +75,7 @@
   "git.suggestSmartCommit": false,
   "cSpell.userWords": [
     "Abema",
+    "afplay",
     "Anzu",
     "arange",
     "astype",
@@ -141,6 +142,7 @@
     "pytz",
     "Qiita",
     "Quali",
+    "readlink",
     "readwrite",
     "redash",
     "repost",
