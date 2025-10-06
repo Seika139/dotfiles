@@ -5,6 +5,7 @@ PROFILES_DIR = "profiles"
 description = "環境変数がちゃんと設定されているか確認する"
 quiet = true
 hide = true
+shell = "bash -c"
 run = """
 set -eu
 if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
@@ -33,6 +34,7 @@ description = "指定プロファイルが存在するかを確認し、なけ�
 depends = ["check_env"]
 hide = true
 quiet = true
+shell = "bash -c"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
 if [ -z "$PROFILE" ]; then
@@ -59,6 +61,7 @@ fi
 [tasks.create_profile]
 description = "新しいプロファイルを作成 (Usage: mise run create_profile <profile-name>)"
 depends = ["check_env"]
+shell = "bash -c"
 run = """
 PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
@@ -157,6 +160,7 @@ echo "   - $PROFILE_PATH/commands/"
 [tasks.link]
 description = "指定プロファイルの設定ファイルをシンボリックリンクする"
 depends = ["check_env"]
+shell = "bash -c"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
 mise run check --prof "$PROFILE"
@@ -211,6 +215,7 @@ echo "✅ Linked Claude settings from profile '$PROFILE'"
 [tasks.status]
 description = "現在のプロファイル設定と~/.claudeの状態を確認"
 depends = ["check_env"]
+shell = "bash -c"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
@@ -288,6 +293,7 @@ echo "   プロファイル変更: mise run switch <profile-name>"
 [tasks.switch]
 description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch <profile-name>)"
 depends = ["check_env"]
+shell = "bash -c"
 run = """
 NEW_PROFILE={{arg(name="prof")}}
 if [ -z "$NEW_PROFILE" ]; then
@@ -335,6 +341,7 @@ echo "🔄 Please restart your shell or run 'mise env' to reload environment var
 [tasks.list]
 description = "利用可能なプロファイル一覧を表示"
 depends = ["check_env"]
+shell = "bash -c"
 run = """
 PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
 CURRENT_PROFILE="${DEFAULT_CLAUDE_PROFILE:-}"
