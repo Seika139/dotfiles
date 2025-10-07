@@ -255,7 +255,8 @@ for file in settings.json settings.local.json CLAUDE.md; do
 
   if [ -L "$target" ]; then
     link_target=$(readlink "$target")
-    if [ "$link_target" = "$source" ]; then
+    # Windows環境でも動くように、より柔軟な方法でマッチング
+    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]]; then
       echo "   ✅ $file -> $source"
     else
       echo "   ⚠️  $file -> $link_target (不一致)"
@@ -273,7 +274,8 @@ commands_source="$PROFILE_PATH/commands"
 
 if [ -L "$commands_target" ]; then
   link_target=$(readlink "$commands_target")
-  if [ "$link_target" = "$commands_source" ]; then
+  # Windows環境でも動くように、より柔軟な方法でマッチング
+  if [ "$link_target" = "$commands_source" ] || [[ "$link_target" == */"${commands_source##*/}" ]]; then
     echo "   ✅ commands/ -> $commands_source"
   else
     echo "   ⚠️  commands/ -> $link_target (不一致)"
@@ -314,20 +316,10 @@ mise run check --prof "$NEW_PROFILE"
 
 # mise.local.toml の DEFAULT_CLAUDE_PROFILE を更新
 LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
-if [ -f "$LOCAL_CONFIG" ]; then
-  # DEFAULT_CLAUDE_PROFILE行を更新
-  if grep -q "^DEFAULT_CLAUDE_PROFILE=" "$LOCAL_CONFIG"; then
-    sed -i.bak "s/^DEFAULT_CLAUDE_PROFILE=.*/DEFAULT_CLAUDE_PROFILE=\"$NEW_PROFILE\"/" "$LOCAL_CONFIG"
-    rm -f "$LOCAL_CONFIG.bak"
-  else
-    echo "DEFAULT_CLAUDE_PROFILE=\"$NEW_PROFILE\"" >> "$LOCAL_CONFIG"
-  fi
-else
-  {
-    echo '[env]'
-    echo "DEFAULT_CLAUDE_PROFILE=\"$NEW_PROFILE\""
-  } > "$LOCAL_CONFIG"
-fi
+{
+  echo '[env]'
+  echo "DEFAULT_CLAUDE_PROFILE = \\\"$NEW_PROFILE\\\""
+} > "$LOCAL_CONFIG"
 
 echo "🦄 Switching Claude profile to: $NEW_PROFILE"
 
