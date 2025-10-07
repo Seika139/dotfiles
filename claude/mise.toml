@@ -10,16 +10,16 @@ run = """
 set -eu
 if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
   {
-    echo '[env]'
-    echo 'DEFAULT_CLAUDE_PROFILE=""'
+    printf "%s\n" '[env]'
+    printf "%s\n" 'DEFAULT_CLAUDE_PROFILE=""'
   } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
-  echo "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
-  echo "🚨 必要な環境変数をデフォルトでセットしました。"
-  echo "🚨 DEFAULT_CLAUDE_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
+  printf "%s\n" "🚨 DEFAULT_CLAUDE_PROFILE=\"\" に適切なプロファイル名を設定してください。"
   exit 1
 fi
 if [ -z "${DEFAULT_CLAUDE_PROFILE:-}" ]; then
-  echo "🚨 'DEFAULT_CLAUDE_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  printf "%s\n" "🚨 'DEFAULT_CLAUDE_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
   exit 1
 fi
 
@@ -38,7 +38,7 @@ shell = "bash -c"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
 if [ -z "$PROFILE" ]; then
-  echo "❌ Error: DEFAULT_CLAUDE_PROFILE is not set in environment variables" >&2
+  printf "❌ Error: DEFAULT_CLAUDE_PROFILE is not set in environment variables\n" >&2
   exit 1
 fi
 
@@ -46,12 +46,12 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   {
-    echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
-    echo "   Available profiles:"
+    printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
+    printf "   Available profiles:\n"
     if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
       ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
     else
-      echo "   (No profiles directory found)"
+      printf "   (No profiles directory found)\n"
     fi
   } >&2
   exit 1
@@ -66,19 +66,19 @@ run = """
 PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
   {
-    echo "❌ Error: profile name is required."
-    echo "   Usage: mise run create_profile <profile-name>"
+    printf "❌ Error: profile name is required.\n"
+    printf "   Usage: mise run create_profile <profile-name>\n"
   } >&2
   exit 1
 fi
 
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 if [ -d "$PROFILE_PATH" ]; then
-  echo "❌ Error: Profile '$PROFILE' already exists" >&2
+  printf "❌ Error: Profile '$PROFILE' already exists\n" >&2
   exit 1
 fi
 
-echo "🦄 Creating new Claude profile: $PROFILE"
+printf "🦄 Creating new Claude profile: $PROFILE\n"
 mkdir -p "$PROFILE_PATH"
 
 # デフォルト設定ファイル作成
@@ -149,12 +149,12 @@ EOF
 # commands ディレクトリ作成
 mkdir -p "$PROFILE_PATH/commands"
 
-echo "✅ Created profile '$PROFILE' at $PROFILE_PATH"
-echo "📝 Edit settings in:"
-echo "   - $PROFILE_PATH/settings.json"
-echo "   - $PROFILE_PATH/settings.local.json"
-echo "   - $PROFILE_PATH/CLAUDE.md"
-echo "   - $PROFILE_PATH/commands/"
+printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
+printf "%s\n" "📝 Edit settings in:"
+printf "%s\n" "   - $PROFILE_PATH/settings.json"
+printf "%s\n" "   - $PROFILE_PATH/settings.local.json"
+printf "%s\n" "   - $PROFILE_PATH/CLAUDE.md"
+printf "%s\n" "   - $PROFILE_PATH/commands/"
 """
 
 [tasks.link]
@@ -167,17 +167,17 @@ mise run check --prof "$PROFILE"
 
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
-echo "🦄 Linking Claude settings from profile: $PROFILE"
+printf "%s\n" "🦄 Linking Claude settings from profile: $PROFILE"
 
 # 既存のシンボリックリンクを削除（ファイルの場合は退避）
 for file in settings.json settings.local.json CLAUDE.md; do
   target="${HOME}/.claude/$file"
   if [ -L "$target" ]; then
-    echo "   Removing existing symlink: $target"
+    printf "%s\n" "   Removing existing symlink: $target"
     rm "$target"
   elif [ -f "$target" ]; then
     backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
-    echo "   既存のファイルをバックアップしました: $target -> $backup"
+    printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
     mv "$target" "$backup"
   fi
 done
@@ -185,15 +185,16 @@ done
 # commands ディレクトリの処理
 commands_target="${HOME}/.claude/commands"
 if [ -L "$commands_target" ]; then
-  echo "   Removing existing symlink: $commands_target"
+  printf "%s\n\n" "   Removing existing symlink: $commands_target"
   rm "$commands_target"
 elif [ -d "$commands_target" ]; then
   backup="${commands_target}.backup.$(date +%Y%m%d_%H%M%S)"
-  echo "   既存のディレクトリをバックアップしました: $commands_target -> $backup"
+  printf "%s\n\n" "   既存のディレクトリをバックアップしました: $commands_target -> $backup"
   mv "$commands_target" "$backup"
 fi
 
 # シンボリックリンク作成
+printf "\\033[36m"
 for file in settings.json settings.local.json CLAUDE.md; do
   source="$PROFILE_PATH/$file"
   target="${HOME}/.claude/$file"
@@ -208,8 +209,9 @@ commands_source="$PROFILE_PATH/commands"
 if [ -d "$commands_source" ]; then
   ln -sfv "$commands_source" "$commands_target"
 fi
+printf "\\033[0m"
 
-echo "✅ Linked Claude settings from profile '$PROFILE'"
+printf "%s\n" "✅ Linked Claude settings from profile '$PROFILE'"
 """
 
 [tasks.status]
@@ -220,35 +222,34 @@ run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
-echo "🦄 Claude Profile Status"
-echo "Current profile: $PROFILE"
-echo "Profile path: $PROFILE_PATH"
-echo ""
+printf "%s\n" "🦄 Claude Profile Status"
+printf "Current profile:\\033[36m $PROFILE\\033[0m\n"
+printf "Profile path:\\033[36m $PROFILE_PATH\\033[0m\n\n"
 
 if [ ! -d "$PROFILE_PATH" ]; then
-  echo "❌ Profile directory does not exist"
+  printf "%s\n" "❌ Profile directory does not exist"
   exit 1
 fi
 
-echo "📂 Profile files:"
+printf "%s\n" "📂 Profile files:"
 for file in settings.json settings.local.json CLAUDE.md; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ]; then
-    echo "   ✅ $file"
+    printf "%s\n" "   ✅ $file"
   else
-    echo "   ❌ $file (missing)"
+    printf "%s\n" "   ❌ $file (missing)"
   fi
 done
 
 commands_source="$PROFILE_PATH/commands"
 if [ -d "$commands_source" ]; then
-  echo "   ✅ commands/"
+  printf "%s\n" "   ✅ commands/"
 else
-  echo "   ❌ commands/ (missing)"
+  printf "%s\n" "   ❌ commands/ (missing)"
 fi
 
-echo ""
-echo "🔗 Symlink status in ~/.claude:"
+printf "%s" "\n🔗 Symlink status in"
+printf "\\033[36m ~/.claude:\\033[0m\n"
 for file in settings.json settings.local.json CLAUDE.md; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
@@ -257,14 +258,14 @@ for file in settings.json settings.local.json CLAUDE.md; do
     link_target=$(readlink "$target")
     # Windows環境でも動くように、より柔軟な方法でマッチング
     if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]]; then
-      echo "   ✅ $file -> $source"
+      printf "%s\n" "   ✅ $file -> $source"
     else
-      echo "   ⚠️  $file -> $link_target (不一致)"
+      printf "%s\n" "   ⚠️  $file -> $link_target (不一致)"
     fi
   elif [ -f "$target" ]; then
-    echo "   ❌ $file (通常ファイル、シンボリックリンクではない)"
+    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない)"
   else
-    echo "   ❌ $file (存在しない)"
+    printf "%s\n" "   ❌ $file (存在しない)"
   fi
 done
 
@@ -276,20 +277,19 @@ if [ -L "$commands_target" ]; then
   link_target=$(readlink "$commands_target")
   # Windows環境でも動くように、より柔軟な方法でマッチング
   if [ "$link_target" = "$commands_source" ] || [[ "$link_target" == */"${commands_source##*/}" ]]; then
-    echo "   ✅ commands/ -> $commands_source"
+    printf "%s\n" "   ✅ commands/ -> $commands_source"
   else
-    echo "   ⚠️  commands/ -> $link_target (不一致)"
+    printf "%s\n" "   ⚠️  commands/ -> $link_target (不一致)"
   fi
 elif [ -d "$commands_target" ]; then
-  echo "   ❌ commands/ (通常ディレクトリ、シンボリックリンクではない)"
+  printf "%s\n" "   ❌ commands/ (通常ディレクトリ、シンボリックリンクではない)"
 else
-  echo "   ❌ commands/ (存在しない)"
+  printf "%s\n" "   ❌ commands/ (存在しない)"
 fi
 
-echo ""
-echo "💡 Commands:"
-echo "   リンク作成/更新: mise run link --prof \"$PROFILE\""
-echo "   プロファイル変更: mise run switch <profile-name>"
+printf "%s\n" "\n💡 Commands:"
+printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
+printf "%s\n" "   プロファイル変更: mise run switch <profile-name>"
 """
 
 [tasks.switch]
@@ -300,10 +300,9 @@ run = """
 NEW_PROFILE={{arg(name="prof")}}
 if [ -z "$NEW_PROFILE" ]; then
   {
-    echo "❌ Error: profile name is required."
-    echo "   Usage: mise run switch <profile-name>"
-    echo ""
-    echo "   Available profiles:"
+    printf "%s\n" "❌ Error: profile name is required."
+    printf "%s\n" "   Usage: mise run switch <profile-name>\n"
+    printf "%s\n" "   Available profiles:"
     if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
       ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
     fi
@@ -317,17 +316,17 @@ mise run check --prof "$NEW_PROFILE"
 # mise.local.toml の DEFAULT_CLAUDE_PROFILE を更新
 LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
 {
-  echo '[env]'
-  echo "DEFAULT_CLAUDE_PROFILE = \\\"$NEW_PROFILE\\\""
+  printf "%s\n" '[env]'
+  printf "%s\n" "DEFAULT_CLAUDE_PROFILE = \\\"$NEW_PROFILE\\\""
 } > "$LOCAL_CONFIG"
 
-echo "🦄 Switching Claude profile to: $NEW_PROFILE"
+printf "%s\n" "🦄 Switching Claude profile to: $NEW_PROFILE"
 
 # シンボリックリンクを更新
 mise run link --prof "$NEW_PROFILE"
 
-echo "✅ Switched to profile '$NEW_PROFILE'"
-echo "🔄 Please restart your shell or run 'mise env' to reload environment variables"
+printf "%s\n" "✅ Switched to profile '$NEW_PROFILE'"
+printf "%s\n" "🔄 Please restart your shell or run 'mise env' to reload environment variables"
 """
 
 [tasks.list]
@@ -338,27 +337,25 @@ run = """
 PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
 CURRENT_PROFILE="${DEFAULT_CLAUDE_PROFILE:-}"
 
-echo "🦄 Available Claude Profiles:"
+printf "%s\n" "🦄 Available Claude Profiles:"
 if [ -d "$PROFILES_DIR" ]; then
   for profile in "$PROFILES_DIR"/*; do
     if [ -d "$profile" ]; then
       profile_name=$(basename "$profile")
       if [ "$profile_name" = "$CURRENT_PROFILE" ]; then
-        echo "   ✅ $profile_name (current)"
+        printf "%s\n" "   ✅ $profile_name (current)"
       else
-        echo "   ⭕ $profile_name"
+        printf "%s\n" "   ⭕ $profile_name"
       fi
     fi
   done
 else
-  echo "   (No profiles found)"
+  printf "%s\n" "   (No profiles found)"
 fi
 
 if [ -n "$CURRENT_PROFILE" ]; then
-  echo ""
-  echo "Current profile: $CURRENT_PROFILE"
+  printf "\nCurrent profile: $CURRENT_PROFILE\n"
 else
-  echo ""
-  echo "⚠️ No current profile set in DEFAULT_CLAUDE_PROFILE"
+  printf "\n⚠️ No current profile set in DEFAULT_CLAUDE_PROFILE\n"
 fi
 """
