@@ -66,11 +66,11 @@
           },
           {
             "type": "command",
-            "command": "mshta vbscript:Execute(\"CreateObject(\"\"SAPI.SpVoice\"\").Speak(\"\"クロードが停止しました\"\"):close\")"
+            "command": "sleep 9.7 && mshta vbscript:Execute(\"CreateObject(\"\"SAPI.SpVoice\"\").Speak(\"\"クロードが停止しました\"\"):close\")"
           },
           {
             "type": "command",
-            "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $m=New-Object System.Windows.Media.MediaPlayer; $m.Open([uri]'C:\\Users\\S13316\\dotfiles\\claude\\profiles\\cg15034-win\\departure_bell.mp3'); $m.Play(); Start-Sleep 3\""
+            "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath('UserProfile'); $dir=Join-Path $homePath 'dotfiles\\claude\\ringtones'; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match '^\\.(mp3|wav)$' }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }\""
           },
           {
             "type": "command",
