@@ -1,5 +1,5 @@
 {
-  "default_profile": "default",
+  "default_profile": "hm-m1-mac",
   "paths": {
     "macos": {
       "vscode": "~/Library/Application Support/Code/User",
