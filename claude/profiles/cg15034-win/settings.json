@@ -1,0 +1,83 @@
+{
+  "env": {
+    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "AWS_REGION": "us-east-1",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "API_TIMEOUT_MS": "1200000"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(gh auth status)",
+      "Bash(gh extension list)",
+      "Bash(gh run list)",
+      "Bash(gh run view:*)",
+      "PowerShell(Get-ChildItem:*)",
+      "PowerShell(New-Item:*)",
+      "PowerShell(Get-Content:*)",
+      "PowerShell(powershell:*)",
+      "Command(curl:*)"
+    ],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Read(.env)",
+      "Read(**/*token*)",
+      "Read(**/secrets/**)",
+      "Read(**/*key*)",
+      "Read(id_rsa)",
+      "Read(id_ed25519)",
+      "Bash(cdk deploy:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(git merge:*)",
+      "Bash(git reset:*)",
+      "Bash(gh repo create:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue delete:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh release create:*)",
+      "Bash(gh release delete:*)",
+      "Bash(gh alias set:*)",
+      "Bash(gh alias delete:*)",
+      "Bash(gh api POST:*)",
+      "Bash(gh api PUT:*)",
+      "Bash(gh api PATCH:*)",
+      "Bash(gh api DELETE:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "outputStyle": "Explanatory",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh.exe -c \"New-BurntToastNotification -Text 'Claude finished', (Get-Date).ToString('HH:mm:ss')\""
+          },
+          {
+            "type": "command",
+            "command": "mshta vbscript:Execute(\"CreateObject(\"\"SAPI.SpVoice\"\").Speak(\"\"クロードが停止しました\"\"):close\")"
+          },
+          {
+            "type": "command",
+            "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $m=New-Object System.Windows.Media.MediaPlayer; $m.Open([uri]'C:\\Users\\S13316\\dotfiles\\claude\\profiles\\cg15034-win\\departure_bell.mp3'); $m.Play(); Start-Sleep 3\""
+          },
+          {
+            "type": "command",
+            "command": "curl https://hooks.slack.com/triggers/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"
+          }
+        ]
+      }
+    ]
+  }
+}
