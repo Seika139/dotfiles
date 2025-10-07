@@ -137,7 +137,7 @@ if [ ! -f "$BREWFILE_PATH" ]; then
   exit 1
 fi
 
-printf "🦄 Target Brewfile: $BREWFILE_PATH\n\n"
+printf "🦄 Target Brewfile:\\033[36m $BREWFILE_PATH\\033[0m\n\n"
 
 # ===== 未インストール（Brewfileにはあるが入っていない） =====
 printf "📦 Missing (Brewfileに記載されている未インストールパッケージ）\n"
@@ -173,12 +173,12 @@ fi
 if [ -z "${MISSING_BREWS}${MISSING_CASK}${MISSING_TAP}${MISSING_MAS:-}" ]; then
   echo "  (none)"
 else
-  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    printf "%s\n" "$MISSING_TAP"   | sed 's/^/    - /'; }
-  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   printf "%s\n" "$MISSING_BREWS" | sed 's/^/    - /'; }
-  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   printf "%s\n" "$MISSING_CASK"  | sed 's/^/    - /'; }
-  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   printf "%s\n" "$MISSING_MAS"   | sed 's/^/    - /'; }
+  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    printf "\\033[33m$MISSING_TAP\\033[0m"   | sed 's/^/    - /'; }
+  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   printf "\\033[33m$MISSING_BREWS\\033[0m" | sed 's/^/    - /'; }
+  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   printf "\\033[33m$MISSING_CASK\\033[0m"  | sed 's/^/    - /'; }
+  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   printf "\\033[33m$MISSING_MAS\\033[0m"   | sed 's/^/    - /'; }
 fi
-echo ""
+printf "\n"
 
 # ===== 要アップデート（Brewfileに載っているものに限定） =====
 # Brewfileに記載のセット（あとでフィルタに使用）
@@ -202,11 +202,10 @@ echo "🔄 Outdated (アップグレードが必要なパッケージ)"
 if [ -z "${OUTDATED_FORMULA}${OUTDATED_CASK}" ]; then
   echo "  (none)"
 else
-  [ -n "$OUTDATED_FORMULA" ] && { echo "  Formula:"; printf "%s\n" "$OUTDATED_FORMULA" | sed 's/^/    - /'; }
-  [ -n "$OUTDATED_CASK"    ] && { echo "  Casks:";   printf "%s\n" "$OUTDATED_CASK"    | sed 's/^/    - /'; }
+  [ -n "$OUTDATED_FORMULA" ] && { echo "  Formula:"; printf "\\033[33m$OUTDATED_FORMULA\\033[0m\n" | sed 's/^/    - /'; }
+  [ -n "$OUTDATED_CASK"    ] && { echo "  Casks:";   printf "\\033[33m$OUTDATED_CASK\\033[0m\n"    | sed 's/^/    - /'; }
 fi
-
-echo ""
+printf "\n"
 
 # ===== サマリ & 終了コード =====
 missing_count=$(
@@ -219,9 +218,10 @@ outdated_count=$(
     | sed '/^$/d' | wc -l | awk '{print $1}'
 )
 
-echo "📊 Summary: missing=${missing_count}, outdated=${outdated_count}"
-echo "💡 Install/upgrade を実行　　　　　　　　　　　　　　　: mise run sync --prof \"$PROFILE\""
-echo "🧹 Brewfileに記載がないインストール済みパッケージを確認: mise run prune --prof \"$PROFILE\""
+printf "📊 Summary: missing=${missing_count}, outdated=${outdated_count}\n"
+printf "  - Install/upgrade を実行　　　　　　　　　　　　　　　:\\033[36m mise run sync --prof \"$PROFILE\"\\033[36m\n"
+printf "  - Brewfileに記載がないインストール済みパッケージを確認:\\033[36m mise run prune --prof \"$PROFILE\"\\033[36m\n"
+printf "  - パッケージを単体で更新する場合は\\033[36m brew upgrade (--cask) <package-name>\\033[0m\n"
 
 
 # Missing または Outdated があれば 1 を返す（“要対応” を終了コードで示す）
