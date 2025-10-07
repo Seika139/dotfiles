@@ -100,7 +100,7 @@ if [ ! -f "$EXPORT_PATH" ]; then
   exit 1
 fi
 echo "🦄 Update Packages"
-echo -e "  \\x1b[36m$EXPORT_PATH \\x1b[0mに記載されているパッケージについて順次アップデートを試みます"
+printf "  \\033[36m$EXPORT_PATH \\x1b[0mに記載されているパッケージについて順次アップデートを試みます\n"
 echo "  ユーザーアカウント制御 (UAC) の確認が出たら「はい」をクリックしてください。"
 echo "  UAC を出さないように実行する場合は、Git Bash を管理者権限で実行してください。"
 echo ""
