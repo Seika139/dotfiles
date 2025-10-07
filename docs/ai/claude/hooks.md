@@ -83,6 +83,15 @@ Windows は通知ができるようになるまで苦労した。自分の環境
 }
 ```
 
+`~/dotfiles/claude/ringtones` に音声ファイルを置いておき、ランダムに選んで鳴らすようにするのも良い。
+
+```json
+{
+  "type": "command",
+  "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath('UserProfile'); $dir=Join-Path $homePath 'dotfiles\\claude\\ringtones'; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match '^\\.(mp3|wav)$' }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }\""
+},
+```
+
 powershell（新しい方）で BurntToast モジュールをインストールする。
 
 ```powershell
