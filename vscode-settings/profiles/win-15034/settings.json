@@ -1,0 +1,255 @@
+{
+  // ↓ cSpell
+  "cSpell.userWords": [
+    "afplay",
+    "akasha",
+    "akashic",
+    "arange",
+    "autocrlf",
+    "autofetch",
+    "autopep",
+    "Behaviour",
+    "buildx",
+    "caty",
+    "chara",
+    "coloneqq",
+    "Colour",
+    "Colours",
+    "cygames",
+    "Cysharp",
+    "dateutil",
+    "Dont",
+    "dotenv",
+    "dotfiles",
+    "ECPU",
+    "ECPUs",
+    "elif",
+    "endraw",
+    "envsubst",
+    "esac",
+    "Fargate",
+    "fastcgi",
+    "Fernet",
+    "fukushima",
+    "gacha",
+    "Genemon",
+    "getline",
+    "groovylint",
+    "gsub",
+    "healthcheck",
+    "hhmmss",
+    "hookable",
+    "Hotswap",
+    "htmlcov",
+    "infty",
+    "innodb",
+    "Interactable",
+    "isort",
+    "Jenome",
+    "joblib",
+    "jpholiday",
+    "kenichi",
+    "laravel",
+    "levelname",
+    "loadtest",
+    "ltsv",
+    "mapfile",
+    "Mathf",
+    "mktemp",
+    "mshta",
+    "msys",
+    "mylogin",
+    "mypy",
+    "mysqldef",
+    "Nasca",
+    "ndarray",
+    "nige",
+    "numpy",
+    "oikomi",
+    "Omni",
+    "omnisharp",
+    "organisation",
+    "OSTYPE",
+    "pathlib",
+    "pathspec",
+    "pecl",
+    "phpcbf",
+    "phpcs",
+    "pipefail",
+    "plushie",
+    "predis",
+    "println",
+    "pwsh",
+    "pyautogui",
+    "pyenv",
+    "Pylance",
+    "pyproject",
+    "pytest",
+    "Qiita",
+    "readlink",
+    "readwrite",
+    "realpath",
+    "relativedelta",
+    "SAPI",
+    "sashi",
+    "senko",
+    "Sercuit",
+    "sqls",
+    "timedelta",
+    "TINYINT",
+    "traceback",
+    "trunc",
+    "Tweening",
+    "UGUI",
+    "Upsert",
+    "urandom",
+    "urawa",
+    "valkey",
+    "varchar",
+    "vbscript",
+    "venv",
+    "winget",
+    "worktree",
+    "xhprof"
+  ],
+  "cSpell.enabledFileTypes": {
+    "groovy": true,
+    "ini": true
+  },
+  // ↑ cSpell
+  // ↓ git
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.autofetch": true,
+  "github-enterprise.uri": "https://github.com/enterprises/cygamesinc",
+  "github.copilot.chat.localeOverride": "ja",
+  "github.copilot.enable": {
+    "markdown": true,
+    "textEditor": true,
+    "chat": true
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "file": "/c/Users/S13316/dotfiles/.gitmessage"
+    }
+  ],
+  "gitlens.graph.minimap.enabled": false,
+  // ↑ git
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  // これをオンにしなくてもデフォルトで Git Bash に login した状態でターミナルが開く
+  // VSCode 内でパスがおかしい（C:\Users が C\x3a\Users になるとか、ssh-agent がおかしい）ときはインタープリタの切り替えをすると直ることがおおいっぽい
+  // とにかく 2025.05 時点で ssh-agent の調子がおかしい（毎回 pull するときに ssh-agent のパスワードを聞かれる）のと、
+  // Git Bash でホームディレクトリがなぞにエスケープされる現象があった。
+  // "terminal.integrated.profiles.windows": {
+  //     "Git Bash": {
+  //         "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+  //         "color": "terminal.ansiCyan",
+  //         // "path": "/c/Program\\ Files/Git/bin/bash.exe",
+  //         "args": [
+  //             "--login",
+  //             "-i"
+  //         ],
+  //     },
+  // },
+  "files.exclude": {
+    "**/.git": false
+  },
+  // ↓ editor
+  "editor.formatOnSave": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.tabCompletion": "on",
+  "editor.rulers": [40, 80, 120, 160, 200],
+  // ↑ editor
+  // ↓ workbench
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorCustomizations": {
+    "editorRuler.foreground": "#6666"
+  },
+  "workbench.editor.revealIfOpen": true,
+  "workbench.editor.wrapTabs": true,
+  "workbench.editor.limit.value": 40,
+  // "workbench.editor.tabSizing": "shrink",
+  // ↑ workbench
+  "remote.SSH.remotePlatform": {
+    "gallop_local": "linux"
+  },
+  "autoDocstring.docstringFormat": "numpy",
+  "autoDocstring.startOnNewLine": true,
+  "window.zoomLevel": -2,
+  "window.customTitleBarVisibility": "windowed",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "explorer.confirmDragAndDrop": false,
+  // ↓ markdown
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "diffEditor.ignoreTrimWhitespace": false
+  },
+  "markdownlint.config": {
+    "md014": false,
+    "md024": false,
+    "md025": false,
+    "md033": false,
+    "md036": false
+  },
+  // ↑ markdown
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
+    "files.eol": "\n"
+  },
+  // ↓ python
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "isort.args": ["--profile", "black"],
+  "python.analysis.typeCheckingMode": "basic",
+  // ↑ python
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "omnisharp.useModernNet": true,
+  "prettier.printWidth": 120,
+  // ↓ json
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": false
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // ↑ json
+  // ↓ javascript
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "files.eol": "\n"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "files.eol": "\n"
+  },
+  "[javascriptreact]": {
+    "editor.tabSize": 2,
+    "files.eol": "\n"
+  },
+  "[typescriptreact]": {
+    "editor.tabSize": 2,
+    "files.eol": "\n"
+  },
+  // ↑ javascript
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  }
+}
