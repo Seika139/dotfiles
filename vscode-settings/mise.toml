@@ -155,7 +155,7 @@ VSCODE_PATH_NORM="$(normalize_path "$VSCODE_PATH_EXPANDED")"
 CURSOR_PATH_NORM="$(normalize_path "$CURSOR_PATH_EXPANDED")"
 
 for editor_path in "$VSCODE_PATH_NORM" "$CURSOR_PATH_NORM"; do
-    printf "\n--- Settings for \\033[36m$editor_path\\033[0m ---\n"
+    printf "\nSettings for\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\ /g')"
     for item in {{vars.config_files}}; do
         expected_src="$PROFILE_DIR/$item"
         dest_file="$editor_path/$item"
@@ -164,7 +164,7 @@ for editor_path in "$VSCODE_PATH_NORM" "$CURSOR_PATH_NORM"; do
         elif [ -L "$dest_file" ]; then
             actual_src=$(readlink "$dest_file")
             if [ "$(normalize_path "$actual_src")" = "$(normalize_path "$expected_src")" ]; then
-                printf "  ✅ $item: Synced correctly\n"
+                printf "  ✅ $item <- $actual_src\n"
             else
                 printf "  ❌ $item: Linked to a different source: $actual_src\n"
             fi
@@ -205,7 +205,7 @@ for editor in vscode cursor; do
         ext_file="$PROFILE_DIR/cursor_extensions.txt"
     fi
 
-    printf "\n--- Extensions for \\033[36m%s\\033[0m ---\n" "$editor"
+    printf "\nExtensions for \\033[36m%s\\033[0m\n" "$editor"
 
     if [ ! -f "$ext_file" ]; then
         printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
@@ -276,8 +276,8 @@ if [ ! -d "$PROFILE_DIR" ]; then
     exit 1
 fi
 
-for editor_path in {{env.VSCODE_PATH}} {{env.CURSOR_PATH}}; do
-    printf "\n--- 設定適用先: \\033[36m%s\\033[0m ---\n" "$editor_path"
+for editor_path in "{{env.VSCODE_PATH}}" "{{env.CURSOR_PATH}}"; do
+    printf "\n設定適用先:\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\\\ /g')"
     if [ ! -d "$editor_path" ]; then
         mkdir -p "$editor_path"
     fi
@@ -323,7 +323,7 @@ for editor in vscode cursor; do
         ext_file="$PROFILE_DIR/cursor_extensions.txt"
     fi
 
-    printf "\n--- Sync Extensions for \\033[36m%s\\033[0m ---\n" "$editor"
+    printf "\nSync Extensions for \\033[36m%s\\033[0m\n" "$editor"
 
     if [ ! -f "$ext_file" ]; then
         printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
