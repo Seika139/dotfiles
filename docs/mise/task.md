@@ -27,6 +27,7 @@ test = "npm test"
         - [`$some` の書き方に軍配が上がる場合](#some-の書き方に軍配が上がる場合)
           - [シェルの機能と組み合わせたいとき](#シェルの機能と組み合わせたいとき)
           - [複雑なコマンドの中で自然に使える](#複雑なコマンドの中で自然に使える)
+      - [Tips: env を printf で使うときの注意点](#tips-env-を-printf-で使うときの注意点)
     - [vars](#vars)
   - [引数](#引数)
     - [positions argument](#positions-argument)
@@ -188,6 +189,31 @@ run = "docker compose -f compose.$SOME.yml up"
 ```
 
 `compose.dev.yml` / `compose.prod.yml` の切り替えみたいに、そのままシェルコマンドで変数展開させた方がシンプル。
+
+#### Tips: env を printf で使うときの注意点
+
+あくまで自分の環境で観測したことだが、Windows 上で `{{env.SOME}}` を `printf` の中で使うと以下のような警告が出力される
+
+```toml
+[tasks.printf]
+run = """
+printf "\\033[36m {{env.MISE_CONFIG_ROOT}} \\033[0m\n"
+"""
+```
+
+```plaintext
+bash: line 9: printf: missing unicode digit for \U
+```
+
+その場合は以下のように書くことで警告が出なくなる。
+ちなみに `\\033[36m` のような文字列の装飾は `%s` に渡す形で書くと装飾されなくなるので注意。
+
+```toml
+[tasks.printf]
+run = """
+printf "\\033[36m %s \\033[0m\n" "{{env.MISE_CONFIG_ROOT}}"
+"""
+```
 
 ### vars
 

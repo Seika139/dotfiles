@@ -1,15 +1,23 @@
 [tasks.test_env]
+shell = "bash -c"
+quiet = true
 run = '''
-echo \{\{env.HOME\}\} : {{env.HOME}} && echo '$HOME        :' $HOME
+echo "{% raw %}{{env.HOME}}{% endraw %}  => {{env.HOME}}"
+echo '$HOME         =>' "$HOME"
+echo "{% raw %}{{env.SHELL}}{% endraw %} => {{env.SHELL}}"
+echo '$SHELL        =>' "$SHELL"
 '''
 
 [tasks.sleep]
+shell = "bash -c"
 hide = true
 run = ["sleep 3"]
 
 [tasks.wait]
+shell = "bash -c"
 wait_for = "sleep"
 run = "echo 'Hello from task wait'"
 
 [tasks.quick]
+shell = "bash -c"
 run = "echo 'Hello from task quick'"
