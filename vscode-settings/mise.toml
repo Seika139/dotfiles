@@ -10,9 +10,32 @@ VSCODE_PATH = "{% if os() == 'windows' %}{{vars.vscode_path_win}}{% else %}{{var
 CURSOR_PATH = "{% if os() == 'windows' %}{{vars.cursor_path_win}}{% else %}{{vars.cursor_path_mac}}{% endif %}"
 PROFILE_ROOT = "{{config_root}}/profiles"
 
+[tasks.ensure_local_env]
+description = "mise.local.toml で環境変数が設定されているか確認する"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+set -eu
+if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+  {
+    echo '[env]'
+    echo 'DEFAULT_PROFILE=""'
+  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+  echo "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  echo "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_PROFILE:-}" ]; then
+  echo "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+"""
+
 [tasks.vars]
 description = "変数の値を表示"
 shell = "bash -c"
+depends = ["ensure_local_env"]
 run = '''
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 printf "PROFILE                = \033[36m$PROFILE\033[0m\n"
@@ -26,6 +49,7 @@ printf "CONFIG_FILES           = \033[36m%s\033[0m\n" "{{vars.config_files}}"
 [tasks.dump]
 description = "dump-settings と dump-extensions をまとめて実行する"
 shell = "bash -c"
+depends = ["ensure_local_env"]
 run = """
 EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
 mise run dump-settings $EDITOR
@@ -38,6 +62,7 @@ printf "✅ すべてのエクスポートが完了しました!\n"
 description = "各種設定ファイルをエクスポートする"
 shell = "bash -c"
 hide = true
+depends = ["ensure_local_env"]
 run = """
 EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
@@ -67,6 +92,7 @@ done
 description = "拡張機能リストを txt ファイルとしてエクスポートする"
 shell = "bash -c"
 hide = true
+depends = ["ensure_local_env"]
 run = """
 EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
@@ -111,6 +137,7 @@ printf "  ✅ エクスポート完了!\n"
 [tasks.status]
 description = "設定ファイルと拡張機能の同期状態を確認する"
 shell = "bash -c"
+depends = ["ensure_local_env"]
 run = """
 mise run status-settings
 mise run status-extensions
@@ -121,6 +148,7 @@ printf "\n✅ すべての状態確認が完了しました!\n"
 description = "各種設定ファイルの同期状態を確認する"
 shell = "bash -c"
 hide = true
+depends = ["ensure_local_env"]
 run = '''
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 
@@ -193,6 +221,7 @@ done
 description = "拡張機能の同期状態を確認する"
 shell = "bash -c"
 hide = true
+depends = ["ensure_local_env"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
@@ -258,6 +287,7 @@ done
 [tasks.sync]
 description = "VS Code と Cursor の設定をプロファイルのシンボリックリンクとして同期し、拡張機能をインストールする"
 shell = "bash -c"
+depends = ["ensure_local_env"]
 run = """
 mise run sync-settings
 mise run sync-extensions
@@ -267,6 +297,7 @@ mise run sync-extensions
 description = "VS Code と Cursor の設定をプロファイルのシンボリックリンクとして同期する"
 shell = "bash -c"
 hide = true
+depends = ["ensure_local_env"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
@@ -310,6 +341,7 @@ printf "\n✅ 設定ファイルの同期が完了しました！\n"
 description = "VS Code と Cursor の拡張機能を同期する"
 shell = "bash -c"
 hide = true
+depends = ["ensure_local_env"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
