@@ -45,7 +45,7 @@ shell = "bash -c"
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 if [ -z "$PROFILE" ]; then
-  echo "❌ Error: DEFAULT_PROFILE is not set in environment variables" >&2
+  printf "❌ Error: DEFAULT_PROFILE is not set in environment variables\n" >&2
   exit 1
 fi
 
@@ -54,12 +54,12 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 # 成功時は無音、エラー時のみ詳細を表示する
 if [ ! -d "$PROFILE_PATH" ]; then
   {
-    echo "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
-    echo "   Available profiles:"
+    printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
+    printf "   Available profiles:\n"
     if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
       ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
     else
-      echo "   (No profiles directory found)"
+      printf "   (No profiles directory found)\n"
     fi
   } >&2
   exit 1
@@ -70,22 +70,14 @@ fi
 description = "現在インストールされているパッケージをプロファイルに書き出す（ただし update など他のコマンドに利用されるわけではない）"
 shell = "bash -c"
 depends = ["check_env", "winget_available"]
-run = """
-PROFILE={{arg(name="prof")}}
-if [ -z "$PROFILE" ]; then
-  {
-    echo "❌ Error: profile name is required."
-    echo "   Usage: mise run dump <profile-name>"
-    } >&2
-  exit 1
-fi
-echo "🦄 Dumping current winget packages to profile: $PROFILE"
-echo "⚠️「インストールされているパッケージはどのソースからも利用できません」という警告が出る場合がありますが、無視して構いません。"
+run = '''
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+printf "🦄  Dumping current winget packages to profile: \033[36m$PROFILE\033[0m\n"
+printf "⚠️ 「インストールされているパッケージはどのソースからも利用できません」という警告が出る場合がありますが、無視して構いません。\n"
 mkdir -p "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 winget export -o "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
-echo ""
-echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
-"""
+printf "\n✅  Dumped current packages to \033[36m%s\033[36m\n" "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
+'''
 
 [tasks.update]
 description = "プロファイルに登録しているパッケージをアップグレードする"
@@ -96,18 +88,17 @@ PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
 EXPORT_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.PACKAGE_IDS}}"
 if [ ! -f "$EXPORT_PATH" ]; then
-  echo "❌ Error: Export file not found at '$EXPORT_PATH'" >&2
+  printf "❌ Error: Export file not found at '$EXPORT_PATH'\n" >&2
   exit 1
 fi
-echo "🦄 Update Packages"
-printf "  \\033[36m$EXPORT_PATH \\x1b[0mに記載されているパッケージについて順次アップデートを試みます\n"
-echo "  ユーザーアカウント制御 (UAC) の確認が出たら「はい」をクリックしてください。"
-echo "  UAC を出さないように実行する場合は、Git Bash を管理者権限で実行してください。"
-echo ""
+printf "🦄 Update Packages\n"
+printf "  \\033[36m$EXPORT_PATH \\033[0mに記載されているパッケージについて順次アップデートを試みます\n"
+printf "  ユーザーアカウント制御 (UAC) の確認が出たら「はい」をクリックしてください。\n"
+printf "  UAC を出さないように実行する場合は、Git Bash を管理者権限で実行してください。\n\n"
 
 packages=$(cat "$EXPORT_PATH")
 for package in $packages; do
-  echo "  winget upgrade --accept-source-agreements --accept-package-agreements --id \"$package\""
+  printf "  winget upgrade --accept-source-agreements --accept-package-agreements --id \"$package\"\n"
   winget upgrade --accept-source-agreements --accept-package-agreements --id "$package"
 done
 """
