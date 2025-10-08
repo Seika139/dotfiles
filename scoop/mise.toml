@@ -66,11 +66,11 @@ fi
 """
 
 [tasks.dump]
-description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
+description = "現在インストールされているパッケージをプロファイルに書き出す"
 shell = "bash -c"
 depends = ["check_env", "scoop_available"]
 run = """
-PROFILE={{arg(name="prof")}}
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 if [ -z "$PROFILE" ]; then
   {
     echo "❌ Error: profile name is required."
