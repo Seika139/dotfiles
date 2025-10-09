@@ -38,11 +38,35 @@ fi
 
 ## Context
 
-- Current branch: !`git branch --show-current`
-- Git status: !`git status --porcelain`
-- Latest tag (if any): !`git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0"`
 - Today: !`date +%Y-%m-%d`
-- Commits since latest tag:!`(git describe --tags --abbrev=0 >/dev/null 2>&1 && L=$(git describe --tags --abbrev=0) && git log $L..HEAD --pretty=format:'- %s (%h)'; true)`
+
+## Analyze Repository Status
+
+現在のリポジトリの状況を確認します：
+
+```bash
+echo "=== Repository Status ==="
+echo "Current branch: $(git branch --show-current)"
+
+STATUS=$(git status --porcelain)
+if [ -z "$STATUS" ]; then
+  echo "Git status: Clean working directory"
+else
+  echo "Git status: Uncommitted changes found"
+  git status --porcelain
+fi
+
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+echo "Latest tag: $LATEST_TAG"
+
+echo "Commits since latest tag:"
+if [ "$LATEST_TAG" != "0.0.0" ]; then
+  git log "$LATEST_TAG..HEAD" --pretty=format:'- %s (%h)' | head -10
+else
+  echo "- No previous tags found"
+  git log --pretty=format:'- %s (%h)' | head -10
+fi
+```
 
 ## Recognize Latest Version
 
@@ -83,13 +107,42 @@ LATEST_TAG を設定したコミットから最新のコミットまでの変更
 
 ## Stage & Commit Changes
 
-- Write an appropriate commit message: `chore(release): vX.Y.Z`
-- Use: !`git add CHANGELOG.md`
-- Use: !`git commit -m "chore(release): v$NEXT_VERSION"`
+新しいバージョンを決定したら、変更をコミットしてタグを作成します：
+
+```bash
+# NEXT_VERSION を決定した後に実行（例：NEXT_VERSION="1.2.3"）
+echo "Please specify the next version (e.g., 1.2.3):"
+read -p "Next version: " NEXT_VERSION
+
+if [ -z "$NEXT_VERSION" ]; then
+  echo "Error: Version cannot be empty"
+  exit 1
+fi
+
+echo "Staging CHANGELOG.md..."
+git add CHANGELOG.md
+
+echo "Creating commit..."
+git commit -m "chore(release): v$NEXT_VERSION"
+
+echo "Creating tag..."
+git tag "v$NEXT_VERSION"
+
+echo "Version v$NEXT_VERSION has been prepared for release."
+```
 
 ## Push branch and Tags
 
-- Use: !`git push`
-- Use: !`git push --tags`
+変更とタグをリモートにプッシュします：
+
+```bash
+echo "Pushing changes to remote..."
+git push
+
+echo "Pushing tags to remote..."
+git push --tags
+
+echo "Release v$NEXT_VERSION has been published successfully!"
+```
 
 Insert a short release note (from the new section) into the command output.

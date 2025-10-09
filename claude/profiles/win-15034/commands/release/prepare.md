@@ -32,9 +32,32 @@ fi
 
 ## Context
 
-- Latest tag: !`git describe --tags --abbrev=0 2>/dev/null || echo ""`
 - Today: !`date +%Y-%m-%d`
-- Raw commits (since latest tag or `$1` if provided): !`(BASE=${1:-$(git describe --tags --abbrev=0 2>/dev/null || echo "")}; if [ -n "$BASE" ]; then git log $BASE..HEAD --pretty=format:'%s'; else git log --pretty=format:'%s' ; fi)`
+
+## Analyze Git History
+
+最後のタグと対象となるコミットを分析します：
+
+```bash
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+BASE="${1:-$LATEST_TAG}"
+
+if [ -n "$LATEST_TAG" ]; then
+  echo "Latest tag: $LATEST_TAG"
+else
+  echo "Latest tag: (none found)"
+fi
+
+if [ -n "$BASE" ]; then
+  echo "Base reference: $BASE"
+  echo "Commits since $BASE:"
+  git log "$BASE..HEAD" --pretty=format:'- %s' | head -20
+else
+  echo "Base reference: (repository root)"
+  echo "All commits (showing last 20):"
+  git log --pretty=format:'- %s' | head -20
+fi
+```
 
 ## Create CHANGELOG.md if Missing
 
