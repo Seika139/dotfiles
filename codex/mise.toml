@@ -1,0 +1,280 @@
+[env]
+PROFILES_DIR = "profiles"
+
+[tasks.check_env]
+description = "環境変数がちゃんと設定されているか確認する"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+set -eu
+if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+  {
+    printf "%s\n" '[env]'
+    printf "%s\n" 'DEFAULT_CODEX_PROFILE=""'
+  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+  printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
+  printf "%s\n" "🚨 DEFAULT_CODEX_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_CODEX_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'DEFAULT_CODEX_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+
+# ~/.codex ディレクトリが存在しない場合は作成
+if [ ! -d "${HOME}/.codex" ]; then
+  mkdir -p "${HOME}/.codex"
+fi
+"""
+
+[tasks.check]
+description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+depends = ["check_env"]
+hide = true
+quiet = true
+shell = "bash -c"
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_CODEX_PROFILE)}}
+if [ -z "$PROFILE" ]; then
+  printf "❌ Error: DEFAULT_CODEX_PROFILE is not set in environment variables\n" >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  {
+    printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
+    printf "   Available profiles:\n"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    else
+      printf "   (No profiles directory found)\n"
+    fi
+  } >&2
+  exit 1
+fi
+"""
+
+[tasks.create_profile]
+description = "新しいプロファイルを作成 (Usage: mise run create_profile <profile-name>)"
+depends = ["check_env"]
+shell = "bash -c"
+run = """
+PROFILE={{arg(name="prof")}}
+if [ -z "$PROFILE" ]; then
+  {
+    printf "❌ Error: profile name is required.\n"
+    printf "   Usage: mise run create_profile <profile-name>\n"
+  } >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+if [ -d "$PROFILE_PATH" ]; then
+  printf "❌ Error: Profile '$PROFILE' already exists\n" >&2
+  exit 1
+fi
+
+printf "🦄 Creating new Codex profile: $PROFILE\n"
+mkdir -p "$PROFILE_PATH"
+
+# デフォルト設定ファイル作成
+cat > "$PROFILE_PATH/config.toml" << 'EOF'
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+hide_agent_reasoning = true
+network_access = true
+
+[tools]
+web_search = true
+
+EOF
+
+cat > "$PROFILE_PATH/AGENTS.md" << 'EOF'
+# Instructions for this Profile
+
+## Project Context
+<!-- Describe the type of projects this profile is used for -->
+
+## Preferred Tools and Libraries
+<!-- List commonly used tools, frameworks, or libraries for this environment -->
+
+## Code Style Guidelines
+<!-- Specify any coding standards or preferences -->
+
+## Environment-Specific Notes
+<!-- Add any machine-specific or environment-specific instructions -->
+
+## Restrictions
+<!-- Note any specific restrictions or security considerations -->
+EOF
+
+printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
+printf "%s\n" "📝 Edit settings in:"
+printf "%s\n" "   - $PROFILE_PATH/config.toml"
+printf "%s\n" "   - $PROFILE_PATH/AGENTS.md"
+"""
+
+[tasks.link]
+description = "指定プロファイルの設定ファイルをシンボリックリンクする"
+depends = ["check_env"]
+shell = "bash -c"
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_CODEX_PROFILE)}}
+mise run check --prof "$PROFILE"
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
+
+# 既存のシンボリックリンクを削除（ファイルの場合は退避）
+for file in config.toml AGENTS.md; do
+  target="${HOME}/.codex/$file"
+  if [ -L "$target" ]; then
+    printf "%s\n" "   Removing existing symlink: $target"
+    rm "$target"
+  elif [ -f "$target" ]; then
+    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
+    printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
+    mv "$target" "$backup"
+  fi
+done
+
+# シンボリックリンク作成
+printf "\\033[36m"
+for file in config.toml AGENTS.md; do
+  source="$PROFILE_PATH/$file"
+  target="${HOME}/.codex/$file"
+
+  if [ -f "$source" ]; then
+    ln -sfv "$source" "$target"
+  fi
+done
+printf "\\033[0m"
+
+printf "%s\n" "✅ Linked Codex settings from profile '$PROFILE'"
+"""
+
+[tasks.status]
+description = "現在のプロファイル設定と~/.codexの状態を確認"
+depends = ["check_env"]
+shell = "bash -c"
+run = """
+PROFILE={{option(name="prof", default=env.DEFAULT_CODEX_PROFILE)}}
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+printf "%s\n" "🦄 Codex Profile Status"
+printf "Current profile:\\033[36m %s\\033[0m\n" "$PROFILE"
+printf "Profile path:\\033[36m %s\\033[0m\n\n" "$PROFILE_PATH"
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  printf "%s\n" "❌ Profile directory does not exist"
+  exit 1
+fi
+
+printf "%s\n" "📂 Profile files:"
+for file in config.toml AGENTS.md; do
+  source="$PROFILE_PATH/$file"
+  if [ -f "$source" ]; then
+    printf "%s\n" "   ✅ $file"
+  else
+    printf "%s\n" "   ❌ $file (missing)"
+  fi
+done
+
+printf "%s" "\n🔗 Symlink status in"
+printf "\\033[36m ~/.codex:\\033[0m\n"
+for file in config.toml AGENTS.md; do
+  target="${HOME}/.codex/$file"
+  source="$PROFILE_PATH/$file"
+
+  if [ -L "$target" ]; then
+    link_target=$(readlink "$target")
+    # Windows環境でも動くように、より柔軟な方法でマッチング
+    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]]; then
+      printf "%s\n" "   ✅ $file -> $source"
+    else
+      printf "%s\n" "   ⚠️  $file -> $link_target (不一致)"
+    fi
+  elif [ -f "$target" ]; then
+    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない)"
+  else
+    printf "%s\n" "   ❌ $file (存在しない)"
+  fi
+done
+
+printf "%s\n" "\n💡 Commands:"
+printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
+printf "%s\n" "   プロファイル変更: mise run switch <profile-name>"
+"""
+
+[tasks.switch]
+description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch <profile-name>)"
+depends = ["check_env"]
+shell = "bash -c"
+run = """
+NEW_PROFILE={{arg(name="prof")}}
+if [ -z "$NEW_PROFILE" ]; then
+  {
+    printf "%s\n" "❌ Error: profile name is required."
+    printf "%s\n" "   Usage: mise run switch <profile-name>\n"
+    printf "%s\n" "   Available profiles:"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
+    fi
+  } >&2
+  exit 1
+fi
+
+# プロファイル存在確認
+mise run check --prof "$NEW_PROFILE"
+
+# mise.local.toml の DEFAULT_CODEX_PROFILE を更新
+LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+{
+  printf "%s\n" '[env]'
+  printf "%s\n" "DEFAULT_CODEX_PROFILE = \\\"$NEW_PROFILE\\\""
+} > "$LOCAL_CONFIG"
+
+printf "%s\n" "🦄 Switching Codex profile to: $NEW_PROFILE"
+
+# シンボリックリンクを更新
+mise run link --prof "$NEW_PROFILE"
+
+printf "%s\n" "✅ Switched to profile '$NEW_PROFILE'"
+printf "%s\n" "🔄 Please restart your shell or run 'mise env' to reload environment variables"
+"""
+
+[tasks.list]
+description = "利用可能なプロファイル一覧を表示"
+depends = ["check_env"]
+shell = "bash -c"
+run = """
+PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
+CURRENT_PROFILE="${DEFAULT_CODEX_PROFILE:-}"
+
+printf "%s\n" "🦄 Available Codex Profiles:"
+if [ -d "$PROFILES_DIR" ]; then
+  for profile in "$PROFILES_DIR"/*; do
+    if [ -d "$profile" ]; then
+      profile_name=$(basename "$profile")
+      if [ "$profile_name" = "$CURRENT_PROFILE" ]; then
+        printf "%s\n" "   ✅ $profile_name (current)"
+      else
+        printf "%s\n" "   ⭕ $profile_name"
+      fi
+    fi
+  done
+else
+  printf "%s\n" "   (No profiles found)"
+fi
+
+if [ -n "$CURRENT_PROFILE" ]; then
+  printf "\nCurrent profile: %s\n" "$CURRENT_PROFILE"
+else
+  printf "%s\n" "\n⚠️ No current profile set in DEFAULT_CODEX_PROFILE"
+fi
+"""
