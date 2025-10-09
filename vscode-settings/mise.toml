@@ -68,23 +68,23 @@ EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 if [[ "$EDITOR" = "vscode" ]]; then
-    src_path="{{env.VSCODE_PATH}}"
+  src_path="{{env.VSCODE_PATH}}"
 elif [[ "$EDITOR" = "cursor" ]]; then
-    src_path="{{env.CURSOR_PATH}}"
+  src_path="{{env.CURSOR_PATH}}"
 else
-    printf "  ❌ 不明なエディタ: $EDITOR\n"
-    exit 1
+  printf "  ❌ 不明なエディタ: $EDITOR\n"
+  exit 1
 fi
 
 printf "🛠️  エディタ設定を \\033[36m${src_path}\\033[0m から \\033[36m%s\\033[0m にエクスポートします\n" "$PROFILE_DIR"
 mkdir -p "$PROFILE_DIR"
 for item in {{vars.config_files}}; do
-    if [ -f "$src_path/$item" ] || [ -d "$src_path/$item" ]; then
-        cp -r "$src_path/$item" "$PROFILE_DIR"
-        printf "  ✅ エクスポート完了: \\033[36m$src_path/$item -> %s/$item\\033[0m\n" "$PROFILE_DIR"
-    else
-        printf "  ⚠️  スキップ: \\033[36m%s\\033[0m が見つかりません\n" "$src_path/$item"
-    fi
+  if [ -f "$src_path/$item" ] || [ -d "$src_path/$item" ]; then
+    cp -r "$src_path/$item" "$PROFILE_DIR"
+    printf "  ✅ エクスポート完了: \\033[36m$src_path/$item -> %s/$item\\033[0m\n" "$PROFILE_DIR"
+  else
+    printf "  ⚠️  スキップ: \\033[36m%s\\033[0m が見つかりません\n" "$src_path/$item"
+  fi
 done
 """
 
@@ -98,37 +98,37 @@ EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 if [[ "$EDITOR" = "vscode" ]] || [[ "$EDITOR" = "cursor" ]]; then
-    dist_path="$PROFILE_DIR/${EDITOR}_extensions.txt"
+  dist_path="$PROFILE_DIR/${EDITOR}_extensions.txt"
 else
-    printf "  ❌ 不明なエディタ: $EDITOR\n"
-    exit 1
+  printf "  ❌ 不明なエディタ: $EDITOR\n"
+  exit 1
 fi
 
 printf "🛠️  拡張機能リストを \\033[36m%s\\033[0m にエクスポートします\n" "$dist_path"
 if [[ -e "$dist_path" ]]; then
-    printf "  ⚠️  既存の拡張機能リストを上書きします: \\033[36m%s\\033[0m\n" "$dist_path"
-    read -p "続行しますか？ (y/N): " confirm
-    if [[ "$confirm" != "y" ]]; then
-        exit 0
-    fi
+  printf "  ⚠️  既存の拡張機能リストを上書きします: \\033[36m%s\\033[0m\n" "$dist_path"
+  read -p "続行しますか？ (y/N): " confirm
+  if [[ "$confirm" != "y" ]]; then
+    exit 0
+  fi
 fi
 
 if [[ "$EDITOR" = "vscode" ]]; then
-    if command -v code >/dev/null 2>&1; then
-        printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
-        code --list-extensions > "$dist_path"
-    else
-        printf "  ❌ コマンドが見つかりません:\\033[36m code\\033[0m\n"
-        exit 0
-    fi
+  if command -v code >/dev/null 2>&1; then
+    printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
+    code --list-extensions > "$dist_path"
+  else
+    printf "  ❌ コマンドが見つかりません:\\033[36m code\\033[0m\n"
+    exit 0
+  fi
 else
-    if command -v cursor >/dev/null 2>&1; then
-        printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
-        cursor --list-extensions > "$dist_path"
-    else
-        printf "  ❌ コマンドが見つかりません:\\033[36m cursor\\033[0m\n"
-        exit 0
-    fi
+  if command -v cursor >/dev/null 2>&1; then
+    printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
+    cursor --list-extensions > "$dist_path"
+  else
+    printf "  ❌ コマンドが見つかりません:\\033[36m cursor\\033[0m\n"
+    exit 0
+  fi
 fi
 
 printf "  ✅ エクスポート完了!\n"
@@ -153,25 +153,25 @@ run = '''
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 
 normalize_path() {
-    local path="$1"
-    # バックスラッシュをスラッシュに変換
-    path="${path//\\\\/\/}"
+  local path="$1"
+  # バックスラッシュをスラッシュに変換
+  path="${path//\\\\/\/}"
 
-    # Windows形式のドライブ文字 (C:) を POSIX形式 (/c) に変換
-    if [[ "$path" =~ ^([A-Za-z]): ]]; then
-        local drive="${BASH_REMATCH[1],,}"  # 小文字化
-        path="/$drive${path:2}"
-    fi
+  # Windows形式のドライブ文字 (C:) を POSIX形式 (/c) に変換
+  if [[ "$path" =~ ^([A-Za-z]): ]]; then
+    local drive="${BASH_REMATCH[1],,}"  # 小文字化
+    path="/$drive${path:2}"
+  fi
 
-    # 連続するスラッシュを単一に（sed使用でより安全に）
-    path="$(echo "$path" | sed 's|//*|/|g')"
+  # 連続するスラッシュを単一に（sed使用でより安全に）
+  path="$(echo "$path" | sed 's|//*|/|g')"
 
-    # 末尾のスラッシュを削除（ルートディレクトリでない場合）
-    if [[ "$path" != "/" ]]; then
-        path="${path%/}"
-    fi
+  # 末尾のスラッシュを削除（ルートディレクトリでない場合）
+  if [[ "$path" != "/" ]]; then
+    path="${path%/}"
+  fi
 
-    echo "$path"
+  echo "$path"
 }
 
 PROFILE_DIR="$(normalize_path "{{env.PROFILE_ROOT}}")/$PROFILE"
@@ -183,37 +183,37 @@ VSCODE_PATH_NORM="$(normalize_path "$VSCODE_PATH_EXPANDED")"
 CURSOR_PATH_NORM="$(normalize_path "$CURSOR_PATH_EXPANDED")"
 
 for editor_path in "$VSCODE_PATH_NORM" "$CURSOR_PATH_NORM"; do
-    printf "\nSettings for\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\ /g')"
-    for item in {{vars.config_files}}; do
-        expected_src="$PROFILE_DIR/$item"
-        dest_file="$editor_path/$item"
-        if [ ! -e "$dest_file" ] && [ ! -L "$dest_file" ]; then
-            printf "  ❔ $item: Not exists\n"
-        elif [ -L "$dest_file" ]; then
-            actual_src=$(readlink "$dest_file")
-            if [ "$(normalize_path "$actual_src")" = "$(normalize_path "$expected_src")" ]; then
-                printf "  ✅ $item <- $actual_src\n"
-            else
-                printf "  ❌ $item: Linked to a different source: $actual_src\n"
-            fi
+  printf "\nSettings for\\033[36m %s\\033[0m\n" "${editor_path/ /\\ /}"
+  for item in {{vars.config_files}}; do
+    expected_src="$PROFILE_DIR/$item"
+    dest_file="$editor_path/$item"
+    if [ ! -e "$dest_file" ] && [ ! -L "$dest_file" ]; then
+      printf "  ❔ %s: Not exists\n" "$item"
+      elif [ -L "$dest_file" ]; then
+      actual_src=$(readlink "$dest_file")
+      if [ "$(normalize_path "$actual_src")" = "$(normalize_path "$expected_src")" ]; then
+        printf "  ✅ %s <- %s\n" "$item" "$actual_src"
+      else
+        printf "  ❌ %s: Linked to a different source: %s\n" "$item" "$actual_src"
+      fi
+    else
+      if [ -f "$dest_file" ] && [ -f "$expected_src" ]; then
+        if diff -q "$dest_file" "$expected_src" >/dev/null; then
+          printf "  ⚠️  %s: Same content but not a symlink\n" "$item"
         else
-            if [ -f "$dest_file" ] && [ -f "$expected_src" ]; then
-                if diff -q "$dest_file" "$expected_src" >/dev/null; then
-                    printf "  ⚠️  $item: Same content but not a symlink\n"
-                else
-                    printf "  🚨 $item: Different from profile\n"
-                fi
-            elif [ -d "$dest_file" ] && [ -d "$expected_src" ]; then
-                if diff -r -q "$dest_file" "$expected_src" >/dev/null 2>&1; then
-                    printf "  ⚠️  $item: Same content but not a symlink\n"
-                else
-                    printf "  🚨 $item: Different from profile\n"
-                fi
-            else
-                printf "  🚨 $item: Not a symlink and cannot compare contents\n"
-            fi
+          printf "  🚨 %s: Different from profile\n" "$item"
         fi
-    done
+        elif [ -d "$dest_file" ] && [ -d "$expected_src" ]; then
+        if diff -r -q "$dest_file" "$expected_src" >/dev/null 2>&1; then
+          printf "  ⚠️  %s: Same content but not a symlink\n" "$item"
+        else
+          printf "  🚨 %s: Different from profile\n" "$item"
+        fi
+      else
+        printf "  🚨 %s: Not a symlink and cannot compare contents\n" "$item"
+      fi
+    fi
+  done
 done
 '''
 
@@ -226,61 +226,61 @@ run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 for editor in vscode cursor; do
-    if [[ "$editor" = "vscode" ]]; then
-        ext_cmd="code"
-        ext_file="$PROFILE_DIR/vscode_extensions.txt"
-    else
-        ext_cmd="cursor"
-        ext_file="$PROFILE_DIR/cursor_extensions.txt"
+  if [[ "$editor" = "vscode" ]]; then
+    ext_cmd="code"
+    ext_file="$PROFILE_DIR/vscode_extensions.txt"
+  else
+    ext_cmd="cursor"
+    ext_file="$PROFILE_DIR/cursor_extensions.txt"
+  fi
+
+  printf "\nExtensions for \\033[36m%s\\033[0m\n" "$editor"
+
+  if [ ! -f "$ext_file" ]; then
+    printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
+    continue
+  fi
+
+  if ! command -v "$ext_cmd" >/dev/null 2>&1; then
+    printf "  ❌ Command not found: \\033[36m%s\\033[0m\n" "$ext_cmd"
+    continue
+  fi
+
+  TEMP_DIR=${TEMP:-/tmp}
+  RANDOM_SUFFIX=$(date +%s)
+  INSTALLED_EXTS="$TEMP_DIR/${editor}_exts_$RANDOM_SUFFIX.txt"
+  TO_INSTALL_EXTS="$TEMP_DIR/${editor}_to_install_$RANDOM_SUFFIX.txt"
+
+  $ext_cmd --list-extensions > "$INSTALLED_EXTS" 2>/dev/null || true
+  grep -Fxvf "$INSTALLED_EXTS" "$ext_file" > "$TO_INSTALL_EXTS" 2>/dev/null || true
+  EXTRA_EXTS=$(grep -Fxvf "$ext_file" "$INSTALLED_EXTS" 2>/dev/null || true)
+
+  if [ -s "$TO_INSTALL_EXTS" ]; then
+    printf "  🚨 Extensions to install:\n"
+    while IFS= read -r ext; do
+      if [ -n "$ext" ]; then
+        printf "    - %s\n" "$ext"
+      fi
+    done < "$TO_INSTALL_EXTS"
+  else
+    printf "  ✅ All extensions are installed\n"
+  fi
+
+  if [[ -n "$EXTRA_EXTS" ]]; then
+    printf "  ⚠️  Extra installed extensions not in profile:\n"
+    while IFS= read -r ext; do
+      if [ -n "$ext" ]; then
+        printf "    - %s\n" "$ext"
+      fi
+    done <<< "$EXTRA_EXTS"
+    read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
+    if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
+      $ext_cmd --list-extensions >> "$ext_file"
+      printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
     fi
+  fi
 
-    printf "\nExtensions for \\033[36m%s\\033[0m\n" "$editor"
-
-    if [ ! -f "$ext_file" ]; then
-        printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
-        continue
-    fi
-
-    if ! command -v "$ext_cmd" >/dev/null 2>&1; then
-        printf "  ❌ Command not found: \\033[36m%s\\033[0m\n" "$ext_cmd"
-        continue
-    fi
-
-    TEMP_DIR=${TEMP:-/tmp}
-    RANDOM_SUFFIX=$(date +%s)
-    INSTALLED_EXTS="$TEMP_DIR/${editor}_exts_$RANDOM_SUFFIX.txt"
-    TO_INSTALL_EXTS="$TEMP_DIR/${editor}_to_install_$RANDOM_SUFFIX.txt"
-
-    $ext_cmd --list-extensions > "$INSTALLED_EXTS" 2>/dev/null || true
-    grep -Fxvf "$INSTALLED_EXTS" "$ext_file" > "$TO_INSTALL_EXTS" 2>/dev/null || true
-    EXTRA_EXTS=$(grep -Fxvf "$ext_file" "$INSTALLED_EXTS" 2>/dev/null || true)
-
-    if [ -s "$TO_INSTALL_EXTS" ]; then
-        printf "  🚨 Extensions to install:\n"
-        while IFS= read -r ext; do
-            if [ -n "$ext" ]; then
-                printf "    - %s\n" "$ext"
-            fi
-        done < "$TO_INSTALL_EXTS"
-    else
-        printf "  ✅ All extensions are installed\n"
-    fi
-
-    if [[ -n "$EXTRA_EXTS" ]]; then
-        printf "  ⚠️  Extra installed extensions not in profile:\n"
-        while IFS= read -r ext; do
-            if [ -n "$ext" ]; then
-                printf "    - %s\n" "$ext"
-            fi
-        done <<< "$EXTRA_EXTS"
-        read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
-        if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
-            $ext_cmd --list-extensions >> "$ext_file"
-            printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
-        fi
-    fi
-
-    rm -f "$INSTALLED_EXTS" "$TO_INSTALL_EXTS" 2>/dev/null || true
+  rm -f "$INSTALLED_EXTS" "$TO_INSTALL_EXTS" 2>/dev/null || true
 done
 """
 
@@ -303,36 +303,36 @@ PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 
 if [ ! -d "$PROFILE_DIR" ]; then
-    echo "❌ プロファイルディレクトリが見つかりません: $PROFILE_DIR"
-    exit 1
+  echo "❌ プロファイルディレクトリが見つかりません: $PROFILE_DIR"
+  exit 1
 fi
 
 for editor_path in "{{env.VSCODE_PATH}}" "{{env.CURSOR_PATH}}"; do
-    printf "\n設定適用先:\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\\\ /g')"
-    if [ ! -d "$editor_path" ]; then
-        mkdir -p "$editor_path"
-    fi
+  printf "\n設定適用先:\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\\\ /g')"
+  if [ ! -d "$editor_path" ]; then
+    mkdir -p "$editor_path"
+  fi
 
-    for item in {{vars.config_files}}; do
-        src_item=$(realpath "$PROFILE_DIR/$item" 2>/dev/null || echo "")
-        dest_item="$editor_path/$item"
-        if [ -z "$src_item" ] || [ ! -e "$src_item" ]; then
-            printf "  ⚠️  スキップ: \\033[36m%s\\033[0m が見つかりません\n" "$PROFILE_DIR/$item"
-        elif [ -e "$dest_item" ] && ! [ -L "$dest_item" ]; then
-            printf "  既存のファイル/ディレクトリを発見: \\033[36m%s\\033[0m (シンボリックリンクでない)\n" "$dest_item"
-            if diff -r -q "$src_item" "$dest_item" >/dev/null 2>&1; then
-                printf "  ✅ 内容が同一です。シンボリックリンクに置き換えます: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item"
-                rm -rf "$dest_item"
-                ln -snf "$src_item" "$dest_item"
-            else
-                printf "  ❌ 競合: 手動で解決してから再実行してください\n"
-                printf "     プロファイル: \\033[36m%s\\033[0m != 既存: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item" "$dest_item"
-            fi
-        else
-            ln -snf "$src_item" "$dest_item"
-            printf "  ✅ リンク完了: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item"
-        fi
-    done
+  for item in {{vars.config_files}}; do
+    src_item=$(realpath "$PROFILE_DIR/$item" 2>/dev/null || echo "")
+    dest_item="$editor_path/$item"
+    if [ -z "$src_item" ] || [ ! -e "$src_item" ]; then
+      printf "  ⚠️  スキップ: \\033[36m%s\\033[0m が見つかりません\n" "$PROFILE_DIR/$item"
+      elif [ -e "$dest_item" ] && ! [ -L "$dest_item" ]; then
+      printf "  既存のファイル/ディレクトリを発見: \\033[36m%s\\033[0m (シンボリックリンクでない)\n" "$dest_item"
+      if diff -r -q "$src_item" "$dest_item" >/dev/null 2>&1; then
+        printf "  ✅ 内容が同一です。シンボリックリンクに置き換えます: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item"
+        rm -rf "$dest_item"
+        ln -snf "$src_item" "$dest_item"
+      else
+        printf "  ❌ 競合: 手動で解決してから再実行してください\n"
+        printf "     プロファイル: \\033[36m%s\\033[0m != 既存: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item" "$dest_item"
+      fi
+    else
+      ln -snf "$src_item" "$dest_item"
+      printf "  ✅ リンク完了: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item"
+    fi
+  done
 done
 printf "\n✅ 設定ファイルの同期が完了しました！\n"
 """
@@ -347,58 +347,58 @@ PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 
 for editor in vscode cursor; do
-    if [[ "$editor" = "vscode" ]]; then
-        ext_cmd="code"
-        ext_file="$PROFILE_DIR/vscode_extensions.txt"
-    else
-        ext_cmd="cursor"
-        ext_file="$PROFILE_DIR/cursor_extensions.txt"
+  if [[ "$editor" = "vscode" ]]; then
+    ext_cmd="code"
+    ext_file="$PROFILE_DIR/vscode_extensions.txt"
+  else
+    ext_cmd="cursor"
+    ext_file="$PROFILE_DIR/cursor_extensions.txt"
+  fi
+
+  printf "\nSync Extensions for \\033[36m%s\\033[0m\n" "$editor"
+
+  if [ ! -f "$ext_file" ]; then
+    printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
+    continue
+  fi
+
+  if ! command -v "$ext_cmd" >/dev/null 2>&1; then
+    printf "  ❌ Command not found: \\033[36m%s\\033[0m\n" "$ext_cmd"
+    continue
+  fi
+
+  TEMP_DIR=${TEMP:-/tmp}
+  RANDOM_SUFFIX=$(date +%s)
+  INSTALLED_EXTS="$TEMP_DIR/vscode_exts_$RANDOM_SUFFIX.txt"
+  $ext_cmd --list-extensions > "$INSTALLED_EXTS" 2>/dev/null || true
+  extensions_to_install=$(grep -Fxvf "$INSTALLED_EXTS" "$ext_file" | tr '\n' ' ')
+  extra_exts=$(grep -Fxvf "$ext_file" "$INSTALLED_EXTS" 2>/dev/null || true)
+
+  if [ -n "$extensions_to_install" ]; then
+    echo "  🚨 インストールする拡張機能:"
+    for ext in $extensions_to_install; do
+      printf "    - %s\n" "$ext"
+      $ext_cmd --install-extension "$ext" --force >/dev/null 2>&1 || true
+    done
+    printf "  ✅ 拡張機能のインストールが完了しました！\n"
+  else
+    echo "  ✅ すべての拡張機能がインストールされています"
+  fi
+
+  if [[ -n "$extra_exts" ]]; then
+    echo "  ⚠️  profile に書かれていない拡張機能がインストールされています:"
+    while IFS= read -r ext; do
+      if [ -n "$ext" ]; then
+        printf "    - %s\n" "$ext"
+      fi
+    done <<< "$extra_exts"
+    read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
+    if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
+      $ext_cmd --list-extensions >> "$ext_file"
+      printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
     fi
-
-    printf "\nSync Extensions for \\033[36m%s\\033[0m\n" "$editor"
-
-    if [ ! -f "$ext_file" ]; then
-        printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
-        continue
-    fi
-
-    if ! command -v "$ext_cmd" >/dev/null 2>&1; then
-        printf "  ❌ Command not found: \\033[36m%s\\033[0m\n" "$ext_cmd"
-        continue
-    fi
-
-    TEMP_DIR=${TEMP:-/tmp}
-    RANDOM_SUFFIX=$(date +%s)
-    INSTALLED_EXTS="$TEMP_DIR/vscode_exts_$RANDOM_SUFFIX.txt"
-    $ext_cmd --list-extensions > "$INSTALLED_EXTS" 2>/dev/null || true
-    extensions_to_install=$(grep -Fxvf "$INSTALLED_EXTS" "$ext_file" | tr '\n' ' ')
-    extra_exts=$(grep -Fxvf "$ext_file" "$INSTALLED_EXTS" 2>/dev/null || true)
-
-    if [ -n "$extensions_to_install" ]; then
-        echo "  🚨 インストールする拡張機能:"
-        for ext in $extensions_to_install; do
-            printf "    - %s\n" "$ext"
-            $ext_cmd --install-extension "$ext" --force >/dev/null 2>&1 || true
-        done
-        printf "  ✅ 拡張機能のインストールが完了しました！\n"
-    else
-        echo "  ✅ すべての拡張機能がインストールされています"
-    fi
-
-    if [[ -n "$extra_exts" ]]; then
-        echo "  ⚠️  profile に書かれていない拡張機能がインストールされています:"
-        while IFS= read -r ext; do
-            if [ -n "$ext" ]; then
-                printf "    - %s\n" "$ext"
-            fi
-        done <<< "$extra_exts"
-        read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
-        if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
-            $ext_cmd --list-extensions >> "$ext_file"
-            printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
-        fi
-    fi
-    rm -f "$INSTALLED_EXTS" 2>/dev/null || true
+  fi
+  rm -f "$INSTALLED_EXTS" 2>/dev/null || true
 done
 printf "\n✅ 拡張機能の同期が完了しました！\n"
 """
