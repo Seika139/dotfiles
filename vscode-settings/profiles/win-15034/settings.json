@@ -30,6 +30,7 @@
     "Fargate",
     "fastcgi",
     "Fernet",
+    "Franken",
     "fukushima",
     "gacha",
     "Genemon",
@@ -45,6 +46,7 @@
     "innodb",
     "Interactable",
     "isort",
+    "isset",
     "Jenome",
     "joblib",
     "jpholiday",
@@ -76,6 +78,7 @@
     "phpcbf",
     "phpcs",
     "pipefail",
+    "pipx",
     "plushie",
     "predis",
     "println",
@@ -104,6 +107,7 @@
     "Upsert",
     "urandom",
     "urawa",
+    "USERPROFILE",
     "valkey",
     "varchar",
     "vbscript",
@@ -197,6 +201,7 @@
     "editor.defaultFormatter": "foxundermoon.shell-format",
     "files.eol": "\n"
   },
+  "shellcheck.enable": true,
   // ↓ python
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
@@ -251,5 +256,11 @@
   // ↑ javascript
   "[dockerfile]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
-  }
+  },
+  "japanese-proofreading.textlint.ひらく漢字": false,
+  "japanese-proofreading.textlint.外来語カタカナ表記": false,
+  "japanese-proofreading.textlint.全角文字と半角文字の間": false,
+  "bashBeautify.tabSize": 4,
+  // ↓ trailing spaces
+  "files.trimTrailingWhitespace": true
 }
