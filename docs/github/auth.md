@@ -61,5 +61,5 @@ GitHub Enterprise で SSO (Single Sign-On) が設定されている場合、認�
 
 - **アクセストークン:** パスワードよりも安全性が高く、有効期限やスコープ（権限範囲）を設定できます。特に SSO 環境下では、アクセストークンの利用が推奨されます。
 - **資格情報ヘルパー:** Git の設定で利用できるツールで、HTTPS 認証情報を安全に保存し、以後の入力を省略できます。`git config --global credential.helper store` などで設定できます。
-- **SSH 鍵の生成:** `ssh-keygen` コマンドで生成できます。公開鍵 (`.pub` ファイル) を GitHub アカウントに登録します。
+- **SSH 鍵の生成:** `ssh-keygen` コマンドで生成できます。公開鍵（`.pub` ファイル）を GitHub アカウントに登録します。
 - **GitHub CLI のインストール:** GitHub の公式サイトからインストールできます。
