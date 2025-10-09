@@ -6,7 +6,7 @@ Ask questions if the instructions are unclear.
 
 ## Basic Information
 
-- OS: macOS
+- OS: Windows 11
 - Shell: bash
 - Code Editor: Visual Studio Code
 
