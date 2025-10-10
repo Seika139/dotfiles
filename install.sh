@@ -9,6 +9,12 @@ if [ ! -e "${ROOT}" ]; then
     exit 1
 fi
 
+# Ensure this script is sourced; otherwise abort to avoid return errors later.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    echo "このスクリプトは source $ROOT/install.sh として実行してください。"
+    exit 1
+fi
+
 #-------------------------------------
 # 0. install homebrew (if OSX)
 #-------------------------------------
@@ -244,7 +250,7 @@ fi
 # 6. upgrade homebrew (if OSX)
 #-------------------------------------
 
-if executable brew; then
+if command -v brew >/dev/null 2>&1; then
     read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
     case $ANS in
     [Yy]*)
