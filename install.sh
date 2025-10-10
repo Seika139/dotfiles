@@ -250,32 +250,36 @@ fi
 # 6. upgrade homebrew (if OSX)
 #-------------------------------------
 
+# フォーミュラがインストール済みの場合はアップデートを行い、未インストールの場合はインストールを行う
+function brew_upstall {
+    for FORMULA in "$@"; do
+        if brew ls --versions "$FORMULA" >/dev/null; then
+            echo_yellow "$FORMULA はインストール済みです。アップグレードを実施します..."
+            brew upgrade "$FORMULA"
+        else
+            echo_yellow "$FORMULA は未インストールです。インストールを実施します..."
+            brew install "$FORMULA"
+        fi
+    done
+}
+
+
 if command -v brew >/dev/null 2>&1; then
     read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
     case $ANS in
     [Yy]*)
-        brew upgrade # homebrew および homebrewで管理しているパッケージをアップデートする
-
-        # TODO : brewfile をもとに brew install したい
-        # ref : https://tech.gootablog.com/article/homebrew-brewfile/
-
-        # とりあえず必要なやつだけインストールする
-        brew install "bash-completion" && brew upgrade "bash-completion"
-        brew install "git" && brew upgrade "git"
+        # macOS の場合は homebrew のアップグレードを行う
+        printf "  🗒️  brew でインストールするパッケージの管理は %s で行います\n" "$HOME/dotfiles/brew/mise.toml"
+        brew upgrade
+        formulae=(
+            "bash-completion"
+            "git"
+            "mise"
+        )
+        for FORMULA in "${formulae[@]}"; do
+            brew_upstall "${FORMULA}"
+        done
         ;;
     esac
-    unset ANS
+    unset ANS FORMULA formulae
 fi
-
-# フォーミュラがインストール済みの場合はアップデートを行い、未インストールの場合はインストールを行う
-function brew_upstall {
-    for FORMULA in "$@"; do
-        if brew ls --versions $FORMULA >/dev/null; then
-            echo_yellow "$FORMULA はインストール済みです。アップグレードを実施します..."
-            brew upgrade $FORMULA
-        else
-            echo_yellow "$FORMULA は未インストールです。インストールを実施します..."
-            brew install $FORMULA
-        fi
-    done
-}
