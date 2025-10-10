@@ -80,7 +80,21 @@ if [ -z "$PROFILE" ]; then
 fi
 echo "🦄 Dumping current scoop packages to profile: $PROFILE"
 mkdir -p "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
-scoop export > "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
+scoop export \
+  | jq --sort-keys '
+      def scalar_array:
+        all(.[]?; (type == "string" or type == "number" or type == "boolean" or type == "null"));
+      .apps = ((.apps // []) | sort_by(.Name // "")) |
+      with_entries(
+        if .key == "apps" then
+          .
+        elif (.value | type) == "array" and (.value | scalar_array) then
+          .value |= sort
+        else
+          .
+        end
+      )
+    ' > "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
 echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_FILENAME}}"
 """
 
@@ -199,7 +213,21 @@ if [ -z "$APPS_TO_UPDATE" ]; then
   echo "💾 All apps are up to date"
 else
   scoop update $APPS_TO_UPDATE
-  scoop export > "$EXPORT_PATH"
+  scoop export \
+    | jq --sort-keys '
+        def scalar_array:
+          all(.[]?; (type == "string" or type == "number" or type == "boolean" or type == "null"));
+        .apps = ((.apps // []) | sort_by(.Name // "")) |
+        with_entries(
+          if .key == "apps" then
+            .
+          elif (.value | type) == "array" and (.value | scalar_array) then
+            .value |= sort
+          else
+            .
+          end
+        )
+      ' > "$EXPORT_PATH"
   echo "✅ Sync complete!"
 fi
 echo ""
