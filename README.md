@@ -2,7 +2,7 @@
 
 ## 動作環境
 
-以下の環境で動作することを確認しています。（動作するように dotfiles を育てた）
+以下の環境で動作することを確認しています。（動作するように dotfiles を育ている）
 bash を使用してください。
 
 - Mac 系: ターミナル、iTerm2、VS Code 内のターミナル
@@ -15,6 +15,8 @@ source install.sh
 ```
 
 ## uninstall
+
+install.sh でホームディレクトリに作成したシンボリックリンクを uninstall.sh で削除します。
 
 ```bash
 source uninstall.sh
