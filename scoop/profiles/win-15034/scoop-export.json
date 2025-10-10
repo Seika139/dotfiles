@@ -1,61 +1,61 @@
 {
-    "apps": [
-        {
-            "Name": "busybox",
-            "Version": "5579-g5749feb35",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-10-08T15:43:52.0514227+09:00"
-        },
-        {
-            "Name": "fzf",
-            "Version": "0.65.2",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-10-07T19:23:31.425509+09:00"
-        },
-        {
-            "Name": "gh",
-            "Version": "2.81.0",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-10-03T15:55:57.1391176+09:00"
-        },
-        {
-            "Name": "jq",
-            "Version": "1.8.1",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-10-06T11:58:30.1610702+09:00"
-        },
-        {
-            "Name": "make",
-            "Version": "4.4.1",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-04-02T15:15:46.8781662+09:00"
-        },
-        {
-            "Name": "mise",
-            "Version": "2025.10.5",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-10-08T10:45:39.1279756+09:00"
-        },
-        {
-            "Name": "uv",
-            "Version": "0.9.0",
-            "Info": "",
-            "Source": "main",
-            "Updated": "2025-10-08T10:45:21.2076885+09:00"
-        }
-    ],
-    "buckets": [
-        {
-            "Name": "main",
-            "Source": "https://github.com/ScoopInstaller/Main.git",
-            "Updated": "2025-10-09T09:37:40+09:00",
-            "Manifests": 1404
-        }
-    ]
+  "apps": [
+    {
+      "Info": "",
+      "Name": "busybox",
+      "Source": "main",
+      "Updated": "2025-10-08T15:43:52.0514227+09:00",
+      "Version": "5579-g5749feb35"
+    },
+    {
+      "Info": "",
+      "Name": "fzf",
+      "Source": "main",
+      "Updated": "2025-10-07T19:23:31.425509+09:00",
+      "Version": "0.65.2"
+    },
+    {
+      "Info": "",
+      "Name": "gh",
+      "Source": "main",
+      "Updated": "2025-10-03T15:55:57.1391176+09:00",
+      "Version": "2.81.0"
+    },
+    {
+      "Info": "",
+      "Name": "jq",
+      "Source": "main",
+      "Updated": "2025-10-06T11:58:30.1610702+09:00",
+      "Version": "1.8.1"
+    },
+    {
+      "Info": "",
+      "Name": "make",
+      "Source": "main",
+      "Updated": "2025-04-02T15:15:46.8781662+09:00",
+      "Version": "4.4.1"
+    },
+    {
+      "Info": "",
+      "Name": "mise",
+      "Source": "main",
+      "Updated": "2025-10-09T10:58:51.7776975+09:00",
+      "Version": "2025.10.6"
+    },
+    {
+      "Info": "",
+      "Name": "uv",
+      "Source": "main",
+      "Updated": "2025-10-10T11:17:59.2316249+09:00",
+      "Version": "0.9.1"
+    }
+  ],
+  "buckets": [
+    {
+      "Manifests": 1404,
+      "Name": "main",
+      "Source": "https://github.com/ScoopInstaller/Main.git",
+      "Updated": "2025-10-10T09:37:39+09:00"
+    }
+  ]
 }
