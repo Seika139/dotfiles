@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 
-export DOTPATH="${HOME}/dotfiles"
+if [ -e /proc/version ] && grep -qi microsoft /proc/version; then
+    # WSL 環境の場合は Windows のホームディレクトリを参照する
+    DOTPATH="$(wslpath "$(cmd.exe /c "echo %USERPROFILE%" | tr -d '\r')")/dotfiles"
+else
+    DOTPATH="${HOME}/dotfiles"
+fi
+
+export DOTPATH
 export BDOTDIR="${DOTPATH}/bash"
 
 source "${BDOTDIR}/.bash_profile"
+
+# Add user's local bin to PATH if it exists and is not already there
+if [[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
