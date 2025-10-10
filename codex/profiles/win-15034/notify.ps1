@@ -38,7 +38,7 @@ try {
 # Play a random ringtone (or fallback beep) on the STA thread.
 Add-Type -AssemblyName presentationCore
 $homePath = [Environment]::GetFolderPath('UserProfile')
-$ringtoneDir = Join-Path $homePath 'dotfiles\claude\ringtones'
+$ringtoneDir = Join-Path $homePath 'dotfiles\codex\ringtones'
 
 if (Test-Path -LiteralPath $ringtoneDir) {
     $candidates = Get-ChildItem -LiteralPath $ringtoneDir -File |
