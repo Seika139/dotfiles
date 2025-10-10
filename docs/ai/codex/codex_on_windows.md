@@ -22,23 +22,15 @@ $ codex
 > windows_wsl_setup_acknowledged = true
 > ```
 
-wsl2 がインストールされていない場合は、[WSL のインストール](https://learn.microsoft.com/ja-jp/windows/wsl/install)などを参考にインストールする。
-
-wsl2 かどうかは以下のコマンドで確認できる。
-
-```bash
-$ wsl -l -v
-  NAME              STATE           VERSION
-* Ubuntu-24.04      Running         2
-  docker-desktop    Running         2
-```
+wsl2 がインストールされていない場合は [wsl.md](../../windows/wsl.md) を参考にインストールする。
 
 ## wsl 上で codex を利用する
+
+既に volta が利用可能になっているが、これは [claude_with_wsl.md](../claude/claude_with_wsl.md) を参考にして wsl 上に volta をインストールしたため。
 
 ```bash
 $ wsl # wsl を起動する
 
-# volta をインストールする（2025-09 参照）
 volta install node@22
 
 # Codex CLI をグローバルにインストール
@@ -71,10 +63,7 @@ uv --version
 uvx --version
 ```
 
-<!-- TODO 2025-09 も参考にする -->
-
-<!--
-TODO
+<!-- TODO
 
 - 設定ファイルが Windows 側と WSL 側で分かれるので、 wsl 側で ~/.codex/config.toml を作成する必要がある。
 - とにかく wsl と Windows の両方で codex  & serena & notify が動くようにする。
