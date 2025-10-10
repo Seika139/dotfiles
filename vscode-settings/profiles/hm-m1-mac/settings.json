@@ -80,6 +80,7 @@
     "arange",
     "astype",
     "autoremove",
+    "BDOTDIR",
     "Behaviour",
     "Brotli",
     "buildx",
@@ -96,6 +97,7 @@
     "Doesnt",
     "dotenv",
     "dotfiles",
+    "DOTPATH",
     "elif",
     "endraw",
     "envrc",
@@ -122,6 +124,7 @@
     "Mathf",
     "mktemp",
     "mshta",
+    "msys",
     "mypy",
     "mysqldump",
     "ndarray",
@@ -167,11 +170,13 @@
     "Unicursal",
     "Unipack",
     "untap",
+    "USERPROFILE",
     "VARCHAR",
     "vbscript",
     "vuetify",
     "webroot",
-    "winget"
+    "winget",
+    "wslpath"
   ],
   "[html]": {
     "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
