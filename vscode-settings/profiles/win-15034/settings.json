@@ -8,6 +8,7 @@
     "autocrlf",
     "autofetch",
     "autopep",
+    "BDOTDIR",
     "Behaviour",
     "buildx",
     "caty",
@@ -21,6 +22,7 @@
     "Dont",
     "dotenv",
     "dotfiles",
+    "DOTPATH",
     "ECPU",
     "ECPUs",
     "elif",
@@ -35,6 +37,7 @@
     "gacha",
     "Genemon",
     "getline",
+    "gitmessage",
     "groovylint",
     "gsub",
     "healthcheck",
@@ -77,6 +80,8 @@
     "pecl",
     "phpcbf",
     "phpcs",
+    "phpstan",
+    "phpunit",
     "pipefail",
     "pipx",
     "plushie",
@@ -114,6 +119,7 @@
     "venv",
     "winget",
     "worktree",
+    "wslpath",
     "xhprof"
   ],
   "cSpell.enabledFileTypes": {
@@ -262,5 +268,6 @@
   "japanese-proofreading.textlint.全角文字と半角文字の間": false,
   "bashBeautify.tabSize": 4,
   // ↓ trailing spaces
-  "files.trimTrailingWhitespace": true
+  "files.trimTrailingWhitespace": true,
+  "security.workspace.trust.untrustedFiles": "open"
 }
