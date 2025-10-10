@@ -11,7 +11,6 @@ Mac では Homebrew, Linux なら apt や yum など、パッケージマネー�
 ### Chocolatey
 
 2011 年に登場した Windows 向けのパッケージマネージャー。
-`choco install <パッケージ名>` でインストールできる。
 
 ### Scoop
 
@@ -34,7 +33,7 @@ Chocolatey よりもシンプルで、ユーザー環境（`$HOME\scoop`）に�
 Scoop の強み
 
 - 管理者権限不要でインストール可能
-- 開発ツール(Git, Node.js, Python)のサポートが充実
+- 開発ツール（Git, Node.js, Python）のサポートが充実
 - 迅速なインストールとアップデート
 - クリーンなアンインストール
 - バージョン管理・切り替え機能
