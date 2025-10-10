@@ -170,13 +170,26 @@ if command -v mas >/dev/null 2>&1; then
   MISSING_MAS=$(LC_ALL=C comm -23 "$TMP_WANT" "$TMP_HAVE" || true)
 fi
 
+print_list() {
+  local title="$1"
+  local items="$2"
+
+  # items が空なら何もしない
+  [ -z "$items" ] && return
+
+  echo "$title"
+  while IFS= read -r line; do
+    printf "    - \\033[33m%s\\033[0m\n" "$line"
+  done <<< "$items"
+}
+
 if [ -z "${MISSING_BREWS}${MISSING_CASK}${MISSING_TAP}${MISSING_MAS:-}" ]; then
   echo "  (none)"
 else
-  [ -n "$MISSING_TAP"   ] && { echo "  Taps:";    printf "\\033[33m$MISSING_TAP\\033[0m"   | sed 's/^/    - /'; }
-  [ -n "$MISSING_BREWS" ] && { echo "  Brews:";   printf "\\033[33m$MISSING_BREWS\\033[0m" | sed 's/^/    - /'; }
-  [ -n "$MISSING_CASK"  ] && { echo "  Casks:";   printf "\\033[33m$MISSING_CASK\\033[0m"  | sed 's/^/    - /'; }
-  [ -n "${MISSING_MAS:-}" ] && { echo "  MAS:";   printf "\\033[33m$MISSING_MAS\\033[0m"   | sed 's/^/    - /'; }
+  print_list "  Taps:"    "$MISSING_TAP"
+  print_list "  Brews:"   "$MISSING_BREWS"
+  print_list "  Casks:"   "$MISSING_CASK"
+  [ -n "${MISSING_MAS:-}" ] && print_list "  MAS:"   "$MISSING_MAS"
 fi
 printf "\n"
 
@@ -202,8 +215,8 @@ echo "🔄 Outdated (アップグレードが必要なパッケージ)"
 if [ -z "${OUTDATED_FORMULA}${OUTDATED_CASK}" ]; then
   echo "  (none)"
 else
-  [ -n "$OUTDATED_FORMULA" ] && { echo "  Formula:"; printf "\\033[33m$OUTDATED_FORMULA\\033[0m\n" | sed 's/^/    - /'; }
-  [ -n "$OUTDATED_CASK"    ] && { echo "  Casks:";   printf "\\033[33m$OUTDATED_CASK\\033[0m\n"    | sed 's/^/    - /'; }
+  print_list "  Formula:" "$OUTDATED_FORMULA"
+  print_list "  Casks:"   "$OUTDATED_CASK"
 fi
 printf "\n"
 
