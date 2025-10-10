@@ -1,5 +1,11 @@
 [env]
 PROFILES_DIR = "profiles"
+# WSL 環境なら true になる
+IS_WSL = '''{% if
+os() == 'linux' and exec(
+  command="bash -lc 'if grep -qi microsoft /proc/version 2>/dev/null || [ -n ${WSL_DISTRO_NAME:-} ]; then echo 0; else echo 1; fi'",
+  allow_failure=true
+) == "0" %}true{% else %}false{% endif %}'''
 
 [tasks.check_env]
 description = "環境変数がちゃんと設定されているか確認する"
@@ -8,22 +14,29 @@ hide = true
 shell = "bash -c"
 run = """
 set -eu
+
+# mise.local.tomlファイルの存在確認と初期化
 if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
   {
     printf "%s\n" '[env]'
     printf "%s\n" 'DEFAULT_CODEX_PROFILE=""'
+    printf "%s\n" 'WSL_CODEX_PROFILE=""'
   } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
   printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
   printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
-  printf "%s\n" "🚨 DEFAULT_CODEX_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  printf "%s\n" "🚨 DEFAULT_CODEX_PROFILE=\"\" と WSL_CODEX_PROFILE=\"\" に適切なプロファイル名を設定してください。"
   exit 1
 fi
 if [ -z "${DEFAULT_CODEX_PROFILE:-}" ]; then
   printf "%s\n" "🚨 'DEFAULT_CODEX_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
   exit 1
 fi
+if [ -z "${WSL_CODEX_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'WSL_CODEX_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
+  exit 1
+fi
 
-# ~/.codex ディレクトリが存在しない場合は作成
+# ~/.codex ディレクトリが存在しない場合は作成する
 if [ ! -d "${HOME}/.codex" ]; then
   mkdir -p "${HOME}/.codex"
 fi
@@ -36,7 +49,13 @@ hide = true
 quiet = true
 shell = "bash -c"
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_CODEX_PROFILE)}}
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_CODEX_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_CODEX_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
 if [ -z "$PROFILE" ]; then
   printf "❌ Error: DEFAULT_CODEX_PROFILE is not set in environment variables\n" >&2
   exit 1
@@ -62,6 +81,7 @@ fi
 description = "新しいプロファイルを作成 (Usage: mise run create_profile <profile-name>)"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
 PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
@@ -122,8 +142,14 @@ printf "%s\n" "   - $PROFILE_PATH/AGENTS.md"
 description = "指定プロファイルの設定ファイルをシンボリックリンクする"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_CODEX_PROFILE)}}
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_CODEX_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_CODEX_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 mise run check --prof "$PROFILE"
 
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
@@ -144,16 +170,18 @@ for file in config.toml AGENTS.md; do
 done
 
 # シンボリックリンク作成
-printf "\\033[36m"
 for file in config.toml AGENTS.md; do
   source="$PROFILE_PATH/$file"
   target="${HOME}/.codex/$file"
 
   if [ -f "$source" ]; then
+    printf "\\033[36m  "
     ln -sfv "$source" "$target"
+    printf "\\033[0m"
+  else
+    printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
   fi
 done
-printf "\\033[0m"
 
 printf "%s\n" "✅ Linked Codex settings from profile '$PROFILE'"
 """
@@ -162,20 +190,29 @@ printf "%s\n" "✅ Linked Codex settings from profile '$PROFILE'"
 description = "現在のプロファイル設定と~/.codexの状態を確認"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_CODEX_PROFILE)}}
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_CODEX_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_CODEX_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
-printf "%s\n" "🦄 Codex Profile Status"
-printf "Current profile:\\033[36m %s\\033[0m\n" "$PROFILE"
-printf "Profile path:\\033[36m %s\\033[0m\n\n" "$PROFILE_PATH"
+printf "%s\n" "🦄 Environment Check"
+printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
+printf "env.IS_WSL           =\\033[36m %s\\033[0m\n" "{{ env.IS_WSL }}"
+printf "env.MISE_CONFIG_ROOT =\\033[36m %s\\033[0m\n" "{{ env.MISE_CONFIG_ROOT }}"
+printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
-  printf "%s\n" "❌ Profile directory does not exist"
+  printf "❌ Profile directory does not exist:\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
   exit 1
 fi
 
-printf "%s\n" "📂 Profile files:"
+printf "\n📂 Original files in\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
 for file in config.toml AGENTS.md; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ]; then
@@ -185,16 +222,15 @@ for file in config.toml AGENTS.md; do
   fi
 done
 
-printf "%s" "\n🔗 Symlink status in"
-printf "\\033[36m ~/.codex:\\033[0m\n"
+printf "\n🔗 Symlinks in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
 for file in config.toml AGENTS.md; do
   target="${HOME}/.codex/$file"
   source="$PROFILE_PATH/$file"
 
   if [ -L "$target" ]; then
     link_target=$(readlink "$target")
-    # Windows環境でも動くように、より柔軟な方法でマッチング
-    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]]; then
+    # パスの正規化とマッチング（Windows, WSL対応）
+    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]] || [[ "$link_target" == *"\\${source##*/}" ]]; then
       printf "%s\n" "   ✅ $file -> $source"
     else
       printf "%s\n" "   ⚠️  $file -> $link_target (不一致)"
@@ -215,6 +251,7 @@ printf "%s\n" "   プロファイル変更: mise run switch <profile-name>"
 description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch <profile-name>)"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
 NEW_PROFILE={{arg(name="prof")}}
 if [ -z "$NEW_PROFILE" ]; then
@@ -232,12 +269,21 @@ fi
 # プロファイル存在確認
 mise run check --prof "$NEW_PROFILE"
 
-# mise.local.toml の DEFAULT_CODEX_PROFILE を更新
+# WSL か否かに応じて mise.local.toml の適切な環境変数を更新
 LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+{% if env.IS_WSL == 'true' %}
+{
+  printf "%s\n" '[env]'
+  printf "%s\n" "DEFAULT_CODEX_PROFILE = \\\"${DEFAULT_CODEX_PROFILE:-}\\\""
+  printf "%s\n" "WSL_CODEX_PROFILE = \\\"$NEW_PROFILE\\\""
+} > "$LOCAL_CONFIG"
+{% else %}
 {
   printf "%s\n" '[env]'
   printf "%s\n" "DEFAULT_CODEX_PROFILE = \\\"$NEW_PROFILE\\\""
+  printf "%s\n" "WSL_CODEX_PROFILE = \\\"${WSL_CODEX_PROFILE:-}\\\""
 } > "$LOCAL_CONFIG"
+{% endif %}
 
 printf "%s\n" "🦄 Switching Codex profile to: $NEW_PROFILE"
 
@@ -252,9 +298,15 @@ printf "%s\n" "🔄 Please restart your shell or run 'mise env' to reload enviro
 description = "利用可能なプロファイル一覧を表示"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
 PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
-CURRENT_PROFILE="${DEFAULT_CODEX_PROFILE:-}"
+
+{% if env.IS_WSL == 'true' %}
+CURRENT_PROFILE="{{ env.WSL_CODEX_PROFILE }}"
+{% else %}
+CURRENT_PROFILE="{{ env.DEFAULT_CODEX_PROFILE }}"
+{% endif %}
 
 printf "%s\n" "🦄 Available Codex Profiles:"
 if [ -d "$PROFILES_DIR" ]; then
@@ -273,7 +325,7 @@ else
 fi
 
 if [ -n "$CURRENT_PROFILE" ]; then
-  printf "\nCurrent profile: %s\n" "$CURRENT_PROFILE"
+  printf "\nCurrent profile:\\033[36m %s\\033[0m\n" "$CURRENT_PROFILE"
 else
   printf "%s\n" "\n⚠️ No current profile set in DEFAULT_CODEX_PROFILE"
 fi
