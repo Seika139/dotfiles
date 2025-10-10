@@ -1,5 +1,6 @@
 param(
-    [string]$Argument
+    [string]$Argument,
+    [double]$Volume = 0.4
 )
 
 $Message = "Codex finished"
@@ -42,11 +43,12 @@ $ringtoneDir = Join-Path $homePath 'dotfiles\codex\ringtones'
 
 if (Test-Path -LiteralPath $ringtoneDir) {
     $candidates = Get-ChildItem -LiteralPath $ringtoneDir -File |
-        Where-Object { $_.Extension -match '^\.(mp3|wav)$' }
+        Where-Object { $_.Extension -match '^\.(mp3|wav) }
 
     if ($candidates) {
         $pick = Get-Random -InputObject $candidates
         $player = New-Object System.Windows.Media.MediaPlayer
+        $player.Volume = $Volume
         $player.Open([Uri]$pick.FullName)
         $player.Play()
         Start-Sleep -Seconds 10
