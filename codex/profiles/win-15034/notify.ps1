@@ -33,7 +33,7 @@ if (-not [string]::IsNullOrWhiteSpace($Argument) -and $Argument -ne '{message}')
 # Show toast notification if BurntToast is available.
 try {
     Import-Module BurntToast -ErrorAction Stop
-    New-BurntToastNotification -Text 'Codex', $Message, (Get-Date).ToString('HH:mm:ss')
+    New-BurntToastNotification -Text 'Codex On Windows', $Message, (Get-Date).ToString('HH:mm:ss')
 }
 catch {
     Write-Verbose "BurntToast unavailable: $($_.Exception.Message)"

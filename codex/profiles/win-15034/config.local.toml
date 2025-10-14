@@ -1,0 +1,35 @@
+notify = [
+  "pwsh.exe",
+  "-NoLogo",
+  "-ExecutionPolicy",
+  "Bypass",
+  "-STA",
+  "-File",
+  "C:/Users/S13316/dotfiles/codex/profiles/win-15034/notify.ps1",
+]
+
+[tools]
+web_search = true
+
+[mcp_servers.serena]
+command = "C:\\Users\\S13316\\scoop\\shims\\uvx.exe"
+startup_timeout_sec = 60
+args = [
+  "--from",
+  "git+https://github.com/oraios/serena",
+  "serena",
+  "start-mcp-server",
+  "--context",
+  "codex",
+]
+
+[mcp_servers.serena.env]
+SYSTEMDRIVE = "C:"
+SYSTEMROOT = "C:\\Windows"
+COMSPEC = "C:\\Windows\\System32\\cmd.exe"
+HOME = "C:\\Users\\S13316"
+USERPROFILE = "C:\\Users\\S13316"
+HOMEDRIVE = "C:"
+HOMEPATH = "\\Users\\S13316"
+APPDATA = "C:\\Users\\S13316\\AppData\\Roaming"
+LOCALAPPDATA = "C:\\Users\\S13316\\AppData\\Local"

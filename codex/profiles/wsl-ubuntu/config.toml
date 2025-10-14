@@ -1,0 +1,37 @@
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+hide_agent_reasoning = true
+network_access = true
+
+notify = [
+  "pwsh.exe",
+  "-NoLogo",
+  "-ExecutionPolicy",
+  "Bypass",
+  "-STA",
+  "-File",
+  "C:/Users/S13316/dotfiles/codex/profiles/win-15034/notify.ps1",
+]
+
+[tools]
+web_search = true
+
+[mcp_servers.serena]
+command = "uvx"
+args = [
+  "--from",
+  "git+https://github.com/oraios/serena",
+  "serena",
+  "start-mcp-server",
+  "--context",
+  "codex",
+]
+
+[projects.'/mnt/c/Users/S13316/dotfiles']
+trust_level = "trusted"
+
+[projects.'/home/s13316/dotfiles']
+trust_level = "trusted"
+
+[projects."/home/ken"]
+trust_level = "trusted"
