@@ -20,10 +20,12 @@ if (-not [string]::IsNullOrWhiteSpace($Argument) -and $Argument -ne '{message}')
 
         if (-not [string]::IsNullOrWhiteSpace($candidate)) {
             $Message = $candidate.Trim()
-        } else {
+        }
+        else {
             $Message = ($payload | ConvertTo-Json -Compress)
         }
-    } catch {
+    }
+    catch {
         $Message = $Argument
     }
 }
@@ -32,7 +34,8 @@ if (-not [string]::IsNullOrWhiteSpace($Argument) -and $Argument -ne '{message}')
 try {
     Import-Module BurntToast -ErrorAction Stop
     New-BurntToastNotification -Text 'Codex', $Message, (Get-Date).ToString('HH:mm:ss')
-} catch {
+}
+catch {
     Write-Verbose "BurntToast unavailable: $($_.Exception.Message)"
 }
 
@@ -43,7 +46,7 @@ $ringtoneDir = Join-Path $homePath 'dotfiles\codex\ringtones'
 
 if (Test-Path -LiteralPath $ringtoneDir) {
     $candidates = Get-ChildItem -LiteralPath $ringtoneDir -File |
-        Where-Object { $_.Extension -match '^\.(mp3|wav) }
+    Where-Object { $_.Extension -match '^\.(mp3|wav)$' }
 
     if ($candidates) {
         $pick = Get-Random -InputObject $candidates
@@ -51,10 +54,12 @@ if (Test-Path -LiteralPath $ringtoneDir) {
         $player.Volume = $Volume
         $player.Open([Uri]$pick.FullName)
         $player.Play()
-        Start-Sleep -Seconds 10
-    } else {
+        Start-Sleep -Seconds 12
+    }
+    else {
         [Console]::Beep(880, 300)
     }
-} else {
+}
+else {
     [Console]::Beep(880, 300)
 }
