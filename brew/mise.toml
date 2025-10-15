@@ -276,14 +276,14 @@ PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
-  print "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
+  printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
 fi
 
 if {{flag(name="apply")}}; then
   mise run prune_apply -y --prof "$PROFILE"
 else
-  print "🦄 Dry-run: List packages NOT in $BREWFILE_PATH\n"
+  printf "🦄 Dry-run: List packages NOT in $BREWFILE_PATH\n"
 
   TMP_OUT=$(mktemp)
   trap 'rm -f "$TMP_OUT"' EXIT
