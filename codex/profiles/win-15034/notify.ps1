@@ -1,6 +1,6 @@
 param(
     [string]$Argument,
-    [double]$Volume = 0.4
+    [double]$Volume = 0.3
 )
 
 $Message = "Codex finished"
