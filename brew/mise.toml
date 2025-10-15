@@ -75,7 +75,7 @@ fi
 description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
 depends = ["check_env", "brew_available"]
 run = """
-PROFILE={{arg(name="prof")}}
+PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 if [ -z "$PROFILE" ]; then
   {
     echo "❌ Error: profile name is required."
