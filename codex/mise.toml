@@ -157,7 +157,7 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
 
 # 既存のシンボリックリンクを削除（ファイルの場合は退避）
-for file in config.toml AGENTS.md; do
+for file in config.toml AGENTS.md prompts; do
   target="${HOME}/.codex/$file"
   if [ -L "$target" ]; then
     printf "%s\n" "   Removing existing symlink: $target"
@@ -166,15 +166,19 @@ for file in config.toml AGENTS.md; do
     backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
     printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
     mv "$target" "$backup"
+  elif [ -d "$prompts_target" ]; then
+    backup="${prompts_target}.backup.$(date +%Y%m%d_%H%M%S)"
+    printf "%s\n" "   既存のディレクトリをバックアップしました: $prompts_target -> $backup"
+    mv "$prompts_target" "$backup"
   fi
 done
 
 # シンボリックリンク作成
-for file in config.toml AGENTS.md; do
+for file in config.toml AGENTS.md prompts; do
   source="$PROFILE_PATH/$file"
   target="${HOME}/.codex/$file"
 
-  if [ -f "$source" ]; then
+  if [ -f "$source" ] || [ -d "$source" ]; then
     printf "\\033[36m  "
     ln -sfv "$source" "$target"
     printf "\\033[0m"
@@ -213,9 +217,9 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 printf "\n📂 Original files:\n"
-for file in config.toml AGENTS.md; do
+for file in config.toml AGENTS.md prompts; do
   source="$PROFILE_PATH/$file"
-  if [ -f "$source" ]; then
+  if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
   else
     printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
@@ -223,7 +227,7 @@ for file in config.toml AGENTS.md; do
 done
 
 printf "\n🔗 Symlinks in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
-for file in config.toml AGENTS.md; do
+for file in config.toml AGENTS.md prompts; do
   target="${HOME}/.codex/$file"
   source="$PROFILE_PATH/$file"
 

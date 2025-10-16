@@ -1,0 +1,91 @@
+---
+description: "最後の git タグからのコミットを分類し、CHANGELOG.md の Unreleased セクションを更新します"
+argument-hint: "[sinceTag?]"
+allowed-tools: >
+  Bash(git describe:*), Bash(git log:*), Bash(grep:*), Bash(awk:*), Bash(sed:*), Bash(date:*), Bash(tr:*), Bash(git rev-list:*), Bash(git rev-parse:*), Bash(test -f:*), Bash(echo:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(cd:*), Bash(pwd:*), Bash(basename:*), Bash(dirname:*), Bash(touch:CHANGELOG.md), Read(CHANGELOG.md), Write(CHANGELOG.md)
+---
+
+# Claude Prepare CHANGELOG.md
+
+現在のリポジトリの状況を把握した上で、CHANGELOG.md の `## [未リリース]` セクションを更新します。
+以下の手順で実行してください。
+
+## Ensure Git Repository and CHANGELOG.md
+
+まず、現在のディレクトリが Git リポジトリであることを確認します。
+
+```bash
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  echo "Error: This command must be run inside a Git repository."
+  exit 1
+fi
+```
+
+次に、`CHANGELOG.md` ファイルが存在することを確認します。存在しない場合はエラーを出力して終了します。
+現在のディレクトリがリポジトリのルートでない場合は、適宜 `cd` コマンドでルートに移動してください。
+
+```bash
+if [ ! -f CHANGELOG.md ]; then
+  echo "Warning: CHANGELOG.md file not found."
+fi
+```
+
+## Context
+
+- Today: !`date +%Y-%m-%d`
+
+## Analyze Git History
+
+最後のタグと対象となるコミットを分析します：
+
+```bash
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+BASE="${1:-$LATEST_TAG}"
+
+if [ -n "$LATEST_TAG" ]; then
+  echo "Latest tag: $LATEST_TAG"
+else
+  echo "Latest tag: (none found)"
+fi
+
+if [ -n "$BASE" ]; then
+  echo "Base reference: $BASE"
+  echo "Commits since $BASE:"
+  git log "$BASE..HEAD" --pretty=format:'- %s' | head -20
+else
+  echo "Base reference: (repository root)"
+  echo "All commits (showing last 20):"
+  git log --pretty=format:'- %s' | head -20
+fi
+```
+
+## Create CHANGELOG.md if Missing
+
+リポジトリルートに `CHANGELOG.md` が存在しない場合は、以下の `CHANGELOG.md` を作成します。
+
+```markdown
+# CHANGELOG
+
+すべての注目すべき変更はこのファイルに記録されます。
+
+フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/) に基づいており、
+このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に準拠しています。
+
+## [未リリース]
+
+```
+
+## Edit CHANGELOG.md
+
+`CHANGELOG.md` の `## [未リリース]` セクションを
+
+- [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/)
+- [Semantic Versioning](https://semver.org/lang/ja/)
+
+に基づいて更新します。
+
+### Notes
+
+- PR や Issue の番号は `(#123)` のように括弧付きで記載します。
+- このコマンドは `CHANGELOG.md` のみを編集し、コミットやタグ付けは行いません。新しくバージョンや日付を追加しないでください。
+- リスト項目は簡潔かつ統一的な表現で記載してください。
