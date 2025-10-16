@@ -1,10 +1,5 @@
----
-description: "最後の git タグからのコミットを分類し、CHANGELOG.md の Unreleased セクションを更新します"
-argument-hint: "[sinceTag?]"
-allowed-tools: >
-  Bash(git describe:*), Bash(git log:*), Bash(grep:*), Bash(awk:*), Bash(sed:*), Bash(date:*), Bash(tr:*), Bash(git rev-list:*), Bash(git rev-parse:*), Bash(test -f:*), Bash(echo:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(cd:*), Bash(pwd:*), Bash(basename:*), Bash(dirname:*), Bash(touch:CHANGELOG.md), Read(CHANGELOG.md), Write(CHANGELOG.md)
----
-
+description = "最後の git タグからのコミットを分類し、CHANGELOG.md の Unreleased セクションを更新します"
+prompt = '''
 # Prepare CHANGELOG.md
 
 現在のリポジトリの状況を把握した上で、CHANGELOG.md の `## [未リリース]` セクションを更新します。
@@ -88,3 +83,4 @@ fi
 - PR や Issue の番号は `(#123)` のように括弧付きで記載します。
 - このコマンドは `CHANGELOG.md` のみを編集し、コミットやタグ付けは行いません。新しくバージョンや日付を追加しないでください。
 - リスト項目は簡潔かつ統一的な表現で記載してください。
+'''
