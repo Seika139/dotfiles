@@ -34,7 +34,7 @@ if [ ! -f CHANGELOG.md ]; then
 fi
 ```
 
-もし `CHANGELOG.md` が存在しない場合は、 `/release:prepare` コマンドを実行して `CHANGELOG.md` を作成するように促してください。
+もし `CHANGELOG.md` が存在しない場合は、 `/prepare-release` コマンドを実行して `CHANGELOG.md` を作成するように促してください。
 
 ## Context
 

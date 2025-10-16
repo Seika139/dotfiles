@@ -1,10 +1,10 @@
 ---
-allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Bash(make:*), Bash(mise:*), Bash(docker:*), Bash(ripgrep:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(cat:*), Bash(ls:*), Bash(cd:*)
+allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Read(AGENTS.md), Bash(make:*), Bash(mise:*), Bash(docker:*), Bash(ripgrep:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(cat:*), Bash(ls:*), Bash(cd:*)
 argument-hint: "<PR Number or URL>"
 description: "Review a Pull Request (PR Number Required)"
 ---
 
-# Claude Review Pull Request
+# Review Pull Request
 
 以下の手順でプルリクエストをレビューしてください。
 
@@ -36,7 +36,7 @@ gh pr diff $ARGUMENT
 
 ## プロンプトファイルの内容確認
 
-プロンプトファイル`CLAUDE.md`の内容を確認します。
+プロンプトファイル`CLAUDE.md`または`AGENTS.md`の内容を確認します。
 
 ## ユニットテスト
 

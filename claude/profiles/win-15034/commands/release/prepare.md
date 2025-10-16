@@ -5,7 +5,7 @@ allowed-tools: >
   Bash(git describe:*), Bash(git log:*), Bash(grep:*), Bash(awk:*), Bash(sed:*), Bash(date:*), Bash(tr:*), Bash(git rev-list:*), Bash(git rev-parse:*), Bash(test -f:*), Bash(echo:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(cd:*), Bash(pwd:*), Bash(basename:*), Bash(dirname:*), Bash(touch:CHANGELOG.md), Read(CHANGELOG.md), Write(CHANGELOG.md)
 ---
 
-# Claude Prepare CHANGELOG.md
+# Prepare CHANGELOG.md
 
 現在のリポジトリの状況を把握した上で、CHANGELOG.md の `## [未リリース]` セクションを更新します。
 以下の手順で実行してください。
@@ -72,7 +72,6 @@ fi
 このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に準拠しています。
 
 ## [未リリース]
-
 ```
 
 ## Edit CHANGELOG.md

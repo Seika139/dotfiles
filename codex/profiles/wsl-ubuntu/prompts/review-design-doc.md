@@ -1,10 +1,10 @@
 ---
-allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Bash(make:*), Bash(mise:*), Bash(docker:*), Bash(ripgrep:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(cat:*), Bash(ls:*), Bash(cd:*)
+allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh pr checkout:*), Read(CLAUDE.md), Read(AGENTS.md), Bash(make:*), Bash(mise:*), Bash(docker:*), Bash(ripgrep:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(cat:*), Bash(ls:*), Bash(cd:*)
 argument-hint: "<PR Number or URL>"
 description: "Review a Pull Request About Design Docs (PR Number Required)"
 ---
 
-# Claude Review Pull Request About Design Docs
+# Review Pull Request About Design Docs
 
 以下の手順でデザインドキュメントのプルリクエストをレビューしてください。
 デザインドキュメントとは実装を伴う変更に関する設計方針や仕様を記述したドキュメントです。
@@ -39,7 +39,7 @@ gh pr diff $ARGUMENT
 
 ## プロンプトファイルの内容確認
 
-プロンプトファイル`CLAUDE.md`の内容を確認します。
+プロンプトファイル`CLAUDE.md`または`AGENTS.md`の内容を確認します。
 
 ## コミット内容のレビュー
 
