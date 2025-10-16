@@ -93,6 +93,7 @@
     "Cygames",
     "Cysharp",
     "deletable",
+    "Demucs",
     "direnv",
     "Doesnt",
     "dotenv",
@@ -331,5 +332,6 @@
   "gitlens.ai.vscode.model": "copilot:gpt-4",
   "[github-actions-workflow]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
-  }
+  },
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3"
 }
