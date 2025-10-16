@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `CHANGELOG.md` を作成
+- **Codex:**
+  - `cg-m2-mac` プロファイルの追加
+  - スラッシュコマンドの追加
+- **Gemini:**
+  - CLIのプロファイル管理タスクを追加
+  - CLI用のプロンプトを追加
+- **VSCode:** mac用の設定を追加
 - **Codex:**
   - Slash commands for enhanced functionality.
   - Profiles for `cg-m2-mac` and `win-15034`.
@@ -41,11 +49,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Auto-click script with dynamic interval and recording.
   - `ltsv_to_json` conversion script.
 - **Documentation:**
-  - Extensive documentation for `git`, `docker`, `python`, `javascript`, `linux`, `mac`, `windows`, `ai`, `dev_containers`, `github`, `makefile`, `mise`, `tailscale`, `unity`, `uv`.
+  - Extensive documentation for `git`, `docker`, `python`, `javascript`, `linux`, `mac`, `windows`, `ai`, `dev_containers`, `github`, `makefile`,`mise`, `tailscale`, `unity`, `uv`.
   - `Gemini` style guide.
 
 ### Changed
 
+- READMEを更新
+- `mise dump`をオプションなしで実行可能に変更
+- reaperを`--cask`でインストールするように変更
+- スラッシュコマンドを修正
+- `print` を `printf` に修正
+- ファイルの場所を移動
+- **Codex:**
+  - `config.toml` をGit管理から除外
+  - リンクが外れた際の利便性を向上
+- **Gemini:**
+  - command実行にtomlを使用するように変更
+  - commandsを移動
+  - CLIのインストール方法をnpmからbrewに変更
+- 他の動作するcommandsに合わせてtomlを修正
 - **Shell & Git:**
   - Refactored bash scripts for better readability and maintainability.
   - Switched from `echo` to `printf` for more consistent output in scripts.
@@ -62,6 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- 未定義変数を修正
+- 権限拒否の問題を修正
 - **Shell & Git:**
   - Handled spaces in `VSCODE_PATH` correctly.
   - Corrected `is_win` function to properly detect Windows environments.
