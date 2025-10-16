@@ -166,10 +166,10 @@ for file in config.toml AGENTS.md prompts; do
     backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
     printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
     mv "$target" "$backup"
-  elif [ -d "$prompts_target" ]; then
-    backup="${prompts_target}.backup.$(date +%Y%m%d_%H%M%S)"
-    printf "%s\n" "   既存のディレクトリをバックアップしました: $prompts_target -> $backup"
-    mv "$prompts_target" "$backup"
+  elif [ -d "$target" ]; then
+    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
+    printf "%s\n" "   既存のディレクトリをバックアップしました: $target -> $backup"
+    mv "$target" "$backup"
   fi
 done
 
