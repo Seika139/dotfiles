@@ -1,0 +1,303 @@
+[env]
+PROFILES_DIR = "profiles"
+# WSL 環境なら true になる
+IS_WSL = '''{% if
+os() == 'linux' and exec(
+  command="bash -lc 'if grep -qi microsoft /proc/version 2>/dev/null || [ -n ${WSL_DISTRO_NAME:-} ]; then echo 0; else echo 1; fi'",
+  allow_failure=true
+) == "0" %}true{% else %}false{% endif %}'''
+
+[tasks.check_env]
+description = "環境変数がちゃんと設定されているか確認する"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+set -eu
+
+# mise.local.tomlファイルの存在確認と初期化
+if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+  {
+    printf "%s\n" '[env]'
+    printf "%s\n" 'DEFAULT_GEMINI_PROFILE=""'
+    printf "%s\n" 'WSL_GEMINI_PROFILE=""'
+  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+  printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
+  printf "%s\n" "🚨 DEFAULT_GEMINI_PROFILE=\"\" と WSL_GEMINI_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_GEMINI_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'DEFAULT_GEMINI_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+if [ -z "${WSL_GEMINI_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'WSL_GEMINI_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
+  exit 1
+fi
+
+# ~/.gemini ディレクトリが存在しない場合は作成する
+if [ ! -d "${HOME}/.gemini" ]; then
+  mkdir -p "${HOME}/.gemini"
+fi
+"""
+
+[tasks.check]
+description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+depends = ["check_env"]
+hide = true
+quiet = true
+shell = "bash -c"
+run = """
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
+if [ -z "$PROFILE" ]; then
+  printf "❌ Error: DEFAULT_GEMINI_PROFILE is not set in environment variables\n" >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  {
+    printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
+    printf "   Available profiles:\n"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    else
+      printf "   (No profiles directory found)\n"
+    fi
+  } >&2
+  exit 1
+fi
+"""
+
+[tasks.create_profile]
+description = "新しいプロファイルを作成 (Usage: mise run create_profile <profile-name>)"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = """
+PROFILE={{arg(name="prof")}}
+if [ -z "$PROFILE" ]; then
+  {
+    printf "❌ Error: profile name is required.\n"
+    printf "   Usage: mise run create_profile <profile-name>\n"
+  } >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+if [ -d "$PROFILE_PATH" ]; then
+  printf "❌ Error: Profile '$PROFILE' already exists\n" >&2
+  exit 1
+fi
+
+printf "🦄 Creating new Gemini CLI profile: $PROFILE\n"
+mkdir -p "$PROFILE_PATH"
+
+printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
+"""
+
+[tasks.link]
+description = "指定プロファイルの設定ファイルをシンボリックリンクする"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = """
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+mise run check --prof "$PROFILE"
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+printf "%s\n" "🦄 Linking Gemini CLI settings from profile: $PROFILE"
+
+# 既存のシンボリックリンクを削除（ファイルの場合は退避）
+for file in commands; do
+  target="${HOME}/.gemini/$file"
+  if [ -L "$target" ]; then
+    printf "%s\n" "   Removing existing symlink: $target"
+    rm "$target"
+  elif [ -f "$target" ]; then
+    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
+    printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
+    mv "$target" "$backup"
+  elif [ -d "$prompts_target" ]; then
+    backup="${prompts_target}.backup.$(date +%Y%m%d_%H%M%S)"
+    printf "%s\n" "   既存のディレクトリをバックアップしました: $prompts_target -> $backup"
+    mv "$prompts_target" "$backup"
+  fi
+done
+
+# シンボリックリンク作成
+for file in commands; do
+  source="$PROFILE_PATH/$file"
+  target="${HOME}/.gemini/$file"
+
+  if [ -f "$source" ] || [ -d "$source" ]; then
+    printf "\\033[36m  "
+    ln -sfv "$source" "$target"
+    printf "\\033[0m"
+  else
+    printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
+  fi
+done
+
+printf "%s\n" "✅ Linked Gemini CLI settings from profile '$PROFILE'"
+"""
+
+[tasks.status]
+description = "現在のプロファイル設定と~/.geminiの状態を確認"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = """
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+
+PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+
+printf "%s\n" "🦄 Environment Check"
+printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
+printf "env.IS_WSL           =\\033[36m %s\\033[0m\n" "{{ env.IS_WSL }}"
+printf "env.MISE_CONFIG_ROOT =\\033[36m %s\\033[0m\n" "{{ env.MISE_CONFIG_ROOT }}"
+printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  printf "❌ Profile directory does not exist:\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
+  exit 1
+fi
+
+printf "\n📂 Original files:\n"
+for file in commands; do
+  source="$PROFILE_PATH/$file"
+  if [ -f "$source" ] || [ -d "$source" ]; then
+    printf "%s\n" "   ✅ $source"
+  else
+    printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
+  fi
+done
+
+printf "\n🔗 Symlinks in\\033[36m %s/.gemini:\\033[0m\n" "$HOME"
+for file in commands; do
+  target="${HOME}/.gemini/$file"
+  source="$PROFILE_PATH/$file"
+
+  if [ -L "$target" ]; then
+    link_target=$(readlink "$target")
+    # パスの正規化とマッチング（Windows, WSL対応）
+    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]] || [[ "$link_target" == *"\\${source##*/}" ]]; then
+      printf "%s\n" "   ✅ $source -> $link_target"
+    else
+      printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
+    fi
+  elif [ -f "$target" ]; then
+    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない). Use the following command ↓"
+    printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
+  else
+    printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
+  fi
+done
+
+printf "%s\n" "\n💡 Commands:"
+printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
+printf "%s\n" "   プロファイル変更: mise run switch <profile-name>"
+"""
+
+[tasks.switch]
+description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch <profile-name>)"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = """
+NEW_PROFILE={{arg(name="prof")}}
+if [ -z "$NEW_PROFILE" ]; then
+  {
+    printf "%s\n" "❌ Error: profile name is required."
+    printf "%s\n" "   Usage: mise run switch <profile-name>\n"
+    printf "%s\n" "   Available profiles:"
+    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
+    fi
+  } >&2
+  exit 1
+fi
+
+# プロファイル存在確認
+mise run check --prof "$NEW_PROFILE"
+
+# WSL か否かに応じて mise.local.toml の適切な環境変数を更新
+LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+{% if env.IS_WSL == 'true' %}
+{
+  printf "%s\n" '[env]'
+  printf "%s\n" "DEFAULT_GEMINI_PROFILE = \\\"${DEFAULT_GEMINI_PROFILE:-}\\\""
+  printf "%s\n" "WSL_GEMINI_PROFILE = \\\"$NEW_PROFILE\\\""
+} > "$LOCAL_CONFIG"
+{% else %}
+{
+  printf "%s\n" '[env]'
+  printf "%s\n" "DEFAULT_GEMINI_PROFILE = \\\"$NEW_PROFILE\\\""
+  printf "%s\n" "WSL_GEMINI_PROFILE = \\\"${WSL_GEMINI_PROFILE:-}\\\""
+} > "$LOCAL_CONFIG"
+{% endif %}
+
+printf "%s\n" "🦄 Switching Gemini CLI profile to: $NEW_PROFILE"
+
+# シンボリックリンクを更新
+mise run link --prof "$NEW_PROFILE"
+
+printf "%s\n" "✅ Switched to profile '$NEW_PROFILE'"
+printf "%s\n" "🔄 Please restart your shell or run 'mise env' to reload environment variables"
+"""
+
+[tasks.list]
+description = "利用可能なプロファイル一覧を表示"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = """
+PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
+
+{% if env.IS_WSL == 'true' %}
+CURRENT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
+{% else %}
+CURRENT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
+{% endif %}
+
+printf "%s\n" "🦄 Available Gemini CLI Profiles:"
+if [ -d "$PROFILES_DIR" ]; then
+  for profile in "$PROFILES_DIR"/*; do
+    if [ -d "$profile" ]; then
+      profile_name=$(basename "$profile")
+      if [ "$profile_name" = "$CURRENT_PROFILE" ]; then
+        printf "%s\n" "   ✅ $profile_name (current)"
+      else
+        printf "%s\n" "   ⭕ $profile_name"
+      fi
+    fi
+  done
+else
+  printf "%s\n" "   (No profiles found)"
+fi
+
+if [ -n "$CURRENT_PROFILE" ]; then
+  printf "\nCurrent profile:\\033[36m %s\\033[0m\n" "$CURRENT_PROFILE"
+else
+  printf "%s\n" "\n⚠️ No current profile set in DEFAULT_GEMINI_PROFILE"
+fi
+"""
