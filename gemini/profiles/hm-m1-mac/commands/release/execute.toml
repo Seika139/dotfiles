@@ -18,19 +18,18 @@ If the file is missing, suggest running the `/release:prepare` command.
 
 ## 3. Analyze Repository Status
 
-!{echo "=== Repository Status ==="}
-!{echo "Current branch: $(git branch --show-current)"}
+!git branch --show-current
 
-!{STATUS=$(git status --porcelain);
-  if [ -z "$STATUS" ]; then
-    echo "Git status: Clean working directory"
-  else
-    echo "Git status: Uncommitted changes found"
-    git status --porcelain
-  fi}
+git status --porcelain // STATUS
 
-!{LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0");
-  echo "Latest tag: $LATEST_TAG"}
+!{if [ -z "$STATUS" ]; then
+  echo "Git status: Clean working directory"
+else
+  echo "Git status: Uncommitted changes found"
+  git status --porcelain
+fi}
+
+!git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0" // LATEST_TAG
 
 !{echo "Commits since latest tag:";
   if [ "$LATEST_TAG" != "0.0.0" ]; then
@@ -47,7 +46,8 @@ Based on commits since the last tag, propose whether the next version should be:
 - minor (new features, backward-compatible)
 - major (breaking changes)
 
-!{echo "Latest version: $(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0)"}
+!{echo "Latest version:"}
+!git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0
 
 ## 5. Update CHANGELOG.md
 
