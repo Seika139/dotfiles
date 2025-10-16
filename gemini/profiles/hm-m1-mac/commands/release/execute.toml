@@ -1,82 +1,141 @@
-description = "CHANGELOG.md を更新し、SemVer のタグを作成して git push します"
+description = "CHANGELOG.md を更新し、SemVer のタグを作成してgit pushします"
+prompt = '''
+# Update CHANGELOG.md and Create Git Tag
 
-prompt = """
-You are to update CHANGELOG.md and create a new semantic version tag for the current Git repository.
+現在のリポジトリの状況を把握した上で、新しいバージョンを作成します。
+CHANGELOG.md を更新し、SemVer に基づいたタグを作成して git push します。
+以下の手順で実行してください。
 
-Follow these steps carefully:
+## Ensure Git Repository and CHANGELOG.md
 
-## 1. Ensure Git Repository and CHANGELOG.md
+まず、現在のディレクトリが Git リポジトリであることを確認します。
 
-!{if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then echo "Error: Not a Git repository."; exit 1; fi}
-!{if [ ! -f CHANGELOG.md ]; then echo "Warning: CHANGELOG.md not found."; fi}
+```bash
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  echo "Error: This command must be run inside a Git repository."
+  exit 1
+fi
+```
 
-If the file is missing, suggest running the `/release:prepare` command.
+次に、`CHANGELOG.md` ファイルが存在することを確認します。存在しない場合はエラーを出力して終了します。
+現在のディレクトリがリポジトリのルートでない場合は、適宜 `cd` コマンドでルートに移動してください。
 
-## 2. Context
+```bash
+if [ ! -f CHANGELOG.md ]; then
+  echo "Warning: CHANGELOG.md file not found."
+fi
+```
 
-- Today: !{date +%Y-%m-%d}
+もし `CHANGELOG.md` が存在しない場合は、 `/prepare-release` コマンドを実行して `CHANGELOG.md` を作成するように促してください。
 
-## 3. Analyze Repository Status
+## Context
 
-!git branch --show-current
+- Today: !`date +%Y-%m-%d`
 
-git status --porcelain // STATUS
+## Analyze Repository Status
 
-!{if [ -z "$STATUS" ]; then
+現在のリポジトリの状況を確認します：
+
+```bash
+echo "=== Repository Status ==="
+echo "Current branch: $(git branch --show-current)"
+
+STATUS=$(git status --porcelain)
+if [ -z "$STATUS" ]; then
   echo "Git status: Clean working directory"
 else
   echo "Git status: Uncommitted changes found"
   git status --porcelain
-fi}
+fi
 
-!git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0" // LATEST_TAG
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+echo "Latest tag: $LATEST_TAG"
 
-!{echo "Commits since latest tag:";
-  if [ "$LATEST_TAG" != "0.0.0" ]; then
-    git log "$LATEST_TAG..HEAD" --pretty=format:'- %s (%h)' | head -10
-  else
-    echo "- No previous tags found"
-    git log --pretty=format:'- %s (%h)' | head -10
-  fi}
+echo "Commits since latest tag:"
+if [ "$LATEST_TAG" != "0.0.0" ]; then
+  git log "$LATEST_TAG..HEAD" --pretty=format:'- %s (%h)' | head -10
+else
+  echo "- No previous tags found"
+  git log --pretty=format:'- %s (%h)' | head -10
+fi
+```
 
-## 4. Determine Next Version
+## Recognize Latest Version
 
-Based on commits since the last tag, propose whether the next version should be:
-- patch (bug fixes, docs)
-- minor (new features, backward-compatible)
-- major (breaking changes)
+現在のリポジトリで最新のタグを取得します。タグが存在しない場合は `0.0.0` とみなします。
 
-!{echo "Latest version:"}
-!git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0
+```bash
+LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+```
 
-## 5. Update CHANGELOG.md
+## Determine Next Version
 
-Use [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/) and [Semantic Versioning](https://semver.org/lang/ja/).
-Move content from the "Unreleased" section to a new version section `## [X.Y.Z] - YYYY-MM-DD`.
+LATEST_TAG を設定したコミットから最新のコミットまでの変更内容を確認し、次のバージョンを決定します。
+この時、差分の内容に基づいて、次のバージョンを `patch`, `minor`, `major` のいずれかに分類します。
 
-Ensure consistent list formatting.
-If a section is empty, omit it.
+- `patch`: バグ修正やドキュメントの変更など、後方互換性のある修正
+- `minor`: 新機能の追加や後方互換性のある変更
+- `major`: 後方互換性のない変更や大規模なリファクタリング
 
-**Notes:**
-- Include PR/Issue numbers like (#123).
-- Keep the unreleased section and version comparison links up-to-date.
-- Never remove old entries.
+## Update CHANGELOG.md
 
-## 6. Stage & Commit
+新しいバージョン向けに `CHANGELOG.md` を
 
-After determining NEXT_VERSION (e.g., 1.2.3):
+- [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/)
+- [Semantic Versioning](https://semver.org/lang/ja/)
 
-!{echo "Please specify the next version (e.g., 1.2.3):"}
-!{read -p "Next version: " NEXT_VERSION; \
-  if [ -z "$NEXT_VERSION" ]; then echo "Error: Version cannot be empty"; exit 1; fi; \
-  echo "Staging CHANGELOG.md..."; git add CHANGELOG.md; \
-  echo "Committing..."; git commit -m "chore(release): v$NEXT_VERSION"; \
-  echo "Tagging..."; git tag "v$NEXT_VERSION"; \
-  echo "Version v$NEXT_VERSION prepared for release."}
+に基づいて更新します。
 
-## 7. Push to Remote
+`## [未リリース]` セクションの内容を新しいバージョンセクションに移動し、適切な日付を追加します。 → `## [X.Y.Z] - YYYY-MM-DD`
 
-!{echo "Pushing branch and tags..."; git push; git push --tags; echo "Release published successfully."}
+リストのスタイルは統一的に記述し、セクションが空であればそのセクションは記述不要です。
 
-Finally, insert a short release note (from the new CHANGELOG section) in the output.
-"""
+### Notes
+
+- PR や Issue の番号は `(#123)` のように括弧付きで記載します。
+- リスト項目は簡潔かつ統一的な表現で記載してください。
+- `## [未リリース]` セクションと新しいバージョンの比較リンクを追加・更新します。
+- 既存の履歴エントリは削除しないでください。
+
+## Stage & Commit Changes
+
+新しいバージョンを決定したら、変更をコミットしてタグを作成します：
+
+```bash
+# NEXT_VERSION を決定した後に実行（例：NEXT_VERSION="1.2.3"）
+echo "Please specify the next version (e.g., 1.2.3):"
+read -p "Next version: " NEXT_VERSION
+
+if [ -z "$NEXT_VERSION" ]; then
+  echo "Error: Version cannot be empty"
+  exit 1
+fi
+
+echo "Staging CHANGELOG.md..."
+git add CHANGELOG.md
+
+echo "Creating commit..."
+git commit -m "chore(release): v$NEXT_VERSION"
+
+echo "Creating tag..."
+git tag "v$NEXT_VERSION"
+
+echo "Version v$NEXT_VERSION has been prepared for release."
+```
+
+## Push branch and Tags
+
+変更とタグをリモートにプッシュします：
+
+```bash
+echo "Pushing changes to remote..."
+git push
+
+echo "Pushing tags to remote..."
+git push --tags
+
+echo "Release v$NEXT_VERSION has been published successfully!"
+```
+
+Insert a short release note (from the new section) into the command output.
+'''
