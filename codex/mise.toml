@@ -212,13 +212,13 @@ if [ ! -d "$PROFILE_PATH" ]; then
   exit 1
 fi
 
-printf "\n📂 Original files in\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
+printf "\n📂 Original files:\n"
 for file in config.toml AGENTS.md; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ]; then
-    printf "%s\n" "   ✅ $file"
+    printf "%s\n" "   ✅ $source"
   else
-    printf "%s\n" "   ❌ $file (missing)"
+    printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
   fi
 done
 
@@ -231,14 +231,15 @@ for file in config.toml AGENTS.md; do
     link_target=$(readlink "$target")
     # パスの正規化とマッチング（Windows, WSL対応）
     if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]] || [[ "$link_target" == *"\\${source##*/}" ]]; then
-      printf "%s\n" "   ✅ $file -> $source"
+      printf "%s\n" "   ✅ $source -> $link_target"
     else
-      printf "%s\n" "   ⚠️  $file -> $link_target (不一致)"
+      printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
     fi
   elif [ -f "$target" ]; then
-    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない)"
+    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない). Use the following command ↓"
+    printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
   else
-    printf "%s\n" "   ❌ $file (存在しない)"
+    printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
   fi
 done
 
