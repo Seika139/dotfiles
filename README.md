@@ -2,24 +2,31 @@
 
 ## 動作環境
 
-以下の環境で動作することを確認しています。（動作するように dotfiles を育ている）
-bash を使用してください。
+以下の環境で動作することを確認しています。（動作するように dotfiles を育てている）
+shell は bash を使用してください。
 
 - Mac 系: ターミナル、iTerm2、VS Code 内のターミナル
 - Win 系: GitBash、VS Code 内のターミナル（Git Bash）
 
 ## install
 
+このリポジトリをクローンします。
+
+install.sh を実行してホームディレクトリにシンボリックリンクを作成します。
+
 ```bash
 source install.sh
 ```
 
+これによってシェルを起動した時に、 このプロジェクト内で設定した bash_profile や bashrc が読み込まれるようになります。
+
 ## uninstall
 
-install.sh でホームディレクトリに作成したシンボリックリンクを uninstall.sh で削除します。
+install.sh でホームディレクトリに作成したシンボリックリンクを unlink.sh で削除します。
+シンボリックリンクを削除するだけで、元のファイルは削除されません。
 
 ```bash
-source uninstall.sh
+source unlink.sh
 ```
 
 ## Change `__git_ps1`
@@ -36,8 +43,40 @@ normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 
 ## dotfiles とは
 
-ホームディレクトリに置いてあるドット(.)から始まる設定ファイル(.bashrc とか)を管理しているリポジトリのこと。
-先輩につくることを勧められたので私も制作して運用中（4 年目）。
+ホームディレクトリに置いてあるドット `.` から始まる設定ファイル（`.bashrc` など）を管理しているリポジトリのこと。
+先輩につくることを勧められたので私も制作して運用中。（2021年~）
+
+## Features
+
+シェルの初期化以外にこのプロジェクトが実現する機能
+
+### パッケージ管理
+
+Mac では Homebrew を介したパッケージの管理を行う。 → `brew/` を参照。
+Windows では `winget` と `scoop` の2つを使用してパッケージ管理を行う。
+Windows PC の基本的なセットアップは `winget` で行い、`scoop` は開発ツールのインストールに使用するという使い分けを想定している。そのため、scoop側でては全てのパッケージの面倒を見るが、wingetでは特定のパッケージのみを管理する。
+タスクランナーに mise を利用しているので、詳細は各ディレクトリの `mise.toml` を参照。
+
+### AI Coding 環境の管理
+
+Codex CLI や Claude Code の設定を管理する。
+タスクランナーとして `mise` を使用して、pc ごとに profile を設定し、ホームディレクトリの `.codex` / `.claude` 配下にシンボリックリンクを作成する。
+
+### エディタの設定
+
+VS Code と Cursor について
+
+- settings.json
+- keybindings.json
+- task.json
+- snippets
+- vscode_extensions.txt / cursor_extensions.txt
+
+を管理する。拡張機能以外は両方の設定が同期されるようになっている。
+
+### Docker
+
+ローカルPC の Docker 環境を管理する。
 
 ## 参考
 
@@ -53,10 +92,3 @@ normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 ### その他
 
 - [dotfiles を GitHub で管理](https://qiita.com/okamos/items/7f5461814e8ed8916870)
-
-## TODO
-
-- ライセンスを追加したい
-- zsh
-  <!-- TODO bash_profile や bashrc を環境(PC)ごとに変えられるようにする -->
-  <!-- TODO 勝手なpushを抑制する -->
