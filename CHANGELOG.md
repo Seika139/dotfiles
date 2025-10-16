@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-10-17
+
 ### Added
 
 - `CHANGELOG.md` を作成
@@ -104,3 +106,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tools:**
   - Removed `asdf` as it is no longer in use.
   - Deleted unnecessary files and deprecated `GREP_OPTIONS`.
+
+[Unreleased]: https://github.com/Seika139/dotfiles/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Seika139/dotfiles/tree/v0.1.0
