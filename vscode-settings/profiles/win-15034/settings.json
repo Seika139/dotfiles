@@ -60,7 +60,9 @@
     "ltsv",
     "mapfile",
     "Mathf",
+    "meilisearch",
     "mktemp",
+    "Msgpack",
     "mshta",
     "msys",
     "mylogin",
@@ -78,6 +80,7 @@
     "pathlib",
     "pathspec",
     "pecl",
+    "pgvector",
     "phpcbf",
     "phpcs",
     "phpstan",
@@ -92,8 +95,10 @@
     "pyenv",
     "Pylance",
     "pyproject",
+    "pyright",
     "pytest",
     "Qiita",
+    "QUIC",
     "readlink",
     "readwrite",
     "realpath",
@@ -113,6 +118,7 @@
     "urandom",
     "urawa",
     "USERPROFILE",
+    "uvicorn",
     "valkey",
     "varchar",
     "vbscript",
@@ -269,5 +275,9 @@
   "bashBeautify.tabSize": 4,
   // ↓ trailing spaces
   "files.trimTrailingWhitespace": true,
-  "security.workspace.trust.untrustedFiles": "open"
+  "security.workspace.trust.untrustedFiles": "open",
+  "chat.tools.terminal.autoApprove": {
+    "make": true,
+    "poetry": true
+  }
 }
