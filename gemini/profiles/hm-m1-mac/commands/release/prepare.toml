@@ -18,8 +18,8 @@ prompt = '''
 最後のタグは以下のコマンドで取得できます。
 !{git describe --tags --abbrev=0 2>/dev/null}
 
-最後のタグから現在の HEAD までのコミット履歴を以下のコマンドで取得します:
-  git --no-pager log "$LATEST_TAG..HEAD" --pretty=format:'- %s'
+最後のタグから現在の HEAD までのコミット履歴を取得します。
+git log コマンドを利用する場合は必ず git に --no-pager オプションを付与してください。
 ただし、1つもタグが存在しない場合は、リポジトリの最初のコミットから現在までの履歴を取得します。
 
 ## Create CHANGELOG.md if Missing
