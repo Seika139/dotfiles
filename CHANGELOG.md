@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **vscode**: Update keybindings and settings
+
+### Docs
+
+- Add guide on loose coupling and dependency injection
+- **release**: Improve instructions for preparing changelogs
+- **codex**: Add note on WSL file system performance
+
+### Refactor
+
+- **gemini**: Simplify release prepare command and add docs
+
 ## [0.1.0] - 2025-10-17
 
 ### Added
@@ -16,9 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `cg-m2-mac` プロファイルの追加
   - スラッシュコマンドの追加
 - **Gemini:**
-  - CLIのプロファイル管理タスクを追加
-  - CLI用のプロンプトを追加
-- **VSCode:** mac用の設定を追加
+  - CLI のプロファイル管理タスクを追加
+  - CLI 用のプロンプトを追加
+- **VSCode:** mac 用の設定を追加
 - **Codex:**
   - Slash commands for enhanced functionality.
   - Profiles for `cg-m2-mac` and `win-15034`.
@@ -56,20 +70,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- READMEを更新
+- README を更新
 - `mise dump`をオプションなしで実行可能に変更
-- reaperを`--cask`でインストールするように変更
+- reaper を`--cask`でインストールするように変更
 - スラッシュコマンドを修正
 - `print` を `printf` に修正
 - ファイルの場所を移動
 - **Codex:**
-  - `config.toml` をGit管理から除外
+  - `config.toml` を Git 管理から除外
   - リンクが外れた際の利便性を向上
 - **Gemini:**
-  - command実行にtomlを使用するように変更
-  - commandsを移動
-  - CLIのインストール方法をnpmからbrewに変更
-- 他の動作するcommandsに合わせてtomlを修正
+  - command 実行に toml を使用するように変更
+  - commands を移動
+  - CLI のインストール方法を npm から brew に変更
+- 他の動作する commands に合わせて toml を修正
 - **Shell & Git:**
   - Refactored bash scripts for better readability and maintainability.
   - Switched from `echo` to `printf` for more consistent output in scripts.
