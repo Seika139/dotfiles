@@ -24,6 +24,8 @@ $ codex
 
 wsl2 がインストールされていない場合は [wsl.md](../../windows/wsl.md) を参考にインストールする。
 
+codex を利用して作業する場合は Windows のファイルシステム /mnt/c/ ではなく wsl 上にリポジトリをクローンして作業する方が動作が早いのでおすすめ。（らしい）
+
 ## wsl 上で codex を利用する
 
 既に volta が利用可能になっているが、これは [claude_with_wsl.md](../claude/claude_with_wsl.md) を参考にして wsl 上に volta をインストールしたため。
@@ -62,10 +64,3 @@ pipx install uv
 uv --version
 uvx --version
 ```
-
-<!-- TODO
-
-- 設定ファイルが Windows 側と WSL 側で分かれるので、 wsl 側で ~/.codex/config.toml を作成する必要がある。
-- とにかく wsl と Windows の両方で codex  & serena & notify が動くようにする。
-- wsl 上で codex を利用する場合は Windows にマウントされたパスでの作業が遅い（https://developers.openai.com/codex/windows) そのため、wsl 上にリポジトリをクローンして作業することを推奨する。
- -->
