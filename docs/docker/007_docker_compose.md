@@ -15,6 +15,7 @@ Docker Compose は、複数の Docker コンテナを定義し、管理するた
     - [build](#build)
     - [command](#command)
     - [configs](#configs)
+    - [context](#context)
     - [depends\_on](#depends_on)
     - [env\_file](#env_file)
     - [environment](#environment)
@@ -182,6 +183,33 @@ secrets:
 イメージをリビルドせずにサービスの動作を調整できる。
 サービスは `configs` で明示的に許可された設定にのみアクセスできる。
 これはコンテナ起動時に Linux の場合は `/<config_name>`、Windows の場合は `C:\<config_name>` にマウントされることで実現される。このファイルのアクセス権はデフォルトで `0444` である。
+
+### context
+
+Dockerfile のビルドコンテキスト、またはリポジトリルートを指定する。（デフォルトは `.`）
+
+指定された値が相対パスの場合、プロジェクトディレクトリからの相対パスとして解釈される。
+ビルドコンテキストの定義に絶対パスを使用すると、Compose ファイルの移植性が損なわれるため、Compose は警告を表示する。
+
+厳密には Docker イメージをビルドするときに Docker デーモンに送信されるファイルとディレクトリのセットを指す。
+
+```plain
+project-root
+|__ docker
+|   |__ Dockerfile
+|   |__ compose.yml
+|__ src
+    |__ main.py
+    |__ __init__.py
+```
+
+このようなディレクトリ構造の場合に、`src` ディレクトリ内のファイルをビルドコンテキストに含むためにはコンテキストに `..` を指定してリポジトリ全体をビルドコンテキストに含める必要がある。
+
+```yml
+build:
+  context: ..
+  dockerfile: docker/Dockerfile
+```
 
 ### depends_on
 
