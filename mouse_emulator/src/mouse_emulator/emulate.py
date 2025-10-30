@@ -65,13 +65,9 @@ class Emulator:
         print("実行可能なアクション:")
         matrix = []
         for action in self._actions.values():
-            matrix.append([
-                " + ".join(action.combo),
-                f"{action.relative[0]:.3f}",
-                f"{action.relative[1]:.3f}",
-                action.description,
-            ])
-        print(tabulate(matrix, headers=["キー", "x", "y", "説明"]))
+            combo = sorted(action.combo, key=len, reverse=True)
+            matrix.append([" + ".join(combo), action.description])
+        print(tabulate(matrix, headers=["キー", "説明"]))
 
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode) -> None:
         self._key_state.on_press(key)
