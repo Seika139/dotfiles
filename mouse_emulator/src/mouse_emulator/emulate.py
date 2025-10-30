@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tabulate import tabulate
 
 import threading
 import time
@@ -46,6 +47,7 @@ class Emulator:
 
     def run(self) -> None:
         print("エミュレーション開始: esc または ctrl+c で終了します")
+        self.print_profile_info()
         keyboard_listener = keyboard.Listener(
             on_press=self._on_press,
             on_release=self._on_release,
@@ -58,6 +60,20 @@ class Emulator:
         finally:
             keyboard_listener.stop()
             keyboard_listener.join()
+
+    def print_profile_info(self) -> None:
+        print("実行可能なアクション:")
+        matrix = []
+        for action in self._actions.values():
+            matrix.append(
+                [
+                    " + ".join(action.combo),
+                    f"{action.relative[0]:.3f}",
+                    f"{action.relative[1]:.3f}",
+                    action.description,
+                ]
+            )
+        print(tabulate(matrix, headers=["キー", "x", "y", "説明"]))
 
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode) -> None:
         self._key_state.on_press(key)
@@ -85,14 +101,6 @@ class Emulator:
             self._mouse.position = (abs_x, abs_y)
             time.sleep(0.03)
             self._mouse.click(mouse.Button.left, 1)
-        print(
-            "\t".join([
-                f"x:{abs_x}",
-                f"y:{abs_y}",
-                f'key:"{"+".join(action.combo)}"',
-                f'action:"{action.description}"',
-            ])
-        )
 
 
 def emulate_from_profile(profile_path: Path, base_dir: Path) -> None:
