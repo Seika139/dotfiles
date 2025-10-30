@@ -80,7 +80,9 @@ class RegistrationSession:
                     break
                 while True:
                     try:
-                        pending_combo = combo_queue.get_nowait()
+                        pending_combo = tuple(
+                            sorted(combo_queue.get_nowait(), key=len, reverse=True)
+                        )
                     except Empty:
                         break
                     combo_label = " + ".join(pending_combo)

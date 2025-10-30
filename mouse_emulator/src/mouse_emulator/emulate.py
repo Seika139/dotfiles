@@ -1,5 +1,4 @@
 from __future__ import annotations
-from tabulate import tabulate
 
 import threading
 import time
@@ -7,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pynput import keyboard, mouse
+from tabulate import tabulate
 
 from .calibration import run_calibration
 from .color_printer import ColorPrinter, Colors
@@ -65,14 +65,12 @@ class Emulator:
         print("実行可能なアクション:")
         matrix = []
         for action in self._actions.values():
-            matrix.append(
-                [
-                    " + ".join(action.combo),
-                    f"{action.relative[0]:.3f}",
-                    f"{action.relative[1]:.3f}",
-                    action.description,
-                ]
-            )
+            matrix.append([
+                " + ".join(action.combo),
+                f"{action.relative[0]:.3f}",
+                f"{action.relative[1]:.3f}",
+                action.description,
+            ])
         print(tabulate(matrix, headers=["キー", "x", "y", "説明"]))
 
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode) -> None:
