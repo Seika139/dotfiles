@@ -45,6 +45,7 @@
     "hookable",
     "Hotswap",
     "htmlcov",
+    "httpx",
     "infty",
     "innodb",
     "Interactable",
@@ -85,6 +86,7 @@
     "phpcs",
     "phpstan",
     "phpunit",
+    "pipdeptree",
     "pipefail",
     "pipx",
     "plushie",
@@ -123,6 +125,7 @@
     "varchar",
     "vbscript",
     "venv",
+    "virtualenv",
     "winget",
     "worktree",
     "wslpath",
@@ -279,5 +282,7 @@
   "chat.tools.terminal.autoApprove": {
     "make": true,
     "poetry": true
-  }
+  },
+  "diffEditor.renderSideBySide": true,
+  "remote.autoForwardPortsSource": "hybrid"
 }

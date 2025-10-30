@@ -64,5 +64,9 @@
     "key": "ctrl+alt+j",
     "command": "-editor.action.insertSnippet",
     "when": "editorTextFocus && !editorReadonly && editorLangId == 'powershell'"
+  },
+  {
+    "key": "ctrl+oem_1",
+    "command": "chatgpt.openSidebar"
   }
 ]
