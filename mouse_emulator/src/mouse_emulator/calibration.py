@@ -25,7 +25,8 @@ class Calibrator:
 
     def run(self) -> Region:
         self._printer(
-            "キャリブレーション: カーソルを領域の左上に置き、shift+enter を押してください"
+            "キャリブレーション: "
+            "登録する対象となる領域の角にカーソルを置き、shift+enter を押してください",
         )
         self._listener.start()
         self._ready.wait()
@@ -39,9 +40,10 @@ class Calibrator:
         position = self._mouse.position
         with self._lock:
             if len(self._points) == 0:
-                self._printer("左上を記録しました。次に右下を同様に指定してください")
+                self._printer(f"1箇所目: {position}")
+                self._printer("2箇所目に移動して、shift+enter を押してください")
             elif len(self._points) == 1:
-                self._printer("右下を記録しました。キャリブレーション完了です")
+                self._printer(f"2箇所目: {position}")
             else:
                 return
             self._points.append((float(position[0]), float(position[1])))

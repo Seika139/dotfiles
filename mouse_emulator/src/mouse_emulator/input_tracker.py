@@ -44,7 +44,9 @@ class KeyState:
 
     def modifiers_only(self) -> bool:
         with self._lock:
-            return bool(self._pressed) and all(key in MODIFIER_KEYS for key in self._pressed)
+            return bool(self._pressed) and all(
+                key in MODIFIER_KEYS for key in self._pressed
+            )
 
     def add_active_combo(self, combo: Iterable[str]) -> None:
         normalized = normalize_combo(combo)
@@ -54,7 +56,11 @@ class KeyState:
     def clear_inactive_combos(self) -> None:
         with self._lock:
             current = set(self._pressed)
-            inactive = {combo for combo in self._active_combos if not set(combo).issubset(current)}
+            inactive = {
+                combo
+                for combo in self._active_combos
+                if not set(combo).issubset(current)
+            }
             self._active_combos.difference_update(inactive)
 
     def is_combo_active(self, combo: Iterable[str]) -> bool:

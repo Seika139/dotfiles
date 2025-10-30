@@ -45,7 +45,7 @@ uv run ruff cache clear
 
 
 [tasks.register]
-run = "uv run python -m mouse_emulator register {{arg()}}"
+run = "uv run python -m mouse_emulator register {{option(name='prof', default='default')}}"
 
 [tasks.emulate]
-run = "uv run python -m mouse_emulator emulate {{arg()}}"
+run = "uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}"

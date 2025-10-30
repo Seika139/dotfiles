@@ -40,7 +40,11 @@ class Region:
         return self.left <= x <= self.right and self.top <= y <= self.bottom
 
     @classmethod
-    def from_points(cls, first: tuple[float, float], second: tuple[float, float]) -> Region:
+    def from_points(
+        cls,
+        first: tuple[float, float],
+        second: tuple[float, float],
+    ) -> Region:
         x1, y1 = first
         x2, y2 = second
         left = min(x1, x2)

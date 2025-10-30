@@ -8,9 +8,12 @@ from typing import NamedTuple
 from pynput import keyboard, mouse
 
 from .calibration import run_calibration
+from .color_printer import ColorPrinter, Colors
 from .input_tracker import KeyState
 from .keys import MODIFIER_KEYS
-from .profile import Profile, ProfileEntry, ProfileStore
+from .profile import ClickPosition, Profile, ProfileEntry, ProfileStore
+
+print = ColorPrinter(Colors.GREEN)
 
 
 class ClickEvent(NamedTuple):
@@ -23,7 +26,7 @@ class RegistrationSession:
     profile_name: str
 
     def run(self) -> Path:
-        region = run_calibration()
+        region = run_calibration(ColorPrinter(Colors.WARNING))
         print("登録モード: クリックした位置を登録し、esc または ctrl+c で終了します。")
         print("キーを押して指示が表示されたら、対応する座標をクリックしてください")
         key_state = KeyState()
@@ -39,7 +42,6 @@ class RegistrationSession:
                 return
             if all(key in MODIFIER_KEYS for key in combo):
                 last_combo = None
-                print("修飾キー単体では登録できません")
                 return
             if combo == last_combo:
                 return
@@ -82,31 +84,36 @@ class RegistrationSession:
                     except Empty:
                         break
                     combo_label = " + ".join(pending_combo)
-                    print(f"キー: {combo_label} に対応する座標をクリックしてください")
+                    print(f"キー: {combo_label} に登録する座標をクリックしてください")
                 try:
                     event = click_queue.get(timeout=0.1)
                 except Empty:
                     continue
                 if pending_combo is None:
-                    print("先にキーの組み合わせを選択してください")
                     continue
                 try:
                     rel_x, rel_y = region.to_relative(*event.position)
                 except ValueError:
-                    print("キャリブレーション領域外のクリックです。もう一度指定してください")
+                    print(
+                        f"相対座標: {event.position}, "
+                        "キャリブレーション領域外のクリックです。もう一度指定してください"
+                    )
                     continue
                 combo_label = " + ".join(pending_combo)
                 try:
                     entry = ProfileEntry(
                         description=combo_label,
-                        click_position={"x": rel_x, "y": rel_y},
+                        click_position=ClickPosition(x=rel_x, y=rel_y),
                         keys=list(pending_combo),
                     )
                 except ValueError as exc:
                     print(f"エントリの作成に失敗しました: {exc}")
                     continue
                 entries.append(entry)
-                print(f"登録済みアクション数: {len(entries)}")
+                print(
+                    f"登録完了: キー: {combo_label}, "
+                    f"相対座標: ({rel_x:.3f}, {rel_y:.3f})"
+                )
                 pending_combo = None
         finally:
             keyboard_listener.stop()

@@ -8,6 +8,7 @@ from pathlib import Path
 from pynput import keyboard, mouse
 
 from .calibration import run_calibration
+from .color_printer import ColorPrinter, Colors
 from .input_tracker import KeyState
 from .keys import normalize_combo
 from .profile import Profile, ProfileStore
@@ -84,13 +85,17 @@ class Emulator:
             self._mouse.position = (abs_x, abs_y)
             time.sleep(0.03)
             self._mouse.click(mouse.Button.left, 1)
-        print(f"アクション実行: {action.description}")
+        print(
+            f"キー: {' + '.join(action.combo)}, "
+            f"相対座標: ({int(abs_x)}, {int(abs_y)}), "
+            f"アクション: {action.description}"
+        )
 
 
 def emulate_from_profile(profile_path: Path, base_dir: Path) -> None:
     store = ProfileStore(base_dir=base_dir)
     path = store.resolve_path(str(profile_path))
     profile = store.load(path)
-    region = run_calibration()
+    region = run_calibration(ColorPrinter(Colors.GREEN))
     emulator = Emulator(profile=profile, region=region)
     emulator.run()

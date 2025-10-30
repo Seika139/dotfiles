@@ -5,11 +5,7 @@ description = "Keyboard driven mouse automation for macOS"
 requires-python = ">=3.11"
 readme = "README.md"
 authors = [{ name = "mouse_emulator_team" }]
-dependencies = [
-    "pynput>=1.7.6",
-    "typer>=0.12.3",
-    "pydantic>=2.6.4",
-]
+dependencies = ["pynput>=1.7.6", "typer>=0.12.3", "pydantic>=2.6.4"]
 
 [project.scripts]
 mouse-emulator = "mouse_emulator.cli:app"
@@ -18,7 +14,7 @@ mouse-emulator = "mouse_emulator.cli:app"
 package = true
 
 [tool.ruff]
-line-length = 100
+line-length = 88
 target-version = "py311"
 preview = true
 
@@ -30,8 +26,4 @@ combine-as-imports = true
 known-first-party = ["mouse_emulator"]
 
 [dependency-groups]
-dev = [
-    "mypy>=1.18.2",
-    "pytest>=8.4.2",
-    "ruff>=0.14.2",
-]
+dev = ["mypy>=1.18.2", "pytest>=8.4.2", "ruff>=0.14.2"]

@@ -7,13 +7,18 @@ import typer
 from .emulate import emulate_from_profile
 from .register import register_profile
 
-app = typer.Typer(help="キーボードでマウス操作をエミュレートするツール", add_completion=False)
+app = typer.Typer(
+    help="キーボードでマウス操作をエミュレートするツール",
+    add_completion=False,
+)
 
 DEFAULT_PROFILE_DIR = Path("profiles")
 
 
 @app.command()
-def register(name: str = typer.Argument(..., help="保存するプロファイル名 (拡張子不要)")) -> None:
+def register(
+    name: str = typer.Argument(..., help="保存するプロファイル名 (拡張子不要)"),
+) -> None:
     try:
         register_profile(name, base_dir=DEFAULT_PROFILE_DIR)
     except KeyboardInterrupt:
