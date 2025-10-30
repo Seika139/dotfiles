@@ -116,7 +116,7 @@ fi
 if [[ "$EDITOR" = "vscode" ]]; then
   if command -v code >/dev/null 2>&1; then
     printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
-    code --list-extensions > "$dist_path"
+    code --list-extensions | sort -u | uniq > "$dist_path"
   else
     printf "  ❌ コマンドが見つかりません:\\033[36m code\\033[0m\n"
     exit 0
@@ -124,7 +124,7 @@ if [[ "$EDITOR" = "vscode" ]]; then
 else
   if command -v cursor >/dev/null 2>&1; then
     printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
-    cursor --list-extensions > "$dist_path"
+    cursor --list-extensions | sort -u | uniq > "$dist_path"
   else
     printf "  ❌ コマンドが見つかりません:\\033[36m cursor\\033[0m\n"
     exit 0
@@ -275,7 +275,7 @@ for editor in vscode cursor; do
     done <<< "$EXTRA_EXTS"
     read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
     if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
-      $ext_cmd --list-extensions >> "$ext_file"
+      $ext_cmd --list-extensions | sort -u | uniq > "$ext_file"
       printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
     fi
   fi
@@ -395,6 +395,8 @@ for editor in vscode cursor; do
     read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
     if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
       $ext_cmd --list-extensions >> "$ext_file"
+      cat "$ext_file" | sort -u | uniq > "$ext_file".tmp
+      mv "$ext_file".tmp "$ext_file"
       printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
     fi
   fi
