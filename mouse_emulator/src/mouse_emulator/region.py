@@ -27,14 +27,14 @@ class Region:
         rel_y = (y - self.top) / self.height
         return rel_x, rel_y
 
-    def to_absolute(self, rel_x: float, rel_y: float) -> tuple[float, float]:
+    def to_absolute(self, rel_x: float, rel_y: float) -> tuple[int, int]:
         if not 0.0 <= rel_x <= 1.0 or not 0.0 <= rel_y <= 1.0:
             raise ValueError("相対座標は 0.0〜1.0 の範囲で指定してください")
         if self.width <= 0 or self.height <= 0:
             raise ValueError("キャリブレーション領域が無効です")
         abs_x = self.left + rel_x * self.width
         abs_y = self.top + rel_y * self.height
-        return abs_x, abs_y
+        return int(abs_x), int(abs_y)
 
     def contains(self, x: float, y: float) -> bool:
         return self.left <= x <= self.right and self.top <= y <= self.bottom

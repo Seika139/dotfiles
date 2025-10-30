@@ -1,0 +1,132 @@
+{
+  "actions": [
+    {
+      "description": "スキップ",
+      "click_position": {
+        "x": 0.9791913171939869,
+        "y": 0.034741495763232225
+      },
+      "keys": ["backspace"]
+    },
+    {
+      "description": "z",
+      "click_position": {
+        "x": 0.06235712267174573,
+        "y": 0.8888902533873675
+      },
+      "keys": ["z"]
+    },
+    {
+      "description": "n + shift",
+      "click_position": {
+        "x": 0.9198439521103915,
+        "y": 0.7473781161734004
+      },
+      "keys": ["n", "shift"]
+    },
+    {
+      "description": "b + shift",
+      "click_position": {
+        "x": 0.7927770412934146,
+        "y": 0.7492938720373327
+      },
+      "keys": ["b", "shift"]
+    },
+    {
+      "description": "shift + v",
+      "click_position": {
+        "x": 0.6685406811242248,
+        "y": 0.7479225510663555
+      },
+      "keys": ["shift", "v"]
+    },
+    {
+      "description": "c + shift",
+      "click_position": {
+        "x": 0.5289729374544803,
+        "y": 0.7363420524786115
+      },
+      "keys": ["c", "shift"]
+    },
+    {
+      "description": "shift + x",
+      "click_position": {
+        "x": 0.4098646528095283,
+        "y": 0.7435179499774858
+      },
+      "keys": ["shift", "x"]
+    },
+    {
+      "description": "shift + z",
+      "click_position": {
+        "x": 0.2856351852149679,
+        "y": 0.7494780793319415
+      },
+      "keys": ["shift", "z"]
+    },
+    {
+      "description": "a",
+      "click_position": {
+        "x": 0.09815485777172252,
+        "y": 0.6848745343648942
+      },
+      "keys": ["a"]
+    },
+    {
+      "description": "q",
+      "click_position": {
+        "x": 0.09014798357729219,
+        "y": 0.31613246551230095
+      },
+      "keys": ["q"]
+    },
+    {
+      "description": "enter",
+      "click_position": {
+        "x": 0.9693372329988903,
+        "y": 0.944786933562569
+      },
+      "keys": ["enter"]
+    },
+    {
+      "description": "x",
+      "click_position": {
+        "x": 0.31625659676830153,
+        "y": 0.8664865528674935
+      },
+      "keys": ["x"]
+    },
+    {
+      "description": "d",
+      "click_position": {
+        "x": 0.5918493007483039,
+        "y": 0.6136599942691063
+      },
+      "keys": ["d"]
+    },
+    {
+      "description": "w",
+      "click_position": {
+        "x": 0.18967905875000862,
+        "y": 0.3396987187359286
+      },
+      "keys": ["w"]
+    },
+    {
+      "description": "e",
+      "click_position": {
+        "x": 0.5376414988133285,
+        "y": 0.22479430185435342
+      },
+      "keys": ["e"]
+    },
+    {
+      "description": "r",
+      "click_position": {
+        "x": 0.7882118593639073,
+        "y": 0.2652339432641533
+      },
+      "keys": ["r"]
+    }
+  ]
+}

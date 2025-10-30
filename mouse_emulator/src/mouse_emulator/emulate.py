@@ -86,9 +86,12 @@ class Emulator:
             time.sleep(0.03)
             self._mouse.click(mouse.Button.left, 1)
         print(
-            f"キー: {' + '.join(action.combo)}, "
-            f"相対座標: ({int(abs_x)}, {int(abs_y)}), "
-            f"アクション: {action.description}"
+            "\t".join([
+                f"x:{abs_x}",
+                f"y:{abs_y}",
+                f'key:"{"+".join(action.combo)}"',
+                f'action:"{action.description}"',
+            ])
         )
 
 
