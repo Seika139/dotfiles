@@ -1,0 +1,51 @@
+[tools]
+python = "3.11.6"
+uv = "latest"
+
+################
+# Code Quality #
+################
+
+[tasks.check]
+description = "コードの静的解析とテストを実行します"
+shell = "bash -c"
+quiet = true
+run = '''
+printf "\033[33m%s\033[0m\n" "Running ruff check..."
+uv run ruff check .
+printf "\033[33m%s\033[0m\n" "Running mypy..."
+uv run mypy .
+printf "\033[33m%s\033[0m\n" "Running pytest..."
+uv run pytest tests/
+'''
+
+[tasks.format]
+description = "コードのフォーマットを実行します"
+shell = "bash -c"
+quiet = true
+run = '''
+printf "\033[33m%s\033[0m\n" "Running ruff format..."
+uv run ruff format .
+printf "\033[33m%s\033[0m\n" "Running ruff check --fix..."
+uv run ruff check . --fix
+'''
+
+[tasks.ruff-clean]
+description = "Ruffのキャッシュをクリアします"
+shell = "bash -c"
+quiet = true
+run = '''
+printf "\033[33m%s\033[0m\n" "Clearing ruff cache..."
+uv run ruff cache clear
+'''
+
+########################
+# Mouse Emulator Tasks #
+########################
+
+
+[tasks.register]
+run = "uv run python -m mouse_emulator register {{arg()}}"
+
+[tasks.emulate]
+run = "uv run python -m mouse_emulator emulate {{arg()}}"
