@@ -2,6 +2,60 @@
 python = "3.11.6"
 uv = "latest"
 
+#################################
+# Environments and Dependencies #
+#################################
+
+[tasks.venv]
+description = "uvを利用して仮想環境を作成します。ある場合はスキップされます"
+shell = "bash -c"
+quiet = true
+hide = true
+run = '''
+if [ ! -d "{{env.MISE_CONFIG_ROOT}}/.venv" ]; then
+  echo "Creating .venv ..."
+  uv venv --clear
+fi
+'''
+
+[tasks.reset-venv]
+description = "仮想環境をリセットします"
+shell = "bash -c"
+quiet = true
+hide = true
+run = '''
+echo "Resetting .venv ..."
+venv_dir="{{env.MISE_CONFIG_ROOT}}/.venv"
+if [ -d "$venv_dir" ]; then
+  echo "Removing existing .venv ...";
+  chmod -R +w "$venv_dir" 2>/dev/null || true;
+  find "$venv_dir" -type l -delete 2>/dev/null || true;
+  find "$venv_dir" -type f -exec chmod +w {} \; 2>/dev/null || true;
+  rm -rf "$venv_dir" 2>/dev/null || sudo rm -rf "$venv_dir" || true;
+fi
+uv venv --clear
+echo "done. Run 'mise run resolve' to sync dependencies."
+'''
+
+[tasks.resolve]
+description = "依存関係を解決します"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+run = '''
+if [ -d "{{env.MISE_CONFIG_ROOT}}/.venv" ] \
+  && [ ! -f "{{env.MISE_CONFIG_ROOT}}/.venv/bin/python" ] \
+  && [ ! -f "{{env.MISE_CONFIG_ROOT}}/.venv/Scripts/python.exe" ]; then
+  echo "virtual environment is broken. Recreating..."
+  mise run reset-venv
+fi
+
+uv lock
+uv sync
+
+printf "✅ Dependencies are resolved.\n"
+'''
+
 ################
 # Code Quality #
 ################
@@ -43,9 +97,14 @@ uv run ruff cache clear
 # Mouse Emulator Tasks #
 ########################
 
-
 [tasks.register]
+description = "マウスエミュレーターのプロファイルを作成します"
+shell = "bash -c"
+quiet = true
 run = "uv run python -m mouse_emulator register {{option(name='prof', default='default')}}"
 
 [tasks.emulate]
+description = "マウスエミュレーターを実行します"
+shell = "bash -c"
+quiet = true
 run = "uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}"

@@ -7,7 +7,7 @@ class Colors:
 
 
 class ColorPrinter:
-    def __init__(self, color: str = Colors.DEFAULT):
+    def __init__(self, color: str = Colors.DEFAULT) -> None:
         self.color = color
 
     def set_color(self, color: str) -> None:

@@ -61,7 +61,7 @@ class ProfileStore:
         if candidate.suffix:
             if candidate.exists():
                 return candidate
-            if candidate.parent == Path("."):
+            if candidate.parent == Path():
                 return self.base_dir / candidate.name
             candidate_in_base = self.base_dir / candidate
             if candidate_in_base.exists():

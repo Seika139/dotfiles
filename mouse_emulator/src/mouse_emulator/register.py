@@ -81,7 +81,7 @@ class RegistrationSession:
                 while True:
                     try:
                         pending_combo = tuple(
-                            sorted(combo_queue.get_nowait(), key=len, reverse=True)
+                            sorted(combo_queue.get_nowait(), key=len, reverse=True),
                         )
                     except Empty:
                         break
@@ -98,7 +98,7 @@ class RegistrationSession:
                 except ValueError:
                     print(
                         f"相対座標: {event.position}, "
-                        "キャリブレーション領域外のクリックです。もう一度指定してください"
+                        "キャリブレーション領域外のクリックです。もう一度指定してください",
                     )
                     continue
                 combo_label = " + ".join(pending_combo)
@@ -114,7 +114,7 @@ class RegistrationSession:
                 entries.append(entry)
                 print(
                     f"登録完了: キー: {combo_label}, "
-                    f"相対座標: ({rel_x:.3f}, {rel_y:.3f})"
+                    f"相対座標: ({rel_x:.3f}, {rel_y:.3f})",
                 )
                 pending_combo = None
         finally:
