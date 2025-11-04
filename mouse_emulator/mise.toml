@@ -56,6 +56,13 @@ uv sync
 printf "✅ Dependencies are resolved.\n"
 '''
 
+[tasks.upgrade]
+description = "依存関係を最新のバージョンにアップグレードします"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+run = 'uv sync --upgrade'
+
 ################
 # Code Quality #
 ################
