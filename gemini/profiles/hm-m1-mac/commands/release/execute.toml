@@ -97,7 +97,7 @@ fi
 
 git add CHANGELOG.md
 
-git commit -m "chore(release): v$NEXT_VERSION"
+git commit -m ":rocket: Release $NEXT_VERSION"
 git tag "$NEXT_VERSION"
 ```
 
