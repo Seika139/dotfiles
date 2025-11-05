@@ -61,10 +61,10 @@ echo "Latest tag: $LATEST_TAG"
 
 echo "Commits since latest tag:"
 if [ "$LATEST_TAG" != "0.0.0" ]; then
-  git log "$LATEST_TAG..HEAD" --pretty=format:'- %s (%h)' | head -10
+  git --no-pager log "$LATEST_TAG..HEAD" --pretty=format:'- %s (%h)' | head -10
 else
   echo "- No previous tags found"
-  git log --pretty=format:'- %s (%h)' | head -10
+  git --no-pager log --pretty=format:'- %s (%h)' | head -10
 fi
 ```
 
@@ -94,7 +94,7 @@ LATEST_TAG を設定したコミットから最新のコミットまでの変更
 
 に基づいて更新します。
 
-`## [未リリース]` セクションの内容を新しいバージョンセクションに移動し、適切な日付を追加します。 → `## [X.Y.Z] - YYYY-MM-DD`
+`## [Unreleased]` セクションの内容を新しいバージョンセクションに移動し、適切な日付を追加します。 → `## [X.Y.Z] - YYYY-MM-DD`
 
 リストのスタイルは統一的に記述し、セクションが空であればそのセクションは記述不要です。
 
@@ -102,7 +102,7 @@ LATEST_TAG を設定したコミットから最新のコミットまでの変更
 
 - PR や Issue の番号は `(#123)` のように括弧付きで記載します。
 - リスト項目は簡潔かつ統一的な表現で記載してください。
-- `## [未リリース]` セクションと新しいバージョンの比較リンクを追加・更新します。
+- `## [Unreleased]` セクションと新しいバージョンの比較リンクを追加・更新します。
 - 既存の履歴エントリは削除しないでください。
 
 ## Stage & Commit Changes
@@ -111,24 +111,14 @@ LATEST_TAG を設定したコミットから最新のコミットまでの変更
 
 ```bash
 # NEXT_VERSION を決定した後に実行（例：NEXT_VERSION="1.2.3"）
-echo "Please specify the next version (e.g., 1.2.3):"
 read -p "Next version: " NEXT_VERSION
-
 if [ -z "$NEXT_VERSION" ]; then
   echo "Error: Version cannot be empty"
   exit 1
 fi
-
-echo "Staging CHANGELOG.md..."
 git add CHANGELOG.md
-
-echo "Creating commit..."
-git commit -m "chore(release): v$NEXT_VERSION"
-
-echo "Creating tag..."
-git tag "v$NEXT_VERSION"
-
-echo "Version v$NEXT_VERSION has been prepared for release."
+git commit -m ":rocket: Release $NEXT_VERSION"
+git tag "$NEXT_VERSION"
 ```
 
 ## Push branch and Tags
@@ -136,13 +126,8 @@ echo "Version v$NEXT_VERSION has been prepared for release."
 変更とタグをリモートにプッシュします：
 
 ```bash
-echo "Pushing changes to remote..."
 git push
-
-echo "Pushing tags to remote..."
 git push --tags
-
-echo "Release v$NEXT_VERSION has been published successfully!"
 ```
 
 Insert a short release note (from the new section) into the command output.
