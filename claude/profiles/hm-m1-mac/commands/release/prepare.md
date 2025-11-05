@@ -7,7 +7,7 @@ allowed-tools: >
 
 # Prepare CHANGELOG.md
 
-現在のリポジトリの状況を把握した上で、CHANGELOG.md の `## [未リリース]` セクションを更新します。
+現在のリポジトリの状況を把握した上で、CHANGELOG.md の `## [Unreleased]` セクションを更新します。
 以下の手順で実行してください。
 
 ## Ensure Git Repository and CHANGELOG.md
@@ -71,12 +71,12 @@ fi
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/) に基づいており、
 このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に準拠しています。
 
-## [未リリース]
+## [Unreleased]
 ```
 
 ## Edit CHANGELOG.md
 
-`CHANGELOG.md` の `## [未リリース]` セクションを
+`CHANGELOG.md` の `## [Unreleased]` セクションを
 
 - [Keep a Changelog](https://keepachangelog.com/ja/1.0.0/)
 - [Semantic Versioning](https://semver.org/lang/ja/)
