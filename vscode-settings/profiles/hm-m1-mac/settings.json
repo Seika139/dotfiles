@@ -142,6 +142,7 @@
     "pwsh",
     "pyautogui",
     "pycromanager",
+    "pycryptodomex",
     "pyenv",
     "pynput",
     "pyplot",
