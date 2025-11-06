@@ -12,7 +12,7 @@ app = typer.Typer(
     add_completion=False,
 )
 
-DEFAULT_PROFILE_DIR = Path("profiles")
+DEFAULT_PROFILE_DIR = Path("profiles/mouse_emulator")
 
 
 @app.command()

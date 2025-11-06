@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -8,12 +7,11 @@ from pathlib import Path
 from pynput import keyboard, mouse
 from tabulate import tabulate
 
-from .calibration import run_calibration
-from .color_printer import ColorPrinter, Colors
+from mouse_core import ColorPrinter, Colors, PointerController, Region, run_calibration
+
 from .input_tracker import KeyState
 from .keys import normalize_combo
 from .profile import Profile, ProfileStore
-from .region import Region
 
 
 @dataclass(slots=True)
@@ -28,13 +26,12 @@ class Emulator:
     profile: Profile
     region: Region
     _key_state: KeyState = field(init=False, repr=False)
-    _mouse: mouse.Controller = field(init=False, repr=False)
+    _pointer: PointerController = field(init=False, repr=False)
     _actions: dict[tuple[str, ...], Action] = field(init=False, repr=False)
-    _lock: threading.Lock = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         self._key_state = KeyState()
-        self._mouse = mouse.Controller()
+        self._pointer = PointerController()
         self._actions = {
             normalize_combo(action.keys): Action(
                 description=action.description,
@@ -43,7 +40,6 @@ class Emulator:
             )
             for action in self.profile.actions
         }
-        self._lock = threading.Lock()
 
     def run(self) -> None:
         print("エミュレーション開始: esc または ctrl+c で終了します")
@@ -69,7 +65,9 @@ class Emulator:
             matrix.append([" + ".join(combo), action.description])
         print(tabulate(matrix, headers=["キー", "説明"]))
 
-    def _on_press(self, key: keyboard.Key | keyboard.KeyCode) -> None:
+    def _on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
+        if key is None:
+            return
         self._key_state.on_press(key)
         if self._key_state.exit_requested:
             return
@@ -85,16 +83,18 @@ class Emulator:
         action = self._actions[normalized]
         self._perform_action(action)
 
-    def _on_release(self, key: keyboard.Key | keyboard.KeyCode) -> None:
+    def _on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
+        if key is None:
+            return
         self._key_state.on_release(key)
         self._key_state.clear_inactive_combos()
 
     def _perform_action(self, action: Action) -> None:
-        abs_x, abs_y = self.region.to_absolute(*action.relative)
-        with self._lock:
-            self._mouse.position = (abs_x, abs_y)
-            time.sleep(0.03)
-            self._mouse.click(mouse.Button.left, 1)
+        self._pointer.click_relative(
+            self.region,
+            action.relative,
+            button=mouse.Button.left,
+        )
 
 
 def emulate_from_profile(profile_path: Path, base_dir: Path) -> None:

@@ -115,3 +115,19 @@ description = "マウスエミュレーターを実行します"
 shell = "bash -c"
 quiet = true
 run = "uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}"
+
+#########################
+# Auto Emulator Tasks   #
+#########################
+
+[tasks.auto-validate]
+description = "自動エミュレーターの設定ファイルを検証します"
+shell = "bash -c"
+quiet = true
+run = "uv run python -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}"
+
+[tasks.auto-run]
+description = "自動エミュレーターを実行します"
+shell = "bash -c"
+quiet = true
+run = "uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}"

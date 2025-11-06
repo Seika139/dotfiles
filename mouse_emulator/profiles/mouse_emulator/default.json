@@ -1,0 +1,99 @@
+{
+  "actions": [
+    {
+      "description": "決定",
+      "click_position": { "x": 0.95, "y": 0.94 },
+      "keys": ["space"]
+    },
+    {
+      "description": "スキップ",
+      "click_position": { "x": 0.979, "y": 0.0347 },
+      "keys": ["f"]
+    },
+    {
+      "description": "戻る",
+      "click_position": { "x": 0.062, "y": 0.889 },
+      "keys": ["z"]
+    },
+    {
+      "description": "レッスン",
+      "click_position": { "x": 0.09014798357729219, "y": 0.31613246551230095 },
+      "keys": ["q"]
+    },
+    {
+      "description": "オーディション",
+      "click_position": { "x": 0.09815485777172252, "y": 0.6848745343648942 },
+      "keys": ["a"]
+    },
+    {
+      "description": "選択肢(左)",
+      "click_position": { "x": 0.18967905875000862, "y": 0.3396987187359286 },
+      "keys": ["w"]
+    },
+    {
+      "description": "選択肢(中央)",
+      "click_position": { "x": 0.5376414988133285, "y": 0.22479430185435342 },
+      "keys": ["e"]
+    },
+    {
+      "description": "選択肢(右)",
+      "click_position": { "x": 0.7882118593639073, "y": 0.2652339432641533 },
+      "keys": ["r"]
+    },
+    {
+      "description": "休む",
+      "click_position": { "x": 0.31625659676830153, "y": 0.8664865528674935 },
+      "keys": ["x"]
+    },
+    {
+      "description": "中央の決定",
+      "click_position": { "x": 0.5918493007483039, "y": 0.6136599942691063 },
+      "keys": ["d"]
+    },
+    {
+      "description": "ボーカルトレーニング",
+      "click_position": { "x": 0.2856351852149679, "y": 0.7494780793319415 },
+      "keys": ["shift", "q"]
+    },
+    {
+      "description": "ダンストレーニング",
+      "click_position": { "x": 0.4098646528095283, "y": 0.7435179499774858 },
+      "keys": ["shift", "w"]
+    },
+    {
+      "description": "ビジュアルトレーニング",
+      "click_position": { "x": 0.5289729374544803, "y": 0.7363420524786115 },
+      "keys": ["shift", "e"]
+    },
+    {
+      "description": "ラジオ",
+      "click_position": { "x": 0.6685406811242248, "y": 0.7479225510663555 },
+      "keys": ["shift", "a"]
+    },
+    {
+      "description": "トーク",
+      "click_position": { "x": 0.7927770412934146, "y": 0.7492938720373327 },
+      "keys": ["shift", "s"]
+    },
+    {
+      "description": "雑誌",
+      "click_position": { "x": 0.9198439521103915, "y": 0.7473781161734004 },
+      "keys": ["shift", "d"]
+    },
+    {
+      "description": "オーディション(左へ)",
+      "click_position": { "x": 0.290435577215961, "y": 0.46386345747545465 },
+      "keys": ["shift", "z"]
+    },
+    {
+      "description": "オーディション(右へ)",
+      "click_position": { "x": 0.9150652119735275, "y": 0.46408301918057915 },
+      "keys": ["shift", "c"]
+    },
+    {
+      "description": "オーディション(スキップ)",
+      "click_position": { "x": 0.8272805730161807, "y": 0.05085546211524918 },
+      "keys": ["shift", "x"]
+    }
+  ]
+}

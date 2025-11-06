@@ -7,8 +7,8 @@ from typing import NamedTuple
 
 from pynput import keyboard, mouse
 
-from .calibration import run_calibration
-from .color_printer import ColorPrinter, Colors
+from mouse_core import ColorPrinter, Colors, run_calibration
+
 from .input_tracker import KeyState
 from .keys import MODIFIER_KEYS
 from .profile import ClickPosition, Profile, ProfileEntry, ProfileStore
@@ -53,13 +53,17 @@ class RegistrationSession:
                 return
             click_queue.put_nowait(ClickEvent(position=(x, y)))
 
-        def on_press(key: keyboard.Key | keyboard.KeyCode) -> None:
+        def on_press(key: keyboard.Key | keyboard.KeyCode | None) -> None:
+            if key is None:
+                return
             key_state.on_press(key)
             if key_state.exit_requested:
                 return
             emit_combo()
 
-        def on_release(key: keyboard.Key | keyboard.KeyCode) -> None:
+        def on_release(key: keyboard.Key | keyboard.KeyCode | None) -> None:
+            if key is None:
+                return
             key_state.on_release(key)
             emit_combo()
 

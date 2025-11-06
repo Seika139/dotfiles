@@ -1,0 +1,107 @@
+version: "1.1"
+name: "サンプル自動化フロー"
+description: "テンプレート照合と OCR によるフェーズ制御の例"
+runtime:
+  capture_interval: 0.4
+  calibration:
+    enabled: true
+    color: green
+regions:
+  - name: "main"
+    description: "キャリブレーション領域全体を操作対象とする"
+    left: 0.0
+    top: 0.0
+    right: 1.0
+    bottom: 1.0
+steps:
+  - id: "detect_ready_button"
+    description: "開始ボタンの出現を待機します"
+    watch:
+      detector:
+        type: "template"
+        options:
+          # 任意のテンプレート画像を配置してください。以下は仮のパスです。
+          template_path: "../../sample_images/sample.png"
+          threshold: 0.7
+          grayscale: true
+      region: "main"
+      interval: 0.5
+      max_attempts: "infinite"
+      timeout: 6.0
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.7
+    actions:
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "ready"
+    transitions:
+      success: "press_ready_button"
+      timeout: "idle_wait"
+  - id: "press_ready_button"
+    description: "検出したボタンをクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "../../sample_images/sample.png"
+          threshold: 0.7
+          grayscale: true
+      region: "main"
+      interval: 0.25
+      max_attempts: 3
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.65
+    actions:
+      - type: "click"
+        pointer_mode: "move"
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "waiting_result"
+    transitions:
+      success: "await_result"
+      failure: "detect_ready_button"
+  - id: "await_result"
+    description: "結果表示のテキストを OCR で監視します"
+    watch:
+      detector:
+        type: "ocr"
+        options:
+          pattern: "complete"
+          lang: "eng"
+          lowercase: true
+          strip: true
+      interval: 0.5
+      timeout: 10.0
+      max_attempts: "infinite"
+    conditions:
+      op: "match"
+    actions:
+      - type: "wait"
+        options:
+          duration: 0.3
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "complete"
+    transitions:
+      success: null
+      timeout: "idle_wait"
+  - id: "idle_wait"
+    description: "条件未成立時は少し待機してリトライします"
+    watch:
+      detector:
+        type: "null"
+    conditions:
+      op: "always"
+    actions:
+      - type: "wait"
+        options:
+          duration: 1.0
+    transitions:
+      default: "detect_ready_button"
