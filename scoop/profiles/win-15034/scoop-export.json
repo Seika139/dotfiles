@@ -4,22 +4,22 @@
       "Info": "",
       "Name": "busybox",
       "Source": "main",
-      "Updated": "2025-10-08T15:43:52.0514227+09:00",
-      "Version": "5579-g5749feb35"
+      "Updated": "2025-10-20T10:48:53.8525547+09:00",
+      "Version": "5857-g3681e397f"
     },
     {
       "Info": "",
       "Name": "fzf",
       "Source": "main",
-      "Updated": "2025-10-07T19:23:31.425509+09:00",
-      "Version": "0.65.2"
+      "Updated": "2025-10-27T10:59:20.5837297+09:00",
+      "Version": "0.66.1"
     },
     {
       "Info": "",
       "Name": "gh",
       "Source": "main",
-      "Updated": "2025-10-03T15:55:57.1391176+09:00",
-      "Version": "2.81.0"
+      "Updated": "2025-10-27T10:59:22.0767227+09:00",
+      "Version": "2.82.1"
     },
     {
       "Info": "",
@@ -39,23 +39,23 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2025-10-09T10:58:51.7776975+09:00",
-      "Version": "2025.10.6"
+      "Updated": "2025-10-20T10:49:12.2654353+09:00",
+      "Version": "2025.10.11"
     },
     {
       "Info": "",
       "Name": "uv",
       "Source": "main",
-      "Updated": "2025-10-10T11:17:59.2316249+09:00",
-      "Version": "0.9.1"
+      "Updated": "2025-10-27T10:59:23.2844743+09:00",
+      "Version": "0.9.5"
     }
   ],
   "buckets": [
     {
-      "Manifests": 1404,
+      "Manifests": 1407,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2025-10-10T09:37:39+09:00"
+      "Updated": "2025-10-27T09:42:41+09:00"
     }
   ]
 }
