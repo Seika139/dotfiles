@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.12"
 pyautogui = "^0.9.54"
 pynput = "^1.7.7"
+keyboard = "^0.13.5"
 
 
 [build-system]

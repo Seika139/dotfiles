@@ -1,0 +1,2 @@
+# poetry run python -m automation.relative_clicker
+# poetry run python -m automation.click_map_builder
