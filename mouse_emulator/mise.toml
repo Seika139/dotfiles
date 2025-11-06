@@ -114,9 +114,9 @@ shell = "bash -c"
 quiet = true
 run = "uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}"
 
-#########################
-# Auto Emulator Tasks   #
-#########################
+#######################
+# Auto Emulator Tasks #
+#######################
 
 [tasks.auto-validate]
 description = "自動エミュレーターの設定ファイルを検証します"
