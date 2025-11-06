@@ -10,7 +10,6 @@ uv = "latest"
 description = "uvを利用して仮想環境を作成します。ある場合はスキップされます"
 shell = "bash -c"
 quiet = true
-hide = true
 run = '''
 if [ ! -d "{{env.MISE_CONFIG_ROOT}}/.venv" ]; then
   echo "Creating .venv ..."
@@ -22,7 +21,6 @@ fi
 description = "仮想環境をリセットします"
 shell = "bash -c"
 quiet = true
-hide = true
 run = '''
 echo "Resetting .venv ..."
 venv_dir="{{env.MISE_CONFIG_ROOT}}/.venv"
