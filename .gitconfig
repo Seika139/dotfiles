@@ -68,3 +68,8 @@
 	ww = worktree
 [push]
 	autoSetupRemote = true
+[pull]
+	rebase = false
+	autoStash = true
+[merge]
+	conflictStyle = zdiff3
