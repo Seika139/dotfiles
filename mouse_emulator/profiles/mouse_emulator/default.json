@@ -21,8 +21,8 @@
       "keys": ["q"]
     },
     {
-      "description": "オーディション",
-      "click_position": { "x": 0.09815485777172252, "y": 0.6848745343648942 },
+      "description": "オーディション / アイテム",
+      "click_position": { "x": 0.05, "y": 0.53 },
       "keys": ["a"]
     },
     {
