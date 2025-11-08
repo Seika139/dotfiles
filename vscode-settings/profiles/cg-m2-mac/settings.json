@@ -60,6 +60,7 @@
     "pkce",
     "predis",
     "Pydantic",
+    "pynput",
     "pyproject",
     "pyright",
     "pytesseract",
