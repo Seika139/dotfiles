@@ -75,8 +75,18 @@ def _make_step_context(
     return StepRuntimeContext(context=context, step=step)
 
 
-def make_result(*, matched: bool, score: float | None = None) -> DetectionResult:
-    return DetectionResult(matched=matched, score=score, data=None, region=None)
+def make_result(
+    *,
+    matched: bool,
+    score: float | None = None,
+    data: dict[str, Any] | None = None,
+) -> DetectionResult:
+    return DetectionResult(
+        matched=matched,
+        score=score,
+        data=data,
+        region=None,
+    )
 
 
 def test_always_and_never() -> None:
@@ -127,3 +137,29 @@ def test_state_conditions() -> None:
         ),
     )
     assert not_equals.evaluate(make_result(matched=True), ctx=ctx)
+
+
+def test_text_conditions() -> None:
+    ctx = _make_step_context()
+    result = make_result(matched=True, data={"text": "Mission Complete"})
+    contains = ConditionEvaluator(
+        ConditionNode(
+            op="text_contains",
+            options={"value": "complete"},
+        ),
+    )
+    assert contains.evaluate(result, ctx=ctx)
+    equals = ConditionEvaluator(
+        ConditionNode(
+            op="text_equals",
+            options={"value": "mission complete"},
+        ),
+    )
+    assert equals.evaluate(result, ctx=ctx)
+    matches = ConditionEvaluator(
+        ConditionNode(
+            op="text_matches",
+            options={"value": r"mission\s+com"},
+        ),
+    )
+    assert matches.evaluate(result, ctx=ctx)

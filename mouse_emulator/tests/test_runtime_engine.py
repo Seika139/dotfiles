@@ -6,6 +6,7 @@ import importlib
 from typing import cast
 
 from PIL import Image
+from pynput import keyboard
 
 from auto_emulator import actions as action_module, detectors as detector_module
 from auto_emulator.actions import base as action_base, register_action
@@ -22,6 +23,7 @@ from auto_emulator.config import (
 from auto_emulator.detectors import base as detector_base, register_detector
 from auto_emulator.runtime.context import AutomationContext, StepRuntimeContext
 from auto_emulator.runtime.engine import AutomationEngine
+from auto_emulator.runtime.termination import TerminationMonitor
 from auto_emulator.services.capture import FileSequenceCaptureService
 from mouse_core.pointer import PointerController
 from mouse_core.region import Region
@@ -157,3 +159,70 @@ def test_engine_state_transitions_with_shared_state() -> None:
         executor = engine._executors[current_id]  # noqa: SLF001
         current_id = executor.run(context)
     assert context.shared_state["phase"] == "complete"
+
+
+def test_engine_stops_when_monitor_requests_stop() -> None:
+    pointer = RecordingPointer()
+    capture_service = FileSequenceCaptureService([Image.new("RGB", (20, 20), "black")])
+    config = AutomationConfig(
+        version="1.0",
+        steps=[
+            AutomationStep(
+                id="loop",
+                watch=WatchConfig(detector=DetectorSpec(type="null")),
+                conditions=ConditionNode(op="always"),
+                actions=[ActionSpec(type="log", options={"message": "should not run"})],
+                control=StepControl(repeat=3),
+            ),
+        ],
+    )
+    engine = AutomationEngine(
+        config=config,
+        pointer=cast("PointerController", pointer),
+        region=Region(left=0, top=0, right=20, bottom=20),
+        capture_service=capture_service,
+    )
+    monitor = TerminationMonitor()
+    monitor._on_press(keyboard.Key.esc)  # noqa: SLF001
+    engine.run(stop_monitor=monitor)
+    monitor.stop()
+
+
+def test_run_watch_returns_failure_when_stop_requested() -> None:
+    pointer = RecordingPointer()
+    capture_service = FileSequenceCaptureService([Image.new("RGB", (20, 20), "black")])
+    config = AutomationConfig(
+        version="1.0",
+        steps=[
+            AutomationStep(
+                id="loop",
+                watch=WatchConfig(detector=DetectorSpec(type="null")),
+                conditions=ConditionNode(op="always"),
+                actions=[],
+            ),
+        ],
+    )
+    engine = AutomationEngine(
+        config=config,
+        pointer=cast("PointerController", pointer),
+        region=Region(left=0, top=0, right=20, bottom=20),
+        capture_service=capture_service,
+    )
+    executor = engine._executors["loop"]  # noqa: SLF001
+    context = AutomationContext(
+        config=config,
+        pointer=cast("PointerController", pointer),
+        capture_service=capture_service,
+        calibration_region=Region(left=0, top=0, right=20, bottom=20),
+    )
+    step_ctx = StepRuntimeContext(context=context, step=config.steps[0])
+    monitor = TerminationMonitor()
+    monitor._on_press(keyboard.Key.esc)  # noqa: SLF001
+    result_key, detection = executor._run_watch(  # noqa: SLF001
+        step_ctx,
+        stop_monitor=monitor,
+    )
+    monitor.stop()
+    assert result_key == "failure"
+    assert detection.data is not None
+    assert detection.data["reason"] == "user_stop"

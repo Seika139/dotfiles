@@ -196,3 +196,18 @@ class SetStateAction(BaseAction):
             ctx.context.shared_state.pop(key, None)
             return
         ctx.context.shared_state[key] = options.get("value")
+
+
+@register_action("log")
+class LogAction(BaseAction):
+    def execute(self, ctx: StepRuntimeContext) -> None:
+        options = self.spec.options
+        message = options.get("message")
+        if message is None:
+            detection = ctx.last_detection
+            if detection and detection.data and "text" in detection.data:
+                message = detection.data["text"]
+        if message is None:
+            raise ConfigurationError("log アクションには message が必要です")
+        prefix = options.get("prefix", "[auto]")
+        print(f"{prefix} {message!s}", flush=True)

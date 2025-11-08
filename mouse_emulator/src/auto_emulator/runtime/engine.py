@@ -16,6 +16,7 @@ from auto_emulator.config import (
 from auto_emulator.detectors import BaseDetector, DetectionResult, create_detector
 from auto_emulator.exceptions import ConfigurationError, EngineRuntimeError
 from auto_emulator.runtime.context import AutomationContext, StepRuntimeContext
+from auto_emulator.runtime.termination import TerminationMonitor
 from auto_emulator.services.capture import PILScreenCaptureService, ScreenCaptureService
 from mouse_core import PointerController, Region
 
@@ -29,17 +30,25 @@ class StepExecutor:
     control: StepControl | None
     evaluator: ConditionEvaluator
 
-    def run(self, ctx: AutomationContext) -> str | None:
+    def run(
+        self,
+        ctx: AutomationContext,
+        stop_monitor: TerminationMonitor | None = None,
+    ) -> str | None:
         step_ctx = StepRuntimeContext(context=ctx, step=self.step)
         max_repeat = self._resolve_repeat()
         iteration = 0
         target_duration = self.control.max_duration if self.control else None
         start_time = time.monotonic()
         while True:
+            if stop_monitor and stop_monitor.stop_requested():
+                return None
             step_ctx.iteration = iteration
             step_ctx.last_detection = None
-            result_key, detection = self._run_watch(step_ctx)
+            self._emit_step_header(step_ctx)
+            result_key, detection = self._run_watch(step_ctx, stop_monitor)
             step_ctx.last_detection = detection
+            self._emit_detection_summary(result_key, detection)
             next_step = self._handle_result(result_key, step_ctx)
             iteration += 1
             if self._should_break(
@@ -98,12 +107,21 @@ class StepExecutor:
     def _run_watch(
         self,
         step_ctx: StepRuntimeContext,
+        stop_monitor: TerminationMonitor | None,
     ) -> tuple[str, DetectionResult]:
         watch = self.step.watch
         attempts_remaining = self._resolve_attempts(watch)
         interval = watch.interval or step_ctx.config.runtime.capture_interval
         start_time = time.monotonic()
         while True:
+            if stop_monitor and stop_monitor.stop_requested():
+                fallback = DetectionResult(
+                    matched=False,
+                    score=None,
+                    data={"reason": "user_stop"},
+                    region=None,
+                )
+                return "failure", fallback
             detection = self.detector.detect(watch, step_ctx)
             if self.evaluator.evaluate(detection, step_ctx):
                 return "success", detection
@@ -126,6 +144,16 @@ class StepExecutor:
         if attempts is None or attempts == "infinite":
             return None
         return attempts
+
+    @staticmethod
+    def _emit_step_header(step_ctx: StepRuntimeContext) -> None:
+        attempt = step_ctx.iteration + 1
+        print(f"[auto] step={step_ctx.step.id} attempt={attempt}", flush=True)
+
+    @staticmethod
+    def _emit_detection_summary(result_key: str, detection: DetectionResult) -> None:
+        score_repr = f"{detection.score:.3f}" if detection.score is not None else "n/a"
+        print(f"[auto] result={result_key} score={score_repr}", flush=True)
 
 
 class AutomationEngine:
@@ -158,7 +186,7 @@ class AutomationEngine:
             )
             self._executors[step.id] = executor
 
-    def run(self) -> None:
+    def run(self, stop_monitor: TerminationMonitor | None = None) -> None:
         if not self._config.steps:
             raise EngineRuntimeError("実行可能なステップが設定されていません")
         context = AutomationContext(
@@ -172,12 +200,14 @@ class AutomationEngine:
         executed_steps = 0
         iteration_limit = self._config.runtime.max_iterations
         while current_id is not None:
+            if stop_monitor and stop_monitor.stop_requested():
+                break
             executor = self._executors.get(current_id)
             if executor is None:
                 raise EngineRuntimeError(
                     f"未知のステップIDが参照されました: {current_id}"
                 )
-            current_id = executor.run(context)
+            current_id = executor.run(context, stop_monitor=stop_monitor)
             executed_steps += 1
             if iteration_limit is not None and executed_steps >= iteration_limit:
                 break

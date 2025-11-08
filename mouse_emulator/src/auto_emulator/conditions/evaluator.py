@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
+import re
+from typing import Any, Literal
 
 from auto_emulator.config import ConditionNode
 from auto_emulator.detectors import DetectionResult
@@ -48,6 +49,12 @@ class ConditionEvaluator:
             return self._evaluate_state(node.options, ctx, negate=False)
         if op == "state_not_equals":
             return self._evaluate_state(node.options, ctx, negate=True)
+        if op == "text_contains":
+            return self._evaluate_text_condition(node.options, result, mode="contains")
+        if op == "text_equals":
+            return self._evaluate_text_condition(node.options, result, mode="equals")
+        if op == "text_matches":
+            return self._evaluate_text_condition(node.options, result, mode="matches")
         message = f"未対応の条件演算子が指定されました: {op}"
         raise ConfigurationError(message)
 
@@ -74,3 +81,29 @@ class ConditionEvaluator:
         actual = ctx.context.shared_state.get(key)
         result = actual == expected
         return not result if negate else result
+
+    @staticmethod
+    def _evaluate_text_condition(
+        options: dict[str, Any],
+        result: DetectionResult,
+        *,
+        mode: Literal["contains", "equals", "matches"],
+    ) -> bool:
+        data = result.data or {}
+        text_obj = data.get("text")
+        if not isinstance(text_obj, str):
+            return False
+        target = options.get("value")
+        if target is None:
+            raise ConfigurationError("text 条件には value が必要です")
+        ignore_case = bool(options.get("ignore_case", True))
+        source = text_obj.lower() if ignore_case else text_obj
+        if mode == "contains":
+            expected = str(target).lower() if ignore_case else str(target)
+            return expected in source
+        if mode == "equals":
+            expected = str(target).lower() if ignore_case else str(target)
+            return source == expected
+        pattern = str(target)
+        flags = re.IGNORECASE if ignore_case else 0
+        return re.search(pattern, source, flags) is not None

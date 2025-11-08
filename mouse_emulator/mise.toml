@@ -129,3 +129,11 @@ description = "自動エミュレーターを実行します"
 shell = "bash -c"
 quiet = true
 run = "uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}"
+
+[tasks.auto-probe]
+description = "キャリブレーション後に相対座標をプローブします"
+shell = "bash -c"
+quiet = true
+run = '''
+uv run python -m auto_emulator probe --interval {{option(name='interval',default='0.5')}} --mode {{option(name='mode',default='click')}}
+'''

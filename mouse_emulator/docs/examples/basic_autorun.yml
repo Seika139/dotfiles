@@ -1,0 +1,99 @@
+version: "1.1"
+name: "基本サンプル"
+description: "テンプレート検出→クリック→OCR確認の最小例"
+runtime:
+  capture_interval: 0.4
+  calibration:
+    enabled: true
+    color: blue
+regions:
+  - name: "main"
+    description: "キャリブレーション領域全体"
+    left: 0.0
+    top: 0.0
+    right: 1.0
+    bottom: 1.0
+steps:
+  - id: "detect_ready"
+    description: "準備ボタンを待機"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "../../sample_images/ready_button.png"
+          threshold: 0.75
+          grayscale: true
+      region: "main"
+      interval: 0.5
+      max_attempts: "infinite"
+      timeout: 10.0
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.7
+    actions:
+      - type: "log"
+        options:
+          message: "ready ボタンを検出"
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "detected"
+    transitions:
+      success: "click_ready"
+      timeout: "detect_ready"
+  - id: "click_ready"
+    description: "検出した ready ボタンをクリック"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "../../sample_images/ready_button.png"
+          threshold: 0.7
+          grayscale: true
+      region: "main"
+      interval: 0.25
+      max_attempts: 3
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.65
+    actions:
+      - type: "click"
+        options:
+          target:
+            use_detection: true
+      - type: "wait"
+        options:
+          duration: 0.3
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "clicked"
+    transitions:
+      success: "verify_result"
+      failure: "detect_ready"
+  - id: "verify_result"
+    description: "完了テキストを OCR で確認"
+    watch:
+      detector:
+        type: "ocr"
+        options:
+          pattern: "complete"
+          lang: "eng"
+          lowercase: true
+      interval: 0.5
+      timeout: 10.0
+    conditions:
+      op: "text_contains"
+      options:
+        value: "complete"
+    actions:
+      - type: "log"
+        options:
+          prefix: "[auto]"
+          message: "complete テキストを検出しました"
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "complete"

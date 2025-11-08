@@ -122,3 +122,14 @@ def test_drag_action_executes() -> None:
     )
     action.execute(ctx)
     assert pointer.drags[-1][0] == pytest.approx((0.5, 0.5), abs=0.05)
+
+
+def test_log_action_prints_message(capsys: pytest.CaptureFixture[str]) -> None:
+    pointer = RecordingPointer()
+    ctx = _make_context(pointer)
+    action = create_action(
+        ActionSpec(type="log", options={"message": "Hello automation!"}),
+    )
+    action.execute(ctx)
+    captured = capsys.readouterr()
+    assert "Hello automation!" in captured.out

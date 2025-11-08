@@ -110,6 +110,9 @@ class ConditionNode(BaseModel):
         "always",
         "state_equals",
         "state_not_equals",
+        "text_contains",
+        "text_equals",
+        "text_matches",
     ]
     conditions: list[ConditionNode] = Field(default_factory=list)
     target: str | None = None
@@ -127,6 +130,9 @@ class ConditionNode(BaseModel):
             msg = f"{op} 条件に子ノードは指定できません"
             raise ValueError(msg)
         if op in {"state_equals", "state_not_equals"} and value:
+            msg = f"{op} 条件に子ノードは指定できません"
+            raise ValueError(msg)
+        if op in {"text_contains", "text_equals", "text_matches"} and value:
             msg = f"{op} 条件に子ノードは指定できません"
             raise ValueError(msg)
         if op in {"all", "any"} and not value:

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import typer
+from pynput import mouse
 
 from mouse_core import ColorPrinter, Colors, PointerController, run_calibration
 
 from .config import AutomationConfig, load_config
 from .exceptions import AutoEmulatorError, ConfigurationError
 from .runtime.engine import AutomationEngine
+from .runtime.termination import TerminationMonitor
 from .services.capture import PILScreenCaptureService
 
 app = typer.Typer(
@@ -80,7 +83,12 @@ def run_automation(
             region=region,
             capture_service=PILScreenCaptureService(),
         )
-        engine.run()
+        with TerminationMonitor() as monitor:
+            try:
+                engine.run(stop_monitor=monitor)
+            except KeyboardInterrupt:
+                typer.echo("ユーザー操作により自動化を中断しました")
+                raise typer.Exit(code=0) from None
     except AutoEmulatorError as exc:
         typer.echo(f"エラー: {exc}")
         raise typer.Exit(code=1) from None
@@ -104,6 +112,75 @@ def validate_config(
 
 def main() -> None:
     app()
+
+
+@app.command("probe")
+def probe_coordinates(
+    interval: float = typer.Option(
+        0.5,
+        help="interval モード時の表示間隔(秒)",
+    ),
+    mode: str = typer.Option(
+        "click", help="interval: 定期表示, click: クリック時のみ表示"
+    ),
+) -> None:
+    """キャリブレーション後に現在のマウス座標(相対値)を表示する。"""
+    try:
+        printer = ColorPrinter(Colors.BLUE)
+        region = run_calibration(printer)
+        normalized_mode = mode.lower()
+        pointer = PointerController()
+        with TerminationMonitor() as monitor:
+            if normalized_mode == "click":
+                typer.echo(
+                    "クリックするとカーソル位置(絶対 / 相対)を表示します。"
+                    "Ctrl+C で終了。",
+                )
+
+                def on_click(
+                    x: float,
+                    y: float,
+                    button: mouse.Button,
+                    pressed: bool,
+                ) -> None:
+                    if monitor.stop_requested() or not pressed:
+                        return
+                    try:
+                        rel_x, rel_y = region.to_relative(x, y)
+                        typer.echo(
+                            f"click button={button.name} abs=({int(x)}, {int(y)}) "
+                            f"rel=({rel_x:.3f}, {rel_y:.3f})",
+                        )
+                    except ValueError:
+                        typer.echo(
+                            f"click button={button.name} abs=({int(x)}, {int(y)}) "
+                            "rel=領域外",
+                        )
+
+                listener = mouse.Listener(on_click=on_click)
+                listener.start()
+                try:
+                    while listener.is_alive() and not monitor.stop_requested():
+                        time.sleep(0.1)
+                finally:
+                    listener.stop()
+                    listener.join()
+            else:
+                typer.echo(
+                    "現在のカーソル位置(絶対 / 相対)を表示します。Ctrl+C で終了。",
+                )
+                while not monitor.stop_requested():
+                    abs_x, abs_y = pointer.position()
+                    try:
+                        rel_x, rel_y = region.to_relative(abs_x, abs_y)
+                        typer.echo(
+                            f"abs=({abs_x}, {abs_y}) rel=({rel_x:.3f}, {rel_y:.3f})",
+                        )
+                    except ValueError:
+                        typer.echo(f"abs=({abs_x}, {abs_y}) rel=領域外")
+                    time.sleep(max(0.05, interval))
+    except KeyboardInterrupt:
+        typer.echo("プローブを終了します")
 
 
 if __name__ == "__main__":
