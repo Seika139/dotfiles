@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from auto_emulator.actions import create_action
@@ -29,6 +30,7 @@ class StepExecutor:
     transitions: TransitionMapping | None
     control: StepControl | None
     evaluator: ConditionEvaluator
+    log: Callable[[str], None]
 
     def run(
         self,
@@ -43,6 +45,8 @@ class StepExecutor:
         while True:
             if stop_monitor and stop_monitor.stop_requested():
                 return None
+            if stop_monitor:
+                stop_monitor.wait_if_paused()
             step_ctx.iteration = iteration
             step_ctx.last_detection = None
             self._emit_step_header(step_ctx)
@@ -122,6 +126,8 @@ class StepExecutor:
                     region=None,
                 )
                 return "failure", fallback
+            if stop_monitor:
+                stop_monitor.wait_if_paused()
             detection = self.detector.detect(watch, step_ctx)
             if self.evaluator.evaluate(detection, step_ctx):
                 return "success", detection
@@ -145,15 +151,17 @@ class StepExecutor:
             return None
         return attempts
 
-    @staticmethod
-    def _emit_step_header(step_ctx: StepRuntimeContext) -> None:
+    def _emit_step_header(self, step_ctx: StepRuntimeContext) -> None:
         attempt = step_ctx.iteration + 1
-        print(f"[auto] step={step_ctx.step.id} attempt={attempt}", flush=True)
+        self.log(f"[auto] step={step_ctx.step.id} attempt={attempt}")
 
-    @staticmethod
-    def _emit_detection_summary(result_key: str, detection: DetectionResult) -> None:
+    def _emit_detection_summary(
+        self,
+        result_key: str,
+        detection: DetectionResult,
+    ) -> None:
         score_repr = f"{detection.score:.3f}" if detection.score is not None else "n/a"
-        print(f"[auto] result={result_key} score={score_repr}", flush=True)
+        self.log(f"[auto] result={result_key} score={score_repr}")
 
 
 class AutomationEngine:
@@ -163,11 +171,13 @@ class AutomationEngine:
         pointer: PointerController | None = None,
         region: Region | None = None,
         capture_service: ScreenCaptureService | None = None,
+        logger: Callable[[str], None] | None = None,
     ) -> None:
         self._config = config
         self._pointer = pointer or PointerController()
         self._region = region
         self._capture_service = capture_service or PILScreenCaptureService()
+        self._logger = logger or (lambda message: print(message, flush=True))
         self._executors: dict[str, StepExecutor] = {}
         self._prepare()
 
@@ -183,6 +193,7 @@ class AutomationEngine:
                 transitions=step.transitions,
                 control=step.control,
                 evaluator=evaluator,
+                log=self._logger,
             )
             self._executors[step.id] = executor
 
@@ -202,6 +213,8 @@ class AutomationEngine:
         while current_id is not None:
             if stop_monitor and stop_monitor.stop_requested():
                 break
+            if stop_monitor:
+                stop_monitor.wait_if_paused()
             executor = self._executors.get(current_id)
             if executor is None:
                 raise EngineRuntimeError(

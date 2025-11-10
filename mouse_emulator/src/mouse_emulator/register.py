@@ -11,7 +11,14 @@ from mouse_core import ColorPrinter, Colors, run_calibration
 
 from .input_tracker import KeyState
 from .keys import MODIFIER_KEYS
-from .profile import ClickPosition, Profile, ProfileEntry, ProfileStore
+from .profile import (
+    CalibrationPreset,
+    CalibrationSettings,
+    ClickPosition,
+    Profile,
+    ProfileEntry,
+    ProfileStore,
+)
 
 print = ColorPrinter(Colors.GREEN)
 
@@ -129,7 +136,15 @@ class RegistrationSession:
 
         if not entries:
             raise RuntimeError("1 件以上のアクションを登録してください")
-        profile = Profile(actions=entries)
+        calibration_settings = CalibrationSettings(
+            preset=CalibrationPreset(
+                left=region.left,
+                top=region.top,
+                right=region.right,
+                bottom=region.bottom,
+            )
+        )
+        profile = Profile(actions=entries, calibration=calibration_settings)
         target_path = self.profile_store.resolve_path(self.profile_name)
         self.profile_store.save(target_path, profile)
         print(f"プロファイルを保存しました: {target_path}")

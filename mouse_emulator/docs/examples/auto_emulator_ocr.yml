@@ -1,0 +1,88 @@
+version: "1.1"
+name: "ocr-demo"
+description: "OCR で 'READY' を検出して OK ボタンをクリックする例"
+runtime:
+  capture_interval: 0.5
+  calibration:
+    enabled: true
+  controls:
+    pause_toggle: "ctrl+shift+p"
+  logging:
+    file: "logs/ocr_demo.log"
+    mode: overwrite
+regions:
+  - name: "dialog"
+    left: 0.2
+    top: 0.2
+    right: 0.8
+    bottom: 0.8
+steps:
+  - id: "wait_for_ready"
+    description: "READY の文字を待つ"
+    watch:
+      detector:
+        type: "ocr"
+        options:
+          pattern: "\\bREADY\\b"
+          lang: "eng"
+          grayscale: true
+          threshold: 160
+      region: "dialog"
+      interval: 0.5
+      timeout: 15.0
+    conditions:
+      op: "text_matches"
+      options:
+        value: "\\bready\\b"
+        ignore_case: true
+    actions:
+      - type: "log"
+        options:
+          prefix: "[auto]"
+          message: "READY detected"
+      - type: "set_state"
+        options:
+          key: "phase"
+          value: "ready"
+    transitions:
+      success: "tap_ok"
+      timeout: "finish"
+  - id: "tap_ok"
+    description: "OK ボタンをクリック"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "../../sample_images/ok_button.png"
+          threshold: 0.7
+      region: "dialog"
+      interval: 0.3
+      timeout: 5.0
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.7
+    actions:
+      - type: "click"
+        options:
+          target:
+            use_detection: true
+          button: "left"
+      - type: "wait"
+        options:
+          duration: 0.5
+    transitions:
+      success: "finish"
+      timeout: "finish"
+  - id: "finish"
+    description: "終了"
+    watch:
+      detector:
+        type: "null"
+    conditions:
+      op: "always"
+    actions:
+      - type: "log"
+        options:
+          prefix: "[auto]"
+          message: "workflow finished"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from mouse_core.calibration import Calibrator, run_calibration
 from mouse_core.color_printer import ColorPrinter, Colors
+from mouse_core.loggers import SessionLogger
 from mouse_core.pointer import PointerController
 from mouse_core.region import Region
 
@@ -13,5 +14,6 @@ __all__ = [
     "Colors",
     "PointerController",
     "Region",
+    "SessionLogger",
     "run_calibration",
 ]

@@ -106,13 +106,23 @@ uv run ruff cache clear
 description = "マウスエミュレーターのプロファイルを作成します"
 shell = "bash -c"
 quiet = true
-run = "uv run python -m mouse_emulator register {{option(name='prof', default='default')}}"
+depends = ["venv"]
+run = '''
+# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
+# "$PY_BIN" -m mouse_emulator register {{option(name='prof', default='default')}}
+uv run python -m mouse_emulator register {{option(name='prof', default='default')}}
+'''
 
 [tasks.emulate]
 description = "マウスエミュレーターを実行します"
 shell = "bash -c"
 quiet = true
-run = "uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}"
+depends = ["venv"]
+run = '''
+# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
+# "$PY_BIN" -m mouse_emulator emulate {{option(name='prof', default='default')}}
+uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}
+'''
 
 #######################
 # Auto Emulator Tasks #
@@ -122,18 +132,31 @@ run = "uv run python -m mouse_emulator emulate {{option(name='prof', default='de
 description = "自動エミュレーターの設定ファイルを検証します"
 shell = "bash -c"
 quiet = true
-run = "uv run python -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}"
+depends = ["venv"]
+run = '''
+# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
+# "$PY_BIN" -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}
+uv run python -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}
+'''
 
 [tasks.auto-run]
 description = "自動エミュレーターを実行します"
 shell = "bash -c"
 quiet = true
-run = "uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}"
+depends = ["venv"]
+run = '''
+# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
+# "$PY_BIN" -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}
+uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}
+'''
 
 [tasks.auto-probe]
 description = "キャリブレーション後に相対座標をプローブします"
 shell = "bash -c"
 quiet = true
+depends = ["venv"]
 run = '''
+# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
+# "$PY_BIN" -m auto_emulator probe --interval {{option(name='interval',default='0.5')}} --mode {{option(name='mode',default='click')}}
 uv run python -m auto_emulator probe --interval {{option(name='interval',default='0.5')}} --mode {{option(name='mode',default='click')}}
 '''

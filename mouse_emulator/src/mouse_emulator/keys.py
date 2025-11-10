@@ -34,6 +34,16 @@ def normalize_combo(keys: Iterable[str]) -> tuple[str, ...]:
     return normalized
 
 
+def parse_combo(value: str | None) -> tuple[str, ...] | None:
+    if value is None:
+        return None
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    parts = [normalize_key_name(part) for part in cleaned.split("+")]
+    return normalize_combo(parts)
+
+
 def key_to_name(key: keyboard.Key | keyboard.KeyCode) -> str | None:
     if isinstance(key, keyboard.KeyCode):
         if key.char is None:

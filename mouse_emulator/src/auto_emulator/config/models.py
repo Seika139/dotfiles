@@ -11,12 +11,68 @@ from pydantic import (
     model_validator,
 )
 
+from mouse_core import Region
+
+
+class CalibrationPreset(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    left: float
+    top: float
+    right: float
+    bottom: float
+
+    @model_validator(mode="after")
+    def _validate_bounds(self) -> CalibrationPreset:
+        if self.right <= self.left:
+            msg = "preset.right は preset.left より大きな値でなければなりません"
+            raise ValueError(msg)
+        if self.bottom <= self.top:
+            msg = "preset.bottom は preset.top より大きな値でなければなりません"
+            raise ValueError(msg)
+        return self
+
+    def to_region(self) -> Region:
+        return Region(
+            left=self.left,
+            top=self.top,
+            right=self.right,
+            bottom=self.bottom,
+        )
+
 
 class CalibrationSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool = True
     color: Literal["default", "green", "blue", "warning", "fail"] = "green"
+    preset: CalibrationPreset | None = None
+
+
+class ControlSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    pause_toggle: str | None = Field(
+        default="ctrl+p",
+        description="一時停止/再開をトグルするキーコンボ (例: 'ctrl+p')",
+    )
+
+    @field_validator("pause_toggle")
+    @classmethod
+    def _validate_pause_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        return cleaned
+
+
+class LoggingSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    file: str | None = Field(default=None, description="ログ出力先ファイル")
+    mode: Literal["append", "overwrite"] = "append"
 
 
 class RuntimeSettings(BaseModel):
@@ -25,6 +81,8 @@ class RuntimeSettings(BaseModel):
     capture_interval: float = Field(default=0.2, gt=0.0)
     max_iterations: int | None = Field(default=None, gt=0)
     calibration: CalibrationSettings = Field(default_factory=CalibrationSettings)
+    controls: ControlSettings = Field(default_factory=ControlSettings)
+    logging: LoggingSettings = Field(default_factory=LoggingSettings)
 
 
 class RegionDefinition(BaseModel):

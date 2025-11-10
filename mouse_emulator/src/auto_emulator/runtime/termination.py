@@ -1,25 +1,33 @@
 from __future__ import annotations
 
 import threading
+import time
+from collections.abc import Callable
 from contextlib import AbstractContextManager
 from types import TracebackType
-from typing import ClassVar, Self
+from typing import Self
 
 from pynput import keyboard
 
+from mouse_emulator.keys import key_to_name
+
 
 class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
-    """Listens for ESC または Ctrl+C を押下した際に停止フラグを立てる。"""
+    """ESC/Ctrl+C で停止し、任意のホットキーで一時停止をトグルするモニタ。"""
 
-    _CTRL_KEYS: ClassVar[set[keyboard.Key]] = {
-        keyboard.Key.ctrl,
-        keyboard.Key.ctrl_l,
-        keyboard.Key.ctrl_r,
-    }
-
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        pause_combo: tuple[str, ...] | None = None,
+        on_pause: Callable[[], None] | None = None,
+        on_resume: Callable[[], None] | None = None,
+    ) -> None:
         self._stop_event = threading.Event()
-        self._ctrl_pressed = False
+        self._pause_event = threading.Event()
+        self._pressed: set[str] = set()
+        self._pause_combo = set(pause_combo) if pause_combo else None
+        self._pause_combo_active = False
+        self._on_pause = on_pause
+        self._on_resume = on_resume
         self._listener = keyboard.Listener(
             on_press=self._on_press,
             on_release=self._on_release,
@@ -53,23 +61,50 @@ class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
     def wait(self, timeout: float | None = None) -> bool:
         return self._stop_event.wait(timeout)
 
+    def is_paused(self) -> bool:
+        return self._pause_event.is_set()
+
+    def wait_if_paused(self, interval: float = 0.1) -> None:
+        while self.is_paused() and not self.stop_requested():
+            time.sleep(max(0.01, interval))
+
+    def pause_combo_repr(self) -> str | None:
+        if self._pause_combo is None:
+            return None
+        return "+".join(sorted(self._pause_combo))
+
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
-        if key is None:
+        name = key_to_name(key) if key is not None else None
+        if name is None:
             return
-        if key in self._CTRL_KEYS:
-            self._ctrl_pressed = True
-            return
-        if key == keyboard.Key.esc:
+        if name == "esc":
             self._stop_event.set()
             return
+        self._pressed.add(name)
+
+        if {"ctrl", "c"}.issubset(self._pressed):
+            self._stop_event.set()
+            return
+
         if (
-            self._ctrl_pressed
-            and isinstance(key, keyboard.KeyCode)
-            and key.char is not None
-            and key.char.lower() == "c"
+            self._pause_combo is not None
+            and self._pause_combo.issubset(self._pressed)
+            and not self._pause_combo_active
         ):
-            self._stop_event.set()
+            self._pause_combo_active = True
+            if self._pause_event.is_set():
+                self._pause_event.clear()
+                if self._on_resume:
+                    self._on_resume()
+            else:
+                self._pause_event.set()
+                if self._on_pause:
+                    self._on_pause()
 
     def _on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
-        if key in self._CTRL_KEYS:
-            self._ctrl_pressed = False
+        name = key_to_name(key) if key is not None else None
+        if name is None:
+            return
+        self._pressed.discard(name)
+        if self._pause_combo is not None and name in self._pause_combo:
+            self._pause_combo_active = False

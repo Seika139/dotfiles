@@ -4,8 +4,18 @@ description: "テンプレート検出→クリック→OCR確認の最小例"
 runtime:
   capture_interval: 0.4
   calibration:
-    enabled: true
+    enabled: true  # preset を利用する場合は false に変更し、下記 preset を編集
     color: blue
+    preset:
+      left: 120
+      top: 80
+      right: 1320
+      bottom: 880
+  controls:
+    pause_toggle: "ctrl+p"
+  logging:
+    file: "logs/autorun.log"
+    mode: append
 regions:
   - name: "main"
     description: "キャリブレーション領域全体"

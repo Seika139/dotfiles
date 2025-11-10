@@ -3,8 +3,17 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
+
+from mouse_core import Region
 
 from .keys import normalize_combo, normalize_key_name
 
@@ -12,6 +21,56 @@ from .keys import normalize_combo, normalize_key_name
 class ClickPosition(BaseModel):
     x: float = Field(..., ge=0.0, le=1.0)
     y: float = Field(..., ge=0.0, le=1.0)
+
+
+class CalibrationPreset(BaseModel):
+    left: float
+    top: float
+    right: float
+    bottom: float
+
+    @model_validator(mode="after")
+    def _validate_bounds(self) -> CalibrationPreset:
+        if self.right <= self.left:
+            msg = "preset.right は preset.left より大きな値でなければなりません"
+            raise ValueError(msg)
+        if self.bottom <= self.top:
+            msg = "preset.bottom は preset.top より大きな値でなければなりません"
+            raise ValueError(msg)
+        return self
+
+    def to_region(self) -> Region:
+        return Region(
+            left=self.left,
+            top=self.top,
+            right=self.right,
+            bottom=self.bottom,
+        )
+
+
+class CalibrationSettings(BaseModel):
+    enabled: bool = True
+    color: Literal["default", "green", "blue", "warning", "fail"] = "green"
+    preset: CalibrationPreset | None = None
+
+
+class ControlSettings(BaseModel):
+    pause_toggle: str | None = Field(default="ctrl+p")
+
+    @field_validator("pause_toggle")
+    @classmethod
+    def _validate_pause_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        return cleaned
+
+
+class LoggingSettings(BaseModel):
+    file: str | None = Field(default=None)
+    mode: Literal["append", "overwrite"] = "append"
 
 
 class ProfileEntry(BaseModel):
@@ -38,6 +97,9 @@ class ProfileEntry(BaseModel):
 
 class Profile(BaseModel):
     actions: list[ProfileEntry]
+    calibration: CalibrationSettings = Field(default_factory=CalibrationSettings)
+    controls: ControlSettings = Field(default_factory=ControlSettings)
+    logging: LoggingSettings = Field(default_factory=LoggingSettings)
 
     @field_validator("actions")
     @classmethod
