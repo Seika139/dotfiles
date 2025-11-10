@@ -119,8 +119,6 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
-# "$PY_BIN" -m mouse_emulator emulate {{option(name='prof', default='default')}}
 uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}
 '''
 
@@ -134,8 +132,6 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
-# "$PY_BIN" -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}
 uv run python -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}
 '''
 
@@ -145,8 +141,6 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
-# "$PY_BIN" -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}
 uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}
 '''
 
@@ -156,7 +150,5 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
-# "$PY_BIN" -m auto_emulator probe --interval {{option(name='interval',default='0.5')}} --mode {{option(name='mode',default='click')}}
 uv run python -m auto_emulator probe --interval {{option(name='interval',default='0.5')}} --mode {{option(name='mode',default='click')}}
 '''
