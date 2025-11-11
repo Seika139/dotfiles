@@ -52,13 +52,6 @@ alias d='docker'
 alias dc='docker compose'
 alias m='mise run'
 
-# 補完設定: bash-completionを読み込む
-if [ -f /opt/homebrew/etc/bash_completion ]; then
-    source /opt/homebrew/etc/bash_completion
-elif [ -f /usr/local/etc/bash_completion ]; then
-    source /usr/local/etc/bash_completion
-fi
-
 # 補完設定: dockerの補完を設定
 if command -v docker &> /dev/null; then
     # 一時ファイルに補完スクリプトを保存して読み込む
