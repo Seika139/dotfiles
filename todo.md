@@ -17,3 +17,23 @@
     ```
 
     があることを確認する
+
+- [ ] `~/.config/` の一部のアプリを dotfiles で管理するようにする
+
+  - [ ] mise の設定ファイル
+
+    - [ ] `~/.config/mise/config.toml` を dotfiles で管理するようにする
+
+      - [ ] `mise use -g config` で config ファイルのパスを確認する
+
+      - [ ] `dotfiles/config/mise/config.toml` に移動させる
+
+      - [ ] シンボリックリンクを作成する
+
+        ```bash
+        ln -s ~/dotfiles/config/mise/config.toml ~/.config/mise/config.toml
+        ```
+
+      - [ ] dotfiles の管理下に置く
+
+    - [ ] 他に管理したいアプリケーションがあれば同様に行う
