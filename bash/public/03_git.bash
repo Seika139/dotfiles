@@ -6,17 +6,12 @@
 
 # windowsのGitBashにも対応した
 
-if executable brew; then
-    for file in "git-prompt.sh" "git-completion.bash"; do
-        full_path="$(brew --prefix)/etc/bash_completion.d/${file}"
-        if [ -e "${full_path}" ]; then
-            source "${full_path}"
-        else
-            warn "${full_path} が存在しません"
-        fi
-    done
-    unset file full_path
-elif is_msys; then
+if [ -f /opt/homebrew/etc/bash_completion.d/git-prompt.sh ]; then
+    # shellcheck disable=SC1091
+    source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
+fi
+
+if is_msys; then
     full_path='/c/Program Files/Git/etc/profile.d/git-prompt.sh'
     if [ ! -e "${full_path}" ]; then
         warn "${full_path} が存在しません(違う場所にある可能性もあります)"
