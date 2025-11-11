@@ -67,15 +67,19 @@ fi
 
 # 補完設定: miseの補完を設定（シンプルな代替方法）
 if command -v mise &> /dev/null; then
+    eval "$(mise completion bash)"
+
     # miseの基本的な補完（タスク名のみ）
     _mise_complete() {
         local cur="${COMP_WORDS[COMP_CWORD]}"
         local tasks
         tasks=$(mise tasks --no-header 2>/dev/null | awk '{print $1}')
         # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "$tasks" -- "$cur"))
+        IFS=$'\n' COMPREPLY=($(compgen -W "$tasks" -- "$cur"))
+        unset IFS
     }
     complete -F _mise_complete m
+    complete -F _mise_complete mise
 fi
 
 # AWS CLIの補完を有効化する
