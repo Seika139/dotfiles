@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import typer
+from AppKit import NSScreen  # type: ignore[import-untyped]
 from pynput import mouse
 
 from mouse_core import ColorPrinter, Colors, PointerController, Region, run_calibration
@@ -315,17 +316,57 @@ def main() -> None:
     app()
 
 
+def find_screen_for_point(x: float, y: float) -> tuple[NSScreen | None, float | None]:
+    """pynputのグローバル座標 (左上原点・下向きプラス) をもとに、属するスクリーンを返す
+
+    Returns:
+        (screen, y_in_nsscreen)
+    """
+    screens = NSScreen.screens()
+    for s in screens:
+        f = s.frame()
+        # pynput → NSScreen に変換してから判定
+        top = f.origin.y + f.size.height
+        y_ns = top - y  # ← pynput と NSScreen で Y 軸の向きが逆なので変換する
+        if (
+            f.origin.x <= x < f.origin.x + f.size.width
+            and f.origin.y <= y_ns < f.origin.y + f.size.height
+        ):
+            return s, y_ns
+    return None, None
+
+
 @app.command("probe")
 def probe_coordinates(
     interval: float = INTERVAL_OPTION,
     mode: str = MODE_OPTION,
 ) -> None:
     """キャリブレーション後に現在のマウス座標(相対値)を表示する。"""
+
+    def convert_to_relative_in_screen(
+        x: float, y: float
+    ) -> tuple[float, float, NSScreen]:
+        """pynput座標 → スクリーン相対座標 (0.0〜1.0)
+
+        Returns:
+            (rel_x, rel_y, screen)
+
+        Raises:
+            ValueError: スクリーン外の場合
+        """
+        screen, y_ns = find_screen_for_point(x, y)
+        if not screen:
+            raise ValueError("スクリーン外")
+
+        f = screen.frame()
+        rel_x = (x - f.origin.x) / f.size.width
+        rel_y = (y_ns - f.origin.y) / f.size.height
+        return rel_x, rel_y, screen
+
     try:
-        printer = ColorPrinter(Colors.BLUE)
-        region = run_calibration(printer)
         normalized_mode = mode.lower()
         pointer = PointerController()
+
         with TerminationMonitor() as monitor:
             if normalized_mode == "click":
                 typer.echo(
@@ -334,24 +375,23 @@ def probe_coordinates(
                 )
 
                 def on_click(
-                    x: float,
-                    y: float,
-                    button: mouse.Button,
-                    pressed: bool,
+                    x: float, y: float, button: mouse.Button, pressed: bool
                 ) -> None:
-                    if monitor.stop_requested() or not pressed:
+                    if not pressed:
                         return
                     try:
-                        rel_x, rel_y = region.to_relative(x, y)
+                        rel_x, rel_y, screen = convert_to_relative_in_screen(x, y)
+                        f = screen.frame()
                         typer.echo(
-                            f"click button={button.name} abs=({int(x)}, {int(y)}) "
-                            f"rel=({rel_x:.3f}, {rel_y:.3f})",
+                            f"[{button.name}] abs=({int(x)}, {int(y)}) "
+                            f"screen=({int(f.origin.x)}, {int(f.origin.y)}, "
+                            f"{int(f.size.width)}x{int(f.size.height)}) "
+                            f"rel=({rel_x:.3f}, {rel_y:.3f}) "
+                            f"abs-nsscreen=({int(x)}, "
+                            f"{int(f.origin.y + f.size.height - y)})"
                         )
                     except ValueError:
-                        typer.echo(
-                            f"click button={button.name} abs=({int(x)}, {int(y)}) "
-                            "rel=領域外",
-                        )
+                        typer.echo(f"click abs=({int(x)}, {int(y)}) → スクリーン外")
 
                 listener = mouse.Listener(on_click=on_click)
                 listener.start()
@@ -361,19 +401,28 @@ def probe_coordinates(
                 finally:
                     listener.stop()
                     listener.join()
+
             else:
                 typer.echo(
-                    "現在のカーソル位置(絶対 / 相対)を表示します。Ctrl+C で終了。",
+                    "現在のカーソル位置(絶対 / 相対)を表示します。Ctrl+C で終了。"
                 )
                 while not monitor.stop_requested():
                     abs_x, abs_y = pointer.position()
                     try:
-                        rel_x, rel_y = region.to_relative(abs_x, abs_y)
+                        rel_x, rel_y, screen = convert_to_relative_in_screen(
+                            abs_x, abs_y
+                        )
+                        f = screen.frame()
                         typer.echo(
-                            f"abs=({abs_x}, {abs_y}) rel=({rel_x:.3f}, {rel_y:.3f})",
+                            f"abs=({abs_x:.0f}, {abs_y:.0f}) "
+                            f"screen=({int(f.origin.x)}, {int(f.origin.y)}, "
+                            f"{int(f.size.width)}x{int(f.size.height)}) "
+                            f"rel=({rel_x:.3f}, {rel_y:.3f})"
+                            f"abs-nsscreen=({int(abs_x)}, "
+                            f"{int(f.origin.y + f.size.height - abs_y)})"
                         )
                     except ValueError:
-                        typer.echo(f"abs=({abs_x}, {abs_y}) rel=領域外")
+                        typer.echo(f"abs=({abs_x:.0f}, {abs_y:.0f}) → スクリーン外")
                     time.sleep(max(0.05, interval))
     except KeyboardInterrupt:
         typer.echo("プローブを終了します")
