@@ -9,6 +9,18 @@ if [ ! -e "${ROOT}" ]; then
     exit 1
 fi
 
+# カラー出力ヘルパがまだ読み込まれていない環境でも利用できるようにする
+if ! declare -F echo_yellow >/dev/null 2>&1; then
+    echo_yellow() {
+        if [[ $1 == "-n" ]]; then
+            shift
+            printf '\033[00;33m%s\033[0m' "$*"
+        else
+            printf '\033[00;33m%s\033[0m\n' "$*"
+        fi
+    }
+fi
+
 # Ensure this script is sourced; otherwise abort to avoid return errors later.
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo "このスクリプトは source $ROOT/install.sh として実行してください。"
@@ -120,7 +132,8 @@ ssh_config_secret="${ROOT}/.ssh/config.secret"
 if [ ! -e "${ssh_config_secret}" ]; then
     touch "${ssh_config_secret}"
     if [ -e "${HOME}/.ssh/config" ]; then
-        cp "${HOME}/.ssh/config" "${ROOT}/.ssh/config_save_$(now | tr ' ' '_' | tr '/' '-')"
+        backup_suffix="$(date '+%Y-%m-%d_%H-%M-%S')"
+        cp "${HOME}/.ssh/config" "${ROOT}/.ssh/config_save_${backup_suffix}"
     fi
 fi
 ln -sfv "${ROOT}/.ssh/config" "${HOME}/.ssh"

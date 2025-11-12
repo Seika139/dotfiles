@@ -238,7 +238,7 @@ add_path() {
     *) export PATH="$1:${PATH}" ;;
     esac
 
-    echo "Added to PATH: $dir"
+    [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "Added to PATH: $dir"
 }
 
 # 06 : absolute_path

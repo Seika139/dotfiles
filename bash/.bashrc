@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+if [[ -z "${BDOTDIR_SHELL_IS_INTERACTIVE+x}" ]]; then
+    if [[ $- == *i* ]] && [[ -t 1 ]]; then
+        BDOTDIR_SHELL_IS_INTERACTIVE=1
+    else
+        BDOTDIR_SHELL_IS_INTERACTIVE=0
+    fi
+fi
+
 fix_home_path() {
     # 現在のHOMEパスを取得
     local current_home="$HOME"
@@ -45,7 +53,8 @@ fix_home_path() {
 # ホームディレクトリパスを起動時に修正
 fix_home_path
 
-cat <<EOS
+if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]]; then
+cat <<'EOS'
 
        )
     ／⌒⌒⌒ヽ                     ／⌒⌒⌒ヽ
@@ -57,6 +66,7 @@ cat <<EOS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 EOS
+fi
 
 # 上で使ってる太線は http://bubuzuke.s7.xrea.com/ISO10646/ruled.html で手に入れた
 
@@ -65,27 +75,28 @@ EOS
 DIRS=(
     "${BDOTDIR}/public"
     "${BDOTDIR}/private"
+    "${BDOTDIR}/../aws/private/sso"
+    # "${BDOTDIR}/../hot-update"
 )
 
 for dir in "${DIRS[@]}"; do
-    # ディレクトリが存在することを確認する
     if [[ ! -d "${dir}" ]]; then
-        echo "${dir} is not found"
+        [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "${dir} is not found"
         continue
     fi
 
-    # .sh または .bash ファイルのみを検索して読み込む
     while IFS= read -r bashrc; do
-        if [[ -f "${bashrc}" && "${bashrc}" =~ \.(sh|bash)$ ]]; then
-            source "${bashrc}"
-        fi
-    done < <(find "${dir}" -type f)
+        # shellcheck disable=SC1090
+        source "${bashrc}"
+    done < <(LC_ALL=C find "${dir}" -type f \( -name '*.sh' -o -name '*.bash' \) -print | LC_ALL=C sort)
 done
-unset DIRS dir bashrc fix_home_path_flag
+unset DIRS dir bashrc
 
-cat <<EOS
+if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]]; then
+cat <<'EOS'
 
 Finish loading bashrc files
 type "hlp" if you want some help
 
 EOS
+fi
