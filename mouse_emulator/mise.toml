@@ -144,7 +144,7 @@ run = '''
 uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}
 '''
 
-[tasks.auto-probe]
+[tasks.probe]
 description = "キャリブレーション後に相対座標をプローブします"
 shell = "bash -c"
 quiet = true
