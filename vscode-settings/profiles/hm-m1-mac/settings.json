@@ -133,6 +133,7 @@
     "mypy",
     "mysqldump",
     "ndarray",
+    "nsscreen",
     "numpy",
     "OOTD",
     "pathlib",
