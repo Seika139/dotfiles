@@ -2,7 +2,7 @@
 
 - [ ] cg-mc2-mac で以下のことをする
 
-  - [ ] bash-completion@2 を入れ、 v1 をアンインストールする
+  - [x] bash-completion@2 を入れ、 v1 をアンインストールする
 
     ```bash
     brew uninstall bash-completion
