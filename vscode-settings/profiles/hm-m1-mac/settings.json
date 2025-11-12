@@ -80,6 +80,7 @@
     "arange",
     "astype",
     "autoremove",
+    "BDOT",
     "BDOTDIR",
     "Behaviour",
     "Brotli",
@@ -341,5 +342,7 @@
   "[github-actions-workflow]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3"
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
+  "geminicodeassist.displayInlineContextHint": false,
+  "remote.autoForwardPortsSource": "hybrid"
 }
