@@ -38,6 +38,9 @@ def is_region_within_displays(region: Region) -> bool:
     if bounds is None:
         return False
     min_x, min_y, max_x, max_y = bounds
-    if region.left < min_x or region.right > max_x:
-        return False
-    return not (region.top < min_y or region.bottom > max_y)
+    return (
+        region.left >= min_x
+        and region.right <= max_x
+        and region.top >= min_y
+        and region.bottom <= max_y
+    )
