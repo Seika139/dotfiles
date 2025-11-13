@@ -160,7 +160,7 @@ class DragAction(BaseAction):
             msg = "drag アクションには end ターゲットが必要です"
             raise ConfigurationError(msg)
         start_offset = _extract_offset(
-            options.get("start_offset") or options.get("offset")
+            options.get("start_offset") or options.get("offset"),
         )
         end_offset = _extract_offset(options.get("end_offset") or options.get("offset"))
         start_relative = _apply_offset(

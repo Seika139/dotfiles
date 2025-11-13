@@ -1,5 +1,3 @@
-# ruff: noqa: S101
-
 from __future__ import annotations
 
 import importlib
@@ -109,7 +107,8 @@ def test_engine_state_transitions_with_shared_state() -> None:
                 conditions=ConditionNode(op="always"),
                 actions=[
                     ActionSpec(
-                        type="set_state", options={"key": "phase", "value": "phase1"}
+                        type="set_state",
+                        options={"key": "phase", "value": "phase1"},
                     ),
                 ],
                 transitions=TransitionMapping(success="loop_phase"),
@@ -118,7 +117,8 @@ def test_engine_state_transitions_with_shared_state() -> None:
                 id="loop_phase",
                 watch=WatchConfig(detector=DetectorSpec(type="null")),
                 conditions=ConditionNode(
-                    op="state_equals", options={"key": "phase", "value": "phase1"}
+                    op="state_equals",
+                    options={"key": "phase", "value": "phase1"},
                 ),
                 actions=[
                     ActionSpec(type="wait", options={"duration": 0.0}),
@@ -130,11 +130,13 @@ def test_engine_state_transitions_with_shared_state() -> None:
                 id="finalize",
                 watch=WatchConfig(detector=DetectorSpec(type="null")),
                 conditions=ConditionNode(
-                    op="state_equals", options={"key": "phase", "value": "phase1"}
+                    op="state_equals",
+                    options={"key": "phase", "value": "phase1"},
                 ),
                 actions=[
                     ActionSpec(
-                        type="set_state", options={"key": "phase", "value": "complete"}
+                        type="set_state",
+                        options={"key": "phase", "value": "complete"},
                     ),
                 ],
             ),
@@ -156,7 +158,7 @@ def test_engine_state_transitions_with_shared_state() -> None:
     context.reset_region_cache()
     current_id: str | None = config.steps[0].id
     while current_id is not None:
-        executor = engine._executors[current_id]  # noqa: SLF001
+        executor = engine._executors[current_id]
         current_id = executor.run(context)
     assert context.shared_state["phase"] == "complete"
 
@@ -183,7 +185,7 @@ def test_engine_stops_when_monitor_requests_stop() -> None:
         capture_service=capture_service,
     )
     monitor = TerminationMonitor()
-    monitor._on_press(keyboard.Key.esc)  # noqa: SLF001
+    monitor._on_press(keyboard.Key.esc)
     engine.run(stop_monitor=monitor)
     monitor.stop()
 
@@ -208,7 +210,7 @@ def test_run_watch_returns_failure_when_stop_requested() -> None:
         region=Region(left=0, top=0, right=20, bottom=20),
         capture_service=capture_service,
     )
-    executor = engine._executors["loop"]  # noqa: SLF001
+    executor = engine._executors["loop"]
     context = AutomationContext(
         config=config,
         pointer=cast("PointerController", pointer),
@@ -217,8 +219,8 @@ def test_run_watch_returns_failure_when_stop_requested() -> None:
     )
     step_ctx = StepRuntimeContext(context=context, step=config.steps[0])
     monitor = TerminationMonitor()
-    monitor._on_press(keyboard.Key.esc)  # noqa: SLF001
-    result_key, detection = executor._run_watch(  # noqa: SLF001
+    monitor._on_press(keyboard.Key.esc)
+    result_key, detection = executor._run_watch(
         step_ctx,
         stop_monitor=monitor,
     )

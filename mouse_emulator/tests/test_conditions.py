@@ -1,5 +1,3 @@
-# ruff: noqa: S101
-
 from __future__ import annotations
 
 from typing import Any, cast
@@ -133,7 +131,8 @@ def test_state_conditions() -> None:
     assert equals.evaluate(make_result(matched=True), ctx=ctx)
     not_equals = ConditionEvaluator(
         ConditionNode(
-            op="state_not_equals", options={"key": "phase", "value": "battle"}
+            op="state_not_equals",
+            options={"key": "phase", "value": "battle"},
         ),
     )
     assert not_equals.evaluate(make_result(matched=True), ctx=ctx)

@@ -17,7 +17,8 @@ class CaptureConfig:
 
 class ScreenCaptureService(Protocol):
     def capture(
-        self, region: Region | None = None
+        self,
+        region: Region | None = None,
     ) -> Image.Image:  # pragma: no cover - protocol
         ...
 

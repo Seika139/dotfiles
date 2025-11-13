@@ -20,7 +20,7 @@ from .profile import (
     ProfileStore,
 )
 
-print = ColorPrinter(Colors.GREEN)
+printer = ColorPrinter(Colors.GREEN)
 
 
 class ClickEvent(NamedTuple):
@@ -34,8 +34,10 @@ class RegistrationSession:
 
     def run(self) -> Path:
         region = run_calibration(ColorPrinter(Colors.WARNING))
-        print("登録モード: クリックした位置を登録し、esc または ctrl+c で終了します。")
-        print("キーを押して指示が表示されたら、対応する座標をクリックしてください")
+        printer(
+            "登録モード: クリックした位置を登録し、esc または ctrl+c で終了します。",
+        )
+        printer("キーを押して指示が表示されたら、対応する座標をクリックしてください")
         key_state = KeyState()
         click_queue: Queue[ClickEvent] = Queue()
         combo_queue: Queue[tuple[str, ...]] = Queue()
@@ -97,7 +99,7 @@ class RegistrationSession:
                     except Empty:
                         break
                     combo_label = " + ".join(pending_combo)
-                    print(f"キー: {combo_label} に登録する座標をクリックしてください")
+                    printer(f"キー: {combo_label} に登録する座標をクリックしてください")
                 try:
                     event = click_queue.get(timeout=0.1)
                 except Empty:
@@ -107,7 +109,7 @@ class RegistrationSession:
                 try:
                     rel_x, rel_y = region.to_relative(*event.position)
                 except ValueError:
-                    print(
+                    printer(
                         f"相対座標: {event.position}, "
                         "キャリブレーション領域外のクリックです。もう一度指定してください",
                     )
@@ -120,10 +122,10 @@ class RegistrationSession:
                         keys=list(pending_combo),
                     )
                 except ValueError as exc:
-                    print(f"エントリの作成に失敗しました: {exc}")
+                    printer(f"エントリの作成に失敗しました: {exc}")
                     continue
                 entries.append(entry)
-                print(
+                printer(
                     f"登録完了: キー: {combo_label}, "
                     f"相対座標: ({rel_x:.3f}, {rel_y:.3f})",
                 )
@@ -142,12 +144,12 @@ class RegistrationSession:
                 top=region.top,
                 right=region.right,
                 bottom=region.bottom,
-            )
+            ),
         )
         profile = Profile(actions=entries, calibration=calibration_settings)
         target_path = self.profile_store.resolve_path(self.profile_name)
         self.profile_store.save(target_path, profile)
-        print(f"プロファイルを保存しました: {target_path}")
+        printer(f"プロファイルを保存しました: {target_path}")
         return target_path
 
 

@@ -46,6 +46,17 @@
   - `file`: ログ出力先ファイル（省略可能）。
   - `mode`: `"append"` または `"overwrite"`。
 
+### `probe` で取得した値の登録先
+
+`mise run auto-probe`（`python -m auto_emulator probe`）や `mise run probe` の出力は複数の座標系を併記します。JSON プロファイルへ手動登録する際は次を目安にしてください。
+
+- `rel(region)=...`
+  `actions[].click_position` など、キャリブレーション領域に対する相対値が必要なフィールドへ対応します。
+- `abs(pynput)=...`
+  `calibration.preset.left/top/right/bottom` へ書き込む絶対座標です。`probe` と同じ手順でキャリブレーションしていれば、そのままコピーしても `_validate_preset_region` の検証を通過します。
+- `rel(screen)=...` / `abs(nss)=...`
+  マルチディスプレイ時のデバッグ用情報です。登録不要ですが、ディスプレイ境界付近で値のずれがないか確認するときに参照できます。
+
 ## サンプル
 
 - [`docs/examples/mouse_profile_basic.json`](../examples/mouse_profile_basic.json) … 最小構成のプロファイル例。

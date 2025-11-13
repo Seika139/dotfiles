@@ -56,7 +56,11 @@ class StepExecutor:
             next_step = self._handle_result(result_key, step_ctx)
             iteration += 1
             if self._should_break(
-                iteration, max_repeat, result_key, start_time, target_duration
+                iteration,
+                max_repeat,
+                result_key,
+                start_time,
+                target_duration,
             ):
                 return next_step
 
@@ -94,7 +98,9 @@ class StepExecutor:
         return iteration >= max_repeat
 
     def _handle_result(
-        self, result_key: str, step_ctx: StepRuntimeContext
+        self,
+        result_key: str,
+        step_ctx: StepRuntimeContext,
     ) -> str | None:
         if result_key == "success":
             for action in self.actions:
@@ -218,7 +224,7 @@ class AutomationEngine:
             executor = self._executors.get(current_id)
             if executor is None:
                 raise EngineRuntimeError(
-                    f"未知のステップIDが参照されました: {current_id}"
+                    f"未知のステップIDが参照されました: {current_id}",
                 )
             current_id = executor.run(context, stop_monitor=stop_monitor)
             executed_steps += 1

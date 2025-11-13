@@ -1,5 +1,3 @@
-# ruff: noqa: S101
-
 from __future__ import annotations
 
 from typing import cast
@@ -83,7 +81,7 @@ def test_set_state_action_updates_context() -> None:
     pointer = RecordingPointer()
     ctx = _make_context(pointer)
     action = create_action(
-        ActionSpec(type="set_state", options={"key": "phase", "value": "main"})
+        ActionSpec(type="set_state", options={"key": "phase", "value": "main"}),
     )
     action.execute(ctx)
     assert ctx.context.shared_state["phase"] == "main"

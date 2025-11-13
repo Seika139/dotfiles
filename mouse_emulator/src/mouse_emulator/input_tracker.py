@@ -39,7 +39,7 @@ class KeyState:
     def current_combo(self) -> tuple[str, ...]:
         with self._lock:
             if not self._pressed:
-                return tuple()
+                return ()
             return tuple(sorted(self._pressed))
 
     def modifiers_only(self) -> bool:

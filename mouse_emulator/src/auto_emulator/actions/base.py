@@ -20,7 +20,9 @@ class BaseAction(ABC):
         """ステップの実行コンテキストでアクションを実行する。"""
 
     def resolve_option(
-        self, name: str, default: T_Option | None = None
+        self,
+        name: str,
+        default: T_Option | None = None,
     ) -> T_Option | None:
         value = self.spec.options.get(name, default)
         return cast("T_Option | None", value)

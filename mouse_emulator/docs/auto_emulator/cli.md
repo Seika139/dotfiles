@@ -36,6 +36,19 @@
 
 実行中は `esc` または `ctrl+c` で停止できます。`--pause-key` を指定した場合は一時停止/再開をトグル可能です。
 
+### 取得できる座標の使い分け
+
+`probe` の出力は複数の座標系を同時に表示します。設定ファイルへ転記するときは次のガイドラインに従ってください。
+
+- `rel(region)=...`
+  - 自動化シナリオの `actions[].options.target.relative` など、キャリブレーション領域に対する相対座標 (0.0〜1.0) が必要な場所で利用します。
+- `abs(pynput)=...`
+  - `runtime.calibration.preset.{left,top,right,bottom}` に保存する絶対座標です。`probe` 実行時のキャリブレーションと同じ表示領域であれば、この値をそのままプリセットに登録しても `_validate_preset_region` を通過します。
+- `rel(screen)=...` / `abs(nss)=...`
+  - デバッグ用途の参考情報です。マルチディスプレイ構成でどのスクリーンに属しているか、macOS の NSScreen 座標ではどの値になるかを確認できます。設定ファイルへ直接記述する必要はありません。
+
+> `mise run auto-run --calibrate` などで手動キャリブレーションを実行した後に `probe` を起動すると、常に最新のキャリブレーション領域を基準とした `rel(region)` が得られます。
+
 ## エラー処理
 
 - 設定ファイルの解析エラーや構文エラーは `ConfigurationError` をラップして `typer.Exit(code=1)` が発生します。

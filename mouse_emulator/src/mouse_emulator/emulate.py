@@ -83,7 +83,7 @@ def _resolve_emulation_region(
         return run_calibration(printer)
 
     emit(
-        "キャリブレーション設定が見つからないため、手動キャリブレーションを実行します。"
+        "キャリブレーション設定が見つからないため、手動キャリブレーションを実行します。",
     )
     return run_calibration(printer)
 
@@ -242,7 +242,7 @@ def emulate_from_profile(
         pause_combo = _normalize_pause_combo(
             opts.pause_key
             if opts.pause_key is not None
-            else profile.controls.pause_toggle
+            else profile.controls.pause_toggle,
         )
     except ValueError as exc:
         msg = f"controls.pause_toggle の値が不正です: {exc}"

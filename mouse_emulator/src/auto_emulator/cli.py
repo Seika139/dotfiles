@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Annotated, Literal
 
 import typer
-from AppKit import NSScreen  # type: ignore[import-untyped]
 from pynput import mouse
 
 from mouse_core import ColorPrinter, Colors, PointerController, Region, run_calibration
-from mouse_core.display import is_region_within_displays
+from mouse_core.display import (
+    NSScreen,
+    ScreenLike,
+    is_region_within_displays,
+    to_nss_point,
+)
 from mouse_core.loggers import SessionLogger
 from mouse_emulator.keys import parse_combo
 
@@ -225,7 +229,7 @@ def _resolve_region(
         return run_calibration(printer)
 
     emit(
-        "キャリブレーション設定が見つからないため、手動キャリブレーションを実行します。"
+        "キャリブレーション設定が見つからないため、手動キャリブレーションを実行します。",
     )
     return run_calibration(printer)
 
@@ -316,24 +320,32 @@ def main() -> None:
     app()
 
 
-def find_screen_for_point(x: float, y: float) -> tuple[NSScreen | None, float | None]:
-    """pynputのグローバル座標 (左上原点・下向きプラス) をもとに、属するスクリーンを返す
+def find_screen_for_point(
+    x: float,
+    y: float,
+) -> tuple[ScreenLike | None, float | None, float | None]:
+    """pynputのグローバル座標から属するスクリーンと NSScreen 座標を返す。
 
     Returns:
-        (screen, y_in_nsscreen)
+        (screen, x_ns, y_ns): 所属スクリーンと NSScreen 座標。
+        (None, None, None): スクリーンが見つからない場合。
     """
-    screens = NSScreen.screens()
-    for s in screens:
-        f = s.frame()
-        # pynput → NSScreen に変換してから判定
-        top = f.origin.y + f.size.height
-        y_ns = top - y  # ← pynput と NSScreen で Y 軸の向きが逆なので変換する
-        if (
-            f.origin.x <= x < f.origin.x + f.size.width
-            and f.origin.y <= y_ns < f.origin.y + f.size.height
-        ):
-            return s, y_ns
-    return None, None
+    if NSScreen is None:
+        return None, None, None
+    point = to_nss_point(x, y)
+    if point is None:
+        return None, None, None
+    x_ns, y_ns = point
+    screens: Sequence[ScreenLike] = NSScreen.screens() if NSScreen else []
+    for screen in screens:
+        frame = screen.frame()
+        left = float(frame.origin.x)
+        right = left + float(frame.size.width)
+        bottom = float(frame.origin.y)
+        top = bottom + float(frame.size.height)
+        if left <= x_ns < right and bottom <= y_ns <= top:
+            return screen, x_ns, y_ns
+    return None, None, None
 
 
 @app.command("probe")
@@ -342,28 +354,66 @@ def probe_coordinates(
     mode: str = MODE_OPTION,
 ) -> None:
     """キャリブレーション後に現在のマウス座標(相対値)を表示する。"""
-
-    def convert_to_relative_in_screen(
-        x: float, y: float
-    ) -> tuple[float, float, NSScreen]:
-        """pynput座標 → スクリーン相対座標 (0.0〜1.0)
-
-        Returns:
-            (rel_x, rel_y, screen)
-
-        Raises:
-            ValueError: スクリーン外の場合
-        """
-        screen, y_ns = find_screen_for_point(x, y)
-        if not screen:
-            raise ValueError("スクリーン外")
-
-        f = screen.frame()
-        rel_x = (x - f.origin.x) / f.size.width
-        rel_y = (y_ns - f.origin.y) / f.size.height
-        return rel_x, rel_y, screen
-
     try:
+        printer = ColorPrinter(Colors.BLUE)
+        region = run_calibration(printer)
+
+        def convert_to_relative_in_screen(
+            x: float,
+            y: float,
+        ) -> tuple[float, float, ScreenLike, float, float]:
+            """pynput座標 → スクリーン相対座標 (0.0〜1.0)
+
+            Returns:
+                (rel_x, rel_y, screen, x_ns, y_ns)
+
+            Raises:
+                ValueError: スクリーン外の場合
+            """
+            screen, x_ns, y_ns = find_screen_for_point(x, y)
+            if screen is None or x_ns is None or y_ns is None:
+                raise ValueError("スクリーン外")
+
+            frame = screen.frame()
+            width = float(frame.size.width)
+            height = float(frame.size.height)
+            if width <= 0 or height <= 0:
+                raise ValueError("スクリーンサイズが不正です")
+
+            left = float(frame.origin.x)
+            bottom = float(frame.origin.y)
+            rel_x = (x_ns - left) / width
+            rel_from_bottom = (y_ns - bottom) / height
+            rel_y = 1.0 - rel_from_bottom
+
+            # 端の微小な浮動小数点誤差を丸める
+            rel_x = max(0.0, min(1.0, rel_x))
+            rel_y = max(0.0, min(1.0, rel_y))
+            return rel_x, rel_y, screen, float(x_ns), float(y_ns)
+
+        def format_point(x: float, y: float) -> str:
+            parts: list[str] = [f"abs(pynput)=({int(x)}, {int(y)})"]
+            try:
+                rel_rx, rel_ry = region.to_relative(x, y)
+            except ValueError:
+                parts.append("rel(region)=領域外")
+            else:
+                parts.append(f"rel(region)=({rel_rx:.3f}, {rel_ry:.3f})")
+
+            try:
+                rel_sx, rel_sy, screen, x_ns, y_ns = convert_to_relative_in_screen(x, y)
+            except ValueError:
+                parts.append("screen=不明")
+            else:
+                frame = screen.frame()
+                parts.extend([
+                    f"screen=({int(frame.origin.x)}, {int(frame.origin.y)}, "
+                    f"{int(frame.size.width)}x{int(frame.size.height)})",
+                    f"rel(screen)=({rel_sx:.3f}, {rel_sy:.3f})",
+                    f"abs(nss)=({int(x_ns)}, {int(y_ns)})",
+                ])
+            return " ".join(parts)
+
         normalized_mode = mode.lower()
         pointer = PointerController()
 
@@ -375,23 +425,14 @@ def probe_coordinates(
                 )
 
                 def on_click(
-                    x: float, y: float, button: mouse.Button, pressed: bool
+                    x: float,
+                    y: float,
+                    button: mouse.Button,
+                    pressed: bool,
                 ) -> None:
-                    if not pressed:
+                    if monitor.stop_requested() or not pressed:
                         return
-                    try:
-                        rel_x, rel_y, screen = convert_to_relative_in_screen(x, y)
-                        f = screen.frame()
-                        typer.echo(
-                            f"[{button.name}] abs=({int(x)}, {int(y)}) "
-                            f"screen=({int(f.origin.x)}, {int(f.origin.y)}, "
-                            f"{int(f.size.width)}x{int(f.size.height)}) "
-                            f"rel=({rel_x:.3f}, {rel_y:.3f}) "
-                            f"abs-nsscreen=({int(x)}, "
-                            f"{int(f.origin.y + f.size.height - y)})"
-                        )
-                    except ValueError:
-                        typer.echo(f"click abs=({int(x)}, {int(y)}) → スクリーン外")
+                    typer.echo(f"[{button.name}] {format_point(x, y)}")
 
                 listener = mouse.Listener(on_click=on_click)
                 listener.start()
@@ -404,25 +445,11 @@ def probe_coordinates(
 
             else:
                 typer.echo(
-                    "現在のカーソル位置(絶対 / 相対)を表示します。Ctrl+C で終了。"
+                    "現在のカーソル位置(絶対 / 相対)を表示します。Ctrl+C で終了。",
                 )
                 while not monitor.stop_requested():
                     abs_x, abs_y = pointer.position()
-                    try:
-                        rel_x, rel_y, screen = convert_to_relative_in_screen(
-                            abs_x, abs_y
-                        )
-                        f = screen.frame()
-                        typer.echo(
-                            f"abs=({abs_x:.0f}, {abs_y:.0f}) "
-                            f"screen=({int(f.origin.x)}, {int(f.origin.y)}, "
-                            f"{int(f.size.width)}x{int(f.size.height)}) "
-                            f"rel=({rel_x:.3f}, {rel_y:.3f})"
-                            f"abs-nsscreen=({int(abs_x)}, "
-                            f"{int(f.origin.y + f.size.height - abs_y)})"
-                        )
-                    except ValueError:
-                        typer.echo(f"abs=({abs_x:.0f}, {abs_y:.0f}) → スクリーン外")
+                    typer.echo(format_point(float(abs_x), float(abs_y)))
                     time.sleep(max(0.05, interval))
     except KeyboardInterrupt:
         typer.echo("プローブを終了します")

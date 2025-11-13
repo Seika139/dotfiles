@@ -37,7 +37,7 @@ def create_detector(spec: DetectorSpec) -> BaseDetector:
     impl = _DETECTOR_REGISTRY.get(detector_type)
     if impl is None:
         raise ConfigurationError(
-            f"未登録の detector.type が指定されました: {spec.type}"
+            f"未登録の detector.type が指定されました: {spec.type}",
         )
     return impl(spec)
 

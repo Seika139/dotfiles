@@ -1,5 +1,3 @@
-# ruff: noqa: S101
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -76,7 +74,10 @@ def _prepare_context(
         pointer=cast("PointerController", DummyPointer()),
         capture_service=capture,
         calibration_region=Region(
-            left=0, top=0, right=image.width, bottom=image.height
+            left=0,
+            top=0,
+            right=image.width,
+            bottom=image.height,
         ),
     )
     if shared_state:

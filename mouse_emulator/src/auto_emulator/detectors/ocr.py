@@ -13,7 +13,10 @@ from auto_emulator.runtime.context import StepRuntimeContext
 
 
 def _prepare_image(
-    image: Image.Image, *, grayscale: bool, threshold: int | None
+    image: Image.Image,
+    *,
+    grayscale: bool,
+    threshold: int | None,
 ) -> Image.Image:
     working = image.convert("L") if grayscale else image
     if threshold is not None:
