@@ -1,4 +1,14 @@
 {
+  "calibration": {
+    "enabled": false,
+    "color": "green",
+    "preset": {
+      "left": 1639,
+      "top": 118,
+      "right": 3349,
+      "bottom": 1079
+    }
+  },
   "actions": [
     {
       "description": "決定",
