@@ -1,0 +1,92 @@
+version: "1.1"
+name: "サンプル自動化フロー 1"
+description: "テンプレート照合と OCR によるフェーズ制御の例"
+runtime:
+  capture_interval: 0.4
+  calibration:
+    enabled: true
+    color: green
+regions:
+  - name: "main"
+    left: 0.0
+    top: 0.0
+    right: 1.0
+    bottom: 1.0
+  - name: "left_bottom_quarter"
+    left: 0.0
+    top: 0.5
+    right: 0.5
+    bottom: 1.0
+  - name: "fan_count_area"
+    left: 0.62
+    top: 0.6
+    right: 1.0
+    bottom: 1.0
+steps:
+  - id: "ホーム画面1"
+    description: "まずはホーム画面のプロデュースボタンを検知します"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/produce.png"
+          threshold: 0.7
+          grayscale: true
+      region: "left_bottom_quarter"
+      interval: 0.5
+      max_attempts: "infinite"
+      timeout: 6.0
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.7
+    actions:
+      - type: "click"
+        options:
+          offset: [0, 0]
+          button: "left"
+    transitions:
+      default: "ファン数確認"
+  - id: "行動選択1"
+    description: "行動選択画面で戻るをクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/back_button.png"
+          threshold: 0.7
+          grayscale: true
+      region: "left_bottom_quarter"
+      interval: 0.25
+      max_attempts: 3
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.65
+    actions:
+      - type: "click"
+        options:
+          offset: [0, 0]
+          button: "left"
+    transitions:
+      default: "ホーム画面1"
+  - id: "ファン数確認"
+    description: "ファン数を OCR で確認します"
+    watch:
+      detector:
+        type: "ocr"
+        options:
+          pattern: "(?<![\\d.])(?:\\d{1,3}(?:,\\d{3})+|\\d{1,3})(?![\\d.])"
+          lang: "eng"
+          strip: true
+      region: "fan_count_area"
+      interval: 1.0
+      max_attempts: "infinite"
+    conditions:
+      op: "match"
+    actions:
+      - type: "log"
+        options:
+          message: "現在のファン数: {{detected_text}}"
+    transitions:
+      default: "行動選択1"

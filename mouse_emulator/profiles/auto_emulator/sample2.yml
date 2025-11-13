@@ -1,0 +1,331 @@
+version: "1.1"
+name: "サンプル自動化フロー 2"
+description: "テンプレート照合と OCR によるフェーズ制御の例"
+runtime:
+  capture_interval: 0.3
+  calibration:
+    enabled: false
+    color: green
+    preset:
+      left: 1639
+      top: 118
+      right: 3349
+      bottom: 1079
+regions:
+  - name: "main"
+    left: 0.0
+    top: 0.0
+    right: 1.0
+    bottom: 1.0
+  - name: "left_bottom_quarter"
+    left: 0.0
+    top: 0.5
+    right: 0.5
+    bottom: 1.0
+  - name: "fan_count_area"
+    left: 0.62
+    top: 0.6
+    right: 1.0
+    bottom: 1.0
+  - name: "skip_button_area"
+    left: 0.8
+    top: 0.0
+    right: 1.0
+    bottom: 0.2
+  - name: "ok_button_area"
+    left: 0.82
+    top: 0.82
+    right: 1.0
+    bottom: 1.0
+  - name: "three_option_right_area"
+    left: 0.63
+    top: 0.25
+    right: 0.97
+    bottom: 0.40
+  - name: "item_use_area"
+    left: 0.28
+    top: 0.59
+    right: 0.72
+    bottom: 0.79
+  - name: "close_button_area"
+    left: 0.4
+    top: 0.72
+    right: 0.55
+    bottom: 0.89
+steps:
+  - id: "現状の把握"
+    watch:
+      detector:
+        type: "null"
+    conditions:
+      op: "always"
+    actions:
+      - type: "wait"
+        options:
+          duration: 0.1
+    transitions:
+      default: "スキップボタンの検知"
+  - id: "スキップボタンの検知"
+    description: "スキップボタンがあればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/skip_button.png"
+          threshold: 0.8
+          grayscale: true
+      region: "skip_button_area"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "OKボタンの検知"
+  - id: "OKボタンの検知"
+    description: "OKボタンがあればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/ok_button.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "次へボタンの検知"
+  - id: "次へボタンの検知"
+    description: "次へボタンがあればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/next_button.png"
+          threshold: 0.8
+          grayscale: true
+      region: "ok_button_area"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "プロデュースボタン検知"
+  - id: "プロデュースボタン検知"
+    description: "まずはホーム画面のプロデュースボタンを検知します"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/produce.png"
+          threshold: 0.7
+          grayscale: true
+      region: "left_bottom_quarter"
+      interval: 0.5
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.7
+    actions:
+      - type: "click"
+    transitions:
+      default: "4倍速確認"
+  - id: "4倍速確認"
+    description: "4倍速ボタンがあればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/4x_speed_button.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "AUTO OFFボタンの検知"
+  - id: "AUTO OFFボタンの検知"
+    description: "AUTO OFFボタンがあればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/auto_off_button.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "いいよの選択肢を検知"
+  - id: "いいよの選択肢を検知"
+    description: "いいよの選択肢があればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/agree.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "3つの選択肢が検知できなかった時のためのチェックマーク検出"
+  - id: "3つの選択肢が検知できなかった時のためのチェックマーク検出"
+    description: "3つの選択肢が出てない場合のチェックマークを検出します"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/option_check.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "3つの選択肢が出てる時は黄色を選ぶ"
+  - id: "3つの選択肢が出てる時は黄色を選ぶ"
+    description: "3つの選択肢が出てる時は黄色を選ぶ"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/three_option_yellow.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "アイテムを選択"
+  - id: "アイテムを選択"
+    description: "アイテム使用の選択肢があればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/use_item_1.png"
+          threshold: 0.8
+          grayscale: true
+      region: "item_use_area"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+      - type: "wait"
+        options:
+          duration: 0.7
+    transitions:
+      success: "アイテムを使用"
+      failure: "とりあえず安全なところをクリック"
+  - id: "アイテムを使用"
+    description: "アイテム使用の選択肢があればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/use_item_2.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+      - type: "wait"
+        options:
+          duration: 4.0
+    transitions:
+      success: "アイテム使用後の閉じるボタンを検知"
+      failure: "とりあえず安全なところをクリック"
+  - id: "アイテム使用後の閉じるボタンを検知"
+    description: "アイテム使用後の閉じるボタンがあればクリックします"
+    watch:
+      detector:
+        type: "template"
+        options:
+          template_path: "./images/sample1/close_button.png"
+          threshold: 0.8
+          grayscale: true
+      region: "main"
+      interval: 0.2
+      max_attempts: 1
+    conditions:
+      op: "match"
+      options:
+        min_score: 0.75
+    actions:
+      - type: "click"
+    transitions:
+      default: "とりあえず安全なところをクリック"
+  - id: "とりあえず安全なところをクリック"
+    description: "安全なところをクリックしてホーム画面に戻ります"
+    watch:
+      detector:
+        type: "null"
+    conditions:
+      op: "always"
+    actions:
+      - type: "click"
+        options:
+          target:
+            region: "main"
+            relative: [0.5, 0.5]
+    transitions:
+      default: "現状の把握"
+
