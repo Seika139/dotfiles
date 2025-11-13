@@ -16,7 +16,7 @@ from mouse_core.display import is_region_within_displays
 from mouse_core.loggers import SessionLogger
 
 from .input_tracker import KeyState
-from .keys import normalize_combo, parse_combo
+from .keys import key_to_name, normalize_combo, parse_combo
 from .profile import CalibrationSettings, Profile, ProfileStore
 
 COLOR_MAP = {
@@ -194,7 +194,12 @@ class Emulator:
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         if key is None:
             return
+        name = key_to_name(key)
         self._key_state.on_press(key)
+        if self.monitor and name is not None:
+            self.monitor.on_key_press(name)
+            if self.monitor.stop_requested():
+                return
         if self._key_state.exit_requested:
             return
         combo = self._key_state.current_combo()
@@ -212,6 +217,9 @@ class Emulator:
     def _on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         if key is None:
             return
+        name = key_to_name(key)
+        if self.monitor and name is not None:
+            self.monitor.on_key_release(name)
         self._key_state.on_release(key)
         self._key_state.clear_inactive_combos()
 
@@ -287,6 +295,7 @@ def emulate_from_profile(
                 pause_combo=pause_combo,
                 on_pause=(lambda: log_info(PAUSE_NOTICE)) if pause_combo else None,
                 on_resume=(lambda: log_info(RESUME_NOTICE)) if pause_combo else None,
+                manage_listener=False,
             ) as monitor:
                 emulator = Emulator(
                     profile=profile,

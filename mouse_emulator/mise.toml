@@ -119,6 +119,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
+echo "mise --log-level trace run emulate とすると詳細なログが見られます"
 uv run python -m mouse_emulator emulate {{option(name='prof', default='default')}}
 '''
 
@@ -127,7 +128,7 @@ uv run python -m mouse_emulator emulate {{option(name='prof', default='default')
 #######################
 
 [tasks.auto-validate]
-description = "自動エミュレーターの設定ファイルを検証します"
+description = "自動エミュレーターの設定ファイルを検証します --config <設定ファイルパス>"
 shell = "bash -c"
 quiet = true
 depends = ["venv"]
@@ -136,7 +137,7 @@ uv run python -m auto_emulator validate {{option(name='config', default='profile
 '''
 
 [tasks.auto-run]
-description = "自動エミュレーターを実行します"
+description = "自動エミュレーターを実行します --config <設定ファイルパス>"
 shell = "bash -c"
 quiet = true
 depends = ["venv"]

@@ -20,6 +20,8 @@ class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
         pause_combo: tuple[str, ...] | None = None,
         on_pause: Callable[[], None] | None = None,
         on_resume: Callable[[], None] | None = None,
+        *,
+        manage_listener: bool = True,
     ) -> None:
         self._stop_event = threading.Event()
         self._pause_event = threading.Event()
@@ -28,10 +30,15 @@ class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
         self._pause_combo_active = False
         self._on_pause = on_pause
         self._on_resume = on_resume
-        self._listener = keyboard.Listener(
-            on_press=self._on_press,
-            on_release=self._on_release,
-            suppress=False,
+        self._manage_listener = manage_listener
+        self._listener = (
+            keyboard.Listener(
+                on_press=self._on_press,
+                on_release=self._on_release,
+                suppress=False,
+            )
+            if manage_listener
+            else None
         )
 
     def __enter__(self) -> Self:
@@ -47,11 +54,11 @@ class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
         self.stop()
 
     def start(self) -> None:
-        if not self._listener.running:
+        if self._listener is not None and not self._listener.running:
             self._listener.start()
 
     def stop(self) -> None:
-        if self._listener.running:
+        if self._listener is not None and self._listener.running:
             self._listener.stop()
             self._listener.join()
 
@@ -75,6 +82,13 @@ class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
 
     def _on_press(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
         name = key_to_name(key) if key is not None else None
+        self.on_key_press(name)
+
+    def _on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
+        name = key_to_name(key) if key is not None else None
+        self.on_key_release(name)
+
+    def on_key_press(self, name: str | None) -> None:
         if name is None:
             return
         if name == "esc":
@@ -101,8 +115,7 @@ class TerminationMonitor(AbstractContextManager["TerminationMonitor"]):
                 if self._on_pause:
                     self._on_pause()
 
-    def _on_release(self, key: keyboard.Key | keyboard.KeyCode | None) -> None:
-        name = key_to_name(key) if key is not None else None
+    def on_key_release(self, name: str | None) -> None:
         if name is None:
             return
         self._pressed.discard(name)

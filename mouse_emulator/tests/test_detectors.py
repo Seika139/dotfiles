@@ -12,6 +12,7 @@ from auto_emulator.config import (
     AutomationStep,
     ConditionNode,
     DetectorSpec,
+    RegionDefinition,
     WatchConfig,
 )
 from auto_emulator.detectors.ocr import OCRDetector
@@ -59,6 +60,7 @@ def _prepare_context(
     image: Image.Image,
     watch: WatchConfig,
     shared_state: dict[str, Any] | None = None,
+    regions: list[RegionDefinition] | None = None,
 ) -> StepRuntimeContext:
     step = AutomationStep(
         id="step",
@@ -66,7 +68,7 @@ def _prepare_context(
         conditions=ConditionNode(op="always"),
         actions=[],
     )
-    config = AutomationConfig(version="1.0", steps=[step])
+    config = AutomationConfig(version="1.0", steps=[step], regions=regions or [])
     config.metadata["__base_dir__"] = "."
     capture = FileSequenceCaptureService([image])
     context = AutomationContext(
@@ -100,7 +102,7 @@ def test_template_detector_matches(tmp_path: Path) -> None:
         type="template",
         options={
             "template_path": str(template_path),
-            "threshold": 0.6,
+            "threshold": 0.2,
             "grayscale": False,
         },
     )
@@ -115,6 +117,74 @@ def test_template_detector_matches(tmp_path: Path) -> None:
     rel_center = cast("tuple[float, float]", result.data["relative_center"])
     assert pytest.approx(rel_center[0], abs=0.05) == 0.375
     assert pytest.approx(rel_center[1], abs=0.05) == 0.375
+
+
+def test_template_detector_auto_shrink_downsizes_template(tmp_path: Path) -> None:
+    base_image = Image.new("RGB", (100, 100), color="white")
+    draw = ImageDraw.Draw(base_image)
+    draw.rectangle((5, 5, 35, 35), fill="black")
+    draw.line((5, 5, 35, 35), fill="white", width=2)
+    draw.line((5, 35, 35, 5), fill="white", width=2)
+
+    oversized_template = base_image.crop((5, 5, 35, 35)).resize((60, 60), Image.NEAREST)
+    template_path = tmp_path / "large_template.png"
+    oversized_template.save(template_path)
+
+    spec = DetectorSpec(
+        type="template",
+        options={
+            "template_path": str(template_path),
+            "threshold": 0.2,
+            "grayscale": False,
+        },
+    )
+    watch = WatchConfig(detector=spec, region="corner")
+    regions = [
+        RegionDefinition(name="corner", left=0.0, top=0.0, right=0.3, bottom=0.3),
+    ]
+    ctx = _prepare_context(base_image, watch, regions=regions)
+
+    detector = TemplateMatchDetector(spec)
+    result = detector.detect(watch, ctx)
+
+    assert result.matched
+    assert result.region is not None
+    assert pytest.approx(result.region.width, abs=1.0) == 30.0
+    assert pytest.approx(result.region.height, abs=1.0) == 30.0
+
+
+def test_template_detector_relative_size_scales_with_region(tmp_path: Path) -> None:
+    base_image = Image.new("RGB", (100, 100), color="white")
+    draw = ImageDraw.Draw(base_image)
+    draw.rectangle((10, 10, 50, 50), fill="black")
+
+    small_template = Image.new("RGB", (20, 20), color="black")
+    template_path = tmp_path / "relative_template.png"
+    small_template.save(template_path)
+
+    spec = DetectorSpec(
+        type="template",
+        options={
+            "template_path": str(template_path),
+            "threshold": 0.6,
+            "grayscale": False,
+            "relative_size": {"width": 0.5},
+        },
+    )
+    watch = WatchConfig(detector=spec, region="large_area")
+    regions = [
+        RegionDefinition(name="large_area", left=0.0, top=0.0, right=0.8, bottom=0.8),
+    ]
+    ctx = _prepare_context(base_image, watch, regions=regions)
+    region = ctx.resolve_watch_region(watch)
+
+    detector = TemplateMatchDetector(spec)
+    result = detector.detect(watch, ctx)
+
+    assert result.matched
+    assert result.region is not None
+    expected_width = region.width * 0.5
+    assert pytest.approx(result.region.width, abs=1.5) == expected_width
 
 
 def test_ocr_detector_matches_pattern() -> None:
