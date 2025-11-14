@@ -93,4 +93,4 @@ CLI から一時的に設定を上書きしたい場合は次のオプション�
 - `mise run emulate --pause-key ctrl+p --log-file logs/session.log --log-overwrite --prof basic`
 - `mise run emulate --calibrate --prof basic`
 
-いずれもプロファイルが持つ設定を基準に、CLI の指定が優先されます。\*\*\*
+いずれもプロファイルが持つ設定を基準に、CLI の指定が優先されます。
