@@ -119,12 +119,12 @@
     "when": "editorFocus"
   },
   {
-    "key": "shift+backspace",
+    "key": "ctrl+backspace",
     "command": "-deleteLeft",
     "when": "textInputFocus"
   },
   {
-    "key": "shift+backspace",
+    "key": "ctrl+backspace",
     "command": "editor.action.deleteLines",
     "when": "textInputFocus && !editorReadonly"
   },
