@@ -1,0 +1,43 @@
+version: "1.1"
+name: "サンプル自動化フロー 2"
+description: "テンプレート照合と OCR によるフェーズ制御の例"
+runtime:
+  capture_interval: 0.3
+  calibration:
+    enabled: false
+    color: green
+    preset:
+      left: 1639
+      top: 118
+      right: 3349
+      bottom: 1079
+regions:
+  - name: "main"
+    left: 0.0
+    top: 0.0
+    right: 1.0
+    bottom: 1.0
+  - name: "trouble_possibility"
+    left: 0.872
+    top: 0.260
+    right: 0.944
+    bottom: 0.313
+steps:
+  - id: "失敗率の確認"
+    watch:
+      detector:
+        type: "ocr"
+        options:
+          grayscale: true
+          region: "trouble_possibility"
+
+    conditions:
+      op: "always"
+    actions:
+      - type: "log"
+      - type: "click"
+        options:
+          target:
+            relative: [0, 0]
+            # use_detection: true
+          offset: [0.870, 0.260]
