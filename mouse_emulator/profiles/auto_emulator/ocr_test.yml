@@ -29,7 +29,7 @@ steps:
         type: "ocr"
         options:
           grayscale: true
-          region: "trouble_possibility"
+      region: "trouble_possibility"
 
     conditions:
       op: "always"

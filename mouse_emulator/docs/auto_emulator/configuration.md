@@ -105,6 +105,19 @@ watch:
 | `max_attempts`     | 任意      | `1`                        | 試行回数の上限。`"infinite"` で無制限。                |
 | `stop_on_failure`  | 任意      | `false`                    | `true` の場合、最初の失敗でステップを終了。            |
 
+> **補足:** `region` は必ず `watch` 直下で指定してください。`detector.options.region` のように配置すると無視され、キャリブレーション領域全体がキャプチャされてしまいます。以下のように `watch.region` として記述するのが正しい例です。
+
+```yaml
+steps:
+  - id: "wait_for_ready"
+    watch:
+      region: "dialog"
+      detector:
+        type: "ocr"
+        options:
+          pattern: "\\bREADY\\b"
+```
+
 `template` 検出器で利用する主なオプション:
 
 | フィールド                                     | 必須/任意 | デフォルト           | 説明                                             |
@@ -124,6 +137,18 @@ watch:
 | `lang`                          | 任意      | `"eng"`    | Tesseract に渡す言語コード。                           |
 | `threshold`                     | 任意      | `null`     | 2 値化しきい値。未指定なら自動。                       |
 | `grayscale`                     | 任意      | `true`     | OCR 前にグレースケール化するか。                       |
+
+> **補足 (多言語 OCR)**: `lang` に `"jpn"` や `"jpn+eng"` を指定すると日本語や日英混在の検出が可能です。Tesseract 側に対応する `*.traineddata` がインストールされている必要があるため、Homebrew 等で `tesseract-lang` を追加し、`/opt/homebrew/share/tessdata` などに `jpn.traineddata` が存在することを確認してください。文字の大小を区別したい場合は `lowercase: false` を、空白や改行を保持したい場合は `strip: false` を合わせて指定します。
+
+```yaml
+watch:
+  detector:
+    type: "ocr"
+    options:
+      lang: "jpn+eng"
+      pattern: "処理完了"
+      lowercase: false
+```
 
 ## Conditions
 
@@ -145,6 +170,46 @@ conditions:
 | `op`         | 必須      | なし       | 条件の種別。`all`/`any`/`not`/`match`/`always`/`never`/`state_*`/`text_*` を指定。                       |
 | `conditions` | 条件付き  | `[]`       | `all`・`any` は 1 件以上、`not` は 1 件のみ必須。その他の演算子では省略。                                |
 | `options`    | 条件付き  | `{}`       | 判定に必要な追加パラメータ。例: `match.min_score`、`state_equals.key`/`value`、`text_matches.value` 等。 |
+
+### 条件演算子の使い分け
+
+| 演算子                | 役割                                                                                  | 主なオプション例                      | 典型的な YAML 断片 |
+| --------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- | ------------------ |
+| `always` / `never`    | 条件に関係なく必ず成功 / 失敗。デバッグ用やフォールバックの分岐に利用。               | なし                                  | `op: "always"`    |
+| `match`               | 直前の検出結果 (`DetectionResult`) を評価。`min_score` でしきい値を設定可能。         | `min_score`                            | `op: "match"`     |
+| `all` / `any`         | 子条件をまとめるラッパー。`all` は全て真、`any` はいずれか真で成立。                  | 子 `conditions`                        | `op: "all"`      |
+| `not`                 | 子条件 1 件の真偽を反転。                                                             | 子 `conditions` (1 件だけ)             | `op: "not"`      |
+| `state_equals` 系     | `set_state` アクション等で保存した `shared_state` を参照してステートマシンを構築。     | `key`, `value`                         | `op: "state_equals"` |
+| `state_not_equals`    | `state_equals` の否定形。                                                              | `key`, `value`                         | `op: "state_not_equals"` |
+| `text_contains` 系    | OCR など `DetectionResult.data.text` を埋める検出器と組み合わせてテキストを評価。      | `value`, `ignore_case` (既定 `true`)   | `op: "text_contains"` |
+| `text_equals`         | テキストの完全一致を判定。                                                            | `value`, `ignore_case`                 | `op: "text_equals"` |
+| `text_matches`        | 正規表現でテキストを判定。                                                             | `value` (正規表現), `ignore_case`      | `op: "text_matches"` |
+
+`text_*` 条件は OCR 検出器が `data.text` を埋めた場合に有効になります。テンプレート検出などテキストが付与されない検出器と組み合わせると常に失敗するため注意してください。また、`state_*` 条件は `shared_state`（辞書型）を参照します。例えば以下のように OCR で「READY」を検出したらステートを切り替え、次のステップでは `state_equals` でその値を待つ、といった構成が可能です。
+
+```yaml
+- id: "wait_ready"
+  watch:
+    detector:
+      type: "ocr"
+      options:
+        pattern: "\\bREADY\\b"
+  conditions:
+    op: "text_matches"
+    options:
+      value: "\\bready\\b"
+  actions:
+    - type: "set_state"
+      options:
+        key: "phase"
+        value: "ready"
+- id: "click_button"
+  conditions:
+    op: "state_equals"
+    options:
+      key: "phase"
+      value: "ready"
+```
 
 ## Actions
 
