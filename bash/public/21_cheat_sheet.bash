@@ -39,7 +39,7 @@ function hlp_cursor() {
 }
 
 function hlp_find() {
-    less_lf ${DOTPATH}/docs/linux/find.txt
+    less_color ${DOTPATH}/docs/linux/find.txt
 }
 
 function hlp_grep() {

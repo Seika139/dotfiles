@@ -1,51 +1,50 @@
-find オプション 基点ディレクトリ 検索条件 アクション
+\x1b[96mfind オプション 基点ディレクトリ 検索条件 アクション\x1b[m
 
-[オプション]
--P : シンボリックリンクをたどらない(デフォルト)
--L : 全てのシンボリックリンクをたどる
+\x1b[96m[オプション]\x1b[m
+\x1b[92m-P\x1b[m : シンボリックリンクをたどらない(デフォルト)
+\x1b[92m-L\x1b[m : 全てのシンボリックリンクをたどる
 
-[検索条件]
--name [pattern]  : パターンと一致するファイル(ワイルドカードが使える。ワイルドカードを使う場合は「"」で囲う)
--lname [pattern] : シンボリックリンクのリンク先ファイル名がパターンと一致するファイル
--path [pattern]  : パスがパターンと一致するファイル
--regex [pattern] : ファイル名がパターンと一致するファイル、パターンに正規表現が指定可能
+\x1b[96m[検索条件]\x1b[m
+\x1b[92m-name [pattern]\x1b[m  : パターンと一致するファイル(ワイルドカードが使える。ワイルドカードを使う場合は「"」で囲う)
+\x1b[92m-lname [pattern]\x1b[m : シンボリックリンクのリンク先ファイル名がパターンと一致するファイル
+\x1b[92m-path [pattern]\x1b[m  : パスがパターンと一致するファイル
+\x1b[92m-regex [pattern]\x1b[m : ファイル名がパターンと一致するファイル、パターンに正規表現が指定可能
 * それぞれ iname, ilname, ipath, iregex とすると大文字と小文字の区別をしなくなる
 
--type [filetype]  : 下記のファイルタイプに該当するものを探す
+\x1b[92m-type [filetype]\x1b[m  : 下記のファイルタイプに該当するものを探す
     [filetype] (一部抜粋)
-    d : ディレクトリ
-    f : 通常のファイアル
-    l : シンボリックリンク
+    \x1b[92md\x1b[m : ディレクトリ
+    \x1b[92mf\x1b[m : 通常のファイアル
+    \x1b[92ml\x1b[m : シンボリックリンク
 
-[アクション]
--print  : 検索結果をファイル名だけで表示(デフォルト)
--ls     : 検索結果を ls -dils 形式で出力する
+\x1b[96m[アクション]\x1b[m
+\x1b[92m-print\x1b[m  : 検索結果をファイル名だけで表示(デフォルト)
+\x1b[92m-ls\x1b[m     : 検索結果を ls -dils 形式で出力する
 
--a   : 条件を and で結ぶ（デフォルトでは条件を and 同士で結合するため明示的に指定する必要はない）
--o   : 条件を or で結ぶ
--not : 条件を否定する
-複雑な条件を指定する場合はエスケープした括弧 \( \) で条件をグループ化できる。
+\x1b[92m-a\x1b[m   : 条件を and で結ぶ（デフォルトでは条件を and 同士で結合するため明示的に指定する必要はない）
+\x1b[92m-o\x1b[m   : 条件を or で結ぶ
+\x1b[92m-not\x1b[m : 条件を否定する
+複雑な条件を指定する場合はエスケープした括弧 \x1b[92m\( \)\x1b[m で条件をグループ化できる。
 
 例:  特定の拡張子を持ち、かつサイズが100KB以上のファイルまたは特定の名前のファイルを検索する。
-find /path/to/directory \( -name "*.txt" -a -size +100k \) -o -name "specificfile.txt"
+\x1b[95mfind /path/to/directory \( -name "*.txt" -a -size +100k \) -o -name "specificfile.txt"\x1b[m
 
--depth N    : 検索するディレクトリの深さを指定
--maxdepth N : 検索するディレクトリの最大の深さを指定(0だと基点ディレクトリのみを探す)
--mindepth N : 検索するディレクトリの最小の深さを指定(1だと基点ディレクトリより深いディレクトリを探す)
--prune      : ディレクトリに降りない
+\x1b[92m-depth N\x1b[m    : 検索するディレクトリの深さを指定
+\x1b[92m-maxdepth N\x1b[m : 検索するディレクトリの最大の深さを指定(0だと基点ディレクトリのみを探す)
+\x1b[92m-mindepth N\x1b[m : 検索するディレクトリの最小の深さを指定(1だと基点ディレクトリより深いディレクトリを探す)
+\x1b[92m-prune\x1b[m      : ディレクトリに降りない
 
 
 [ユースケース]
 
 ファイルの中のテキストで検索
-find ~/cms/app -type f -print | xargs grep "environment"
+\x1b[95mfind ~/cms/app -type f -print | xargs grep "environment"\x1b[m
 
 src 内にある js ファイルで「primary」の文字が含まれるものを探す
-find ./src/ -name "*.js" -a -type f -print | xargs grep "primary"
+\x1b[95mfind ./src/ -name "*.js" -a -type f -print | xargs grep "primary"\x1b[m
 
 .py のファイルからのみ検索したい場合
-find * -type f -print | xargs grep "all" --include="*.py"
+\x1b[95mfind * -type f -print | xargs grep "all" --include="*.py"\x1b[m
 
 さらにjsファイルのうち一部のファイルを除いて検索したい場合
-find . -not -name "*plugins.js" -not -name "*bootstrap.min.js" -type f -print | xargs grep "export" --include="*.js"
-
+\x1b[95mfind . -not -name "*plugins.js" -not -name "*bootstrap.min.js" -type f -print | xargs grep "export" --include="*.js"\x1b[m
