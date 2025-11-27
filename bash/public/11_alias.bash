@@ -48,6 +48,11 @@ if command -v bat &> /dev/null; then
     alias cat='bat --paging=never --style=plain'
 fi
 
+# gnu-sed (gsed) がインストールされている場合は sed を gsed で上書きする
+if command -v gsed &> /dev/null; then
+    alias sed='gsed'
+fi
+
 alias d='docker'
 alias dc='docker compose'
 alias m='mise run'

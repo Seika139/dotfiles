@@ -23,3 +23,4 @@
 - BSD版(mac) では \x1b[95m\ \x1b[mの後ろで改行をするか、\x1b[95m$''\x1b[m と囲んで改行コードを加える必要がある。
   \x1b[93m- BSD版(mac): \x1b[95msed -i '17i\  some text' file\x1b[m
   \x1b[93m- GNU版(win): \x1b[95msed -i '' $'17i\\\\\\n some text\\n' file\x1b[m (バックスラッシュは3つ。末尾にも改行コードを入れる)
+  BSD版のコマンドよりもGNU版の方がLinux標準と同じ動作を期待できるので、BSD版が面倒ならGNU版のコマンドをインストールするのが吉
