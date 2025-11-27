@@ -13,6 +13,7 @@
 [diff]
 	algorithm = histogram
 [init]
+    # git init 時のデフォルトブランチ名を main に設定する
 	defaultBranch = main
 [include]
 	# デフォルトの設定を読み込む
