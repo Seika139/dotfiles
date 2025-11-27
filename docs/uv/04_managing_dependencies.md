@@ -41,7 +41,7 @@ data = [
 $ uv add --optional data inherit-docstring
 $ uv remove --optional data inherit-docstring
 $ uv sync --extra data # optional-dependencies.data を追加で同期します
-$ uv sync --all-extra # すべての optional-dependencies グループを同期します
+$ uv sync --all-extras # すべての optional-dependencies グループを同期します
 ```
 
 ### dependency-groups
