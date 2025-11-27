@@ -271,7 +271,7 @@ printf "Brewfileで管理されていないパッケージを削除する場合�
 [tasks.prune]
 description = "Brewfile に無いパッケージを削除（デフォルトは dry-run。--apply で削除を実行）"
 depends = ["check_env", "brew_available"]
-run = """
+run = '''
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
 BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
@@ -287,7 +287,9 @@ else
 
   TMP_OUT=$(mktemp)
   trap 'rm -f "$TMP_OUT"' EXIT
-  brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | tee "$TMP_OUT"
+  brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | \
+    sed -E 's/^(Would uninstall.*)/\x1b[33m\1\x1b[0m/' | \
+    tee "$TMP_OUT"
 
   COUNTS=$(
     awk '
@@ -322,7 +324,7 @@ else
     printf "\n✅ 削除候補はありません（Brewfile と一致しています）\n"
   fi
 fi
-"""
+'''
 
 [tasks.prune_apply]
 description = "Brewfile に無いパッケージを削除（本適用）"
