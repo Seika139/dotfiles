@@ -1,5 +1,11 @@
 [env]
 PROFILES_DIR = "profiles"
+# WSL 環境なら true になる
+IS_WSL = '''{% if
+os() == 'linux' and exec(
+  command="bash -lc 'if grep -qi microsoft /proc/version 2>/dev/null || [ -n ${WSL_DISTRO_NAME:-} ]; then echo 0; else echo 1; fi'",
+  allow_failure=true
+) == "0" %}true{% else %}false{% endif %}'''
 
 [tasks.check_env]
 description = "環境変数がちゃんと設定されているか確認する"
@@ -8,22 +14,29 @@ hide = true
 shell = "bash -c"
 run = """
 set -eu
+
+# mise.local.tomlファイルの存在確認と初期化
 if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
   {
     printf "%s\n" '[env]'
     printf "%s\n" 'DEFAULT_CLAUDE_PROFILE=""'
+    printf "%s\n" 'WSL_CLAUDE_PROFILE=""'
   } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
   printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
   printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
-  printf "%s\n" "🚨 DEFAULT_CLAUDE_PROFILE=\"\" に適切なプロファイル名を設定してください。"
+  printf "%s\n" "🚨 DEFAULT_CLAUDE_PROFILE=\"\" と WSL_CLAUDE_PROFILE=\"\" に適切なプロファイル名を設定してください。"
   exit 1
 fi
 if [ -z "${DEFAULT_CLAUDE_PROFILE:-}" ]; then
   printf "%s\n" "🚨 'DEFAULT_CLAUDE_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
   exit 1
 fi
+if [ -z "${WSL_CLAUDE_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'WSL_CLAUDE_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
+  exit 1
+fi
 
-# ~/.claude ディレクトリが存在しない場合は作成
+# ~/.claude ディレクトリが存在しない場合は作成する
 if [ ! -d "${HOME}/.claude" ]; then
   mkdir -p "${HOME}/.claude"
 fi
@@ -36,7 +49,13 @@ hide = true
 quiet = true
 shell = "bash -c"
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_CLAUDE_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_CLAUDE_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
 if [ -z "$PROFILE" ]; then
   printf "❌ Error: DEFAULT_CLAUDE_PROFILE is not set in environment variables\n" >&2
   exit 1
@@ -62,6 +81,7 @@ fi
 description = "新しいプロファイルを作成 (Usage: mise run create_profile <profile-name>)"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
 PROFILE={{arg(name="prof")}}
 if [ -z "$PROFILE" ]; then
@@ -149,20 +169,30 @@ EOF
 # commands ディレクトリ作成
 mkdir -p "$PROFILE_PATH/commands"
 
+# skills ディレクトリ作成
+mkdir -p "$PROFILE_PATH/skills"
+
 printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 printf "%s\n" "📝 Edit settings in:"
 printf "%s\n" "   - $PROFILE_PATH/settings.json"
 printf "%s\n" "   - $PROFILE_PATH/settings.local.json"
 printf "%s\n" "   - $PROFILE_PATH/CLAUDE.md"
 printf "%s\n" "   - $PROFILE_PATH/commands/"
+printf "%s\n" "   - $PROFILE_PATH/skills/"
 """
 
 [tasks.link]
 description = "指定プロファイルの設定ファイルをシンボリックリンクする"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_CLAUDE_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_CLAUDE_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 mise run check --prof "$PROFILE"
 
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
@@ -170,7 +200,7 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 printf "%s\n" "🦄 Linking Claude settings from profile: $PROFILE"
 
 # 既存のシンボリックリンクを削除（ファイルの場合は退避）
-for file in settings.json settings.local.json CLAUDE.md; do
+for file in settings.json settings.local.json CLAUDE.md commands skills; do
   target="${HOME}/.claude/$file"
   if [ -L "$target" ]; then
     printf "%s\n" "   Removing existing symlink: $target"
@@ -179,37 +209,26 @@ for file in settings.json settings.local.json CLAUDE.md; do
     backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
     printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
     mv "$target" "$backup"
+  elif [ -d "$target" ]; then
+    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
+    printf "%s\n" "   既存のディレクトリをバックアップしました: $target -> $backup"
+    mv "$target" "$backup"
   fi
 done
 
-# commands ディレクトリの処理
-commands_target="${HOME}/.claude/commands"
-if [ -L "$commands_target" ]; then
-  printf "%s\n\n" "   Removing existing symlink: $commands_target"
-  rm "$commands_target"
-elif [ -d "$commands_target" ]; then
-  backup="${commands_target}.backup.$(date +%Y%m%d_%H%M%S)"
-  printf "%s\n\n" "   既存のディレクトリをバックアップしました: $commands_target -> $backup"
-  mv "$commands_target" "$backup"
-fi
-
 # シンボリックリンク作成
-printf "\\033[36m"
-for file in settings.json settings.local.json CLAUDE.md; do
+for file in settings.json settings.local.json CLAUDE.md commands skills; do
   source="$PROFILE_PATH/$file"
   target="${HOME}/.claude/$file"
 
-  if [ -f "$source" ]; then
+  if [ -f "$source" ] || [ -d "$source" ]; then
+    printf "\\033[36m  "
     ln -sfv "$source" "$target"
+    printf "\\033[0m"
+  else
+    printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
   fi
 done
-
-# commands ディレクトリのシンボリックリンク作成
-commands_source="$PROFILE_PATH/commands"
-if [ -d "$commands_source" ]; then
-  ln -sfv "$commands_source" "$commands_target"
-fi
-printf "\\033[0m"
 
 printf "%s\n" "✅ Linked Claude settings from profile '$PROFILE'"
 """
@@ -218,74 +237,58 @@ printf "%s\n" "✅ Linked Claude settings from profile '$PROFILE'"
 description = "現在のプロファイル設定と~/.claudeの状態を確認"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_CLAUDE_PROFILE)}}
+{% if env.IS_WSL == 'true' %}
+DEFAULT_PROFILE="{{ env.WSL_CLAUDE_PROFILE }}"
+{% else %}
+DEFAULT_PROFILE="{{ env.DEFAULT_CLAUDE_PROFILE }}"
+{% endif %}
+PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+
 PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 
-printf "%s\n" "🦄 Claude Profile Status"
-printf "Current profile:\\033[36m $PROFILE\\033[0m\n"
-printf "Profile path:\\033[36m $PROFILE_PATH\\033[0m\n\n"
+printf "%s\n" "🦄 Environment Check"
+printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
+printf "env.IS_WSL           =\\033[36m %s\\033[0m\n" "{{ env.IS_WSL }}"
+printf "env.MISE_CONFIG_ROOT =\\033[36m %s\\033[0m\n" "{{ env.MISE_CONFIG_ROOT }}"
+printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
-  printf "%s\n" "❌ Profile directory does not exist"
+  printf "❌ Profile directory does not exist:\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
   exit 1
 fi
 
-printf "%s\n" "📂 Profile files:"
-for file in settings.json settings.local.json CLAUDE.md; do
+printf "\n📂 Original files and directories:\n"
+for file in settings.json settings.local.json CLAUDE.md commands skills; do
   source="$PROFILE_PATH/$file"
-  if [ -f "$source" ]; then
-    printf "%s\n" "   ✅ $file"
+  if [ -f "$source" ] || [ -d "$source" ]; then
+    printf "%s\n" "   ✅ $source"
   else
-    printf "%s\n" "   ❌ $file (missing)"
+    printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
   fi
 done
 
-commands_source="$PROFILE_PATH/commands"
-if [ -d "$commands_source" ]; then
-  printf "%s\n" "   ✅ commands/"
-else
-  printf "%s\n" "   ❌ commands/ (missing)"
-fi
-
-printf "%s" "\n🔗 Symlink status in"
-printf "\\033[36m ~/.claude:\\033[0m\n"
-for file in settings.json settings.local.json CLAUDE.md; do
+printf "\n🔗 Symlinks in\\033[36m %s/.claude:\\033[0m\n" "$HOME"
+for file in settings.json settings.local.json CLAUDE.md commands skills; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
 
   if [ -L "$target" ]; then
     link_target=$(readlink "$target")
-    # Windows環境でも動くように、より柔軟な方法でマッチング
-    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]]; then
-      printf "%s\n" "   ✅ $file -> $source"
+    # パスの正規化とマッチング（Windows, WSL対応）
+    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]] || [[ "$link_target" == *"\\${source##*/}" ]]; then
+      printf "%s\n" "   ✅ $source -> $link_target"
     else
-      printf "%s\n" "   ⚠️  $file -> $link_target (不一致)"
+      printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
     fi
   elif [ -f "$target" ]; then
-    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない)"
+    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない). Use the following command ↓"
+    printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
   else
-    printf "%s\n" "   ❌ $file (存在しない)"
+    printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
   fi
 done
-
-# commands ディレクトリの状態確認
-commands_target="${HOME}/.claude/commands"
-commands_source="$PROFILE_PATH/commands"
-
-if [ -L "$commands_target" ]; then
-  link_target=$(readlink "$commands_target")
-  # Windows環境でも動くように、より柔軟な方法でマッチング
-  if [ "$link_target" = "$commands_source" ] || [[ "$link_target" == */"${commands_source##*/}" ]]; then
-    printf "%s\n" "   ✅ commands/ -> $commands_source"
-  else
-    printf "%s\n" "   ⚠️  commands/ -> $link_target (不一致)"
-  fi
-elif [ -d "$commands_target" ]; then
-  printf "%s\n" "   ❌ commands/ (通常ディレクトリ、シンボリックリンクではない)"
-else
-  printf "%s\n" "   ❌ commands/ (存在しない)"
-fi
 
 printf "%s\n" "\n💡 Commands:"
 printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
@@ -296,6 +299,7 @@ printf "%s\n" "   プロファイル変更: mise run switch <profile-name>"
 description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch <profile-name>)"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
 NEW_PROFILE={{arg(name="prof")}}
 if [ -z "$NEW_PROFILE" ]; then
@@ -313,12 +317,21 @@ fi
 # プロファイル存在確認
 mise run check --prof "$NEW_PROFILE"
 
-# mise.local.toml の DEFAULT_CLAUDE_PROFILE を更新
+# WSL か否かに応じて mise.local.toml の適切な環境変数を更新
 LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+{% if env.IS_WSL == 'true' %}
+{
+  printf "%s\n" '[env]'
+  printf "%s\n" "DEFAULT_CLAUDE_PROFILE = \\\"${DEFAULT_CLAUDE_PROFILE:-}\\\""
+  printf "%s\n" "WSL_CLAUDE_PROFILE = \\\"$NEW_PROFILE\\\""
+} > "$LOCAL_CONFIG"
+{% else %}
 {
   printf "%s\n" '[env]'
   printf "%s\n" "DEFAULT_CLAUDE_PROFILE = \\\"$NEW_PROFILE\\\""
+  printf "%s\n" "WSL_CLAUDE_PROFILE = \\\"${WSL_CLAUDE_PROFILE:-}\\\""
 } > "$LOCAL_CONFIG"
+{% endif %}
 
 printf "%s\n" "🦄 Switching Claude profile to: $NEW_PROFILE"
 
@@ -333,9 +346,15 @@ printf "%s\n" "🔄 Please restart your shell or run 'mise env' to reload enviro
 description = "利用可能なプロファイル一覧を表示"
 depends = ["check_env"]
 shell = "bash -c"
+quiet = true
 run = """
 PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
-CURRENT_PROFILE="${DEFAULT_CLAUDE_PROFILE:-}"
+
+{% if env.IS_WSL == 'true' %}
+CURRENT_PROFILE="{{ env.WSL_CLAUDE_PROFILE }}"
+{% else %}
+CURRENT_PROFILE="{{ env.DEFAULT_CLAUDE_PROFILE }}"
+{% endif %}
 
 printf "%s\n" "🦄 Available Claude Profiles:"
 if [ -d "$PROFILES_DIR" ]; then
@@ -354,8 +373,8 @@ else
 fi
 
 if [ -n "$CURRENT_PROFILE" ]; then
-  printf "\nCurrent profile: $CURRENT_PROFILE\n"
+  printf "\nCurrent profile:\\033[36m %s\\033[0m\n" "$CURRENT_PROFILE"
 else
-  printf "\n⚠️ No current profile set in DEFAULT_CLAUDE_PROFILE\n"
+  printf "%s\n" "\n⚠️ No current profile set in DEFAULT_CLAUDE_PROFILE"
 fi
 """

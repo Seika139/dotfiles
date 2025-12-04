@@ -103,13 +103,13 @@ mkdir -p "$PROFILE_PATH"
 
 # デフォルト設定ファイル作成
 cat > "$PROFILE_PATH/config.toml" << 'EOF'
-model = "gpt-5-codex"
+model = "gpt-5.1-codex"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true
 
-[tools]
-web_search = true
+[features]
+web_search_request = true
 
 EOF
 
@@ -216,7 +216,7 @@ if [ ! -d "$PROFILE_PATH" ]; then
   exit 1
 fi
 
-printf "\n📂 Original files:\n"
+printf "\n📂 Original files and directories:\n"
 for file in config.toml AGENTS.md prompts; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
