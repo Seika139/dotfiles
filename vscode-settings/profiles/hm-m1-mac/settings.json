@@ -347,5 +347,6 @@
   },
   "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
   "geminicodeassist.displayInlineContextHint": false,
-  "remote.autoForwardPortsSource": "hybrid"
+  "remote.autoForwardPortsSource": "hybrid",
+  "python.languageServer": "Default"
 }
