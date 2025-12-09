@@ -16,3 +16,8 @@ source "${BDOTDIR}/.bash_profile"
 if [[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     export PATH="$HOME/.local/bin:$PATH"
 fi
+
+# Added by Antigravity
+if [[ -d "$HOME/.antigravity/" ]]; then
+    export PATH="/Users/suzukikenichi/.antigravity/antigravity/bin:$PATH"
+fi
