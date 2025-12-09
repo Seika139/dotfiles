@@ -33,10 +33,12 @@ github.copilot
 github.copilot-chat
 github.vscode-github-actions
 golang.go
+google.geminicodeassist
 grapecity.gc-excelviewer
 hollowtree.vue-snippets
 ics.japanese-proofreading
 ionutvmi.path-autocomplete
+jackiotyu.git-worktree-manager
 jarvisjiang.unity-find-in-prefabs
 k--kato.docomment
 kevinrose.vsc-python-indent
@@ -84,6 +86,7 @@ sdras.vue-vscode-snippets
 shakram02.bash-beautify
 shardulm94.trailing-spaces
 shd101wyy.markdown-preview-enhanced
+sourcegraph.cody-ai
 streetsidesoftware.code-spell-checker
 tamasfe.even-better-toml
 timonwong.shellcheck
@@ -103,6 +106,3 @@ wscats.eno
 xabikos.javascriptsnippets
 yzane.markdown-pdf
 yzhang.markdown-all-in-one
-jackiotyu.git-worktree-manager
-google.geminicodeassist
-sourcegraph.cody-ai

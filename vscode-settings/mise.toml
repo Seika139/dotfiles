@@ -4,10 +4,13 @@ vscode_path_mac = "$HOME/Library/Application Support/Code/User"
 vscode_path_win = "$HOME/AppData/Roaming/Code/User"
 cursor_path_mac = "$HOME/Library/Application Support/Cursor/User"
 cursor_path_win = "$HOME/AppData/Roaming/Cursor/User"
+agy_path_mac = "$HOME/Library/Application Support/Antigravity/User"
+agy_path_win = "$HOME/AppData/Roaming/Antigravity/User"
 
 [env]
 VSCODE_PATH = "{% if os() == 'windows' %}{{vars.vscode_path_win}}{% else %}{{vars.vscode_path_mac}}{% endif %}"
 CURSOR_PATH = "{% if os() == 'windows' %}{{vars.cursor_path_win}}{% else %}{{vars.cursor_path_mac}}{% endif %}"
+AGY_PATH = "{% if os() == 'windows' %}{{vars.agy_path_win}}{% else %}{{vars.agy_path_mac}}{% endif %}"
 PROFILE_ROOT = "{{config_root}}/profiles"
 
 [tasks.ensure_local_env]
@@ -43,6 +46,7 @@ printf "Detected OS (uname -s) = \033[36m$(uname -s)\033[0m\n"
 printf "PROFILE_ROOT           = \033[36m%s\033[0m\n" "{{env.PROFILE_ROOT}}"
 printf "VSCODE_PATH            = \033[36m$VSCODE_PATH\033[0m\n"
 printf "CURSOR_PATH            = \033[36m$CURSOR_PATH\033[0m\n"
+printf "AGY_PATH               = \033[36m$AGY_PATH\033[0m\n"
 printf "CONFIG_FILES           = \033[36m%s\033[0m\n" "{{vars.config_files}}"
 '''
 
@@ -51,10 +55,11 @@ description = "dump-settings と dump-extensions をまとめて実行する"
 shell = "bash -c"
 depends = ["ensure_local_env"]
 run = """
-EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
+EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor", "antigravity"])}}"
 mise run dump-settings $EDITOR
 mise run dump-extensions vscode
 mise run dump-extensions cursor
+mise run dump-extensions antigravity
 printf "✅ すべてのエクスポートが完了しました!\n"
 """
 
@@ -64,13 +69,15 @@ shell = "bash -c"
 hide = true
 depends = ["ensure_local_env"]
 run = """
-EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
+EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor", "antigravity"])}}"
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 if [[ "$EDITOR" = "vscode" ]]; then
   src_path="{{env.VSCODE_PATH}}"
 elif [[ "$EDITOR" = "cursor" ]]; then
   src_path="{{env.CURSOR_PATH}}"
+elif [[ "$EDITOR" = "antigravity" ]]; then
+  src_path="{{env.AGY_PATH}}"
 else
   printf "  ❌ 不明なエディタ: $EDITOR\n"
   exit 1
@@ -94,11 +101,13 @@ shell = "bash -c"
 hide = true
 depends = ["ensure_local_env"]
 run = """
-EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor"])}}"
+EDITOR="{{arg(name="editor", default="vscode", choices=["vscode", "cursor", "antigravity"])}}"
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 if [[ "$EDITOR" = "vscode" ]] || [[ "$EDITOR" = "cursor" ]]; then
   dist_path="$PROFILE_DIR/${EDITOR}_extensions.txt"
+elif [[ "$EDITOR" = "antigravity" ]]; then
+  dist_path="$PROFILE_DIR/antigravity_extensions.txt"
 else
   printf "  ❌ 不明なエディタ: $EDITOR\n"
   exit 1
@@ -121,12 +130,20 @@ if [[ "$EDITOR" = "vscode" ]]; then
     printf "  ❌ コマンドが見つかりません:\\033[36m code\\033[0m\n"
     exit 0
   fi
-else
+elif [[ "$EDITOR" = "cursor" ]]; then
   if command -v cursor >/dev/null 2>&1; then
     printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
     cursor --list-extensions | sort -u | uniq > "$dist_path"
   else
     printf "  ❌ コマンドが見つかりません:\\033[36m cursor\\033[0m\n"
+    exit 0
+  fi
+else
+  if command -v agy >/dev/null 2>&1; then
+    printf "  🔍 エクスポート先: \\033[36m%s\\033[0m\n" "$dist_path"
+    agy --list-extensions | sort -u | uniq > "$dist_path"
+  else
+    printf "  ❌ コマンドが見つかりません:\\033[36m agy\\033[0m\n"
     exit 0
   fi
 fi
@@ -179,10 +196,12 @@ PROFILE_DIR="$(normalize_path "{{env.PROFILE_ROOT}}")/$PROFILE"
 # 環境変数を展開してから正規化
 VSCODE_PATH_EXPANDED="$(echo "{{env.VSCODE_PATH}}" | envsubst)"
 CURSOR_PATH_EXPANDED="$(echo "{{env.CURSOR_PATH}}" | envsubst)"
+AGY_PATH_EXPANDED="$(echo "{{env.AGY_PATH}}" | envsubst)"
 VSCODE_PATH_NORM="$(normalize_path "$VSCODE_PATH_EXPANDED")"
 CURSOR_PATH_NORM="$(normalize_path "$CURSOR_PATH_EXPANDED")"
+AGY_PATH_NORM="$(normalize_path "$AGY_PATH_EXPANDED")"
 
-for editor_path in "$VSCODE_PATH_NORM" "$CURSOR_PATH_NORM"; do
+for editor_path in "$VSCODE_PATH_NORM" "$CURSOR_PATH_NORM" "$AGY_PATH_NORM"; do
   printf "\nSettings for\\033[36m %s\\033[0m\n" "${editor_path/ /\\ /}"
   for item in {{vars.config_files}}; do
     expected_src="$PROFILE_DIR/$item"
@@ -225,10 +244,13 @@ depends = ["ensure_local_env"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
-for editor in vscode cursor; do
+for editor in vscode cursor agy; do
   if [[ "$editor" = "vscode" ]]; then
     ext_cmd="code"
     ext_file="$PROFILE_DIR/vscode_extensions.txt"
+  elif [[ "$editor" = "agy" ]]; then
+    ext_cmd="agy"
+    ext_file="$PROFILE_DIR/antigravity_extensions.txt"
   else
     ext_cmd="cursor"
     ext_file="$PROFILE_DIR/cursor_extensions.txt"
@@ -307,7 +329,7 @@ if [ ! -d "$PROFILE_DIR" ]; then
   exit 1
 fi
 
-for editor_path in "{{env.VSCODE_PATH}}" "{{env.CURSOR_PATH}}"; do
+for editor_path in "{{env.VSCODE_PATH}}" "{{env.CURSOR_PATH}}" "{{env.AGY_PATH}}"; do
   printf "\n設定適用先:\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\\\ /g')"
   if [ ! -d "$editor_path" ]; then
     mkdir -p "$editor_path"
@@ -346,10 +368,13 @@ run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
 
-for editor in vscode cursor; do
+for editor in vscode cursor agy; do
   if [[ "$editor" = "vscode" ]]; then
     ext_cmd="code"
     ext_file="$PROFILE_DIR/vscode_extensions.txt"
+  elif [[ "$editor" = "agy" ]]; then
+    ext_cmd="agy"
+    ext_file="$PROFILE_DIR/antigravity_extensions.txt"
   else
     ext_cmd="cursor"
     ext_file="$PROFILE_DIR/cursor_extensions.txt"
