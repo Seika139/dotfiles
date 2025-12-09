@@ -64,11 +64,6 @@
     "when": "canNavigateBack"
   },
   {
-    "key": "cmd+[",
-    "command": "-composer.previousChatTab",
-    "when": "composerFocused && !editorTextFocus"
-  },
-  {
     "key": "cmd+]",
     "command": "-markdown.extension.onIndentLines",
     "when": "editorTextFocus && !suggestWidgetVisible && editorLangId =~ /^markdown$|^rmd$|^quarto$/"
@@ -77,11 +72,6 @@
     "key": "cmd+]",
     "command": "-editor.action.indentLines",
     "when": "editorTextFocus && !editorReadonly"
-  },
-  {
-    "key": "cmd+]",
-    "command": "-composer.nextChatTab",
-    "when": "composerFocused && !editorTextFocus"
   },
   {
     "key": "cmd+]",
@@ -97,10 +87,6 @@
     "key": "ctrl+[Minus]",
     "command": "-workbench.action.navigateBack",
     "when": "canNavigateBack"
-  },
-  {
-    "key": "cmd+e",
-    "command": "composerMode.background"
   },
   {
     "key": "ctrl+[Quote]",
