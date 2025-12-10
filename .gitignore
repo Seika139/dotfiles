@@ -15,3 +15,6 @@ stashes/
 !**/random_note/.gitkeep
 
 .ssh/config.secret
+
+# .gitignore_global では除外しているが dotfiles リポジトリの .vscode は git管理する
+!.vscode/settings.json
