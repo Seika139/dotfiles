@@ -3,3 +3,4 @@ ms-ceintl.vscode-language-pack-ja
 ms-python.debugpy
 ms-python.python
 ms-python.vscode-python-envs
+tamasfe.even-better-toml

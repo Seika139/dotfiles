@@ -6,7 +6,6 @@ bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
 chrmarti.regex
 coderabbit.coderabbit-vscode
-coenraads.bracket-pair-colorizer
 cpylua.language-postcss
 csstools.postcss
 davidanson.vscode-markdownlint
@@ -37,6 +36,7 @@ ics.japanese-proofreading
 ionutvmi.path-autocomplete
 jackiotyu.git-worktree-manager
 jarvisjiang.unity-find-in-prefabs
+jeronimoekerdt.color-picker-universal
 k--kato.docomment
 kevinrose.vsc-python-indent
 kleber-swf.unity-code-snippets
@@ -95,8 +95,6 @@ timonwong.shellcheck
 tobiah.unity-tools
 tomoki1207.pdf
 tomoki1207.vscode-input-sequence
-visualstudioexptteam.intellicode-api-usage-examples
-visualstudioexptteam.vscodeintellicode
 visualstudiotoolsforunity.vstuc
 vscode-icons-team.vscode-icons
 vue.volar
