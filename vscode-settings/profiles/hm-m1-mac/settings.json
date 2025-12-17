@@ -150,6 +150,7 @@
     "pycromanager",
     "pycryptodomex",
     "Pydantic",
+    "pydocstyle",
     "pyenv",
     "pynput",
     "pyplot",
@@ -349,5 +350,6 @@
   "geminicodeassist.displayInlineContextHint": false,
   "remote.autoForwardPortsSource": "hybrid",
   "python.languageServer": "Default",
-  "color-picker-universal.avoidDuplicate": true
+  "color-picker-universal.avoidDuplicate": true,
+  "japanese-proofreading.textlint.技術用語": false
 }
