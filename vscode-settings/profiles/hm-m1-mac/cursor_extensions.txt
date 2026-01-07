@@ -4,6 +4,7 @@ alefragnani.bookmarks
 annsk.alignment
 anysphere.cpptools
 anysphere.csharp
+anysphere.cursorpyright
 anysphere.remote-containers
 batisteo.vscode-django
 bmewburn.vscode-intelephense-client
