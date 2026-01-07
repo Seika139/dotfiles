@@ -5,9 +5,9 @@ from gtts import gTTS
 
 def main() -> None:
     # 音声にしたいテキスト
-    text_to_speak = "Goal for Japan! Tanaka breaks free and shoots! It's in the net!」"
+    text_to_speak = "Goal for Japan! Honda breaks free and shoots! It's in the net!"
     text_to_speak_ja = (
-        "ゴール！日本代表、田中選手が抜け出してシュート！ネットを揺らしました！"
+        "ゴール！日本代表、本田選手が抜け出してシュート！ネットを揺らしました！"
     )
 
     # 出力ファイル名
