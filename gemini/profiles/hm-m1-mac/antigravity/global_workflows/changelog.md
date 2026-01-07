@@ -44,20 +44,17 @@ fi
 if [ -n "$BASE" ]; then
   echo "Base reference: $BASE"
   echo "--- Commits since $BASE ---"
-  git log "$BASE..HEAD" --pretty=format:'- %s'
+  git --no-pager log "$BASE..HEAD" --pretty=format:'- %s'
   echo -e "\n--- File changes since $BASE ---"
-  git diff --stat "$BASE..HEAD"
+  git --no-pager diff "$BASE..HEAD"
 else
   echo "Base reference: (repository root)"
   echo "--- All commits (showing last 20) ---"
-  git log --pretty=format:'- %s' -n 20
+  git --no-pager log --pretty=format:'- %s' -n 20
   echo -e "\n--- Recent file changes ---"
-  git diff --stat HEAD~20..HEAD
+  git --no-pager diff HEAD~20..HEAD
 fi
 ```
-
-必要に応じて、特定のファイルやディレクトリの詳細な差分を確認してください：
-`git diff $BASE..HEAD -- [path/to/file_or_dir]`
 
 ## Create CHANGELOG.md if Missing
 
