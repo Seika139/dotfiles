@@ -11,15 +11,15 @@
       "Info": "",
       "Name": "fzf",
       "Source": "main",
-      "Updated": "2025-10-27T10:59:20.5837297+09:00",
-      "Version": "0.66.1"
+      "Updated": "2026-01-07T15:54:49.5357991+09:00",
+      "Version": "0.67.0"
     },
     {
       "Info": "",
       "Name": "gh",
       "Source": "main",
-      "Updated": "2025-10-27T10:59:22.0767227+09:00",
-      "Version": "2.82.1"
+      "Updated": "2026-01-07T15:54:51.0429712+09:00",
+      "Version": "2.83.2"
     },
     {
       "Info": "",
@@ -39,23 +39,23 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2025-10-20T10:49:12.2654353+09:00",
-      "Version": "2025.10.11"
+      "Updated": "2025-11-12T11:00:13.6459409+09:00",
+      "Version": "2025.11.3"
     },
     {
       "Info": "",
       "Name": "uv",
       "Source": "main",
-      "Updated": "2025-10-27T10:59:23.2844743+09:00",
-      "Version": "0.9.5"
+      "Updated": "2026-01-07T15:54:52.4871114+09:00",
+      "Version": "0.9.22"
     }
   ],
   "buckets": [
     {
-      "Manifests": 1407,
+      "Manifests": 1413,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2025-10-27T09:42:41+09:00"
+      "Updated": "2026-01-07T13:32:29+09:00"
     }
   ]
 }
