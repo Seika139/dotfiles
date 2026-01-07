@@ -8,3 +8,6 @@ argv.json
 *.log
 *.tmp
 *.cache
+
+# IDE state files (excluded from Git management)
+ide_state.json
