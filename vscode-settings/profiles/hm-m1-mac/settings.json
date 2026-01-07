@@ -162,6 +162,7 @@
     "Quali",
     "readlink",
     "readwrite",
+    "realpath",
     "redash",
     "repost",
     "reposting",
