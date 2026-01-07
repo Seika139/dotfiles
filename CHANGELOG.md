@@ -15,25 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Gemini:** `GEMINI.md` と `antigravity/global_workflows` をシンボリックリンクによる管理対象に追加
-- **Workflows:** Antigravity 用のワークフロー定義ファイルを追加
-- **Editor:** `.editorconfig` を追加し、プロジェクト全体のコードスタイルを定義
-- **AI:** GitHub Copilot 用のカスタム指示（コミットメッセージ生成など）を追加
+- **Bash:** 構成を大幅にリファクタリングし、環境変数やシークレットを動的に読み込む仕組み (`bash/envs/`, `bash/public/`) を導入
+- **Antigravity:** `~/.gemini/` 配下の `GEMINI.md` および `global_workflows/` を `dotfiles` のプロファイル管理下に追加
+- **GitHub Actions:** Markdown のリンター (`lint-markdown.yml`) およびバージョン更新の自動化 (`update-version.yml`) を追加
+- **Workflows:** Antigravity で利用可能な `/changelog`, `/lint-markdown` ワークフローを定義
+- **Editor:** プロジェクト全体のコードスタイルを統一するため `.editorconfig` を追加
+- **Cursor:** Cursor CLI 用の設定ファイル (`cli-config.json`) を追加
 - **Package Management:** Windows 用の `scoop-export.json` をプロファイルに追加
 
 ### Changed
 
-- **Lint:** `markdownlint-cli2` の設定を更新し、ドキュメントの品質管理を強化
-- **Docs:** `CHANGELOG.md` に `Tagged Releases` セクションを追加し、過去のリリースへのアクセスを改善
-
-### Fixed
-
-- **Docs:** `GEMINI.md` の修正とフォーマットの統一
-- **Task:** 実装計画のステータス管理に関する修正
-
-### Removed
-
-- **CI/CD:** `uv-qualify.yml` ワークフローファイルを削除
+- **Bash:** `szip` の管理を `make` から `mise` に移行し、エイリアスを `bash/public/51_szip.bash` に整理
+- **Lint:** `markdownlint-cli2` の設定を更新し、ドキュメントの品質向上を図る
+- **Git:** `.gitignore` に考え中フォルダ (`ideas/`) や退避フォルダ (`stashes/`) の指定を追加
+-
 
 ## [0.2.0] - 2025-10-17
 
