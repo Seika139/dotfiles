@@ -1,6 +1,15 @@
 ---
-description: "Write commit message And commit"
+description: "ステージされている差分をコミットする"
 ---
+
+## 概要
+
+以下のルールに従ってコミットメッセージを作ります。
+コミットの対象は現時点でステージングされているファイルです。
+ステージされていないファイルの差分については考慮しません。
+また、ステージされているファイルが1つもない場合はその旨を通知し、コミットは行いません。
+
+## コミットメッセージのルール
 
 **Follow the Conventional Commits format strictly for commit messages.**
 **Write commit message in Japanese.**
