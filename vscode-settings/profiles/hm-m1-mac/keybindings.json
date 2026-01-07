@@ -143,5 +143,17 @@
   {
     "key": "cmd+o",
     "command": "git.openFile2"
+  },
+  {
+    "key": "cmd+,",
+    "command": "workbench.action.openSettings2"
+  },
+  {
+    "key": "alt+cmd+,",
+    "command": "workbench.action.openAntigravitySettings"
+  },
+  {
+    "key": "cmd+,",
+    "command": "-workbench.action.openAntigravitySettings"
   }
 ]

@@ -215,6 +215,7 @@
   "japanese-proofreading.textlint.外来語カタカナ表記": false,
   "japanese-proofreading.textlint.ひらく漢字": false,
   "japanese-proofreading.textlint.助詞の連続": false,
+  "japanese-proofreading.textlint.技術用語": false,
   // yaml
   "[yaml]": {
     "editor.insertSpaces": true,
@@ -364,5 +365,4 @@
   "remote.autoForwardPortsSource": "hybrid",
   "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
-  "japanese-proofreading.textlint.技術用語": false
 }
