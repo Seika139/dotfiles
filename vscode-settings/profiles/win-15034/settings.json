@@ -11,6 +11,7 @@
     "autopep",
     "BDOTDIR",
     "Behaviour",
+    "BUILDKIT",
     "buildx",
     "caty",
     "chara",
@@ -39,16 +40,19 @@
     "fastapi",
     "fastcgi",
     "Fernet",
+    "FQCN",
     "Franken",
     "fukushima",
     "gacha",
     "Genemon",
     "getline",
     "gitmessage",
+    "gitmoji",
     "groovylint",
     "gsub",
     "healthcheck",
     "hhmmss",
+    "HMAC",
     "hookable",
     "Hotswap",
     "htmlcov",
@@ -92,6 +96,7 @@
     "oikomi",
     "Omni",
     "omnisharp",
+    "ondelete",
     "openpyxl",
     "organisation",
     "OSTYPE",
@@ -108,6 +113,7 @@
     "pipdeptree",
     "pipefail",
     "pipx",
+    "PKCE",
     "plushie",
     "predis",
     "println",
@@ -123,6 +129,7 @@
     "pyproject",
     "pyright",
     "pytest",
+    "pythonpath",
     "PYTHONUNBUFFERED",
     "Qiita",
     "QUIC",
@@ -133,6 +140,7 @@
     "rerank",
     "reranked",
     "Reranker",
+    "retryable",
     "Runbook",
     "SAPI",
     "sashi",
@@ -144,7 +152,9 @@
     "sqlalchemy",
     "sqlfluff",
     "sqls",
+    "superglobal",
     "svtask",
+    "symfony",
     "timedelta",
     "TINYINT",
     "traceback",
@@ -163,6 +173,7 @@
     "vbscript",
     "venv",
     "virtualenv",
+    "webfactory",
     "winget",
     "workplan",
     "worktree",
@@ -188,7 +199,13 @@
   "github.copilot.nextEditSuggestions.enabled": true,
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {
-      "file": "/c/Users/S13316/dotfiles/.gitmessage"
+      "text": "Write commit message in Japanese."
+    },
+    {
+      "text": "Follow the Conventional Commits format strictly for commit messages. "
+    },
+    {
+      "text": "Use the structure below:\n\n```\n<type>[optional scope]: <gitmoji> <description>\n\n[optional body]\n```\n\nGuidelines:\n\n1. **Type and Scope**: Choose an appropriate type (e.g., `feat`, `fix`) and optional scope to describe the affected module or feature.\n\n2. **Gitmoji**: Include a relevant `gitmoji` that best represents the nature of the change.\n\n3. **Description**: Write a concise, informative description in the header; use backticks if referencing code or specific terms.\n\n4. **Body**: For additional details, use a well-structured body section:\n   - Use bullet points (`*`) for clarity.\n   - Clearly describe the motivation, context, or technical details behind the change, if applicable.\n\nCommit messages should be clear, informative, and professional, aiding readability and project tracking."
     }
   ],
   "gitlens.graph.minimap.enabled": false,
@@ -218,7 +235,13 @@
   "editor.formatOnSave": true,
   "editor.guides.bracketPairs": "active",
   "editor.tabCompletion": "on",
-  "editor.rulers": [40, 80, 120, 160, 200],
+  "editor.rulers": [
+    40,
+    80,
+    120,
+    160,
+    200
+  ],
   // ↑ editor
   // ↓ workbench
   "workbench.colorTheme": "Default Dark Modern",
@@ -253,10 +276,21 @@
   },
   // ↑ markdown
   "[shellscript]": {
-    "editor.defaultFormatter": "shakram02.bash-beautify",
+    "editor.defaultFormatter": "foxundermoon.shell-format",
     "files.eol": "\n"
   },
   "shellcheck.enable": true,
+  // ↓ php
+  // うまくいかないので一旦あきらめる
+  // "[php]": {
+  //   "editor.defaultFormatter": "persoderlind.vscode-phpcbf",
+  //   "editor.formatOnSave": true
+  // },
+  // "phpcbf.executablePath": "${workspaceFolder}/vendor/bin/phpcbf",
+  // "phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
+  // "phpcs.standard": "PSR12",
+  // "phpcbf.standard": "PSR12",
+  // ↑ php
   // ↓ python
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
@@ -264,7 +298,10 @@
       "source.organizeImports": "explicit"
     }
   },
-  "isort.args": ["--profile", "black"],
+  "isort.args": [
+    "--profile",
+    "black"
+  ],
   "python.analysis.typeCheckingMode": "basic",
   // ↑ python
   "[csharp]": {
@@ -399,14 +436,45 @@
   ],
   "japanese-proofreading.textlint.全角文字と半角文字の間": false,
   "japanese-proofreading.textlint.丸かっこ（）": false,
+  "japanese-proofreading.textlint.技術用語": false,
   "database-client.autoSync": true,
   // ↓ sqlfluff(VSCode SQL formatter and linter 拡張機能とは別で CLI のインストールも必要)
   "sqlfluff.dialect": "postgres",
-  "sqlfluff.format.languages": ["sql", "sql-bigquery", "jinja-sql", "snowflake-sql"],
+  "sqlfluff.format.languages": [
+    "sql",
+    "sql-bigquery",
+    "jinja-sql",
+    "snowflake-sql"
+  ],
   "sqlfluff.format.enabled": true,
+  "sqlfluff.executablePath": "/home/ken/.local/bin/sqlfluff",
   "[sql]": {
     "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
   },
-  "claudeCode.selectedModel": "anthropic.claude-opus-4-5-20251101-v1:0",
-  "claudeCode.preferredLocation": "panel"
+  // shell-format を最新の 7.2.8 にするとフォーマットできない問題があるので、7.2.5 に据え置きにするための設定
+  // https://github.com/foxundermoon/vs-shell-format/issues/396
+  "extensions.autoUpdate": "onlyEnabledExtensions",
+  "claudeCode.disableLoginPrompt": true,
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  // この設定がないと wsl 上の vs code で claude code 拡張機能が動かなかった
+  "claudeCode.environmentVariables": [
+    {
+      "name": "CLAUDE_CODE_USE_BEDROCK",
+      "value": "true"
+    },
+    {
+      "name": "ANTHROPIC_MODEL",
+      "value": "us.anthropic.claude-opus-4-5-20251101-v1:0"
+    },
+    {
+      "name": "AWS_REGION",
+      "value": "us-east-1"
+    }
+  ],
+  "claudeCode.preferredLocation": "panel",
+  "security.allowedUNCHosts": [
+    "wsl.localhost"
+  ]
 }

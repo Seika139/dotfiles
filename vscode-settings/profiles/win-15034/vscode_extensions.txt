@@ -71,8 +71,6 @@ tobiah.unity-tools
 tomoki1207.pdf
 unity.unity-debug
 usernamehw.errorlens
-visualstudioexptteam.intellicode-api-usage-examples
-visualstudioexptteam.vscodeintellicode
 visualstudiotoolsforunity.vstuc
 vue.volar
 waderyan.gitblame
