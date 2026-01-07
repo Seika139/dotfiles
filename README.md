@@ -1,5 +1,15 @@
 # dotfiles
 
+<div align="center">
+  <a href="https://github.com/Seika139/dotfiles/releases/tag/v0.2.0">
+    <img alt="version" src="https://img.shields.io/badge/version-v0.2.0-white.svg">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/Seika139/dotfiles/actions/workflows/lint-markdown.yml">
+    <img alt="Markdown Lint" src="https://github.com/Seika139/dotfiles/actions/workflows/lint-markdown.yml/badge.svg">
+  </a>
+</div>
+
 ## 動作環境
 
 以下の環境で動作することを確認しています。（動作するように dotfiles を育てている）
@@ -44,7 +54,7 @@ normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 ## dotfiles とは
 
 ホームディレクトリに置いてあるドット `.` から始まる設定ファイル（`.bashrc` など）を管理しているリポジトリのこと。
-先輩につくることを勧められたので私も制作して運用中。（2021年~）
+先輩につくることを勧められたので私も制作して運用中。（2021 年~）
 
 ## Features
 
@@ -53,8 +63,8 @@ normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 ### パッケージ管理
 
 Mac では Homebrew を介したパッケージの管理を行う。 → `brew/` を参照。
-Windows では `winget` と `scoop` の2つを使用してパッケージ管理を行う。
-Windows PC の基本的なセットアップは `winget` で行い、`scoop` は開発ツールのインストールに使用するという使い分けを想定している。そのため、scoop側でては全てのパッケージの面倒を見るが、wingetでは特定のパッケージのみを管理する。
+Windows では `winget` と `scoop` の 2 つを使用してパッケージ管理を行う。
+Windows PC の基本的なセットアップは `winget` で行い、`scoop` は開発ツールのインストールに使用するという使い分けを想定している。そのため、scoop 側でては全てのパッケージの面倒を見るが、winget では特定のパッケージのみを管理する。
 タスクランナーに mise を利用しているので、詳細は各ディレクトリの `mise.toml` を参照。
 
 ### AI Coding 環境の管理
@@ -76,7 +86,7 @@ VS Code と Cursor について
 
 ### Docker
 
-ローカルPC の Docker 環境を管理する。
+ローカル PC の Docker 環境を管理する。
 
 ## 参考
 
