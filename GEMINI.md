@@ -78,6 +78,7 @@ To interact with the configurations defined in this repository, you will use `mi
   ```
 
 - **Check the status of the current Gemini configuration:**
+
   ```bash
   mise -C gemini run status
   ```

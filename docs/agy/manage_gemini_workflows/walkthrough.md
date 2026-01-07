@@ -7,16 +7,19 @@
 ### [gemini]
 
 #### [mise.toml](file:///Users/suzukikenichi/dotfiles/gemini/mise.toml)
+
 - シンボリックリンクの対象リストを更新。
 - ネストした親ディレクトリを自動作成する処理を追加。
 
 #### [新しく追加された管理ファイル]
+
 - `gemini/profiles/hm-m1-mac/GEMINI.md`
 - `gemini/profiles/hm-m1-mac/antigravity/global_workflows/`
 
 ## 検証結果
 
 ### シンボリックリンクの作成確認
+
 `mise run link` を実行し、以下の通りリンクが作成されました。
 
 ```bash
@@ -29,6 +32,7 @@
 ```
 
 ### ステータス確認
+
 `mise run status` により、すべて `✅` (正常) であることを確認しました。
 
 ```text

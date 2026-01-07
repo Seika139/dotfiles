@@ -1,5 +1,7 @@
 # OmniSharp や .NET について
 
+<!-- markdownlint-disable MD025 -->
+
 ## OmniSharp
 
 OmniSharp は、C#開発のためのクロスプラットフォーム開発ツールです。

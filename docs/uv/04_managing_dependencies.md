@@ -21,9 +21,9 @@
 何も指定しない場合、依存関係は `project.dependencies` に追加・削除されます。
 
 ```bash
-$ uv add numpy
-$ uv remove numpy
-$ uv sync
+uv add numpy
+uv remove numpy
+uv sync
 ```
 
 ### project.optional-dependencies
@@ -38,10 +38,10 @@ data = [
 ```
 
 ```bash
-$ uv add --optional data inherit-docstring
-$ uv remove --optional data inherit-docstring
-$ uv sync --extra data # optional-dependencies.data を追加で同期します
-$ uv sync --all-extras # すべての optional-dependencies グループを同期します
+uv add --optional data inherit-docstring
+uv remove --optional data inherit-docstring
+uv sync --extra data # optional-dependencies.data を追加で同期します
+uv sync --all-extras # すべての optional-dependencies グループを同期します
 ```
 
 ### dependency-groups
@@ -57,11 +57,11 @@ ci = [
 ```
 
 ```bash
-$ uv add --group ci pytest
-$ uv remove --group ci pytest
-$ uv sync --group ci # project.dependencies と dependency-groups.ci を同期します
-$ uv sync --only-group ci # dependency-groups.ci のみを同期します
-$ uv sync --no-group ci # dependency-groups.ci を除外して同期します
+uv add --group ci pytest
+uv remove --group ci pytest
+uv sync --group ci # project.dependencies と dependency-groups.ci を同期します
+uv sync --only-group ci # dependency-groups.ci のみを同期します
+uv sync --no-group ci # dependency-groups.ci を除外して同期します
 ```
 
 ### dependency-groups.dev
@@ -76,11 +76,11 @@ dev = [
 ```
 
 ```bash
-$ uv add --dev pytest # --group dev と同義
-$ uv remove --dev pytest # --group dev と同義
-$ uv sync # dev グループはデフォルトで同期されます
-$ uv sync --only-dev # dev グループのみを同期します
-$ uv sync --no-dev # dev グループを除外して同期します
+uv add --dev pytest # --group dev と同義
+uv remove --dev pytest # --group dev と同義
+uv sync # dev グループはデフォルトで同期されます
+uv sync --only-dev # dev グループのみを同期します
+uv sync --no-dev # dev グループを除外して同期します
 ```
 
 #### 依存関係のネスト

@@ -47,11 +47,11 @@ brew で poetry をインストール。
 Windows では python コマンドより「Python ランチャー」`py` を使用するのがよい。
 
 ```bash
-$ py      # デフォルトバージョンの Python を実行
-$ py -3.6 # バージョンを指定して実行
+py      # デフォルトバージョンの Python を実行
+py -3.6 # バージョンを指定して実行
 
-$ py --list # インストール済みのバージョンを確認
-$ py -0p    # インストール済みのバージョンを確認
+py --list # インストール済みのバージョンを確認
+py -0p    # インストール済みのバージョンを確認
 ```
 
 poetry のインストールは [ここ](https://qiita.com/c60evaporator/items/b6a7394231d1e768ce64#poetry%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB) を参照。
