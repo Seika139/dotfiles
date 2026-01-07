@@ -123,28 +123,27 @@ PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
 printf "%s\n" "🦄 Linking Gemini CLI settings from profile: $PROFILE"
 
 # 既存のシンボリックリンクを削除（ファイルの場合は退避）
-for file in commands; do
+for file in commands GEMINI.md antigravity/global_workflows; do
   target="${HOME}/.gemini/$file"
   if [ -L "$target" ]; then
     printf "%s\n" "   Removing existing symlink: $target"
     rm "$target"
-  elif [ -f "$target" ]; then
+  elif [ -e "$target" ]; then
     backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
     printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
     mv "$target" "$backup"
-  elif [ -d "$prompts_target" ]; then
-    backup="${prompts_target}.backup.$(date +%Y%m%d_%H%M%S)"
-    printf "%s\n" "   既存のディレクトリをバックアップしました: $prompts_target -> $backup"
-    mv "$prompts_target" "$backup"
   fi
 done
 
 # シンボリックリンク作成
-for file in commands; do
+for file in commands GEMINI.md antigravity/global_workflows; do
   source="$PROFILE_PATH/$file"
   target="${HOME}/.gemini/$file"
 
-  if [ -f "$source" ] || [ -d "$source" ]; then
+  # 親ディレクトリを作成（ネストしたパス用）
+  mkdir -p "$(dirname "$target")"
+
+  if [ -e "$source" ]; then
     printf "\\033[36m  "
     ln -sfv "$source" "$target"
     printf "\\033[0m"
@@ -183,9 +182,9 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 printf "\n📂 Original files:\n"
-for file in commands; do
+for file in commands GEMINI.md antigravity/global_workflows; do
   source="$PROFILE_PATH/$file"
-  if [ -f "$source" ] || [ -d "$source" ]; then
+  if [ -e "$source" ]; then
     printf "%s\n" "   ✅ $source"
   else
     printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
@@ -193,7 +192,7 @@ for file in commands; do
 done
 
 printf "\n🔗 Symlinks in\\033[36m %s/.gemini:\\033[0m\n" "$HOME"
-for file in commands; do
+for file in commands GEMINI.md antigravity/global_workflows; do
   target="${HOME}/.gemini/$file"
   source="$PROFILE_PATH/$file"
 
@@ -205,8 +204,8 @@ for file in commands; do
     else
       printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
     fi
-  elif [ -f "$target" ]; then
-    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない). Use the following command ↓"
+  elif [ -e "$target" ]; then
+    printf "%s\n" "   ❌ $file (通常ファイル/ディレクトリ、シンボリックリンクではない). Use the following command ↓"
     printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
   else
     printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
