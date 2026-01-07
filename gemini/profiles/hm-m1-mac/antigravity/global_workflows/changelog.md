@@ -29,7 +29,7 @@ fi
 
 ## Analyze Git History
 
-最後のタグと対象となるコミットを分析します：
+最後のタグと対象となるコミット、および実際のファイルの差分を分析します：
 
 ```bash
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
@@ -43,14 +43,21 @@ fi
 
 if [ -n "$BASE" ]; then
   echo "Base reference: $BASE"
-  echo "Commits since $BASE:"
-  git log "$BASE..HEAD" --pretty=format:'- %s' | head -20
+  echo "--- Commits since $BASE ---"
+  git log "$BASE..HEAD" --pretty=format:'- %s'
+  echo -e "\n--- File changes since $BASE ---"
+  git diff --stat "$BASE..HEAD"
 else
   echo "Base reference: (repository root)"
-  echo "All commits (showing last 20):"
-  git log --pretty=format:'- %s' | head -20
+  echo "--- All commits (showing last 20) ---"
+  git log --pretty=format:'- %s' -n 20
+  echo -e "\n--- Recent file changes ---"
+  git diff --stat HEAD~20..HEAD
 fi
 ```
+
+必要に応じて、特定のファイルやディレクトリの詳細な差分を確認してください：
+`git diff $BASE..HEAD -- [path/to/file_or_dir]`
 
 ## Create CHANGELOG.md if Missing
 
@@ -80,6 +87,7 @@ fi
 
 ### Notes
 
+- **ファイルの差分（git diff）を詳細に分析し**、コミットメッセージだけでは読み取れない「実際の機能的な変化」を把握してください。
 - PR や Issue の番号は `[#123](github.com/your-repo/issues/123)` のようにリンク形式で記載してください。
 - `CHANGELOG.md` には実装した詳細を書くのではなく、そのサービスを利用する人（ユーザー）から見たときにどのような機能追加・変更・修正があったのかを端的に記載してください。
 - このコマンドは `CHANGELOG.md` のみを編集し、コミットやタグ付けは行いません。新しくバージョンや日付を追加しないでください。
