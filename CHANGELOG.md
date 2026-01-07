@@ -13,6 +13,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Gemini:** `GEMINI.md` と `antigravity/global_workflows` をシンボリックリンクによる管理対象に追加
+- **Workflows:** Antigravity 用のワークフロー定義ファイルを追加
+- **Editor:** `.editorconfig` を追加し、プロジェクト全体のコードスタイルを定義
+- **AI:** GitHub Copilot 用のカスタム指示（コミットメッセージ生成など）を追加
+- **Package Management:** Windows 用の `scoop-export.json` をプロファイルに追加
+
+### Changed
+
+- **Lint:** `markdownlint-cli2` の設定を更新し、ドキュメントの品質管理を強化
+- **Docs:** `CHANGELOG.md` に `Tagged Releases` セクションを追加し、過去のリリースへのアクセスを改善
+
+### Fixed
+
+- **Docs:** `GEMINI.md` の修正とフォーマットの統一
+- **Task:** 実装計画のステータス管理に関する修正
+
+### Removed
+
+- **CI/CD:** `uv-qualify.yml` ワークフローファイルを削除
+
 ## [0.2.0] - 2025-10-17
 
 ### Added
