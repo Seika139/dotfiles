@@ -1,3 +1,4 @@
+github.vscode-github-actions
 meta.pyrefly
 ms-azuretools.vscode-containers
 ms-azuretools.vscode-docker
