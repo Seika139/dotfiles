@@ -114,6 +114,7 @@
     "gitattributes",
     "gitdir",
     "gmail",
+    "GOPATH",
     "grayscale",
     "gtts",
     "healthcheck",
@@ -365,4 +366,5 @@
   "remote.autoForwardPortsSource": "hybrid",
   "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
+  "explorer.confirmDragAndDrop": false,
 }
