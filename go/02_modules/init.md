@@ -10,6 +10,8 @@
   - [Module と Package](#module-と-package)
   - [go mod でプロジェクトを初期化する](#go-mod-でプロジェクトを初期化する)
   - [依存関係の整理](#依存関係の整理)
+    - [実例](#実例)
+  - [実践的なワークフロー例](#実践的なワークフロー例)
 
 ## Module と Package
 
@@ -44,6 +46,7 @@ go mod init <module-name> # github.com/username/project-name
 
 `<module-name>` にはモジュールの名前を指定します。
 モジュールを公開して配布する想定がある場合は、`go.mod` ファイルのモジュール名としてリポジトリの URL を指定することが一般的です。
+main などの短い名前は他のプロジェクトと衝突する可能性があるため、避けた方が良いでしょう。
 
 ## 依存関係の整理
 
@@ -55,6 +58,12 @@ go mod tidy
 
 Go では先にコードにインポート文を書き、その後で `go mod tidy` を実行することで、必要な依存関係が自動的に `go.mod` と `go.sum` に追加されます。
 Python や Javascript のように、先に依存関係を宣言してからコードを書くという流れとは対照的です。
+
+`go mod tidy` による依存関係の解決は非常に強力なので、現在の Go プロジェクトでは Go Modules を使わない手はありません。
+
+ネット上の古い記事には `go get` や `go install` を使って依存関係を追加する方法が紹介されていることがありますが、通常の開発フローでは `go mod tidy` だけで事足ります。
+
+### 実例
 
 当ディレクトリでは UUID をパッケージ [main.go](./main.go) を用意しています。
 このコードには外部パッケージ `github.com/google/uuid` をインポートしています。
@@ -68,4 +77,29 @@ import "github.com/google/uuid"
 ```bash
 go mod tidy
 # go.mod と go.sum に依存関係が追加される
+```
+
+## 実践的なワークフロー例
+
+```bash
+# 1. プロジェクトの初期化
+$ go mod init github.com/{ユーザー名}/{プロジェクト名}
+
+# 2. コードを書く
+$ vim main.go
+
+# 3. フォーマットを整える
+$ go fmt ./...
+
+# 4. 静的解析でエラーチェック
+$ go vet ./...
+
+# 5. テストを実行
+$ go test ./...
+
+# 6. ビルド
+$ go build -o {実行ファイル名}
+
+# 7. 依存関係の整理
+$ go mod tidy
 ```
