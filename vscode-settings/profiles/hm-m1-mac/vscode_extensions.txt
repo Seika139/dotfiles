@@ -4,10 +4,12 @@ annsk.alignment
 batisteo.vscode-django
 bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
+bufbuild.vscode-buf
 chrmarti.regex
 coderabbit.coderabbit-vscode
 cpylua.language-postcss
 csstools.postcss
+dancheg97.grpc-clicker
 davidanson.vscode-markdownlint
 dbaeumer.vscode-eslint
 discountry.react-redux-react-router-snippets
@@ -15,6 +17,7 @@ docker.docker
 donjayamanne.githistory
 donjayamanne.python-environment-manager
 donjayamanne.python-extension-pack
+drblury.protobuf-vsc
 eamodio.gitlens
 editorconfig.editorconfig
 esbenp.prettier-vscode

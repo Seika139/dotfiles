@@ -155,5 +155,15 @@
   {
     "key": "cmd+,",
     "command": "-workbench.action.openAntigravitySettings"
+  },
+  {
+    "key": "ctrl+shift+[Quote]",
+    "command": "workbench.view.scm",
+    "when": "workbench.scm.active"
+  },
+  {
+    "key": "ctrl+shift+g",
+    "command": "-workbench.view.scm",
+    "when": "workbench.scm.active"
   }
 ]
