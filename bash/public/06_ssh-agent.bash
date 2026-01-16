@@ -39,7 +39,17 @@ start_agent() {
 
 # mac では ssh-agent が自動的に立ち上がるので ssh-agent の面倒は見ない
 if is_osx; then
-  :
+  # 1Password SSH Agent を利用している場合にそのソケットを指定する
+  #
+  # ※ Mac では ~/.ssh/config の IdentityAgent 設定が ssh コマンドを実行した瞬間にしか効かないため
+  #   Dev Container 内で git コマンドを実行した際に 1Password のエージェントに接続できない問題が生じた
+  #   そこで VS Code がエージェント転送を行うには、VS Code 自体が起動する時にこのパスを知っている必要がある
+  #   そこで SSH_AUTH_SOCK を環境変数として設定することで、Dev Container 内の git コマンドが
+  #   1Password のエージェントに接続できるようにした
+  sock_path="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  if [ -S "${sock_path}" ]; then
+    export SSH_AUTH_SOCK="${sock_path}"
+  fi
 elif [ -f "${SSH_ENV}" ]; then
   # Source SSH settings, if applicable
   # shellcheck source=/dev/null
