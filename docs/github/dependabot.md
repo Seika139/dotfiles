@@ -20,6 +20,14 @@ GitHub が提供する機能で、リポジトリ内の依存関係を自動的�
 
 導入したいリポジトリの `Settings > Advanced security > Dependabot version updates` から有効化したうえで、 `.github/dependabot.yml` をリポジトリに追加する。
 
+### 明示的に version update を実行する方法
+
+1. GitHub で対象のリポジトリを開く
+2. 上部のタブから Insights をクリック
+3. 左サイドメニューの Dependency graph を選択
+4. 上部の Dependabot タブをクリック
+5. 右側にある `Last checked ... ago` の横の `▼` または `Check for updates` ボタンをクリック
+
 ## 参考
 
 - [Dependabot まとめ #GitHub - Qiita](https://qiita.com/WisteriaWave/items/b37be9c3ebf1de37da0f)
