@@ -1,7 +1,7 @@
 {
   "env": {
-    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-20250514-v1:0",
-    "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
     "AWS_REGION": "us-east-1",
     "CLAUDE_CODE_USE_BEDROCK": "1",
     "API_TIMEOUT_MS": "1200000"
@@ -54,6 +54,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "model": "opusplan",
   "hooks": {
     "Stop": [
       {
@@ -79,6 +80,5 @@
       }
     ]
   },
-  "outputStyle": "Explanatory",
-  "model": "opus"
+  "outputStyle": "Explanatory"
 }
