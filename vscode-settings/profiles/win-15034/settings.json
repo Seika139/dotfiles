@@ -26,10 +26,12 @@
     "Diactoros",
     "Dont",
     "dotenv",
+    "dotenvx",
     "dotfiles",
     "DOTPATH",
     "ECPU",
     "ECPUs",
+    "Eeuo",
     "elif",
     "Embedder",
     "endraw",
@@ -39,6 +41,7 @@
     "Fargate",
     "fastapi",
     "fastcgi",
+    "fastmcp",
     "Fernet",
     "FQCN",
     "Franken",
@@ -63,6 +66,7 @@
     "inmemory",
     "innodb",
     "Interactable",
+    "isinstance",
     "isort",
     "isset",
     "Jenome",
@@ -136,6 +140,7 @@
     "readlink",
     "readwrite",
     "realpath",
+    "redoc",
     "relativedelta",
     "rerank",
     "reranked",
@@ -157,6 +162,7 @@
     "symfony",
     "timedelta",
     "TINYINT",
+    "tomllib",
     "traceback",
     "trunc",
     "Tweening",
@@ -173,6 +179,7 @@
     "vbscript",
     "venv",
     "virtualenv",
+    "vitest",
     "webfactory",
     "winget",
     "workplan",
@@ -238,6 +245,7 @@
   "editor.rulers": [
     40,
     80,
+    88,
     120,
     160,
     200
@@ -476,5 +484,6 @@
   "claudeCode.preferredLocation": "panel",
   "security.allowedUNCHosts": [
     "wsl.localhost"
-  ]
+  ],
+  "editor.pasteAs.preferences": []
 }

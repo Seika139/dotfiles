@@ -108,5 +108,10 @@
     "key": "ctrl+b",
     "command": "-markdown.extension.editing.toggleBold",
     "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^markdown$|^rmd$|^quarto$/"
+  },
+  {
+    "key": "ctrl+shift+[Quote]",
+    "command": "workbench.view.scm",
+    "when": "workbench.scm.active"
   }
 ]
