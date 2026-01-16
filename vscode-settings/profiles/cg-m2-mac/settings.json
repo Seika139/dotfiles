@@ -98,7 +98,9 @@
   },
   "github.copilot.nextEditSuggestions.enabled": true,
   "github.copilot.chat.commitMessageGeneration.instructions": [
-    { "text": "Write commit message in Japanese." },
+    {
+      "text": "Write commit message in Japanese."
+    },
     {
       "text": "Follow the Conventional Commits format strictly for commit messages. "
     },
@@ -179,8 +181,15 @@
   "files.exclude": {
     "**/.git": false
   },
-  "intelephense.stubs": ["redis", "standard", "pcre", "date"],
-  "intelephense.environment.includePaths": ["vendor/jetbrains/phpstorm-stubs"],
+  "intelephense.stubs": [
+    "redis",
+    "standard",
+    "pcre",
+    "date"
+  ],
+  "intelephense.environment.includePaths": [
+    "vendor/jetbrains/phpstorm-stubs"
+  ],
   "git.suggestSmartCommit": false,
   "files.associations": {
     "*.md": "markdown",
@@ -194,9 +203,15 @@
   "makefile.configureOnOpen": true,
   "remote.autoForwardPortsSource": "hybrid",
   "window.commandCenter": true,
-  "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
+  "cursor.cpp.disabledLanguages": [
+    "plaintext",
+    "scminput"
+  ],
   "workbench.activityBar.orientation": "vertical",
-  "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
+  "git-worktree-manager.worktreeCopyPatterns": [
+    "CLAUDE.md",
+    ".claude/"
+  ],
   "gitlens.ai.model": "vscode",
   "gitlens.ai.vscode.model": "copilot:gpt-4.1"
 }

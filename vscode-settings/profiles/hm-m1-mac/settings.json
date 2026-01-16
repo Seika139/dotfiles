@@ -171,6 +171,7 @@
     "reposting",
     "SAPI",
     "Seika",
+    "shfmt",
     "smallint",
     "strcpy",
     "struct",
@@ -261,7 +262,7 @@
   },
   "redhat.telemetry.enabled": true,
   "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
+    "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
   },
   "terminal.integrated.profiles.osx": {
     "bash": {

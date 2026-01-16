@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 if [ -e /proc/version ] && grep -qi microsoft /proc/version; then
-    # WSL 環境の場合は Windows のホームディレクトリを参照する
-    DOTPATH="$(wslpath "$(cmd.exe /c "echo %USERPROFILE%" | tr -d '\r')")/dotfiles"
+  # WSL 環境の場合は Windows のホームディレクトリを参照する
+  DOTPATH="$(wslpath "$(cmd.exe /c "echo %USERPROFILE%" | tr -d '\r')")/dotfiles"
 else
-    DOTPATH="${HOME}/dotfiles"
+  DOTPATH="${HOME}/dotfiles"
 fi
 
 export DOTPATH
@@ -14,10 +14,10 @@ source "${BDOTDIR}/.bash_profile"
 
 # Add user's local bin to PATH if it exists and is not already there
 if [[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-    export PATH="$HOME/.local/bin:$PATH"
+  export PATH="$HOME/.local/bin:$PATH"
 fi
 
 # Added by Antigravity
 if [[ -d "$HOME/.antigravity/" ]]; then
-    export PATH="/Users/suzukikenichi/.antigravity/antigravity/bin:$PATH"
+  export PATH="/Users/suzukikenichi/.antigravity/antigravity/bin:$PATH"
 fi

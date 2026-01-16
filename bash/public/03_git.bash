@@ -7,15 +7,15 @@
 # windowsのGitBashにも対応した
 
 if [ -f /opt/homebrew/etc/bash_completion.d/git-prompt.sh ]; then
-    # shellcheck disable=SC1091
-    source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
+  # shellcheck disable=SC1091
+  source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
 fi
 
 if is_msys; then
-    full_path='/c/Program Files/Git/etc/profile.d/git-prompt.sh'
-    if [ ! -e "${full_path}" ]; then
-        warn "${full_path} が存在しません(違う場所にある可能性もあります)"
-    fi
+  full_path='/c/Program Files/Git/etc/profile.d/git-prompt.sh'
+  if [ ! -e "${full_path}" ]; then
+    warn "${full_path} が存在しません(違う場所にある可能性もあります)"
+  fi
 fi
 
 # Gitブランチの状況を*+%で表示

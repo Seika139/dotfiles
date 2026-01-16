@@ -10,42 +10,42 @@
 # ref : https://neos21.net/blog/2018/12/31-01.html
 
 function light__git_ps1() {
-    local branch_name
-    branch_name="$(git symbolic-ref --short HEAD 2>/dev/null)"
-    if [ -z "$branch_name" ]; then
-        # ブランチ名がなければ Git リポジトリ配下ではないと見なし、何も出力せず中断する
-        exit 0
-    fi
-    echo "[$branch_name]" # 省略版と一目で分かるようにブラケットを使用
+  local branch_name
+  branch_name="$(git symbolic-ref --short HEAD 2>/dev/null)"
+  if [ -z "$branch_name" ]; then
+    # ブランチ名がなければ Git リポジトリ配下ではないと見なし、何も出力せず中断する
+    exit 0
+  fi
+  echo "[$branch_name]" # 省略版と一目で分かるようにブラケットを使用
 }
 
 function lighten_ps1() {
-    local USER='\[\e[40;92m\]\u@\h'
-    local TIME='\[\e[95m\]\t'
-    local DIR='\[\e[93m\]\w\[\e[49m\]'
-    local GIT='\[\e[1;32m\]`light__git_ps1`'
-    local LAST='\[\e[0m\]\n\$ '
-    export PS1="${USER} ${TIME} ${DIR} ${GIT} ${LAST}"
+  local USER='\[\e[40;92m\]\u@\h'
+  local TIME='\[\e[95m\]\t'
+  local DIR='\[\e[93m\]\w\[\e[49m\]'
+  local GIT='\[\e[1;32m\]`light__git_ps1`'
+  local LAST='\[\e[0m\]\n\$ '
+  export PS1="${USER} ${TIME} ${DIR} ${GIT} ${LAST}"
 }
 
 function normalize_ps1() {
-    local USER='\[\e[40;92m\]\u@\h'
-    local TIME='\[\e[95m\]\t'
-    local DIR='\[\e[93m\]\w\[\e[49m\]'
-    if executable __git_ps1; then
-        local GIT='\[\e[1;32m\]`__git_ps1 "(%s)"`'
-        # MEMO : $(__git_ps1 "(%s)") とすると win の GitBash でエラーになった
-    else
-        local GIT=""
-        warn "__git_ps1 がありません。git-prompt.shが読み込まれていないようです。"
-    fi
-    local LAST='\[\e[0m\]\n\$ '
-    export PS1="${USER} ${TIME} ${DIR} ${GIT} ${LAST}"
+  local USER='\[\e[40;92m\]\u@\h'
+  local TIME='\[\e[95m\]\t'
+  local DIR='\[\e[93m\]\w\[\e[49m\]'
+  if executable __git_ps1; then
+    local GIT='\[\e[1;32m\]`__git_ps1 "(%s)"`'
+    # MEMO : $(__git_ps1 "(%s)") とすると win の GitBash でエラーになった
+  else
+    local GIT=""
+    warn "__git_ps1 がありません。git-prompt.shが読み込まれていないようです。"
+  fi
+  local LAST='\[\e[0m\]\n\$ '
+  export PS1="${USER} ${TIME} ${DIR} ${GIT} ${LAST}"
 }
 
 # 環境に応じて使用するプロンプトを変える
 if is_msys; then
-    lighten_ps1
+  lighten_ps1
 else
-    normalize_ps1
+  normalize_ps1
 fi
