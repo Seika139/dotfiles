@@ -315,31 +315,29 @@
   "omnisharp.useModernNet": true,
   "prettier.printWidth": 120,
   // ↓ json
-  "[json]": {
+  "[json][jsonc][jsonl]": {
     "editor.defaultFormatter": "prettier.prettier-vscode",
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": false
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none"
   },
+  /**
+   * @description jsonc 用の設定
+   * prettier.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
+   * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
+   */
   "[jsonc]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode"
+    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
   },
+  "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
+  // ↑ jsonc の問題対応はここまで
   // ↑ json
   // ↓ javascript
-  "[javascript]": {
+  "[javascript][typescript]": {
     "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.tabSize": 2,
     "files.eol": "\n"
   },
-  "[typescript]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode",
-    "editor.tabSize": 2,
-    "files.eol": "\n"
-  },
-  "[javascriptreact]": {
-    "editor.tabSize": 2,
-    "files.eol": "\n"
-  },
-  "[typescriptreact]": {
+  "[javascriptreact][typescriptreact]": {
     "editor.tabSize": 2,
     "files.eol": "\n"
   },

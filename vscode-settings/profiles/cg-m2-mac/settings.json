@@ -146,14 +146,22 @@
     "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "[json]": {
+  "[json][jsonc][jsonl]": {
     "editor.defaultFormatter": "prettier.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none",
     "editor.formatOnSave": true
   },
+  /**
+   * @description jsonc 用の設定
+   * prettier.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
+   * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
+   */
   "[jsonc]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode",
-    "editor.formatOnSave": true
+    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
   },
+  "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
+  // ↑ jsonc の問題対応はここまで
   "[html]": {
     "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true

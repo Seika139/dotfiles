@@ -16,12 +16,21 @@
   "black-formatter.args": ["--line-length=88"],
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
-  "[json]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode"
+  "[json][jsonc][jsonl]": {
+    "editor.defaultFormatter": "prettier.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none"
   },
+  /**
+   * @description jsonc 用の設定
+   * prettier.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
+   * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
+   */
   "[jsonc]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode"
+    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
   },
+  "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
+  // ↑ jsonc の問題対応はここまで
   "[markdown]": {
     "editor.defaultFormatter": "prettier.prettier-vscode"
   },
@@ -54,7 +63,8 @@
     "*.txt": "Markdown",
     "*.jslib": "javascript",
     "*.conf": "nginx",
-    "nginx.conf": "nginx"
+    "nginx.conf": "nginx",
+    "*.jsonc": "jsonc"
   },
   // emmet
   "emmet.variables": {
@@ -239,7 +249,6 @@
   "[dockerfile]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"
   },
-  "C_Cpp.updateChannel": "Insiders",
   "[css]": {
     "editor.defaultFormatter": "vscode.css-language-features"
   },
@@ -353,5 +362,6 @@
   "remote.autoForwardPortsSource": "hybrid",
   "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
-  "explorer.confirmDragAndDrop": false
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false
 }
