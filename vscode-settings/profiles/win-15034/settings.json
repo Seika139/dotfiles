@@ -242,14 +242,7 @@
   "editor.formatOnSave": true,
   "editor.guides.bracketPairs": "active",
   "editor.tabCompletion": "on",
-  "editor.rulers": [
-    40,
-    80,
-    88,
-    120,
-    160,
-    200
-  ],
+  "editor.rulers": [40, 80, 88, 120, 160, 200],
   // ↑ editor
   // ↓ workbench
   "workbench.colorTheme": "Default Dark Modern",
@@ -306,42 +299,39 @@
       "source.organizeImports": "explicit"
     }
   },
-  "isort.args": [
-    "--profile",
-    "black"
-  ],
+  "isort.args": ["--profile", "black"],
   "python.analysis.typeCheckingMode": "basic",
   // ↑ python
   "[csharp]": {
     "editor.defaultFormatter": "ms-dotnettools.csharp"
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   },
   "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "omnisharp.useModernNet": true,
   "prettier.printWidth": 120,
   // ↓ json
   "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": false
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   },
   // ↑ json
   // ↓ javascript
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.tabSize": 2,
     "files.eol": "\n"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.tabSize": 2,
     "files.eol": "\n"
   },
@@ -482,8 +472,6 @@
     }
   ],
   "claudeCode.preferredLocation": "panel",
-  "security.allowedUNCHosts": [
-    "wsl.localhost"
-  ],
+  "security.allowedUNCHosts": ["wsl.localhost"],
   "editor.pasteAs.preferences": []
 }

@@ -3,13 +3,7 @@
   "editor.renderWhitespace": "all",
   "editor.accessibilitySupport": "on",
   "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
-  "editor.rulers": [
-    44,
-    88,
-    132,
-    176,
-    220
-  ], // 垂直ルーラーの表示
+  "editor.rulers": [44, 88, 132, 176, 220], // 垂直ルーラーの表示
   // workbench
   "workbench.iconTheme": "vscode-icons",
   // git
@@ -19,19 +13,17 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
-  "black-formatter.args": [
-    "--line-length=88"
-  ],
+  "black-formatter.args": ["--line-length=88"],
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   },
   "markdown-pdf.styles": [
     "~/pro-main/vscode-help/src/markdown/markdown-pdf.css"
@@ -225,9 +217,7 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.autoIndent": "keep",
-    "gitlens.codeLens.scopes": [
-      "document"
-    ],
+    "gitlens.codeLens.scopes": ["document"],
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
@@ -267,22 +257,16 @@
   "terminal.integrated.profiles.osx": {
     "bash": {
       "path": "bash",
-      "args": [
-        "-l"
-      ],
+      "args": ["-l"],
       "icon": "terminal-bash"
     },
     "zsh": {
       "path": "zsh",
-      "args": [
-        "-l"
-      ]
+      "args": ["-l"]
     },
     "fish": {
       "path": "fish",
-      "args": [
-        "-l"
-      ]
+      "args": ["-l"]
     },
     "tmux": {
       "path": "tmux",
@@ -304,7 +288,7 @@
     "editor.defaultFormatter": "Vue.volar"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   },
   "[csharp]": {
     "editor.formatOnSave": true
@@ -369,5 +353,5 @@
   "remote.autoForwardPortsSource": "hybrid",
   "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
-  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDragAndDrop": false
 }

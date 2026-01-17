@@ -139,35 +139,35 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "[yml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "prettier.prettier-vscode",
     "editor.formatOnSave": true
   },
   "diffEditor.ignoreTrimWhitespace": false,
@@ -181,15 +181,8 @@
   "files.exclude": {
     "**/.git": false
   },
-  "intelephense.stubs": [
-    "redis",
-    "standard",
-    "pcre",
-    "date"
-  ],
-  "intelephense.environment.includePaths": [
-    "vendor/jetbrains/phpstorm-stubs"
-  ],
+  "intelephense.stubs": ["redis", "standard", "pcre", "date"],
+  "intelephense.environment.includePaths": ["vendor/jetbrains/phpstorm-stubs"],
   "git.suggestSmartCommit": false,
   "files.associations": {
     "*.md": "markdown",
@@ -203,15 +196,9 @@
   "makefile.configureOnOpen": true,
   "remote.autoForwardPortsSource": "hybrid",
   "window.commandCenter": true,
-  "cursor.cpp.disabledLanguages": [
-    "plaintext",
-    "scminput"
-  ],
+  "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
   "workbench.activityBar.orientation": "vertical",
-  "git-worktree-manager.worktreeCopyPatterns": [
-    "CLAUDE.md",
-    ".claude/"
-  ],
+  "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
   "gitlens.ai.model": "vscode",
   "gitlens.ai.vscode.model": "copilot:gpt-4.1"
 }
