@@ -3,7 +3,7 @@
   "editor.renderWhitespace": "all",
   "editor.accessibilitySupport": "on",
   "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
-  "editor.rulers": [44, 88, 132, 176, 220], // 垂直ルーラーの表示
+  "editor.rulers": [40, 80, 88, 120, 160, 200], // 垂直ルーラーの表示
   // workbench
   "workbench.iconTheme": "vscode-icons",
   // git
@@ -152,6 +152,7 @@
     "Println",
     "pwsh",
     "pyautogui",
+    "pycache",
     "pycromanager",
     "pycryptodomex",
     "Pydantic",
@@ -172,7 +173,9 @@
     "repost",
     "reposting",
     "SAPI",
+    "SCRIPTDIR",
     "Seika",
+    "shellcheck",
     "shfmt",
     "smallint",
     "strcpy",
@@ -263,6 +266,7 @@
   "[shellscript]": {
     "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
   },
+  "shellcheck.customArgs": ["-x"],
   "terminal.integrated.profiles.osx": {
     "bash": {
       "path": "bash",
