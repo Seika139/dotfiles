@@ -121,11 +121,30 @@ bdotdir_run_daily_script() {
 
 _bdotdir_run_profile_daily_scripts() {
   local profile_dir="${BDOTDIR_DAILY_ROOT}/profile/${DAILY_PROFILE}"
+  local lock_file="${BDOTDIR_DAILY_CACHE_DIR}/runner.lock"
 
   if [[ ! -d "$profile_dir" ]]; then
     _bdotdir_daily_log_warn "プロファイルディレクトリが見つかりません: ${profile_dir}"
     return 1
   fi
+
+  # 排他制御: ロックファイルのチェック
+  if [[ -f "$lock_file" ]]; then
+    local pid
+    pid="$(<"$lock_file")"
+    if kill -0 "$pid" 2>/dev/null; then
+      _bdotdir_daily_log_verbose "デイリー処理が既に他のシェル(PID: ${pid})で実行中のため、スキップします"
+      return 0
+    else
+      _bdotdir_daily_log_verbose "古いロックファイル(PID: ${pid})を検出しました。プロセスが存在しないため削除して続行します"
+      rm -f "$lock_file"
+    fi
+  fi
+
+  # ロックの取得
+  printf '%s' "$$" >"$lock_file"
+  # 終了時にロックファイルを確実に削除するためのトラップ
+  trap 'rm -f "$lock_file"' EXIT INT TERM
 
   # 実行対象スクリプトを収集
   local -a scripts=()
@@ -135,12 +154,18 @@ _bdotdir_run_profile_daily_scripts() {
 
   if [[ ${#scripts[@]} -eq 0 ]]; then
     # スクリプトがない場合は何もしない
+    rm -f "$lock_file"
+    trap - EXIT INT TERM
     return 0
   fi
 
   for script in "${scripts[@]}"; do
     bdotdir_run_daily_script "$script"
   done
+
+  # 正常終了時のクリーンアップ
+  rm -f "$lock_file"
+  trap - EXIT INT TERM
 }
 
 _bdotdir_run_profile_daily_scripts
