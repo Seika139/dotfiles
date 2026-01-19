@@ -6,8 +6,8 @@ if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" != "1" ]]; then
 fi
 
 # キャッシュディレクトリ初期化
-: "${BDOTDIR_DAILY_ROOT:=${BDOTDIR}/daily}"
-: "${BDOTDIR_DAILY_CACHE_DIR:=${BDOTDIR_DAILY_ROOT}/.cache}"
+BDOTDIR_DAILY_ROOT="${BDOTDIR}/daily"
+BDOTDIR_DAILY_CACHE_DIR="${BDOTDIR_DAILY_ROOT}/.cache"
 
 if [[ ! -d "${BDOTDIR_DAILY_CACHE_DIR}" ]]; then
   if ! mkdir -p "${BDOTDIR_DAILY_CACHE_DIR}"; then
@@ -145,5 +145,5 @@ _bdotdir_run_profile_daily_scripts() {
 
 _bdotdir_run_profile_daily_scripts
 
-unset -f _bdotdir_daily_log_info _bdotdir_daily_log_warn _bdotdir_normalize_cache_key \
-  _bdotdir_run_profile_daily_scripts
+unset -f _bdotdir_daily_log_verbose _bdotdir_daily_log_warn _bdotdir_normalize_cache_key \
+  bdotdir_run_once_per_day bdotdir_run_daily_script _bdotdir_run_profile_daily_scripts
