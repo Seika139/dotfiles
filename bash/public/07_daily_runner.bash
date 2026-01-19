@@ -23,9 +23,9 @@ if [[ -f "${BDOTDIR_DAILY_ROOT}/.env" ]]; then
 fi
 : "${DAILY_PROFILE:=default}"
 
-_bdotdir_daily_log_info() {
-  if declare -F info >/dev/null 2>&1; then
-    info "$@"
+_bdotdir_daily_log_verbose() {
+  if declare -F verbose >/dev/null 2>&1; then
+    verbose "$@"
   else
     printf '%s\n' "$*"
   fi
@@ -65,13 +65,15 @@ bdotdir_run_once_per_day() {
     local last_run
     last_run="$(<"$cache_file")"
     if [[ "$last_run" == "$today" ]]; then
+      _bdotdir_daily_log_verbose "日次コマンド(${key})は既に実行済みです"
       return 0
     fi
   fi
 
+  _bdotdir_daily_log_verbose "日次コマンド(${key})を実行します..."
   if "${command[@]}"; then
     printf '%s\n' "$today" >"$cache_file"
-    _bdotdir_daily_log_info "日次コマンド(${key})を実行しました"
+    _bdotdir_daily_log_verbose "日次コマンド(${key})の実行が完了しました"
     return 0
   fi
 
@@ -97,7 +99,10 @@ bdotdir_run_daily_script() {
 
   local absolute_path="$script_path"
   if [[ ! "$script_path" = /* ]]; then
-    absolute_path="$(pwd)/$script_path"
+    # 絶対パスでない場合は BDOTDIR からの相対パスとして解決を試みる
+    if [[ -f "${BDOTDIR}/${script_path}" ]]; then
+      absolute_path="${BDOTDIR}/${script_path}"
+    fi
   fi
 
   local -a runner
@@ -122,9 +127,20 @@ _bdotdir_run_profile_daily_scripts() {
     return 1
   fi
 
+  # 実行対象スクリプトを収集
+  local -a scripts=()
   while IFS= read -r script; do
-    bdotdir_run_daily_script "$script"
+    [[ -n "$script" ]] && scripts+=("$script")
   done < <(LC_ALL=C find "${profile_dir}" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.bash' \) -print | LC_ALL=C sort)
+
+  if [[ ${#scripts[@]} -eq 0 ]]; then
+    # スクリプトがない場合は何もしない
+    return 0
+  fi
+
+  for script in "${scripts[@]}"; do
+    bdotdir_run_daily_script "$script"
+  done
 }
 
 _bdotdir_run_profile_daily_scripts
