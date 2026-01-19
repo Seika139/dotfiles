@@ -7,5 +7,6 @@
   - [x] `bash/daily/.env` の作成
   - [x] `bash/public/07_daily_runner.bash` のリファクタリング
   - [x] 既存の `daily_init.sh` をプロファイルディレクトリへ移動
+- [x] 不具合修正（古いキャッシュ参照問題の解決）
 - [x] 動作確認
 - [x] 完了報告 `docs/agy/daily_runner_fix/walkthrough.md`
