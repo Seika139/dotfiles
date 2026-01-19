@@ -14,6 +14,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Bash (Daily Runner):**
+  - 1日1回の実行判定にプロファイル管理 (`bash/daily/profile/`) を導入。環境変数 `DAILY_PROFILE` (`bash/daily/.env`) で切り替え可能に変更。
+  - PIDベースのロック機構を実装し、複数のシェルを同時に起動した際の重複実行を防止。
+  - 実行状況を把握するための詳細なログ出力 (`_bdotdir_daily_log_verbose`) を追加。
+- **VS Code:**
+  - `hm-m1-mac`, `win-15034` プロファイルの設定と拡張機能を更新。
+  - `protobuf`, `grpc`, `buf` 関連の拡張機能および設定を追加。
+  - 辞書ファイル (`cSpell`) への技術用語追加、`shellcheck` 用のカスタム引数を設定。
+- **Docs**
+  - dotenvx、 linux コマンド、 go、 dependabot に関するドキュメントを追加
+- **AI Coding**
+  - tmux で claude code から codex を起動する SKILL を追加
+
+### Changed
+
+- **VS Code:**
+  - JSON/JSONC/JSONL のフォーマッタを `prettier.prettier-vscode` に統一し、JSONC での末尾カンマ問題を修正。
+  - シェルスクリプトのデフォルトフォーマッタを `mads-hartmann.bash-ide-vscode` に変更。
+  - Python 用のルーラー (`88`) を追加。
+
+### Fixed
+
+- **bash**
+  - 1Password を利用している Mac が DevContainer を起動した際に ssh-agent が起動しない問題を修正。
+
 ## [0.3.0] - 2026-01-08
 
 ### Added
