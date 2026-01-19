@@ -2,7 +2,8 @@
 
 (
   cd "${DOTPATH}" || true
-  (cd brew && mise run sync && mise run dump)
+  (cd scoop && mise run sync && mise run dump)
+  (cd winget && mise run update && mise run dump)
   (cd claude && mise run status)
   (cd codex && mise run status)
 )
