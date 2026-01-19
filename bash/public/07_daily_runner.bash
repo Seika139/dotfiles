@@ -6,10 +6,8 @@ if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" != "1" ]]; then
 fi
 
 # キャッシュディレクトリ初期化
-: "${XDG_CACHE_HOME:=${HOME}/.cache}"
-: "${BDOTDIR_CACHE_ROOT:=${XDG_CACHE_HOME}/bdotdir}"
-: "${BDOTDIR_DAILY_CACHE_DIR:=${BDOTDIR_CACHE_ROOT}/daily}"
 : "${BDOTDIR_DAILY_ROOT:=${BDOTDIR}/daily}"
+: "${BDOTDIR_DAILY_CACHE_DIR:=${BDOTDIR_DAILY_ROOT}/.cache}"
 
 if [[ ! -d "${BDOTDIR_DAILY_CACHE_DIR}" ]]; then
   if ! mkdir -p "${BDOTDIR_DAILY_CACHE_DIR}"; then

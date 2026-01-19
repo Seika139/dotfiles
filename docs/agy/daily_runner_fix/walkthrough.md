@@ -16,23 +16,28 @@ DAILY_PROFILE=default
 
 #### [NEW] プロファイルディレクトリ
 
-`bash/daily/profile/default/` を作成し、既存の `daily_init.sh` をこちらに移動しました。
+`bash/daily/profile/default/` などのディレクトリでプロファイルごとにスクリプトを管理します。
 今後、新しいプロファイルを作成する場合は `bash/daily/profile/<profile_name>/` を作成し、その中に `.sh` または `.bash` ファイルを配置してください。
+
+#### [NEW] キャッシュディレクトリ
+
+`bash/daily/.cache/` に実行スタンプを保存するように変更しました。
+このディレクトリも `.gitignore` によりGit管理から除外されています。
 
 #### [MODIFY] [07_daily_runner.bash](file:///Users/suzukikenichi/dotfiles/bash/public/07_daily_runner.bash)
 
 - `bash/daily/.env` から `DAILY_PROFILE` を読み込むように変更。
+- キャッシュ保存先をプロジェクト内の `bash/daily/.cache/` に変更。
 - 指定されたプロファイルディレクトリ内のスクリプトをすべて一括で「1日1回」実行するようリファクタリング。
-- 相対パスの解決ロジックを簡素化・安定化。
 
 ## 検証結果
 
 ### 手動確認内容
 
-1. `DAILY_PROFILE=test_prof` を設定し、テストスクリプトを作成。
+1. `DAILY_PROFILE=default` を設定し、テストスクリプトを作成。
 2. 初回起動時のみスクリプトが実行されることを確認。
 3. 二回目以降は実行がスキップされることを確認。
-4. キャッシュファイル（`~/.cache/bdotdir/daily/*.stamp`）が正しく作成されていることを確認。
+4. キャッシュファイル（`bash/daily/.cache/*.stamp`）が正しく作成されていることを確認。
 
 ## 使い方
 

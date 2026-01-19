@@ -20,3 +20,4 @@ stashes/
 !.vscode/settings.json
 
 .env
+bash/daily/.cache/
