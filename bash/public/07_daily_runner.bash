@@ -9,6 +9,7 @@ fi
 : "${XDG_CACHE_HOME:=${HOME}/.cache}"
 : "${BDOTDIR_CACHE_ROOT:=${XDG_CACHE_HOME}/bdotdir}"
 : "${BDOTDIR_DAILY_CACHE_DIR:=${BDOTDIR_CACHE_ROOT}/daily}"
+: "${BDOTDIR_DAILY_ROOT:=${BDOTDIR}/daily}"
 
 if [[ ! -d "${BDOTDIR_DAILY_CACHE_DIR}" ]]; then
   if ! mkdir -p "${BDOTDIR_DAILY_CACHE_DIR}"; then
@@ -16,6 +17,13 @@ if [[ ! -d "${BDOTDIR_DAILY_CACHE_DIR}" ]]; then
     return
   fi
 fi
+
+# プロファイル設定の読み込み
+if [[ -f "${BDOTDIR_DAILY_ROOT}/.env" ]]; then
+  # shellcheck disable=SC1091
+  source "${BDOTDIR_DAILY_ROOT}/.env"
+fi
+: "${DAILY_PROFILE:=default}"
 
 _bdotdir_daily_log_info() {
   if declare -F info >/dev/null 2>&1; then
@@ -90,16 +98,12 @@ bdotdir_run_daily_script() {
   fi
 
   local absolute_path="$script_path"
-  if declare -F abs_path >/dev/null 2>&1; then
-    local resolved_path
-    resolved_path="$(abs_path "$script_path" 2>/dev/null)"
-    if [[ -n "$resolved_path" ]]; then
-      absolute_path="$resolved_path"
-    fi
+  if [[ ! "$script_path" = /* ]]; then
+    absolute_path="$(pwd)/$script_path"
   fi
 
   local -a runner
-  if [[ -x "$script_path" ]]; then
+  if [[ -x "$absolute_path" ]]; then
     runner=("$absolute_path")
   else
     runner=("/usr/bin/env" "bash" "$absolute_path")
@@ -112,48 +116,20 @@ bdotdir_run_daily_script() {
   bdotdir_run_once_per_day "$absolute_path" "${runner[@]}"
 }
 
-_bdotdir_pick_default_daily_script() {
-  local candidate
-  for candidate in "${BDOTDIR}/private/daily_init.sh" "${BDOTDIR}/public/daily_init.sh"; do
-    if [[ -f "$candidate" ]]; then
-      printf '%s' "$candidate"
-      return 0
-    fi
-  done
-  return 1
-}
+_bdotdir_run_profile_daily_scripts() {
+  local profile_dir="${BDOTDIR_DAILY_ROOT}/profile/${DAILY_PROFILE}"
 
-_bdotdir_resolve_daily_script_args() {
-  if [[ -z "${BDOTDIR_DAILY_SCRIPT_ARGS:-}" ]]; then
-    return 0
+  if [[ ! -d "$profile_dir" ]]; then
+    _bdotdir_daily_log_warn "プロファイルディレクトリが見つかりません: ${profile_dir}"
+    return 1
   fi
 
-  # shellcheck disable=SC2206
-  local -a args=(${BDOTDIR_DAILY_SCRIPT_ARGS})
-  printf '%s\0' "${args[@]}"
+  while IFS= read -r script; do
+    bdotdir_run_daily_script "$script"
+  done < <(LC_ALL=C find "${profile_dir}" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.bash' \) -print | LC_ALL=C sort)
 }
 
-_bdotdir_run_configured_daily_script() {
-  local configured_script="${BDOTDIR_DAILY_SCRIPT:-}"
-  if [[ -z "$configured_script" ]]; then
-    configured_script="$(_bdotdir_pick_default_daily_script || true)"
-  fi
-
-  if [[ -z "$configured_script" ]]; then
-    return 0
-  fi
-
-  local -a resolved_args=()
-  local arg
-  while IFS= read -r -d '' arg; do
-    resolved_args+=("$arg")
-  done < <(_bdotdir_resolve_daily_script_args)
-
-  bdotdir_run_daily_script "$configured_script" "${resolved_args[@]}"
-}
-
-_bdotdir_run_configured_daily_script
+_bdotdir_run_profile_daily_scripts
 
 unset -f _bdotdir_daily_log_info _bdotdir_daily_log_warn _bdotdir_normalize_cache_key \
-  _bdotdir_pick_default_daily_script _bdotdir_resolve_daily_script_args \
-  _bdotdir_run_configured_daily_script
+  _bdotdir_run_profile_daily_scripts
