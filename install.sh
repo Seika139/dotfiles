@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2016,SC2162
+
 # dotfiles を clone したらまず実行するインストーラ
 
 # dotfiles のルートディレクトリを動的に取得
@@ -149,20 +151,22 @@ if [ ! -e "${file}" ]; then
   echo ".gitconfig.local を作成します"
   read -p "git config user.name = " NAME
   read -p "git config user.email = " EMAIL
+  # shellcheck disable=SC2088
   DEFAULT_CORE_EXCLUDES_FILE="~/.gitignore_global"
   read -p "git config core.excludesfile = [${DEFAULT_CORE_EXCLUDES_FILE}]" CORE_EXCLUDES_FILE
+  # shellcheck disable=SC2088
   DEFAULT_SOURCETREE_CMD='~/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"'
   read -p "git config mergetool.sourcetree.cmd = [${DEFAULT_SOURCETREE_CMD}]" SOURCETREE_CMD
 
   # gitコマンドで確認・追加するときは次のようにやる
   #
-  # git congfig [key] : 確認 / --list で一覧表示
+  # git config [key] : 確認 / --list で一覧表示
   #
-  # git congfig [key] [設定内容] : 新たにその値に設定する
+  # git config [key] [設定内容] : 新たにその値に設定する
   #   --global で HOME ディレクトリ下の .gitconfig に書き込む
   #   --file [PATH] で PATH の示すファイルに設定に書き込む
 
-  cat <<EOF >${file}
+  cat <<EOF >"${file}"
 [user]
 	name = ${NAME}
 	email = ${EMAIL}

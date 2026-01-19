@@ -8,9 +8,9 @@ function less_lf() {
   # windows で less を実行すると ^M がたくさん表示されることがある
   # そのための対応策
   if is_win; then
-    sed s/^M//g $1 | less $LESS
+    sed s/^M//g "$1" | less "$LESS"
   else
-    less $LESS $1
+    less "$LESS" "$1"
   fi
 }
 

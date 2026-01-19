@@ -122,12 +122,12 @@ EOS
   done
 
   # $2 と $3 の間のコミットのコミットハッシュを取得
-  local command1=""
+  local -a command1=()
   if [[ "$1" == "-" ]]; then
     # $1 を - にすると author で絞り込まない
-    command1="git log --pretty=format:\"%H\" --no-merges $2..$3"
+    command1=("git" "log" "--pretty=format:%H" "--no-merges" "$2..$3")
   else
-    command1="git log --pretty=format:\"%H\" --no-merges --author=${1} $2..$3"
+    command1=("git" "log" "--pretty=format:%H" "--no-merges" "--author=${1}" "$2..$3")
   fi
 
   # コミットハッシュごとに変更があったファイルを取得
@@ -144,11 +144,11 @@ EOS
   local command5
   command5="xargs git diff $2..$3 ${*:4}"
 
-  echo_yellow "$command1 | $command2 | $command3 | $command4 | $command5"
+  echo_yellow "${command1[*]} | $command2 | $command3 | $command4 | $command5"
 
-  $command1 | $command2 | $command3 |
+  "${command1[@]}" | $command2 | $command3 |
     xargs -IXXX sh -c 'if [[ -e "XXX" ]]; then echo "XXX"; fi' |
-    xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" $2..$3 "${@:4}"
+    xargs git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/" "$2" "$3" "${@:4}"
 }
 
 tags_from_commit() {

@@ -95,15 +95,15 @@ ltsv_to_json_fast() {
 ltsv_to_json() {
   echo '['
   local first_line=true
-  while IFS=$'\n' read -ra line; do
+  while IFS=$'\n' read -r line; do
     local first=true
-    if [ $first_line == false ]; then
+    if [ "$first_line" == false ]; then
       echo ','
     fi
     echo '{'
     IFS=$'\t' read -ra pairs <<<"$line"
     for pair in "${pairs[@]}"; do
-      IFS=":" read key value <<<"$pair"
+      IFS=":" read -r key value <<<"$pair"
       if [[ $value == "{"* ]]; then
         if [ $first == true ]; then
           echo -n "  \"$key\": $value"

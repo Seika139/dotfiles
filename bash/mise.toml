@@ -5,7 +5,7 @@ shell = "bash -c"
 run = '''
 printf "%s\n" "Running shellcheck..."
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck -x -P SCRIPTDIR ../.bash_logout ../install.sh ../unlink.sh
+  shellcheck -x -P SCRIPTDIR ../.bash_logout ../install.sh ../unlink.sh .bash_profile .bashenv .bashrc
   find . -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck -x -P SCRIPTDIR {} +
 else
   printf "%s\n" "shellcheck がありません"
