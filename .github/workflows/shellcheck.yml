@@ -1,0 +1,31 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.sh"
+      - "**/*.bash"
+      - ".github/workflows/shellcheck.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.sh"
+      - "**/*.bash"
+      - ".github/workflows/shellcheck.yml"
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          # bash/mise.toml の仕様に合わせてチェックを実行する
+          shellcheck -x -P SCRIPTDIR ./install.sh ./unlink.sh ./.bash_logout .bash/.bash_profile .bash/.bashenv .bash/.bashrc
+          # bash ディレクトリ以下のすべての .sh, .bash ファイルを再帰的にチェックする
+          find ./bash -type f \( -name "*.sh" -o -name "*.bash" \) -exec shellcheck -x -P SCRIPTDIR {} +

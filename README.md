@@ -8,6 +8,10 @@
   <a href="https://github.com/Seika139/dotfiles/actions/workflows/lint-markdown.yml">
     <img alt="Markdown Lint" src="https://github.com/Seika139/dotfiles/actions/workflows/lint-markdown.yml/badge.svg">
   </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/Seika139/dotfiles/actions/workflows/shellcheck.yml">
+    <img alt="ShellCheck" src="https://github.com/Seika139/dotfiles/actions/workflows/shellcheck.yml/badge.svg">
+  </a>
 </div>
 
 ## 動作環境
