@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2034
+
 # git のコマンドの補完ツール(mac用)
 # ref : https://qiita.com/NorsteinBekkler/items/a0622ee6a39d08d61b72
 # ref : https://smootech.hatenablog.com/entry/2017/02/23/102531
