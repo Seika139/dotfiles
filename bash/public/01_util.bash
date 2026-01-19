@@ -128,7 +128,7 @@ log() {
     return 1
   fi
   case $1 in
-  debug | info | notice | warn | error)
+  verbose | debug | success | info | notice | warn | error)
     local label=$1
     shift
     ;;
@@ -138,21 +138,43 @@ log() {
     return 1
     ;;
   esac
-  echo "$(now) [${label:u}]: $*"
+  local filler="*******" # 固定したい文字数分用意
+
+  # ラベルとドットを結合し、先頭から7文字分だけ切り出す
+  local final_label="${filler}${label}"
+  final_label="${final_label: -7}"
+
+  echo "$(now) [${final_label}]: $*"
 }
 
-success() {
-  echo_green "$(log info "$@")"
+# RFC 5424 を参考にしてログレベルを定める
+# RFC 5424 は 0~ 7 まで
+# GCP や Android では別のログレベルが設定されている
+#
+# 0: Emergency     - OS, カーネルが使用不可(ここでは利用しない)
+# 1: Alert         - DBの破損など直ちに対処が必要(ここでは利用しない)
+# 2: Critical      - HDDなど損傷など危険な状態(ここでは利用しない)
+# 3: Error         - 一般的なエラー
+# 4: Warning       - リソース逼迫や設定の不備などの警告（動作はする）
+# 5: Notice        - 注意が必要な正常状態（設定変更、重要なサービスの再起動など）
+# 6: Informational - ユーザーのログイン、処理完了の記録などの情報
+# 7: Debug         - 開発用の詳細なトレースログ
+# 8: Verbose       - 最も詳細
+
+verbose() {
+  echo_rgb 110 110 110 "$(log verbose "$@")"
 }
 
 debug() {
-  if [[ ${ENABLE_DEBUG} = 1 ]]; then
-    echo_white "$(log debug "$@")"
-  fi
+  echo_rgb 160 190 255 "$(log debug "$@")"
+}
+
+success() {
+  echo_green "$(log success "$@")"
 }
 
 info() {
-  echo_white "$(log info "$@")"
+  echo_rgb 160 255 190 "$(log info "$@")"
 }
 
 notice() {
@@ -166,6 +188,14 @@ warn() {
 error() {
   echo_red "$(log error "$@")" 1>&2
 }
+
+# error 0
+# warn 1
+# notice 2
+# info 3
+# success 4
+# debug 5
+# verbose 6
 
 # 03 : OS distinction
 # ref : https://www.trhrkmk.com/posts/bashrc-os-check/
