@@ -262,50 +262,47 @@ EOS
   fi
 }
 
+# コミットログから対象ファイルを誰がどれだけ編集したかを集計します
+# usage: gln .
+# usage: gln --since="2 weeks ago" .
+# usage: gln --since="2026/01/10" --until="2026/01/20" .
+# usage: gln path/to/file_or_dir
 gln() {
-  if [ $# -eq 0 ]; then
-    echo "エラー: ファイル名を指定してください"
-    return 1
-  fi
-  echo_yellow 'コミットログから対象ファイルを誰がどれだけ編集したかを集計します'
-  git log --numstat --pretty="%an" -- "$@" |
-    awk '
-        BEGIN { author = ""; }
-        /^[^0-9]/ { author = $0; next; }
-        {
-            insertions[author] += $1;
-            deletions[author] += $2;
-        }
-        END {
-            for (author in insertions) {
-                total[author] = insertions[author] + deletions[author];
-                authors[++count] = author;
-            }
+  echo_yellow 'コミットログをもとに指定したファイル・ディレクトリを誰がどれだけ編集したかを集計します'
 
-            # Insertion sort by total modifications
-            for (i = 2; i <= count; i++) {
-                key = authors[i];
-                j = i - 1;
-                while (j > 0 && total[authors[j]] < total[key]) {
-                    authors[j + 1] = authors[j];
-                    j--;
-                }
-                authors[j + 1] = key;
-            }
-
-            printf "%8s  %8s  %8s  %-20s\n", "Added", "Removed", "Total", "Author";
-            for (i = 1; i <= count; i++) {
-                author = authors[i];
-                printf "%8d  %8d  %8d  %-20s\n", insertions[author], deletions[author], total[author], author;
-            }
-        }'
+  # --pretty="AUTH:%an" で著者名行にプレフィックスを付け、統計行（数字開始）と確実に区別します
+  git log --numstat --pretty="AUTH:%an" "$@" | awk '
+    /^AUTH:/ {
+      # 著者名をセット
+      a = substr($0, 6)
+      next
+    }
+    /^[0-9]/ {
+      # 統計行（数字 削除数 パス）を処理
+      if (a != "") {
+        ins[a] += $1
+        del[a] += $2
+      }
+      next
+    }
+    # 空行やバイナリファイル (- -) はスキップ
+    END {
+      for (i in ins) {
+        printf "%d\t%d\t%d\t%s\n", ins[i], del[i], ins[i] + del[i], i
+      }
+    }
+  ' | sort -rn -k3 | awk -F'\t' '
+    BEGIN {
+      printf "%8s  %8s  %8s  %-20s\n", "Added", "Removed", "Total", "Author"
+    }
+    {
+      if ($3 > 0) {
+        printf "%8d  %8d  %8d  %-20s\n", $1, $2, $3, $4
+      }
+    }'
 }
 
 glh() {
-  if [ $# -eq 0 ]; then
-    echo "エラー: ファイル名を指定してください"
-    return 1
-  fi
   echo_yellow '最初のコミットが古い順に作業者を表示します'
   git log --pretty=format:"%ad %an" --date=short --reverse -- "$@" | awk '{if (!seen[$2]++) {print $0}}'
 }

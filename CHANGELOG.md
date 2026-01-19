@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Changed
+
+- - **Bash (git alias):**
+  - `gln` (authorごとの編集行数集計) を大幅に高速化し、Mac (BSD awk) と Linux (gawk) の両方で最適に動作するよう改善した。
+
 ## [0.3.1] - 2026-01-20
 
 ### Added
