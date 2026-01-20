@@ -208,5 +208,13 @@
   "workbench.activityBar.orientation": "vertical",
   "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
   "gitlens.ai.model": "vscode",
-  "gitlens.ai.vscode.model": "copilot:gpt-4.1"
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+  // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
+  "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
+  "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
+  "terminal.integrated.profiles.linux": {
+    // Linux でターミナルを開くときに bash を login シェルで開く設定
+    // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
+    "bash (login)": { "path": "bash", "args": ["-l"] }
+  }
 }

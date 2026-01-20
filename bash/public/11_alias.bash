@@ -53,11 +53,9 @@ if command -v gsed &>/dev/null; then
   alias sed='gsed'
 fi
 
+# 補完設定: dockerの補完を設定
 alias d='docker'
 alias dc='docker compose'
-alias m='mise run'
-
-# 補完設定: dockerの補完を設定
 if command -v docker &>/dev/null; then
   # 一時ファイルに補完スクリプトを保存して読み込む
   _docker_completion_tmp="/tmp/docker_completion_$$"
@@ -71,6 +69,7 @@ if command -v docker &>/dev/null; then
 fi
 
 # 補完設定: miseの補完を設定（シンプルな代替方法）
+alias m='mise run'
 if command -v mise &>/dev/null; then
   eval "$(mise completion bash)"
 
@@ -105,3 +104,6 @@ alias gas='gh auth status'
 if command -v gh &>/dev/null; then
   eval "$(gh completion -s bash)"
 fi
+
+# Claude Code のエイリアス
+alias cc='claude --dangerously-skip-permissions'

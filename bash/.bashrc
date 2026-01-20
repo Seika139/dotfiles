@@ -80,7 +80,7 @@ DIRS=(
 
 for dir in "${DIRS[@]}"; do
   if [[ ! -d "${dir}" ]]; then
-    [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "${dir} is not found"
+    [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && verbose "${dir} does not exist, skip loading."
     continue
   fi
 

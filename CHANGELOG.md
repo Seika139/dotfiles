@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Bash (git alias):**
   - `gln` (authorごとの編集行数集計) を大幅に高速化し、Mac (BSD awk) と Linux (gawk) の両方で最適に動作するよう改善した。
+- **Bash (DevContainer)**
+  - Linux カーネルの DevContainer を起動した時に、自動でローカルの dotfiles をコンテナにコピーしてログインシェルを立ち上げるように設定した
+  - その際に実際にエラーが出た箇所を修正して、エラーなく起動するようにした
 
 ## [0.3.1] - 2026-01-20
 

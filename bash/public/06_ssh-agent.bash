@@ -4,6 +4,11 @@
 # ref : http://kurokawh.blogspot.com/2012/07/linuxcygwin-ssh-agent.html
 # ref : https://himadatanode.hatenablog.com/entry/20160823/p14
 
+# 既に有効なSSHエージェントがある場合は何もしない（例: VS Code の転送）
+if [ -S "${SSH_AUTH_SOCK}" ] && ssh-add -l >/dev/null 2>&1; then
+  return 0
+fi
+
 # ssh-agent のプロセスを確認する
 # ps -ef | grep ssh-agent
 
@@ -73,7 +78,9 @@ elif [ -f "${SSH_ENV}" ]; then
   # ssh-add -l で登録されている鍵がなければ登録する
   if ! ssh-add -l >/dev/null 2>&1; then
     echo "ssh-add -l で登録されている鍵がなければ登録する"
-    cat ~/.ssh/pass_phrase.txt
+    if [ -f "${PF_FILE}" ]; then
+      cat "${PF_FILE}"
+    fi
     ssh-add
   fi
 else

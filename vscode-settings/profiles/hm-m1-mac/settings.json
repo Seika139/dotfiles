@@ -374,5 +374,13 @@
   "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
   "explorer.confirmDragAndDrop": false,
-  "explorer.confirmDelete": false
+  "explorer.confirmDelete": false,
+  // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
+  "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
+  "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
+  "terminal.integrated.profiles.linux": {
+    // Linux でターミナルを開くときに bash を login シェルで開く設定
+    // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
+    "bash (login)": { "path": "bash", "args": ["-l"] }
+  }
 }
