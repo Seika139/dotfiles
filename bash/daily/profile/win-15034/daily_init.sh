@@ -6,4 +6,6 @@
   (cd winget && mise run update && mise run dump)
   (cd claude && mise run status)
   (cd codex && mise run status)
+  cd ~/programs/cyg-genai || true
+  git pull origin main
 )
