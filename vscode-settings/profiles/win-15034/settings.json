@@ -9,8 +9,11 @@
     "autocrlf",
     "autofetch",
     "autopep",
+    "autouse",
     "BDOTDIR",
     "Behaviour",
+    "boto",
+    "botocore",
     "BUILDKIT",
     "buildx",
     "caty",
@@ -23,6 +26,7 @@
     "cygames",
     "Cysharp",
     "dateutil",
+    "delenv",
     "Diactoros",
     "Dont",
     "dotenv",
@@ -38,6 +42,7 @@
     "envsubst",
     "esac",
     "Faiss",
+    "fakeredis",
     "Fargate",
     "fastapi",
     "fastcgi",
@@ -47,6 +52,7 @@
     "Franken",
     "fukushima",
     "gacha",
+    "genai",
     "Genemon",
     "getline",
     "gitmessage",
@@ -75,7 +81,9 @@
     "kenichi",
     "laravel",
     "levelname",
+    "libpq",
     "loadtest",
+    "localtime",
     "loglevel",
     "ltsv",
     "mapfile",
@@ -84,6 +92,7 @@
     "meilisearch",
     "Milvus",
     "mktemp",
+    "msal",
     "Msgpack",
     "mshta",
     "msys",
@@ -153,10 +162,12 @@
     "senko",
     "Sercuit",
     "sessionmaker",
+    "setuptools",
     "Spilo",
     "sqlalchemy",
     "sqlfluff",
     "sqls",
+    "structlog",
     "superglobal",
     "svtask",
     "symfony",
@@ -167,10 +178,12 @@
     "trunc",
     "Tweening",
     "typer",
+    "tzdata",
     "UGUI",
     "Upsert",
     "urandom",
     "urawa",
+    "urllib",
     "USERPROFILE",
     "USPTO",
     "uvicorn",
@@ -259,13 +272,15 @@
   },
   "autoDocstring.docstringFormat": "numpy",
   "autoDocstring.startOnNewLine": true,
-  "window.zoomLevel": -2,
+  // editor.rulers のレンダリングが表示される値に調整している
+  // zoomLevel を -2.5 より小さくするとターミナルの文字がつぶれて見えるようになる
+  "window.zoomLevel": -2.452,
   "window.customTitleBarVisibility": "windowed",
   "diffEditor.ignoreTrimWhitespace": false,
   "explorer.confirmDragAndDrop": false,
   // ↓ markdown
   "[markdown]": {
-    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "diffEditor.ignoreTrimWhitespace": false
   },
   "markdownlint.config": {
@@ -326,7 +341,8 @@
    * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
    */
   "[jsonc]": {
-    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
+    "prettier.useEditorConfig": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // プロジェクトに .editorconfig があっても無視する
   },
   "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
   // ↑ jsonc の問題対応はここまで
@@ -436,12 +452,7 @@
   "database-client.autoSync": true,
   // ↓ sqlfluff(VSCode SQL formatter and linter 拡張機能とは別で CLI のインストールも必要)
   "sqlfluff.dialect": "postgres",
-  "sqlfluff.format.languages": [
-    "sql",
-    "sql-bigquery",
-    "jinja-sql",
-    "snowflake-sql"
-  ],
+  "sqlfluff.format.languages": ["sql", "sql-bigquery", "jinja-sql", "snowflake-sql"],
   "sqlfluff.format.enabled": true,
   "sqlfluff.executablePath": "/home/ken/.local/bin/sqlfluff",
   "[sql]": {
