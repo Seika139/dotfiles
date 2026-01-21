@@ -30,6 +30,27 @@ if [ "${found}" = false ]; then
   warn "git-prompt に必要なファイルが見つかりません(違う場所にある可能性もあります)"
 fi
 
+completion_files=(
+  '/opt/homebrew/etc/bash_completion.d/git-completion.bash' # Homebrew on macOS
+  '/usr/share/bash-completion/completions/git'              # Linux (bash-completion package)
+  '/usr/share/git/completion/git-completion.bash'           # Linux (git package)
+  '/etc/bash_completion.d/git'                              # 旧来の配置
+)
+
+if ! declare -F __git_wrap__git_main >/dev/null 2>&1; then
+  for file in "${completion_files[@]}"; do
+    if [ -f "${file}" ]; then
+      # shellcheck disable=SC1090
+      source "${file}"
+      break
+    fi
+  done
+fi
+
+if ! declare -F __git_wrap__git_main >/dev/null 2>&1; then
+  [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && warn "git 補完スクリプトが読み込めませんでした"
+fi
+
 # Gitブランチの状況を*+%で表示
 GIT_PS1_SHOWDIRTYSTATE=true
 GIT_PS1_SHOWUNTRACKEDFILES=true
