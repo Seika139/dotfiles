@@ -15,14 +15,13 @@ if [ -z "${BDOTDIR}" ]; then
   fi
 fi
 
-# 対話的かどうかを判定（他のスクリプトと共有するために環境変数へ反映）
-if [[ -z "${BDOTDIR_SHELL_IS_INTERACTIVE+x}" ]]; then
-  if [[ $- == *i* ]] && [[ -t 1 ]]; then
-    BDOTDIR_SHELL_IS_INTERACTIVE=1
-  else
-    BDOTDIR_SHELL_IS_INTERACTIVE=0
-  fi
+# 対話的かどうかを毎回判定（install.sh などの非対話実行で 0 が残り続けるのを防ぐ）
+if [[ $- == *i* ]] && [[ -t 1 ]]; then
+  BDOTDIR_SHELL_IS_INTERACTIVE=1
+else
+  BDOTDIR_SHELL_IS_INTERACTIVE=0
 fi
+export BDOTDIR_SHELL_IS_INTERACTIVE
 
 if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]]; then
   # シェルの種類とホームディレクトリ情報をログ出力
