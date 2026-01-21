@@ -8,10 +8,11 @@ gi() {
   echo
 }
 
+# gだけでもgitコマンドの補完が効くようにする
 alias g="git"
-# gだけの時でも補完が効くようにする
-# TODO completeについてはまだわかって無いことが多い
-complete -o bashdefault -o default -o nospace -F __git_wrap__git_main g
+if declare -F __git_wrap__git_main >/dev/null 2>&1; then
+  complete -o bashdefault -o default -o nospace -F __git_wrap__git_main g
+fi
 
 # git branch
 alias gb='git branch'
