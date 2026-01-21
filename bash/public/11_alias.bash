@@ -8,9 +8,18 @@ function less_lf() {
   # windows で less を実行すると ^M がたくさん表示されることがある
   # そのための対応策
   if is_win; then
-    sed s/^M//g "$1" | less "$LESS"
+    # 引数がある場合はファイルとして扱い、ない場合は標準入力を使う
+    if [[ -n "$1" ]]; then
+      sed s/^M//g "$1" | less "$LESS"
+    else
+      sed s/^M//g | less "$LESS"
+    fi
   else
-    less "$LESS" "$1"
+    if [[ -n "$1" ]]; then
+      less "$LESS" "$1"
+    else
+      less "$LESS"
+    fi
   fi
 }
 
