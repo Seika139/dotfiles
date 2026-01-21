@@ -34,14 +34,6 @@ if ! declare -F echo_yellow >/dev/null 2>&1; then
   }
 fi
 
-# このスクリプトは source でも直接実行でも動作します
-# source で実行した場合は return 文が使われ、直接実行した場合は exit 文が使われます
-# ただし、.bash_profile の設定を現在のシェルに反映したい場合は source で実行してください
-# if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-#   echo "このスクリプトは source $ROOT/install.sh として実行してください。"
-#   exit 1
-# fi
-
 #-------------------------------------
 # 0. install homebrew (if OSX)
 #-------------------------------------
