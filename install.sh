@@ -15,7 +15,9 @@ fi
 # REMOTE_CONTAINERS, CI, NONINTERACTIVE のいずれかが設定されている場合は非対話モード
 if [[ -n "${REMOTE_CONTAINERS}" ]] || [[ -n "${CI}" ]] || [[ -n "${NONINTERACTIVE}" ]]; then
   NONINTERACTIVE=true
-  echo -e "\033[33m⚠️  非対話モードで実行します（環境変数: REMOTE_CONTAINERS=${REMOTE_CONTAINERS}, CI=${CI}, NONINTERACTIVE=${NONINTERACTIVE}）\033[0m"
+  printf "%s" "\033[33m⚠️  非対話モードで実行します"
+  printf "%s" "（環境変数: REMOTE_CONTAINERS=${REMOTE_CONTAINERS:-undefined}, "
+  printf "%s" "CI=${CI:-undefined}, NONINTERACTIVE=${NONINTERACTIVE:-undefined}）\033[0m"
 else
   NONINTERACTIVE=false
 fi
