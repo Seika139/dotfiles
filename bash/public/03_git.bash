@@ -57,6 +57,51 @@ GIT_PS1_SHOWUNTRACKEDFILES=true
 GIT_PS1_SHOWSTASHSTATE=true
 GIT_PS1_SHOWUPSTREAM=auto
 
-GIT_USER_NAME="$(git config user.name 2>/dev/null || echo "")"
-GIT_USER_EMAIL="$(git config user.email 2>/dev/null || echo "")"
-GIT_USER_SIGNINGKEY="$(git config user.signingkey 2>/dev/null || echo "")"
+persist_windows_env_var() {
+  local var_name="$1"
+  local value="$2"
+  [[ -n "${value}" ]] || return 0
+  [[ "${OSTYPE}" == msys* || "${OSTYPE}" == cygwin* ]] || return 0
+  command -v setx >/dev/null 2>&1 || return 0
+
+  local current=""
+  if command -v powershell.exe >/dev/null 2>&1; then
+    current="$(powershell.exe -NoLogo -NoProfile -Command "[Environment]::GetEnvironmentVariable('${var_name}','User')" 2>/dev/null | tr -d '\r')"
+  elif command -v pwsh >/dev/null 2>&1; then
+    current="$(pwsh -NoLogo -NoProfile -Command "[Environment]::GetEnvironmentVariable('${var_name}','User')" 2>/dev/null | tr -d '\r')"
+  fi
+
+  if [[ "${current}" != "${value}" ]]; then
+    setx "${var_name}" "${value}" >/dev/null 2>&1 || true
+  fi
+}
+
+persist_macos_env_var() {
+  local var_name="$1"
+  local value="$2"
+  [[ -n "${value}" ]] || return 0
+  [[ "${OSTYPE}" == darwin* ]] || return 0
+  command -v launchctl >/dev/null 2>&1 || return 0
+
+  local current=""
+  current="$(launchctl getenv "${var_name}" 2>/dev/null || echo "")"
+  if [[ "${current}" != "${value}" ]]; then
+    launchctl setenv "${var_name}" "${value}"
+  fi
+}
+
+set_git_user_env_var() {
+  local var_name="$1"
+  local config_key="$2"
+  local value
+  value="$(git config "${config_key}" 2>/dev/null || echo "")"
+  [[ -n "${value}" ]] || return 0
+
+  export "${var_name}=${value}"
+  persist_windows_env_var "${var_name}" "${value}"
+  persist_macos_env_var "${var_name}" "${value}"
+}
+
+set_git_user_env_var "GIT_USER_NAME" "user.name"
+set_git_user_env_var "GIT_USER_EMAIL" "user.email"
+set_git_user_env_var "GIT_USER_SIGNINGKEY" "user.signingkey"
