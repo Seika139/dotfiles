@@ -187,12 +187,15 @@ if [ ! -e "${file}" ]; then
     # 既存の git 設定を確認（グローバルとローカル両方をチェック）
     EXISTING_GIT_NAME=$(git config user.name 2>/dev/null || echo "")
     EXISTING_GIT_EMAIL=$(git config user.email 2>/dev/null || echo "")
+    EXISTING_GIT_SIGNINGKEY=$(git config user.signingkey 2>/dev/null || echo "")
 
     # 優先順位に従って値を決定
     NAME=""
     EMAIL=""
+    SIGNINGKEY=""
     NAME_SOURCE=""
     EMAIL_SOURCE=""
+    SIGNINGKEY_SOURCE=""
 
     if [[ -n "${EXISTING_GIT_NAME}" ]]; then
       NAME="${EXISTING_GIT_NAME}"
@@ -210,6 +213,14 @@ if [ ! -e "${file}" ]; then
       EMAIL_SOURCE="環境変数 GIT_USER_EMAIL"
     fi
 
+    if [[ -n "${EXISTING_GIT_SIGNINGKEY}" ]]; then
+      SIGNINGKEY="${EXISTING_GIT_SIGNINGKEY}"
+      SIGNINGKEY_SOURCE="git config"
+    elif [[ -n "${GIT_USER_SIGNINGKEY}" ]]; then
+      SIGNINGKEY="${GIT_USER_SIGNINGKEY}"
+      SIGNINGKEY_SOURCE="環境変数 GIT_USER_SIGNINGKEY"
+    fi
+
     # shellcheck disable=SC2088
     DEFAULT_CORE_EXCLUDES_FILE="~/.gitignore_global"
     CORE_EXCLUDES_FILE="${DEFAULT_CORE_EXCLUDES_FILE}"
@@ -221,12 +232,16 @@ if [ ! -e "${file}" ]; then
     if [[ -n "${NAME}" ]] && [[ -n "${EMAIL}" ]]; then
       echo -e "  user.name = ${NAME} (from ${NAME_SOURCE})"
       echo -e "  user.email = ${EMAIL} (from ${EMAIL_SOURCE})"
+      if [[ -n "${SIGNINGKEY}" ]]; then
+        echo -e "  user.signingkey = ${SIGNINGKEY} (from ${SIGNINGKEY_SOURCE})"
+      fi
     else
       echo -e "\033[33m⚠️  git config や環境変数が設定されていないため、[user] セクションは作成しません\033[0m"
       echo -e "\033[33m💡 git コマンド実行時に user.name と user.email の設定を求められます\033[0m"
+      echo -e "\033[33m💡 Dev Container で自動設定したい場合は GIT_USER_NAME / GIT_USER_EMAIL を環境変数として渡してください\033[0m"
     fi
 
-    unset EXISTING_GIT_NAME EXISTING_GIT_EMAIL NAME_SOURCE EMAIL_SOURCE
+    unset EXISTING_GIT_NAME EXISTING_GIT_EMAIL EXISTING_GIT_SIGNINGKEY NAME_SOURCE EMAIL_SOURCE SIGNINGKEY_SOURCE
   else
     read -p "git config user.name = " NAME
     read -p "git config user.email = " EMAIL
@@ -254,8 +269,11 @@ if [ ! -e "${file}" ]; then
 [user]
 	name = ${NAME}
 	email = ${EMAIL}
-
 EOF
+      if [[ -n "${SIGNINGKEY}" ]]; then
+        printf '\tsigningkey = %s\n' "${SIGNINGKEY}"
+      fi
+      printf '\n'
     fi
 
     # [core] セクション（常に出力）
@@ -268,7 +286,7 @@ EOF
 EOF
   } >"${file}"
 
-  unset NAME EMAIL DEFAULT_CORE_EXCLUDES_FILE CORE_EXCLUDES_FILE DEFAULT_SOURCETREE_CMD SOURCETREE_CMD
+  unset NAME EMAIL SIGNINGKEY DEFAULT_CORE_EXCLUDES_FILE CORE_EXCLUDES_FILE DEFAULT_SOURCETREE_CMD SOURCETREE_CMD
 fi
 
 # シンボリックリンクを貼る
