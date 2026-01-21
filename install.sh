@@ -182,13 +182,13 @@ if [ ! -e "${file}" ]; then
     # 3. デフォルト値 (CHANGE-ME, changeme@example.com)
 
     # 既存の git 設定を確認
-    EXISTING_GIT_NAME=$(git config --global user.name 2>/dev/null || echo "")
-    EXISTING_GIT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
+    EXISTING_GIT_NAME=$(git config user.name 2>/dev/null || echo "")
+    EXISTING_GIT_EMAIL=$(git config user.email 2>/dev/null || echo "")
 
     # 優先順位に従って値を決定
     if [[ -n "${EXISTING_GIT_NAME}" ]]; then
       NAME="${EXISTING_GIT_NAME}"
-      NAME_SOURCE="git config --global"
+      NAME_SOURCE="git config"
     elif [[ -n "${GIT_USER_NAME}" ]]; then
       NAME="${GIT_USER_NAME}"
       NAME_SOURCE="環境変数 GIT_USER_NAME"
@@ -199,7 +199,7 @@ if [ ! -e "${file}" ]; then
 
     if [[ -n "${EXISTING_GIT_EMAIL}" ]]; then
       EMAIL="${EXISTING_GIT_EMAIL}"
-      EMAIL_SOURCE="git config --global"
+      EMAIL_SOURCE="git config"
     elif [[ -n "${GIT_USER_EMAIL}" ]]; then
       EMAIL="${GIT_USER_EMAIL}"
       EMAIL_SOURCE="環境変数 GIT_USER_EMAIL"
