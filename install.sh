@@ -32,11 +32,13 @@ if ! declare -F echo_yellow >/dev/null 2>&1; then
   }
 fi
 
-# Ensure this script is sourced; otherwise abort to avoid return errors later.
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-  echo "このスクリプトは source $ROOT/install.sh として実行してください。"
-  exit 1
-fi
+# このスクリプトは source でも直接実行でも動作します
+# source で実行した場合は return 文が使われ、直接実行した場合は exit 文が使われます
+# ただし、.bash_profile の設定を現在のシェルに反映したい場合は source で実行してください
+# if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+#   echo "このスクリプトは source $ROOT/install.sh として実行してください。"
+#   exit 1
+# fi
 
 #-------------------------------------
 # 0. install homebrew (if OSX)
@@ -81,7 +83,8 @@ if [[ $(uname) = "Darwin" ]] && ! type brew >/dev/null 2>&1; then
   else
     echo -e "\033[38;2;250;180;100m次のURLが存在しませんでした。${url}"
     echo -e "https://brew.sh/index_ja を見て最新のコマンドに書き換えてください\033[0m"
-    return 0
+    # source で実行されている場合は return、そうでない場合は exit
+    [[ "${BASH_SOURCE[0]}" != "$0" ]] && return 0 || exit 0
   fi
 fi
 
@@ -107,7 +110,8 @@ if [[ "${OSTYPE}" == msys* ]]; then
     read -p "$(echo -e '\033[00;33mこのまま続けてよろしいですか？ [y/N]: \033[0m')" ANS1
     if [[ $ANS1 != [yY] ]]; then
       echo "処理を中断しました。管理者権限で開いた git bash で再実行してください。"
-      return 0
+      # source で実行されている場合は return、そうでない場合は exit
+      [[ "${BASH_SOURCE[0]}" != "$0" ]] && return 0 || exit 0
     fi
     unset ANS1
   fi
