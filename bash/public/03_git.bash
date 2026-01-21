@@ -6,18 +6,28 @@
 # ref : https://qiita.com/NorsteinBekkler/items/a0622ee6a39d08d61b72
 # ref : https://smootech.hatenablog.com/entry/2017/02/23/102531
 
-# windowsのGitBashにも対応した
+prompt_files=(
+  '/opt/homebrew/etc/bash_completion.d/git-prompt.sh'    # Homebrew on M1 Mac
+  '/usr/lib/git-core/git-sh-prompt'                      # Linux
+  '/c/Program Files/Git/etc/profile.d/git-prompt.sh'     # Git for Windows
+  '/usr/share/git/completion/git-prompt.sh'              # その他のLinux系
+  '/etc/bash_completion.d/git-prompt.sh'                 # その他のLinux系
+  '/usr/local/etc/bash_completion.d/git-prompt.sh'       # その他のLinux系
+  '/usr/share/git-core/contrib/completion/git-prompt.sh' # その他のLinux系
+)
+found=false
 
-if [ -f /opt/homebrew/etc/bash_completion.d/git-prompt.sh ]; then
-  # shellcheck disable=SC1091
-  source /opt/homebrew/etc/bash_completion.d/git-prompt.sh
-fi
-
-if is_msys; then
-  full_path='/c/Program Files/Git/etc/profile.d/git-prompt.sh'
-  if [ ! -e "${full_path}" ]; then
-    warn "${full_path} が存在しません(違う場所にある可能性もあります)"
+for file in "${prompt_files[@]}"; do
+  if [ -f "${file}" ]; then
+    # shellcheck disable=SC1090
+    source "${file}"
+    found=true
+    break
   fi
+done
+
+if [ "${found}" = false ]; then
+  warn "git-prompt に必要なファイルが見つかりません(違う場所にある可能性もあります)"
 fi
 
 # Gitブランチの状況を*+%で表示
