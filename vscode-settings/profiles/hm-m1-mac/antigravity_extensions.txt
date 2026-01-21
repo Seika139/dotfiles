@@ -1,5 +1,8 @@
+formulahendry.code-runner
+foxundermoon.shell-format
 github.vscode-github-actions
 golang.go
+henrikdev.ag-quota
 meta.pyrefly
 ms-azuretools.vscode-containers
 ms-azuretools.vscode-docker
@@ -7,5 +10,8 @@ ms-ceintl.vscode-language-pack-ja
 ms-python.debugpy
 ms-python.python
 ms-python.vscode-python-envs
+prettier.prettier-vscode
+ritwickdey.liveserver
 tamasfe.even-better-toml
+timonwong.shellcheck
 zxh404.vscode-proto3

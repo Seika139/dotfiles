@@ -57,6 +57,7 @@ nicolasvuillamy.vscode-groovy-lint
 njpwerner.autodocstring
 oderwat.indent-rainbow
 openai.chatgpt
+ritwickdey.liveserver
 rogalmic.bash-debug
 secanis.jenkinsfile-support
 sgryjp.japanese-word-handler

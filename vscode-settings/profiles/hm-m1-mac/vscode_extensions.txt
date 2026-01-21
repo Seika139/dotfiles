@@ -80,9 +80,11 @@ onecentlin.laravel-blade
 openai.chatgpt
 peakchen90.open-html-in-browser
 pranaygp.vscode-css-peek
+prettier.prettier-vscode
 redhat.vscode-yaml
 rettimo.nextjs-vscode-snippets
 richie5um2.vscode-sort-json
+ritwickdey.liveserver
 rogalmic.bash-debug
 rvest.vs-code-prettier-eslint
 saoudrizwan.claude-dev
