@@ -21,6 +21,7 @@ shell は bash を使用してください。
 
 - Mac 系: ターミナル、iTerm2、VS Code 内のターミナル
 - Win 系: GitBash、VS Code 内のターミナル（Git Bash）
+- Linux 系: Ubuntu (on WSL), DevContainer
 
 ## install
 
@@ -30,6 +31,8 @@ install.sh を実行してホームディレクトリにシンボリックリン
 
 ```bash
 source install.sh
+# または
+bash install.sh
 ```
 
 これによってシェルを起動した時に、 このプロジェクト内で設定した bash_profile や bashrc が読み込まれるようになります。
@@ -41,6 +44,8 @@ install.sh でホームディレクトリに作成したシンボリックリン
 
 ```bash
 source unlink.sh
+# または
+bash unlink.sh
 ```
 
 ## Change `__git_ps1`
