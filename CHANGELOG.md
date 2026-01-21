@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Claude**
+  - SKILL を追加した
+
+### Changed
+
+- **bash**
+  - Dev Container で dotfiles をロードするときなど、非対話モードでシェルが起動しても install.sh が動作するように諸々の修正をした
+
 ## [0.3.2] - 2026-01-21
 
 ### Added
