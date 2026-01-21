@@ -180,23 +180,26 @@ if [ ! -e "${file}" ]; then
   if [[ "${NONINTERACTIVE}" == "true" ]]; then
     # 非対話モードの場合は以下の優先順位で値を取得:
     # 1. 既存の git config --global の設定
-    # 2. 環境変数 (GIT_USER_NAME, GIT_USER_EMAIL)
-    # 3. デフォルト値 (CHANGE-ME, changeme@example.com)
+    # 2. 既存の git config の設定（ローカル設定がある場合）
+    # 3. 環境変数 (GIT_USER_NAME, GIT_USER_EMAIL)
+    # 4. 未設定（[user] セクションを出力しない）
 
-    # 既存の git 設定を確認
+    # 既存の git 設定を確認（グローバルとローカル両方をチェック）
     EXISTING_GIT_NAME=$(git config user.name 2>/dev/null || echo "")
     EXISTING_GIT_EMAIL=$(git config user.email 2>/dev/null || echo "")
 
     # 優先順位に従って値を決定
+    NAME=""
+    EMAIL=""
+    NAME_SOURCE=""
+    EMAIL_SOURCE=""
+
     if [[ -n "${EXISTING_GIT_NAME}" ]]; then
       NAME="${EXISTING_GIT_NAME}"
       NAME_SOURCE="git config"
     elif [[ -n "${GIT_USER_NAME}" ]]; then
       NAME="${GIT_USER_NAME}"
       NAME_SOURCE="環境変数 GIT_USER_NAME"
-    else
-      NAME="CHANGE-ME"
-      NAME_SOURCE="デフォルト値"
     fi
 
     if [[ -n "${EXISTING_GIT_EMAIL}" ]]; then
@@ -205,9 +208,6 @@ if [ ! -e "${file}" ]; then
     elif [[ -n "${GIT_USER_EMAIL}" ]]; then
       EMAIL="${GIT_USER_EMAIL}"
       EMAIL_SOURCE="環境変数 GIT_USER_EMAIL"
-    else
-      EMAIL="changeme@example.com"
-      EMAIL_SOURCE="デフォルト値"
     fi
 
     # shellcheck disable=SC2088
@@ -218,11 +218,12 @@ if [ ! -e "${file}" ]; then
     SOURCETREE_CMD="${DEFAULT_SOURCETREE_CMD}"
 
     echo -e "\033[33m非対話モードのため、以下の設定で .gitconfig.local を作成します:\033[0m"
-    echo -e "  user.name = ${NAME} (from ${NAME_SOURCE})"
-    echo -e "  user.email = ${EMAIL} (from ${EMAIL_SOURCE})"
-    if [[ "${NAME}" == "CHANGEME" ]] || [[ "${EMAIL}" == "changeme@example.com" ]]; then
-      echo -e "\033[33m⚠️  git config や環境変数が設定されていないため、プレースホルダー値を使用しています\033[0m"
-      echo -e "\033[33m⚠️  後で .gitconfig.local を編集して正しい値に変更してください\033[0m"
+    if [[ -n "${NAME}" ]] && [[ -n "${EMAIL}" ]]; then
+      echo -e "  user.name = ${NAME} (from ${NAME_SOURCE})"
+      echo -e "  user.email = ${EMAIL} (from ${EMAIL_SOURCE})"
+    else
+      echo -e "\033[33m⚠️  git config や環境変数が設定されていないため、[user] セクションは作成しません\033[0m"
+      echo -e "\033[33m💡 git コマンド実行時に user.name と user.email の設定を求められます\033[0m"
     fi
 
     unset EXISTING_GIT_NAME EXISTING_GIT_EMAIL NAME_SOURCE EMAIL_SOURCE
@@ -245,17 +246,28 @@ if [ ! -e "${file}" ]; then
   #   --global で HOME ディレクトリ下の .gitconfig に書き込む
   #   --file [PATH] で PATH の示すファイルに設定に書き込む
 
-  cat <<EOF >"${file}"
+  # .gitconfig.local の生成（[user] セクションは設定がある場合のみ追加）
+  {
+    # [user] セクション（NAME と EMAIL が両方設定されている場合のみ）
+    if [[ -n "${NAME}" ]] && [[ -n "${EMAIL}" ]]; then
+      cat <<EOF
 [user]
 	name = ${NAME}
 	email = ${EMAIL}
 
+EOF
+    fi
+
+    # [core] セクション（常に出力）
+    cat <<EOF
 [core]
 	excludesfile = ${CORE_EXCLUDES_FILE:-${DEFAULT_CORE_EXCLUDES_FILE}}
 
 [mergetool "sourcetree"]
 	cmd = ${SOURCETREE_CMD:-${DEFAULT_SOURCETREE_CMD}}
 EOF
+  } >"${file}"
+
   unset NAME EMAIL DEFAULT_CORE_EXCLUDES_FILE CORE_EXCLUDES_FILE DEFAULT_SOURCETREE_CMD SOURCETREE_CMD
 fi
 
