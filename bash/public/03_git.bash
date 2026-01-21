@@ -56,3 +56,7 @@ GIT_PS1_SHOWDIRTYSTATE=true
 GIT_PS1_SHOWUNTRACKEDFILES=true
 GIT_PS1_SHOWSTASHSTATE=true
 GIT_PS1_SHOWUPSTREAM=auto
+
+GIT_USER_NAME="$(git config user.name 2>/dev/null || echo "")"
+GIT_USER_EMAIL="$(git config user.email 2>/dev/null || echo "")"
+GIT_USER_SIGNINGKEY="$(git config user.signingkey 2>/dev/null || echo "")"
