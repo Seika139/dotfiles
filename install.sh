@@ -11,6 +11,15 @@ if [ ! -e "${ROOT}" ]; then
   exit 1
 fi
 
+# 非対話モードの判定
+# REMOTE_CONTAINERS, CI, NONINTERACTIVE のいずれかが設定されている場合は非対話モード
+if [[ -n "${REMOTE_CONTAINERS}" ]] || [[ -n "${CI}" ]] || [[ -n "${NONINTERACTIVE}" ]]; then
+  NONINTERACTIVE=true
+  echo -e "\033[33m⚠️  非対話モードで実行します（環境変数: REMOTE_CONTAINERS=${REMOTE_CONTAINERS}, CI=${CI}, NONINTERACTIVE=${NONINTERACTIVE}）\033[0m"
+else
+  NONINTERACTIVE=false
+fi
+
 # カラー出力ヘルパがまだ読み込まれていない環境でも利用できるようにする
 if ! declare -F echo_yellow >/dev/null 2>&1; then
   echo_yellow() {
@@ -53,15 +62,21 @@ if [[ $(uname) = "Darwin" ]] && ! type brew >/dev/null 2>&1; then
     shell_env_file="${ROOT}/bash/private/00_shellenv.bash"
     if [ ! -e "${shell_env_file}" ]; then
       echo "${shell_env_file} が存在しません。"
-      echo -en '\033[00;33m`eval "$(/opt/homebrew/bin/brew shellenv)"` を'"${shell_env_file} に追加してよろしいですか？"
-      read -p "$(echo -e '[Y/n]: \033[0m')" ANS0
-      echo ''
-      if [[ $ANS0 != [nN] ]]; then
+      if [[ "${NONINTERACTIVE}" == "true" ]]; then
+        # 非対話モードの場合は自動的に追加
+        echo -e "\033[00;33m非対話モードのため、自動的に shellenv を追加します\033[0m"
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${shell_env_file}"
       else
-        echo -e "\033[00;33m brew コマンドが実行できない可能性があるのでご注意ください。"
+        echo -en '\033[00;33m`eval "$(/opt/homebrew/bin/brew shellenv)"` を'"${shell_env_file} に追加してよろしいですか？"
+        read -p "$(echo -e '[Y/n]: \033[0m')" ANS0
+        echo ''
+        if [[ $ANS0 != [nN] ]]; then
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${shell_env_file}"
+        else
+          echo -e "\033[00;33m brew コマンドが実行できない可能性があるのでご注意ください。"
+        fi
+        unset ANS0
       fi
-      unset ANS0
     fi
   else
     echo -e "\033[38;2;250;180;100m次のURLが存在しませんでした。${url}"
@@ -84,12 +99,18 @@ echo ""
 # ref : https://qiita.com/ucho/items/c5ea0beb8acf2f1e4772
 if [[ "${OSTYPE}" == msys* ]]; then
   echo "Windows では git bash を管理者権限で開いて実行しないとシンボリックリンクの作成に失敗することがあります。"
-  read -p "$(echo -e '\033[00;33mこのまま続けてよろしいですか？ [y/N]: \033[0m')" ANS1
-  if [[ $ANS1 != [yY] ]]; then
-    echo "処理を中断しました。管理者権限で開いた git bash で再実行してください。"
-    return 0
+  if [[ "${NONINTERACTIVE}" == "true" ]]; then
+    # 非対話モードの場合は警告を表示して続行
+    echo -e "\033[33m⚠️  非対話モードのため、管理者権限の確認をスキップして続行します\033[0m"
+    echo -e "\033[33m⚠️  シンボリックリンクの作成に失敗する可能性があります\033[0m"
+  else
+    read -p "$(echo -e '\033[00;33mこのまま続けてよろしいですか？ [y/N]: \033[0m')" ANS1
+    if [[ $ANS1 != [yY] ]]; then
+      echo "処理を中断しました。管理者権限で開いた git bash で再実行してください。"
+      return 0
+    fi
+    unset ANS1
   fi
-  unset ANS1
 
   export MSYS=winsymlinks:nativestrict
 
@@ -149,14 +170,66 @@ ln -sfv "${ssh_config_secret}" "${HOME}/.ssh"
 file="${ROOT}/.gitconfig.local"
 if [ ! -e "${file}" ]; then
   echo ".gitconfig.local を作成します"
-  read -p "git config user.name = " NAME
-  read -p "git config user.email = " EMAIL
-  # shellcheck disable=SC2088
-  DEFAULT_CORE_EXCLUDES_FILE="~/.gitignore_global"
-  read -p "git config core.excludesfile = [${DEFAULT_CORE_EXCLUDES_FILE}]" CORE_EXCLUDES_FILE
-  # shellcheck disable=SC2088
-  DEFAULT_SOURCETREE_CMD='~/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"'
-  read -p "git config mergetool.sourcetree.cmd = [${DEFAULT_SOURCETREE_CMD}]" SOURCETREE_CMD
+
+  if [[ "${NONINTERACTIVE}" == "true" ]]; then
+    # 非対話モードの場合は以下の優先順位で値を取得:
+    # 1. 既存の git config --global の設定
+    # 2. 環境変数 (GIT_USER_NAME, GIT_USER_EMAIL)
+    # 3. デフォルト値 (CHANGE-ME, changeme@example.com)
+
+    # 既存の git 設定を確認
+    EXISTING_GIT_NAME=$(git config --global user.name 2>/dev/null || echo "")
+    EXISTING_GIT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
+
+    # 優先順位に従って値を決定
+    if [[ -n "${EXISTING_GIT_NAME}" ]]; then
+      NAME="${EXISTING_GIT_NAME}"
+      NAME_SOURCE="git config --global"
+    elif [[ -n "${GIT_USER_NAME}" ]]; then
+      NAME="${GIT_USER_NAME}"
+      NAME_SOURCE="環境変数 GIT_USER_NAME"
+    else
+      NAME="CHANGE-ME"
+      NAME_SOURCE="デフォルト値"
+    fi
+
+    if [[ -n "${EXISTING_GIT_EMAIL}" ]]; then
+      EMAIL="${EXISTING_GIT_EMAIL}"
+      EMAIL_SOURCE="git config --global"
+    elif [[ -n "${GIT_USER_EMAIL}" ]]; then
+      EMAIL="${GIT_USER_EMAIL}"
+      EMAIL_SOURCE="環境変数 GIT_USER_EMAIL"
+    else
+      EMAIL="changeme@example.com"
+      EMAIL_SOURCE="デフォルト値"
+    fi
+
+    # shellcheck disable=SC2088
+    DEFAULT_CORE_EXCLUDES_FILE="~/.gitignore_global"
+    CORE_EXCLUDES_FILE="${DEFAULT_CORE_EXCLUDES_FILE}"
+    # shellcheck disable=SC2088
+    DEFAULT_SOURCETREE_CMD='~/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"'
+    SOURCETREE_CMD="${DEFAULT_SOURCETREE_CMD}"
+
+    echo -e "\033[33m非対話モードのため、以下の設定で .gitconfig.local を作成します:\033[0m"
+    echo -e "  user.name = ${NAME} (from ${NAME_SOURCE})"
+    echo -e "  user.email = ${EMAIL} (from ${EMAIL_SOURCE})"
+    if [[ "${NAME}" == "CHANGEME" ]] || [[ "${EMAIL}" == "changeme@example.com" ]]; then
+      echo -e "\033[33m⚠️  git config や環境変数が設定されていないため、プレースホルダー値を使用しています\033[0m"
+      echo -e "\033[33m⚠️  後で .gitconfig.local を編集して正しい値に変更してください\033[0m"
+    fi
+
+    unset EXISTING_GIT_NAME EXISTING_GIT_EMAIL NAME_SOURCE EMAIL_SOURCE
+  else
+    read -p "git config user.name = " NAME
+    read -p "git config user.email = " EMAIL
+    # shellcheck disable=SC2088
+    DEFAULT_CORE_EXCLUDES_FILE="~/.gitignore_global"
+    read -p "git config core.excludesfile = [${DEFAULT_CORE_EXCLUDES_FILE}]" CORE_EXCLUDES_FILE
+    # shellcheck disable=SC2088
+    DEFAULT_SOURCETREE_CMD='~/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"'
+    read -p "git config mergetool.sourcetree.cmd = [${DEFAULT_SOURCETREE_CMD}]" SOURCETREE_CMD
+  fi
 
   # gitコマンドで確認・追加するときは次のようにやる
   #
@@ -281,21 +354,27 @@ function brew_upstall {
 }
 
 if command -v brew >/dev/null 2>&1; then
-  read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
-  case $ANS in
-  [Yy]*)
-    # macOS の場合は homebrew のアップグレードを行う
-    printf "  🗒️  brew でインストールするパッケージの管理は %s で行います\n" "$HOME/dotfiles/brew/mise.toml"
-    brew upgrade
-    formulae=(
-      "bash-completion"
-      "git"
-      "mise"
-    )
-    for FORMULA in "${formulae[@]}"; do
-      brew_upstall "${FORMULA}"
-    done
-    ;;
-  esac
-  unset ANS FORMULA formulae
+  if [[ "${NONINTERACTIVE}" == "true" ]]; then
+    # 非対話モードの場合は brew upgrade をスキップ
+    echo -e "\033[33m非対話モードのため、brew upgrade をスキップします\033[0m"
+    echo -e "  必要に応じて手動で 'brew upgrade' を実行してください"
+  else
+    read -p "$(echo_yellow 'brew upgrade を行いますか？時間がかかる場合があります [y/N]: ')" ANS
+    case $ANS in
+    [Yy]*)
+      # macOS の場合は homebrew のアップグレードを行う
+      printf "  🗒️  brew でインストールするパッケージの管理は %s で行います\n" "$HOME/dotfiles/brew/mise.toml"
+      brew upgrade
+      formulae=(
+        "bash-completion"
+        "git"
+        "mise"
+      )
+      for FORMULA in "${formulae[@]}"; do
+        brew_upstall "${FORMULA}"
+      done
+      ;;
+    esac
+    unset ANS FORMULA formulae
+  fi
 fi
