@@ -88,7 +88,7 @@ fi
 
 # デバイスの種類をチェックする
 echo -e 'Check uname: $(uname) is' "\033[01;37m$(uname)\033[0m"
-echo -e 'Check OS tpye: $OSTYPE is' "\033[01;37m${OSTYPE}\033[0m"
+echo -e 'Check OS type: $OSTYPE is' "\033[01;37m${OSTYPE}\033[0m"
 echo ""
 
 # Windows の Git Bash でシンボリックリンクを作成するには一手間かかる
