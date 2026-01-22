@@ -71,3 +71,35 @@ function hlp_xargs() {
 # コマンド履歴 p214
 # ワイルドカード p39
 #----------------------------------------------------------
+
+hlp_lsof() {
+  if command -v bat >/dev/null 2>&1; then
+    bat "${DOTPATH}/docs/linux/lsof.md"
+  else
+    less "${DOTPATH}/docs/linux/lsof.md"
+  fi
+}
+
+hlp_kill() {
+  if command -v bat >/dev/null 2>&1; then
+    bat "${DOTPATH}/docs/linux/kill.md"
+  else
+    less "${DOTPATH}/docs/linux/kill.md"
+  fi
+}
+
+hlp_set() {
+  if command -v bat >/dev/null 2>&1; then
+    bat "${DOTPATH}/docs/linux/set.md"
+  else
+    less "${DOTPATH}/docs/linux/set.md"
+  fi
+}
+
+hlp_find_large_dir() {
+  if command -v bat >/dev/null 2>&1; then
+    bat "${DOTPATH}/docs/linux/find_large_directory.md"
+  else
+    less "${DOTPATH}/docs/linux/find_large_directory.md"
+  fi
+}
