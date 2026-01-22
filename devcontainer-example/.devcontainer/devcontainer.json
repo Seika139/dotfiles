@@ -1,0 +1,25 @@
+{
+  "name": "Minimal Dev Container",
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:alpine",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
+    "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}",
+    "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}"
+  },
+  "mounts": [
+    "type=bind,source=${localWorkspaceFolder},target=/workspace,consistency=cached",
+    // Windows の場合 localEnv:HOME が未定義の場合があり、その場合は localEnv:USERPROFILE を使う
+    "type=bind,source=${localEnv:HOME}/.claude/skills,target=/home/vscode/.claude/skills,consistency=cached",
+    "type=bind,source=${localEnv:HOME}/.claude/commands,target=/home/vscode/.claude/commands,consistency=cached"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "waderyan.gitblame" // Gitが動いているか確認するための軽量拡張
+      ]
+    }
+  },
+  "initializeCommand": "bash .devcontainer/initialize.sh",
+  "postCreateCommand": "bash .devcontainer/post_create.sh"
+}

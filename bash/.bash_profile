@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091
+
 # BDOTDIRが設定されていない場合は、デフォルト値を設定
 if [ -z "${BDOTDIR}" ]; then
   # dotfilesディレクトリの推定（ユーザーのホームディレクトリ下のdotfiles/bashを想定）
@@ -29,15 +31,15 @@ if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]]; then
   printf "Shell: \033[36m%s\033[0m, OSTYPE: \033[36m%s\033[0m, HOME: \033[36m%s\033[0m, BDOTDIR: \033[36m%s\033[0m\n" "$SHELL" "$OSTYPE" "$HOME" "$BDOTDIR"
 fi
 
-# .bashrcを読み込む
+# まずシステム/コンテナの.bashrcを読み込む（存在する場合）
+# Devcontainer で dotfiles を使う場合を想定
+if [ -f "$HOME/.bashrc" ] && [ "$HOME/.bashrc" != "${BDOTDIR}/.bashrc" ]; then
+  source "$HOME/.bashrc"
+fi
+
+# 自前の .bashrcを読み込む
 if [ -f "${BDOTDIR}/.bashrc" ]; then
-  # shellcheck disable=SC1091
   source "${BDOTDIR}/.bashrc"
 else
   [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "Warning: ${BDOTDIR}/.bashrc not found!"
-  # フォールバック: 標準の.bashrcを読み込む
-  if [ -f "$HOME/.bashrc" ]; then
-    # shellcheck disable=SC1091
-    source "$HOME/.bashrc"
-  fi
 fi

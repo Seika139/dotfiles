@@ -1,7 +1,7 @@
 [vars]
 config_files = "settings.json keybindings.json tasks.json snippets"
 vscode_path_mac = "$HOME/Library/Application Support/Code/User"
-vscode_path_win = "$HOME/AppData/Roaming/Code/User"
+vscode_path_win = "$(bash mise/tasks/vscode-path-win.sh)"
 cursor_path_mac = "$HOME/Library/Application Support/Cursor/User"
 cursor_path_win = "$HOME/AppData/Roaming/Cursor/User"
 agy_path_mac = "$HOME/Library/Application Support/Antigravity/User"
@@ -429,3 +429,9 @@ for editor in vscode cursor agy; do
 done
 printf "\n✅ 拡張機能の同期が完了しました！\n"
 """
+
+[tasks.vscode-path-win]
+description = "現在有効な VSCode 設定ファイルのパスを特定する"
+shell = "bash -c"
+quiet = true
+run = 'bash mise/tasks/vscode-path-win.sh'

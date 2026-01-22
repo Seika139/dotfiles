@@ -163,6 +163,8 @@
     "Sercuit",
     "sessionmaker",
     "setuptools",
+    "shellenv",
+    "SIGNINGKEY",
     "Spilo",
     "sqlalchemy",
     "sqlfluff",
@@ -191,6 +193,7 @@
     "varchar",
     "vbscript",
     "venv",
+    "vercel",
     "virtualenv",
     "vitest",
     "webfactory",
@@ -485,17 +488,19 @@
   // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
   "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
   "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
-  "remote.containers.environment": {
-    "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
-    "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}",
-    "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}"
-  },
   "terminal.integrated.profiles.linux": {
     // Linux でターミナルを開くときに bash を login シェルで開く設定
     // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
-    "bash (login)": { "path": "bash", "args": ["-l"] }
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash",
+      "args": ["-l"]
+    }
   },
-  "terminal.integrated.defaultProfile.linux": "bash (login)",
-  "terminal.integrated.shellArgs.linux": ["-l"],
-  "editor.pasteAs.preferences": []
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "remote.containers.environment": {
+    "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
+    "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
+    "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
+  }
 }
