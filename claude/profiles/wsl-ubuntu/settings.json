@@ -80,5 +80,5 @@
     ]
   },
   "outputStyle": "Explanatory",
-  "model": "opus"
+  "statusLine": { "type": "command", "command": "~/.claude/status_line.sh" }
 }

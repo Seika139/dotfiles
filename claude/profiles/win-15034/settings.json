@@ -80,5 +80,6 @@
       }
     ]
   },
-  "outputStyle": "Explanatory"
+  "outputStyle": "Explanatory",
+  "statusLine": { "type": "command", "command": "~/.claude/status_line.sh" }
 }
