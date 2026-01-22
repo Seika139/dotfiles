@@ -27,7 +27,8 @@
    * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
    */
   "[jsonc]": {
-    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
+    "prettier.useEditorConfig": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // プロジェクトに .editorconfig があっても無視する
   },
   "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
   // ↑ jsonc の問題対応はここまで
