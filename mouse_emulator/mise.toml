@@ -133,7 +133,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-uv run python -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/example.yml')}}
+uv run python -m auto_emulator validate {{option(name='config', default='profiles/auto_emulator/sample2.yml')}}
 '''
 
 [tasks.auto-run]
@@ -142,7 +142,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/example.yml')}}
+uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/sample2.yml')}}
 '''
 
 [tasks.probe]
