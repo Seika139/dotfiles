@@ -20,11 +20,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Claude**
   - SKILL を追加した
+  - StatusLine をカスタマイズする機能を追加した
+- **DevContainer**
+  - Devcontainer 内で dotfiles が利用できるようになった（ここ数日の研究が結実した）
+  - ログインシェルを起動してローカルと同等のショートカットや設定を利用できる
+  - その上で DevContainer 上の ~/.bashrc を読み込むようにした
+  - ホストの git config user を devcontainer に環境変数として持ち込む仕組みを導入した
+  - DevContainer で dotfiles を展開してローカルと同等の開発体験を実現するためのドキュメントを追加した
 
 ### Changed
 
 - **bash**
   - Dev Container で dotfiles をロードするときなど、非対話モードでシェルが起動しても install.sh が動作するように諸々の修正をした
+
+### Fixed
+
+- **vscode-settings**
+  - Windows に scoop 経由で導入したVSCodeを検知するように動的にパスを解釈する機能を追加した
+    - これによって通常のインストールでも scoop 経由のインストールでも設定ファイルへのシンボリックリンクを生成可能にした
 
 ## [0.3.2] - 2026-01-21
 
