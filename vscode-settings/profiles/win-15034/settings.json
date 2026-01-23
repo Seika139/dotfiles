@@ -332,7 +332,8 @@
     "editor.formatOnSave": true
   },
   "omnisharp.useModernNet": true,
-  "prettier.printWidth": 120,
+  // https://prettier.io/docs/options#print-width によるとデフォルトの80がいいとのこと
+  // "prettier.printWidth": 120,
   // ↓ json
   "[json][jsonc][jsonl]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
