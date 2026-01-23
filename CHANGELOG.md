@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **prettier**
+  - 混同しやすい prettier の設定を修正した。
+    - [prettier.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=Prettier.prettier-vscode) がレガシーで [esbenp.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) が推奨
+
 ## [0.4.0] - 2026-01-23
 
 ### Added

@@ -142,5 +142,14 @@
     "key": "ctrl+shift+g",
     "command": "-workbench.view.scm",
     "when": "workbench.scm.active"
+  },
+  {
+    "key": "ctrl+shift+]",
+    "command": "gitlens.openFileHistory"
+  },
+  {
+    "key": "ctrl+shift+[",
+    "command": "workbench.view.explorer",
+    "when": "viewContainer.workbench.view.explorer.enabled"
   }
 ]

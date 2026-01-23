@@ -325,23 +325,23 @@
     "editor.defaultFormatter": "ms-dotnettools.csharp"
   },
   "[html]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[css]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
   "omnisharp.useModernNet": true,
   "prettier.printWidth": 120,
   // ↓ json
   "[json][jsonc][jsonl]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "prettier.endOfLine": "lf",
     "prettier.trailingComma": "none"
   },
   /**
    * @description jsonc 用の設定
-   * prettier.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
+   * esbenp.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
    * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
    */
   "[jsonc]": {
@@ -353,7 +353,7 @@
   // ↑ json
   // ↓ javascript
   "[javascript][typescript]": {
-    "editor.defaultFormatter": "prettier.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2,
     "files.eol": "\n"
   },
@@ -456,7 +456,12 @@
   "database-client.autoSync": true,
   // ↓ sqlfluff(VSCode SQL formatter and linter 拡張機能とは別で CLI のインストールも必要)
   "sqlfluff.dialect": "postgres",
-  "sqlfluff.format.languages": ["sql", "sql-bigquery", "jinja-sql", "snowflake-sql"],
+  "sqlfluff.format.languages": [
+    "sql",
+    "sql-bigquery",
+    "jinja-sql",
+    "snowflake-sql"
+  ],
   "sqlfluff.format.enabled": true,
   "sqlfluff.executablePath": "/home/ken/.local/bin/sqlfluff",
   "[sql]": {
