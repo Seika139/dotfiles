@@ -186,6 +186,7 @@
     "urandom",
     "urawa",
     "urllib",
+    "usermod",
     "USERPROFILE",
     "USPTO",
     "uvicorn",
@@ -362,7 +363,7 @@
   },
   // ↑ javascript
   "[dockerfile]": {
-    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
   "japanese-proofreading.textlint.ひらく漢字": false,
   "japanese-proofreading.textlint.外来語カタカナ表記": false,
@@ -455,12 +456,7 @@
   "database-client.autoSync": true,
   // ↓ sqlfluff(VSCode SQL formatter and linter 拡張機能とは別で CLI のインストールも必要)
   "sqlfluff.dialect": "postgres",
-  "sqlfluff.format.languages": [
-    "sql",
-    "sql-bigquery",
-    "jinja-sql",
-    "snowflake-sql"
-  ],
+  "sqlfluff.format.languages": ["sql", "sql-bigquery", "jinja-sql", "snowflake-sql"],
   "sqlfluff.format.enabled": true,
   "sqlfluff.executablePath": "/home/ken/.local/bin/sqlfluff",
   "[sql]": {
