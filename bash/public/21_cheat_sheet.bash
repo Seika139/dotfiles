@@ -105,10 +105,6 @@ function hlp_sed() {
   less_color "${DOTPATH}/docs/linux/sed.txt"
 }
 
-function hlp_wc() {
-  less_lf "${DOTPATH}/docs/linux/wc.txt"
-}
-
 function hlp_xargs() {
   less_color "${DOTPATH}/docs/linux/xargs.txt"
 }
@@ -118,30 +114,6 @@ function hlp_xargs() {
 # コマンド履歴 p214
 # ワイルドカード p39
 #----------------------------------------------------------
-
-hlp_lsof() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/lsof.md"
-  else
-    less "${DOTPATH}/docs/linux/lsof.md"
-  fi
-}
-
-hlp_kill() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/kill.md"
-  else
-    less "${DOTPATH}/docs/linux/kill.md"
-  fi
-}
-
-hlp_set() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/set.md"
-  else
-    less "${DOTPATH}/docs/linux/set.md"
-  fi
-}
 
 hlp_find_large_dir() {
   if command -v bat >/dev/null 2>&1; then
