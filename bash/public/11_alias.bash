@@ -55,6 +55,9 @@ fi
 # 2025.09.03 追記: brewでインストールしたbatを使用
 if command -v bat &>/dev/null; then
   alias cat='bat --paging=never --style=plain'
+
+  # コマンドの用途を調べるときに `xxx -h | bah` とすると見やすくなる
+  alias bah='bat --plain -l=help'
 fi
 
 # gnu-sed (gsed) がインストールされている場合は sed を gsed で上書きする
