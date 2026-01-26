@@ -51,7 +51,7 @@ else
   alias egrep='egrep --color=auto'
 fi
 
-# catをbatに置き換える
+∫# cat を bat に置き換える
 # 2025.09.03 追記: brewでインストールしたbatを使用
 if command -v bat &>/dev/null; then
   alias cat='bat --paging=never --style=plain'
@@ -60,6 +60,11 @@ fi
 # gnu-sed (gsed) がインストールされている場合は sed を gsed で上書きする
 if command -v gsed &>/dev/null; then
   alias sed='gsed'
+fi
+
+# 2026.01.24 追記: brew でインストールした zoxide を使用
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init bash)"
 fi
 
 # 補完設定: dockerの補完を設定
