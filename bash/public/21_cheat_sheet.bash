@@ -46,6 +46,28 @@ function f() {
   fi
 }
 
+function hlp2() {
+  if type bat fd fzf &>/dev/null; then
+    local target_dir="${DOTPATH}/docs/help/"
+    local file
+
+    # --with-nth を使うことで、内部では「フルパス」を保持しつつ、選択画面では「ファイル名だけ」を表示する
+    # --delimiter / → 「/」で区切る
+    # --with-nth -1 → 最後から1番目
+    file=$(fd --type f . "$target_dir" | fzf \
+      --with-nth -1 --delimiter / \
+      --preview "bat --color=always --style=full --line-range :120 {}" \
+      --preview-window=right:50%)
+
+    # ファイルが選択されたら bat で開く
+    if [ -n "$file" ]; then
+      bat "$file"
+    fi
+  else
+    printf "%s\n" "この機能を使うには bat, fzf, fd コマンドを導入する必要があります"
+  fi
+}
+
 # 自作helpのトップ
 function hlp() {
   less_lf "${DOTPATH}/docs/home.txt"
