@@ -46,7 +46,7 @@ function f() {
   fi
 }
 
-function hlp2() {
+function hlp() {
   if type bat fd fzf &>/dev/null; then
     local target_dir="${DOTPATH}/docs/help/"
     local file
@@ -68,29 +68,8 @@ function hlp2() {
   fi
 }
 
-# 自作helpのトップ
-function hlp() {
-  less_lf "${DOTPATH}/docs/home.txt"
-}
-
 function hlp_curl() {
   open https://github.com/Seika139/library/blob/master/curl/index.md
-}
-
-function hlp_cursor() {
-  less_lf "${DOTPATH}/docs/linux/cursor.txt"
-}
-
-function hlp_find() {
-  less_color "${DOTPATH}/docs/linux/find.txt"
-}
-
-function hlp_grep() {
-  less_color "${DOTPATH}/docs/linux/grep.txt"
-}
-
-function hlp_xargs() {
-  less_color "${DOTPATH}/docs/linux/xargs.txt"
 }
 
 #----------------------------------------------------------
