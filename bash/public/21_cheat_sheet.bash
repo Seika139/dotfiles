@@ -57,7 +57,7 @@ function hlp2() {
     file=$(fd --type f . "$target_dir" | fzf \
       --with-nth -1 --delimiter / \
       --preview "bat --color=always --style=full --line-range :120 {}" \
-      --preview-window=right:50%)
+      --preview-window=right:75%)
 
     # ファイルが選択されたら bat で開く
     if [ -n "$file" ]; then
@@ -71,10 +71,6 @@ function hlp2() {
 # 自作helpのトップ
 function hlp() {
   less_lf "${DOTPATH}/docs/home.txt"
-}
-
-function hlp_alias() {
-  less_lf "${DOTPATH}/docs/linux/alias.txt"
 }
 
 function hlp_curl() {
@@ -91,18 +87,6 @@ function hlp_find() {
 
 function hlp_grep() {
   less_color "${DOTPATH}/docs/linux/grep.txt"
-}
-
-function hlp_history() {
-  less_lf "${DOTPATH}/docs/linux/history.txt"
-}
-
-function hlp_less() {
-  less_lf "${DOTPATH}/docs/linux/less.txt"
-}
-
-function hlp_sed() {
-  less_color "${DOTPATH}/docs/linux/sed.txt"
 }
 
 function hlp_xargs() {

@@ -1,0 +1,9 @@
+# alias
+
+```bash
+alias             # コマンドに割り当てられたエイリアスを表示
+alias name="exec" # nameという名前でexecをエイリアスに設定する
+unalias name      # nameで登録されたaliasを解除する
+```
+
+`alias` と `unalias` は、ターミナルの画面を閉じる、ログアウト、コンピュータのシャットダウンでリセットされる。
