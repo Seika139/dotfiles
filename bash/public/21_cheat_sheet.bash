@@ -21,6 +21,31 @@ function less_color() {
   cat_file "$1" | less_lf
 }
 
+# ファイルを探して、選択したらそのパスを返す
+function fp() {
+  # --line-range :120 で行数が多いファイルは120行までしか読み込まないようにしている
+  fd -u . | fzf \
+    --preview '
+      if [[ -f {} ]]; then
+        bat --color=always --style=full --line-range :120 {}
+      else
+          eza --tree {}
+      fi
+  ' \
+  --preview-window=right:50%
+}
+
+# fp で探したファイルを vscode で開く
+function f() {
+  local path
+  path=$(fp)
+  if [ -d "${path}" ]; then
+    tree "${path}";
+  elif  type code &>/dev/null; then
+  code "${path}";
+  fi
+}
+
 # 自作helpのトップ
 function hlp() {
   less_lf "${DOTPATH}/docs/home.txt"
