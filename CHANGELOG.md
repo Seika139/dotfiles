@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **hlp**
+  - 今までANSIエスケープシーケンスでtxtファイルに書かれていたhlp系コマンドのファイルを、helpディレクトリ内のmdファイルに移行してbatコマンドで開くようにした
+    - これによってターミナルだけでなく、エディタやGitHubなどで開いたときの見た目も綺麗になる
+
 ### Fixed
 
 - **prettier**
