@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **bash**
+  - [00_shellenv.bash](./bash/public/00_shellenv.bash) を追加して、明示的に brew を読み込むタイミングを設定した
+    - これによって、後続のスクリプトで brew に依存するコマンドが実行できない可能性を排除した
 - **prettier**
   - 混同しやすい prettier の設定を修正した。
     - [prettier.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=Prettier.prettier-vscode) がレガシーで [esbenp.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) が推奨
