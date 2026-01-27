@@ -102,13 +102,17 @@ notify_with_terminal_notifier() {
     args+=(-sound "$SOUND")
   fi
 
-  if ! terminal-notifier "${args[@]}"; then
+  # `if ! cmd; then ... fi` だと `$?` が 0 になってしまうため、正方向で判定して
+  # 失敗時のみ exit code を記録する。失敗時の usage ノイズを抑えるために標準出力・
+  # 標準エラーは捨て、ログにだけ詳細を残す。
+  if terminal-notifier "${args[@]}" >/dev/null 2>&1; then
+    log_debug "terminal-notifier succeeded with exit=0"
+    return 0
+  else
     local exit_code=$?
     log_debug "terminal-notifier failed with exit=${exit_code}"
     return 1
   fi
-
-  return 0
 }
 
 play_ringtone() {
