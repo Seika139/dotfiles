@@ -51,15 +51,22 @@ else
   alias egrep='egrep --color=auto'
 fi
 
-# catをbatに置き換える
-# 2025.09.03 追記: brewでインストールしたbatを使用
+# cat を bat に置き換える
 if command -v bat &>/dev/null; then
   alias cat='bat --paging=never --style=plain'
+
+  # コマンドの用途を調べるときに `xxx -h | bah` とすると見やすくなる
+  alias bah='bat --plain -l=help'
 fi
 
 # gnu-sed (gsed) がインストールされている場合は sed を gsed で上書きする
 if command -v gsed &>/dev/null; then
   alias sed='gsed'
+fi
+
+# 2026.01.24 追記: brew でインストールした zoxide を使用
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init bash)"
 fi
 
 # 補完設定: dockerの補完を設定
@@ -116,3 +123,51 @@ fi
 
 # Claude Code のエイリアス
 alias cc='claude --dangerously-skip-permissions'
+
+# rsync を利用して2ディレクトリ間で差分があるファイル名だけを表示する関数
+rd() {
+  local input_opt=""
+  local OPTIND
+
+  # オプション解析
+  while getopts "ct" opt; do
+    case "$opt" in
+    c) input_opt="-c" ;; # チェックサムで比較
+    t) input_opt="-t" ;; # タイムスタンプも比較
+    *) input_opt="" ;;   # デフォルト
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  # 引数チェック
+  if [ $# -ne 2 ]; then
+    echo "Usage: rd [-c|-t] <source_dir> <dest_dir>"
+    return 1
+  fi
+
+  # 末尾スラッシュの処理
+  local src="${1%/}/"
+  local dest="${2%/}/"
+
+  echo -n "# Comparing   : "
+  echo_blue -n "$src"
+  echo_blue -n " and "
+  echo_blue "$dest"
+
+  # 比較モードの表示
+  echo -n "# Compare Mode: "
+  if [ "$input_opt" = "-c" ]; then
+    compare_opt="-c"
+    echo_blue "Checksum comparison (Slow but accurate)"
+  elif [ "$input_opt" = "-t" ]; then
+    compare_opt=""
+    echo_blue "Size and Modification time"
+  else
+    compare_opt="--size-only"
+    echo_blue "Size-only comparison (Fast)"
+  fi
+
+  # -i を含めると詳細が分かりますが、ファイル名のみなら %n で十分です
+  echo_yellow "# rsync -rn $compare_opt --out-format=\"%n\" \"$src\" \"$dest\""
+  rsync -rn $compare_opt --out-format="%n" "$src" "$dest"
+}

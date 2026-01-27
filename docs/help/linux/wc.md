@@ -1,0 +1,33 @@
+# wc コマンド
+
+使い方: `wc [オプション] [ファイル]`
+
+## `[オプション]`
+
+- -c : バイト数
+- -m : 文字数
+- -l : 行数
+- -w : 単語数
+
+オプションをつけないと `行数 単語数 バイト数` が表示される
+
+## `[ファイル名]`
+
+**ワイルドカードで指定もできる**
+
+```bash
+# 指定したファイルの行数を出力する
+$ wc -l docs/linux/*.txt
+9 docs/linux/cursor.txt
+47 docs/linux/find.txt
+28 docs/linux/less.txt
+0 docs/linux/wc.txt
+84 total
+```
+
+**標準出力の行数を調べる**
+
+```bash
+$ ls -al | wc -l
+15
+```
