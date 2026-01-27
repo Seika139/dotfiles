@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - rd という rsync ベースのディレクトリ比較関数を追加
 - **hlp**
   - rsync など一部 linux コマンドの hlp を追加
+- **yamllint**
+  - yamllint による YAML ファイルの静的解析を追加
 
 ### Changed
 
