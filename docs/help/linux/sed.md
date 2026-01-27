@@ -34,8 +34,9 @@ sed '/pattern/s/foo/bar/' file # pattern に該当する行の foo を bar に�
   BSD版のコマンドよりもGNU版の方がLinux標準と同じ動作を期待できるので、BSD版が面倒ならGNU版のコマンドをインストールする
 
   ```bash
-  # BSD版(mac)
+  # GNU版(Linux)
   sed -i '17i\ some text' file
-  # GNU版(win)
-  sed -i '' $'17i\\\n some text\n' file (バックスラッシュは3つ。末尾にも改行コードを入れる)
+  # BSD版(mac) - バックアップ不要なら '' を指定、改行コードの扱いが異なる
+  # バックスラッシュは3つ。末尾にも改行コードを入れる
+  sed -i '' $'17i\\\n some text\n' file
   ```

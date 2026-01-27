@@ -11,19 +11,19 @@
 -l                            # 検索条件を満たすファイル名のみを表示する
 -v [word]                     # 指定した文字に該当しない行を検索する
 -c                            # 検索条件を満たすファイル名と一致した件数を表示する
---break                       # 検索結果をファイル毎に空行を入れて見やすく表示する
 -n, --line-number             # 行番号を表示する
---column                      # 検索条件に一致する行の先頭から「最初に検索条件に一致する箇所の1始まりのバイトオフセット」を表示する
 -N / -C N / --context N       # 検索結果の前後 N 行を表示
 -A N / --after-context N      # 検索結果の後 N 行を表示
 -B N / --before-context N     # 検索結果の前 N 行を表示
--- [filepath]                 # filepath 内のディレクトリを検索する
--- [:!filepath]               # filepath 内のディレクトリを以外を検索する。[:^filepath] でも良い
---and /--or / --not           # \x1b[92m-e 検索条件1 --and -e 検索条件2\x1b[m のようにして指定する。 --or は省略できる。
 -G / --basic-regexp           # 検索条件に基本正規表現(BRE)を使用する。デフォルトはこれ。
 -F / --fixed-strings          # 検索条件を正規表現ではなく、固定文字列として解釈する。
 -E / --extended-regexp        # 検索条件に拡張正規表現(ERE)を使用する。
 ```
+
+## 複数条件
+
+- 複数条件の OR: `-e pattern1 -e pattern2`
+- 複数条件の AND: `grep A | grep B` 単純に2回 grep する
 
 ## 検索条件
 
