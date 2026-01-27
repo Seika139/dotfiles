@@ -169,12 +169,12 @@ rd() {
   echo_blue "$dest"
 
   # 比較モードの表示
+  local compare_opt=""
   echo -n "# Compare Mode: "
   if [ "$input_opt" = "-c" ]; then
     compare_opt="-c"
     echo_blue "Checksum comparison (Slow but accurate)"
   elif [ "$input_opt" = "-t" ]; then
-    compare_opt=""
     echo_blue "Size and Modification time"
   else
     compare_opt="--size-only"
