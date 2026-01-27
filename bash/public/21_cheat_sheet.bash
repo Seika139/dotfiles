@@ -86,5 +86,12 @@ function hlp() {
 }
 
 function hlp_curl() {
-  open https://github.com/Seika139/library/blob/master/curl/index.md
+  local url="https://github.com/Seika139/library/blob/master/curl/index.md"
+  if type xdg-open &>/dev/null; then
+    xdg-open "$url"
+  elif type open &>/dev/null; then
+    open "$url"
+  else
+    printf "%s\n" "ブラウザを開くコマンドが見つかりません: $url" >&2
+  fi
 }
