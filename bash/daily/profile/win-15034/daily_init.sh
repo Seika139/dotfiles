@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-volta install node@latest @anthropic-ai/claude-code@latest @openai/codex@latest
+if command -v volta &>/dev/null; then
+  volta install node@latest @anthropic-ai/claude-code@latest @openai/codex@latest
+fi
 
 (
   cd "${DOTPATH}" || true
@@ -16,8 +18,8 @@ volta install node@latest @anthropic-ai/claude-code@latest @openai/codex@latest
   if [ -e "${DOTPATH}/codex" ]; then
     (cd codex && mise run status)
   fi
-  if [ -d "${DOTPATH}/programs/cyg-genai" ]; then
-    cd ~/programs/cyg-genai/.claude-template || true
+  if [ -d "${HOME}/programs/cyg-genai/.claude-template" ]; then
+    cd "${HOME}/programs/cyg-genai/.claude-template" || true
     git pull origin main
   fi
 )

@@ -221,15 +221,10 @@ is_win() {
 }
 
 is_wsl() {
-  if is_linux; then
-    if grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
-      return 0
-    else
-      return 1
-    fi
-  else
-    return 1
+  if [[ $(os) = "LINUX" ]] && grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
+    return 0
   fi
+  return 1
 }
 
 is_msys() {

@@ -23,6 +23,7 @@ function less_color() {
 
 # ファイルを探して、選択したらそのパスを返す
 function fp() {
+  set -eu
   # --hidden: 隠しファイルを含む（ただし .gitignore は尊重）
   # --exclude: 大量のファイルを含むディレクトリを除外（fzf がフリーズするため）
   fd --hidden \
@@ -51,6 +52,7 @@ function fp() {
 
 # fp で探したファイルを vscode で開く
 function f() {
+  set -eu
   local path
   path=$(fp)
   if [ -z "${path}" ]; then
@@ -64,6 +66,7 @@ function f() {
 }
 
 function hlp() {
+  set -eu
   if type bat fd fzf &>/dev/null; then
     local target_dir="${DOTPATH}/docs/help/"
     local file
