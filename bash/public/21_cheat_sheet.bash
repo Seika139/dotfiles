@@ -23,8 +23,22 @@ function less_color() {
 
 # ファイルを探して、選択したらそのパスを返す
 function fp() {
-  # --line-range :120 で行数が多いファイルは120行までしか読み込まないようにしている
-  fd -u . | fzf \
+  # --hidden: 隠しファイルを含む（ただし .gitignore は尊重）
+  # --exclude: 大量のファイルを含むディレクトリを除外（fzf がフリーズするため）
+  fd --hidden \
+    --exclude .git \
+    --exclude node_modules \
+    --exclude vendor \
+    --exclude __pycache__ \
+    --exclude .venv \
+    --exclude .mypy_cache \
+    --exclude .pytest_cache \
+    --exclude .ruff_cache \
+    --exclude htmlcov \
+    --exclude .cache \
+    --exclude dist \
+    --exclude build \
+    . | fzf \
     --preview '
       if [[ -f {} ]]; then
         bat --color=always --style=full --line-range :120 {}
@@ -32,17 +46,20 @@ function fp() {
           eza --tree {}
       fi
   ' \
-  --preview-window=right:50%
+    --preview-window=right:50%
 }
 
 # fp で探したファイルを vscode で開く
 function f() {
   local path
   path=$(fp)
+  if [ -z "${path}" ]; then
+    return 0 # 何も選択されなかった場合は終了
+  fi
   if [ -d "${path}" ]; then
-    tree "${path}";
-  elif  type code &>/dev/null; then
-  code "${path}";
+    tree "${path}"
+  elif type code &>/dev/null; then
+    code "${path}"
   fi
 }
 
