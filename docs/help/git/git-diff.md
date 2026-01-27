@@ -32,7 +32,7 @@ git diff --diff-filter=[フィルター]
 git diff --diff-filter=AM # 作成または編集された差分のみを表示
 ```
 
-- フィルターに指定する文字: `A`, `C`, `M`, `D`, `R`
+- フィルターに指定する文字: `A`, `C`, `D`, `M`, `R`
 
 Add, Copied, Deleted, Modified, Renamed などの差分の種類でフィルタをかけられる。
 大文字の場合はその種類だけで絞り込む。
