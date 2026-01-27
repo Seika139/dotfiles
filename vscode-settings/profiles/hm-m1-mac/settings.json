@@ -253,6 +253,7 @@
   "japanese-proofreading.textlint.技術用語": false,
   // yaml
   "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
     "editor.insertSpaces": true,
     "editor.tabSize": 2,
     "editor.autoIndent": "keep",
