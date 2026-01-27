@@ -77,11 +77,3 @@ function hlp_curl() {
 # コマンド履歴 p214
 # ワイルドカード p39
 #----------------------------------------------------------
-
-hlp_find_large_dir() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/find_large_directory.md"
-  else
-    less "${DOTPATH}/docs/linux/find_large_directory.md"
-  fi
-}
