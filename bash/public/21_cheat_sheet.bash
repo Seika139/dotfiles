@@ -71,8 +71,3 @@ function hlp() {
 function hlp_curl() {
   open https://github.com/Seika139/library/blob/master/curl/index.md
 }
-
-#----------------------------------------------------------
-# TODO
-# コマンド履歴 p214
-#----------------------------------------------------------
