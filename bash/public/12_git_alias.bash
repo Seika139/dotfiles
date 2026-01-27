@@ -74,19 +74,6 @@ gpsu() {
   unset branch_name
 }
 
-# .gitmessageを表示する
-gmsg() {
-  less_color "${DOTPATH}/.gitmessage"
-}
-
-hlp_git() {
-  less_color "${DOTPATH}/docs/git.txt"
-}
-
-hlp_git_config() {
-  less_color "${DOTPATH}/docs/git_config.txt"
-}
-
 # 自分がコミットした差分だけを確認したい
 gdd() {
   if [[ $1 == '--help' ]]; then
