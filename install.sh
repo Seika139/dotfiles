@@ -148,17 +148,21 @@ unset files_to_link file
 # .ssh/config.secret は .gitignore の対象なので、存在しない場合は作る
 # 元々あった .ssh/config が消されないように dotfiles/.ssh 内に保存する
 #-------------------------------------
-ssh_config_secret="${ROOT}/.ssh/config.secret"
 
-if [ ! -e "${ssh_config_secret}" ]; then
-  touch "${ssh_config_secret}"
-  if [ -e "${HOME}/.ssh/config" ]; then
-    backup_suffix="$(date '+%Y-%m-%d_%H-%M-%S')"
-    cp "${HOME}/.ssh/config" "${ROOT}/.ssh/config_save_${backup_suffix}"
+if ! grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
+  # WSL には ~/.ssh/config をシンボリックリンクで貼らないようにする
+  ssh_config_secret="${ROOT}/.ssh/config.secret"
+
+  if [ ! -e "${ssh_config_secret}" ]; then
+    touch "${ssh_config_secret}"
+    if [ -e "${HOME}/.ssh/config" ]; then
+      backup_suffix="$(date '+%Y-%m-%d_%H-%M-%S')"
+      cp "${HOME}/.ssh/config" "${ROOT}/.ssh/config_save_${backup_suffix}"
+    fi
   fi
+  ln -sfv "${ROOT}/.ssh/config" "${HOME}/.ssh"
+  ln -sfv "${ssh_config_secret}" "${HOME}/.ssh"
 fi
-ln -sfv "${ROOT}/.ssh/config" "${HOME}/.ssh"
-ln -sfv "${ssh_config_secret}" "${HOME}/.ssh"
 
 #-------------------------------------
 # 2. .gitconfig.local

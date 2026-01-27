@@ -57,6 +57,7 @@ nicolasvuillamy.vscode-groovy-lint
 njpwerner.autodocstring
 oderwat.indent-rainbow
 openai.chatgpt
+redhat.vscode-yaml
 ritwickdey.liveserver
 rogalmic.bash-debug
 secanis.jenkinsfile-support

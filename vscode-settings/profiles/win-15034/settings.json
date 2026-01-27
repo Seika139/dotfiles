@@ -10,6 +10,7 @@
     "autofetch",
     "autopep",
     "autouse",
+    "batcat",
     "BDOTDIR",
     "Behaviour",
     "boto",
@@ -158,11 +159,13 @@
     "Runbook",
     "SAPI",
     "sashi",
+    "SCRIPTDIR",
     "sdist",
     "senko",
     "Sercuit",
     "sessionmaker",
     "setuptools",
+    "shellcheck",
     "shellenv",
     "SIGNINGKEY",
     "Spilo",
@@ -202,6 +205,7 @@
     "workplan",
     "worktree",
     "wslpath",
+    "wslvar",
     "xhprof"
   ],
   "cSpell.enabledFileTypes": {
@@ -335,7 +339,12 @@
   // https://prettier.io/docs/options#print-width によるとデフォルトの80がいいとのこと
   // "prettier.printWidth": 120,
   // ↓ json
-  "[json][jsonc][jsonl]": {
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none"
+  },
+  "[jsonl]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "prettier.endOfLine": "lf",
     "prettier.trailingComma": "none"
@@ -346,8 +355,11 @@
    * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
    */
   "[jsonc]": {
-    "prettier.useEditorConfig": false,
-    "editor.defaultFormatter": "esbenp.prettier-vscode" // プロジェクトに .editorconfig があっても無視する
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none",
+    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
   },
   "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
   // ↑ jsonc の問題対応はここまで
@@ -509,5 +521,11 @@
     "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
     "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
     "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[dockercompose]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   }
 }

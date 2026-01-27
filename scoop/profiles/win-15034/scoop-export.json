@@ -2,10 +2,59 @@
   "apps": [
     {
       "Info": "",
+      "Name": "7zip",
+      "Source": "main",
+      "Updated": "2026-01-21T11:09:28.7715136+09:00",
+      "Version": "25.01"
+    },
+    {
+      "Info": "",
+      "Name": "bat",
+      "Source": "main",
+      "Updated": "2026-01-23T11:04:10.1236925+09:00",
+      "Version": "0.26.1"
+    },
+    {
+      "Info": "",
+      "Name": "bottom",
+      "Source": "main",
+      "Updated": "2026-01-23T11:18:50.7468004+09:00",
+      "Version": "0.12.3"
+    },
+    {
+      "Info": "",
       "Name": "busybox",
       "Source": "main",
       "Updated": "2025-10-20T10:48:53.8525547+09:00",
       "Version": "5857-g3681e397f"
+    },
+    {
+      "Info": "",
+      "Name": "duf",
+      "Source": "main",
+      "Updated": "2026-01-23T11:18:10.7412895+09:00",
+      "Version": "0.9.1"
+    },
+    {
+      "Info": "",
+      "Name": "dust",
+      "Source": "main",
+      "Updated": "2026-01-23T11:10:42.0225837+09:00",
+      "Version": "1.2.4"
+    },
+    {
+      "Info": "",
+      "Name": "eza",
+      "Source": "main",
+      "Updated": "2026-01-23T10:58:01.5054096+09:00",
+      "Version": "0.23.4"
+    },
+    {
+      "Info": "",
+      "Name": "fd",
+      "Source": "main",
+      "Updated": "2026-01-23T11:13:22.6144944+09:00",
+      "Version": "10.3.0"
     },
     {
       "Info": "",
@@ -18,8 +67,8 @@
       "Info": "",
       "Name": "gh",
       "Source": "main",
-      "Updated": "2026-01-07T15:54:51.0429712+09:00",
-      "Version": "2.83.2"
+      "Updated": "2026-01-22T10:59:14.3243862+09:00",
+      "Version": "2.86.0"
     },
     {
       "Info": "",
@@ -39,23 +88,57 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2025-11-12T11:00:13.6459409+09:00",
-      "Version": "2025.11.3"
+      "Updated": "2026-01-27T14:19:56.2524193+09:00",
+      "Version": "2026.1.8"
+    },
+    {
+      "Info": "",
+      "Name": "procs",
+      "Source": "main",
+      "Updated": "2026-01-23T11:18:41.0390555+09:00",
+      "Version": "0.14.10"
+    },
+    {
+      "Info": "",
+      "Name": "ripgrep",
+      "Source": "main",
+      "Updated": "2026-01-23T11:07:57.9818636+09:00",
+      "Version": "15.1.0"
     },
     {
       "Info": "",
       "Name": "uv",
       "Source": "main",
-      "Updated": "2026-01-07T15:54:52.4871114+09:00",
-      "Version": "0.9.22"
+      "Updated": "2026-01-27T10:44:22.1930546+09:00",
+      "Version": "0.9.27"
+    },
+    {
+      "Info": "",
+      "Name": "vscode",
+      "Source": "extras",
+      "Updated": "2026-01-21T12:05:17.6780702+09:00",
+      "Version": "1.108.1"
+    },
+    {
+      "Info": "",
+      "Name": "zoxide",
+      "Source": "main",
+      "Updated": "2026-01-23T11:19:08.1797598+09:00",
+      "Version": "0.9.8"
     }
   ],
   "buckets": [
     {
-      "Manifests": 1413,
+      "Manifests": 1422,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2026-01-07T13:32:29+09:00"
+      "Updated": "2026-01-27T13:36:59+09:00"
+    },
+    {
+      "Manifests": 2257,
+      "Name": "extras",
+      "Source": "https://github.com/ScoopInstaller/Extras",
+      "Updated": "2026-01-27T13:37:46+09:00"
     }
   ]
 }
