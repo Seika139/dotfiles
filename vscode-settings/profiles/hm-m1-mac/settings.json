@@ -290,7 +290,7 @@
   },
   "redhat.telemetry.enabled": true,
   "[shellscript]": {
-    "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
+    "editor.defaultFormatter": "foxundermoon.shell-format"
   },
   "shellcheck.customArgs": ["-x"],
   "terminal.integrated.profiles.osx": {
