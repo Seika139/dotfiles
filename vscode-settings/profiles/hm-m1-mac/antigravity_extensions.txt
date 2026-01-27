@@ -1,3 +1,4 @@
+esbenp.prettier-vscode
 formulahendry.code-runner
 foxundermoon.shell-format
 github.vscode-github-actions
@@ -10,7 +11,6 @@ ms-ceintl.vscode-language-pack-ja
 ms-python.debugpy
 ms-python.python
 ms-python.vscode-python-envs
-prettier.prettier-vscode
 ritwickdey.liveserver
 tamasfe.even-better-toml
 timonwong.shellcheck

@@ -21,85 +21,77 @@ function less_color() {
   cat_file "$1" | less_lf
 }
 
-# 自作helpのトップ
-function hlp() {
-  less_lf "${DOTPATH}/docs/home.txt"
+# ファイルを探して、選択したらそのパスを返す
+function fp() {
+  # --hidden: 隠しファイルを含む（ただし .gitignore は尊重）
+  # --exclude: 大量のファイルを含むディレクトリを除外（fzf がフリーズするため）
+  fd --hidden \
+    --exclude .git \
+    --exclude node_modules \
+    --exclude vendor \
+    --exclude __pycache__ \
+    --exclude .venv \
+    --exclude .mypy_cache \
+    --exclude .pytest_cache \
+    --exclude .ruff_cache \
+    --exclude htmlcov \
+    --exclude .cache \
+    --exclude dist \
+    --exclude build \
+    . | fzf \
+    --preview '
+      if [[ -f {} ]]; then
+        bat --color=always --style=full --line-range :120 {}
+      else
+          eza --tree {}
+      fi
+  ' \
+    --preview-window=right:50%
 }
 
-function hlp_alias() {
-  less_lf "${DOTPATH}/docs/linux/alias.txt"
+# fp で探したファイルを vscode で開く
+function f() {
+  local path
+  path=$(fp)
+  if [ -z "${path}" ]; then
+    return 0 # 何も選択されなかった場合は終了
+  fi
+  if [ -d "${path}" ]; then
+    eza --tree "${path}"
+  elif type code &>/dev/null; then
+    code "${path}"
+  fi
+}
+
+function hlp() {
+  if type bat fd fzf &>/dev/null; then
+    local target_dir="${DOTPATH}/docs/help/"
+    local file
+
+    # --with-nth を使うことで、内部では「フルパス」を保持しつつ、選択画面では「ファイル名だけ」を表示する
+    # --delimiter / → 「/」で区切る
+    # --with-nth -1 → 最後から1番目
+    file=$(fd --type f . "$target_dir" | fzf \
+      --with-nth -1 --delimiter / \
+      --preview "bat --color=always --style=full --line-range :120 {}" \
+      --preview-window=right:75%)
+
+    # ファイルが選択されたら bat で開く
+    if [ -n "$file" ]; then
+      bat "$file"
+    fi
+  else
+    printf "%s\n" "この機能を使うには bat, fzf, fd コマンドを導入する必要があります"
+  fi
 }
 
 function hlp_curl() {
-  open https://github.com/Seika139/library/blob/master/curl/index.md
-}
-
-function hlp_cursor() {
-  less_lf "${DOTPATH}/docs/linux/cursor.txt"
-}
-
-function hlp_find() {
-  less_color "${DOTPATH}/docs/linux/find.txt"
-}
-
-function hlp_grep() {
-  less_color "${DOTPATH}/docs/linux/grep.txt"
-}
-
-function hlp_history() {
-  less_lf "${DOTPATH}/docs/linux/history.txt"
-}
-
-function hlp_less() {
-  less_lf "${DOTPATH}/docs/linux/less.txt"
-}
-
-function hlp_sed() {
-  less_color "${DOTPATH}/docs/linux/sed.txt"
-}
-
-function hlp_wc() {
-  less_lf "${DOTPATH}/docs/linux/wc.txt"
-}
-
-function hlp_xargs() {
-  less_color "${DOTPATH}/docs/linux/xargs.txt"
-}
-
-#----------------------------------------------------------
-# TODO
-# コマンド履歴 p214
-# ワイルドカード p39
-#----------------------------------------------------------
-
-hlp_lsof() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/lsof.md"
+  local url="https://github.com/Seika139/library/blob/master/curl/index.md"
+  if type xdg-open &>/dev/null; then
+    xdg-open "$url"
+  elif type open &>/dev/null; then
+    open "$url"
   else
-    less "${DOTPATH}/docs/linux/lsof.md"
-  fi
-}
-
-hlp_kill() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/kill.md"
-  else
-    less "${DOTPATH}/docs/linux/kill.md"
-  fi
-}
-
-hlp_set() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/set.md"
-  else
-    less "${DOTPATH}/docs/linux/set.md"
-  fi
-}
-
-hlp_find_large_dir() {
-  if command -v bat >/dev/null 2>&1; then
-    bat "${DOTPATH}/docs/linux/find_large_directory.md"
-  else
-    less "${DOTPATH}/docs/linux/find_large_directory.md"
+    printf "%s\n" "ブラウザを開くコマンドが見つかりません: $url" >&2
   fi
 }

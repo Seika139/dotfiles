@@ -1,0 +1,69 @@
+# find コマンド
+
+`find オプション 基点ディレクトリ 検索条件 アクション`
+
+## オプション
+
+```bash
+-P # シンボリックリンクをたどらない(デフォルト)
+-L # 全てのシンボリックリンクをたどる
+```
+
+## 検索条件
+
+```bash
+-name [pattern]  # パターンと一致するファイル(ワイルドカードが使える。ワイルドカードを使う場合は「"」で囲う)
+-lname [pattern] # シンボリックリンクのリンク先ファイル名がパターンと一致するファイル
+-path [pattern]  # パスがパターンと一致するファイル
+-regex [pattern] # ファイル名がパターンと一致するファイル、パターンに正規表現が指定可能
+```
+
+※ それぞれ `iname`, `ilname`, `ipath`, `iregex` とすると大文字と小文字の区別をしなくなる
+
+```bash
+-type [filetype]  : 下記のファイルタイプに該当するものを探す
+  [filetype] (一部抜粋)
+    d : ディレクトリ
+    f : 通常のファイル
+    l : シンボリックリンク
+```
+
+## アクション
+
+```bash
+-print  # 検索結果をファイル名だけで表示(デフォルト)
+-ls     # 検索結果を ls -dils 形式で出力する
+
+-depth N    # 検索するディレクトリの深さを指定
+-maxdepth N # 検索するディレクトリの最大の深さを指定(0だと基点ディレクトリのみを探す)
+-mindepth N # 検索するディレクトリの最小の深さを指定(1だと基点ディレクトリより深いディレクトリを探す)
+-prune      # ディレクトリに降りない
+
+-a   # 条件を and で結ぶ（デフォルトでは条件を and 同士で結合するため明示的に指定する必要はない）
+-o   # 条件を or で結ぶ
+-not # 条件を否定する
+```
+
+複雑な条件を指定する場合はエスケープした括弧 `\( \)` で条件をグループ化できる。
+
+**例: 特定の拡張子を持ち、かつサイズが100KB以上のファイルまたは特定の名前のファイルを検索する。**
+
+```bash
+find /path/to/directory \( -name "*.txt" -a -size +100k \) -o -name "specific_file.txt"
+```
+
+## ユースケース
+
+```bash
+# ファイルの中のテキストで検索
+find ~/cms/app -type f -print | xargs grep "environment"
+
+# src 内にある js ファイルで「primary」の文字が含まれるものを探す
+find ./src/ -name "*.js" -a -type f -print | xargs grep "primary"
+
+# .py のファイルからのみ検索したい場合
+find * -type f -print | xargs grep "all" --include="*.py"
+
+# さらに js ファイルのうち一部のファイルを除いて検索したい場合
+find . -not -name "*plugins.js" -not -name "*bootstrap.min.js" -type f -print | xargs grep "export" --include="*.js"
+```

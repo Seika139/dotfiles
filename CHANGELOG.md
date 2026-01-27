@@ -17,6 +17,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **alias**
+  - rd という rsync ベースのディレクトリ比較関数を追加
+- **hlp**
+  - rsync など一部 linux コマンドの hlp を追加
+
+### Changed
+
+- **hlp**
+  - 今までANSIエスケープシーケンスでtxtファイルに書かれていたhlp系コマンドのファイルを、helpディレクトリ内のmdファイルに移行してbatコマンドで開くようにした
+    - これによってターミナルだけでなく、エディタやGitHubなどで開いたときの見た目も綺麗になる
+
+### Fixed
+
+- **bash**
+  - [00_shellenv.bash](./bash/public/00_shellenv.bash) を追加して、明示的に brew を読み込むタイミングを設定した
+    - これによって、後続のスクリプトで brew に依存するコマンドが実行できない可能性を排除した
+- **prettier**
+  - 混同しやすい prettier の設定を修正した。
+    - [prettier.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=Prettier.prettier-vscode) がレガシーで [esbenp.prettier-vscode](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) が推奨
+
 ## [0.4.0] - 2026-01-23
 
 ### Added

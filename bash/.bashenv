@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091
+
 if [ "$REMOTE_CONTAINERS" = "true" ]; then
   # Remote-Containers 環境の場合は dotfiles のパスを固定(VSCode の設定ファイルの "dotfiles.targetPath" に合わせる)
   # shellcheck disable=SC2088

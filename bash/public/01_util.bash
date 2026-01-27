@@ -220,6 +220,13 @@ is_win() {
   [[ $(os) =~ ^(MSYS|CYGWIN|winnt)$ ]]
 }
 
+is_wsl() {
+  if [[ $(os) = "LINUX" ]] && grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
 is_msys() {
   [[ $(os) = "MSYS" ]]
 }

@@ -13,7 +13,5 @@
     "MD060": false // 表の列スタイルの不一致を許可
   },
   "gitignore": true,
-  "globs": [
-    "**/*.md"
-  ]
+  "globs": ["**/*.md"]
 }
