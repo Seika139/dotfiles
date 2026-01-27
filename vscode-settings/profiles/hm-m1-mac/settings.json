@@ -198,6 +198,7 @@
     "SCRIPTDIR",
     "Seika",
     "shellcheck",
+    "shellenv",
     "shfmt",
     "signingkey",
     "smallint",
