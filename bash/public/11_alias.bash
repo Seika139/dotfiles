@@ -52,7 +52,6 @@ else
 fi
 
 # cat を bat に置き換える
-# 2025.09.03 追記: brewでインストールしたbatを使用
 if command -v bat &>/dev/null; then
   alias cat='bat --paging=never --style=plain'
 
