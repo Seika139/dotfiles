@@ -57,7 +57,7 @@ function f() {
     return 0 # 何も選択されなかった場合は終了
   fi
   if [ -d "${path}" ]; then
-    tree "${path}"
+    eza --tree "${path}"
   elif type code &>/dev/null; then
     code "${path}"
   fi
