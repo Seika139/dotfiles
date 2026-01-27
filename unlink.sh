@@ -24,6 +24,7 @@ main() {
 
   # $HOME のシンボリックリンクを削除する
   linked_files=(
+    ".bash_logout"
     ".bash_profile"
     ".gitconfig"
     ".gitconfig.local"
@@ -35,6 +36,7 @@ main() {
   for file in "${linked_files[@]}"; do
     abs_path=$(abs_path "${HOME}/${file}")
     if [[ -L "${abs_path}" && $(readlink "${abs_path}") = *dotfiles* ]]; then
+      echo_yellow "Removing symlink: ${abs_path}"
       rm "${abs_path}"
     fi
   done
