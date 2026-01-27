@@ -140,7 +140,6 @@ alias cc='claude --dangerously-skip-permissions'
 
 # rsync を利用して2ディレクトリ間で差分があるファイル名だけを表示する関数
 rd() {
-  set -eu
   local input_opt=""
   local OPTIND
 
