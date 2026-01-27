@@ -1,44 +1,15 @@
 ---
-name: Lint yaml
+name: Lint YAML (reusable)
 
 "on":
   push:
   pull_request:
-  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  yamllint:
-    runs-on: ubuntu-latest
-    env:
-      YAMLLINT_CONFIG: .yamllint.yml
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Detect relevant changes
-        id: changed-files
-        uses: tj-actions/changed-files@v47
-        with:
-          files: |
-            **/*.yml
-            **/*.yaml
-
-      - name: Skip checks (no relevant changes)
-        if: steps.changed-files.outputs.any_changed != 'true'
-        run: echo "No YAML changes detected; skipping yamllint."
-
-      - name: Install yamllint
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: pip install yamllint
-
-      - name: Run yamllint
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          if [ -f "$YAMLLINT_CONFIG" ]; then
-            yamllint -c "$YAMLLINT_CONFIG" .
-          else
-            yamllint .
-          fi
+  call-common-yamllint:
+    uses: Seika139/.github/.github/workflows/lint-yaml.yml@main
+    secrets: inherit
