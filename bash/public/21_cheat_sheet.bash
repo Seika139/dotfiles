@@ -68,13 +68,17 @@ function hlp() {
     local target_dir="${DOTPATH}/docs/help/"
     local file
 
-    # --with-nth を使うことで、内部では「フルパス」を保持しつつ、選択画面では「ファイル名だけ」を表示する
-    # --delimiter / → 「/」で区切る
-    # --with-nth -1 → 最後から1番目
-    file=$(fd --type f . "$target_dir" | fzf \
-      --with-nth -1 --delimiter / \
-      --preview "bat --color=always --style=full --line-range :120 {}" \
-      --preview-window=right:75%)
+    # docs/help/ 以降の相対パスとフルパスをタブ区切りで出力
+    # 表示: git/git-config.md、選択値: フルパス
+    # 注: fd の出力形式（C:/...）と $DOTPATH（/c/...）が異なるため、正規表現で抽出
+    file=$(fd --type f . "$target_dir" | awk '{
+      rel = $0
+      sub(/.*docs\/help\//, "", rel)
+      print rel"\t"$0
+    }' | fzf \
+      --with-nth 1 --delimiter $'\t' \
+      --preview "bat --color=always --style=full --line-range :120 {2}" \
+      --preview-window=right:75% | cut -f2)
 
     # ファイルが選択されたら bat で開く
     if [ -n "$file" ]; then
