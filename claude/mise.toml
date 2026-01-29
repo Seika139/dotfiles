@@ -3,7 +3,7 @@ PROFILES_DIR = "profiles"
 # WSL 環境なら true になる
 IS_WSL = '''{% if
 os() == 'linux' and exec(
-  command="bash -lc 'if grep -qi microsoft /proc/version 2>/dev/null || [ -n ${WSL_DISTRO_NAME:-} ]; then echo 0; else echo 1; fi'",
+  command="bash -c 'if grep -qi microsoft /proc/version 2>/dev/null || [ -n ${WSL_DISTRO_NAME:-} ]; then echo 0; else echo 1; fi'",
   allow_failure=true
 ) == "0" %}true{% else %}false{% endif %}'''
 
