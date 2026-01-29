@@ -1,5 +1,11 @@
 # Ubuntu on Windows などの WSL2 上で Claude を動かす
 
+> ※ 注意 claude code のインストール方法は 2026.01.28 ごろに変わったので注意
+> See: <https://code.claude.com/docs/ja/setup>
+>
+> native: `curl -fsSL https://claude.ai/install.sh | bash`
+> brew: `brew install --cask claude-code`
+
 Windows 上に Claude がインストールされていると Ubuntu 上で claude コマンドを実行したときに以下のようなエラーになる。
 これは Windows 側（Volta の shim）を WSL(Ubuntu) から直接実行していて、先頭行が cmd ... になっているため WSL では cmd が見つからずエラーになっているから。
 
