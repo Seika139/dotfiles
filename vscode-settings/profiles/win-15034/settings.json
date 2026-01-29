@@ -522,11 +522,7 @@
   "terminal.integrated.profiles.linux": {
     // Linux でターミナルを開くときに bash を login シェルで開く設定
     // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
-    "bash": {
-      "path": "bash",
-      "icon": "terminal-bash",
-      "args": ["-l"]
-    }
+    "bash": { "path": "bash", "icon": "terminal-bash", "args": ["-l"] }
   },
   "terminal.integrated.defaultProfile.linux": "bash",
   "remote.containers.environment": {
@@ -539,5 +535,6 @@
   },
   "[dockercompose]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
-  }
+  },
+  "redhat.telemetry.enabled": true
 }
