@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if command -v volta &>/dev/null; then
-  volta install node@latest @anthropic-ai/claude-code@latest @openai/codex@latest
+  volta install node@latest @openai/codex@latest
 fi
 
 (
