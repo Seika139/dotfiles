@@ -175,7 +175,7 @@ class CSVScribe(FileScribe):
         """
         super().read(file_path)
 
-        self._header_rows: int = header_rows
+        self._header_row_count: int = header_rows
         with self._filepath.open("r", encoding=self._encoding) as file:
             reader = csv.reader(file, delimiter=delimiter)
             matrix = [[c for c in row] for row in reader]
@@ -185,18 +185,20 @@ class CSVScribe(FileScribe):
             raise ValueError("Number of columns in each row is different.")
 
         # ヘッダー行の行方向からなるリスト
-        self._headers: list[list[str]] = matrix[: self._header_rows]
+        self._headers: list[list[str]] = matrix[: self._header_row_count]
 
         # ボディ（csvの中身）の行方向からなるリスト
-        self._bodies: list[list] = matrix[self._header_rows :]
+        self._bodies: list[list] = matrix[self._header_row_count :]
 
         # 列方向の行列を作成する
         self._transposed: list[list] = [list(x) for x in zip(*self._bodies)]
 
-        self._row_count: int = len(self._bodies)  # データ行数
+        self._total_row_count: int = len(matrix)  # ファイル全体の行数
+        self._body_row_count: int = len(self._bodies)  # データ行数
         self._column_count: int = len(self._transposed)  # 列数
         self._delimiter: str = delimiter
 
+        self.set_column_labels()
         self._parse_data_type(data_types)
 
     def _parse_data_type(self, data_types: list[str] | None = None) -> None:
@@ -258,6 +260,25 @@ class CSVScribe(FileScribe):
         # bodies にデータ型を適用する
         self._bodies = [list(x) for x in zip(*self._transposed)]
 
+    def set_column_labels(self, row_number: int = 0) -> None:
+        """
+        csv の列ラベルを設定する。（MySQL のカラム名のようなもの）
+        row_number で指定した行のデータを列ラベルとして設定する。
+        """
+        if row_number == 0 and self._header_row_count == 0:
+            # ヘッダー行がない場合は仮の列ラベルを設定する
+            self._column_labels = [f"column_{i}" for i in range(self._column_count)]
+        elif row_number < self._header_row_count:
+            # ヘッダー行がある場合は指定した行のデータを列ラベルとして設定する
+            self._column_labels = self._headers[row_number]
+        else:
+            raise ValueError("Invalid row number.")
+
+    def set_attributes(self, headers: list[list[str]], bodies: list[list]) -> None:
+        """
+        このクラスの基本的な attribute をセットする
+        """
+
     def write(
         self,
         filepath: str | Path,
@@ -312,9 +333,10 @@ class CSVScribe(FileScribe):
         self._headers = headers
         self._bodies = bodies
         self._transposed = [list(x) for x in zip(*bodies)]
-        self._row_count = len(bodies)
+        self._body_row_count = len(bodies)
         self._column_count = len(bodies[0])
         self._delimiter = delimiter
+        self.set_column_labels()
         self._parse_data_type(data_types)
 
     def append(
@@ -349,11 +371,11 @@ class CSVScribe(FileScribe):
         ValueError
             _description_
         """
-        if self._header_rows is None:
+        if self._header_row_count is None:
             if header_rows is None:
                 raise ValueError("Attribute '_header_rows' is not set.")
-            self._header_rows = header_rows
-        self.read(filepath, self._header_rows)
+            self._header_row_count = header_rows
+        self.read(filepath, self._header_row_count)
 
         if not all(isinstance(row, list) for row in matrix):
             raise ValueError("matrix は list[list] である必要があります。")
@@ -381,21 +403,38 @@ class CSVScribe(FileScribe):
         self._content += "\n" + "\n".join([self._delimiter.join(row) for row in matrix])
         self._bodies += matrix
         self._transposed = [list(x) for x in zip(*self._bodies)]
-        self._row_count += len(matrix)
+        self._body_row_count += len(matrix)
 
-    @property
-    def headers(self) -> list[list[str]]:
+    def to_dict(self) -> dict:
         """
-        ヘッダー行のリストを返す。
+        ヘッダー行とボディ行からなるリストを辞書に変換する。
 
         Returns
         -------
-        list[list[str]]
-            ヘッダー行のリスト。ヘッダー行が複数行ある場合は、行ごとにリストに格納される。
+        dict
+            ヘッダー行とボディ行からなるリストを辞書に変換したもの
         """
-        if not hasattr(self, "_headers"):
-            raise ValueError("Attribute '_headers' is not set.")
-        return self._headers
+        return {header[0]: body for header, body in zip(self.headers, self.bodies)}
+
+    def select_columns(self, columns: list[int]) -> list[list[str | float | int]]:
+        """
+        指定した列のデータを抽出する。
+
+        Parameters
+        ----------
+        columns : list[int]
+            抽出する列のインデックス
+
+        Returns
+        -------
+        list[list[str|float|int]]
+            指定した列のデータ
+        """
+
+        # columns が正しいインデックスかチェックする
+        # if not all(c in self._column_
+        # raise ValueError("columns に存在しない列が指定されています。")
+        pass
 
     @property
     def bodies(self) -> list[list[str | float | int]]:
@@ -412,21 +451,7 @@ class CSVScribe(FileScribe):
         return self._bodies
 
     @property
-    def transposed(self) -> list[list[str | float | int]]:
-        """
-        ボディ（csvの中身）のリストを転置したリストを返す。
-
-        Returns
-        -------
-        list[list[str|float|int]]
-            ボディ（csvの中身）のリストを転置したリスト
-        """
-        if not hasattr(self, "_transposed"):
-            raise ValueError("Attribute '_transposed' is not set")
-        return self._transposed
-
-    @property
-    def row_count(self) -> int:
+    def body_row_count(self) -> int:
         """
         ヘッダー行を除くデータ行数を返す。
 
@@ -435,9 +460,9 @@ class CSVScribe(FileScribe):
         int
             データ行数
         """
-        if not hasattr(self, "_row_count"):
-            raise ValueError("Attribute '_row_count' is not set.")
-        return self._row_count
+        if not hasattr(self, "_body_row_count"):
+            raise ValueError("Attribute '_body_row_count' is not set.")
+        return self._body_row_count
 
     @property
     def column_count(self) -> int:
@@ -452,6 +477,20 @@ class CSVScribe(FileScribe):
         if not hasattr(self, "_column_count"):
             raise ValueError("Attribute '_column_count' is not set.")
         return self._column_count
+
+    @property
+    def column_labels(self) -> list[str]:
+        """
+        列ラベルを返す。
+
+        Returns
+        -------
+        list[str]
+            列ラベル
+        """
+        if not hasattr(self, "_column_labels"):
+            raise ValueError("Attribute '_column_labels' is not set.")
+        return self._column_labels
 
     @property
     def column_types(self) -> list[str]:
@@ -480,3 +519,109 @@ class CSVScribe(FileScribe):
         if not hasattr(self, "_delimiter"):
             raise ValueError("Attribute '_delimiter' is not set.")
         return self._delimiter
+
+    @property
+    def headers(self) -> list[list[str]]:
+        """
+        ヘッダー行のリストを返す。
+
+        Returns
+        -------
+        list[list[str]]
+            ヘッダー行のリスト。ヘッダー行が複数行ある場合は、行ごとにリストに格納される。
+        """
+        if not hasattr(self, "_headers"):
+            raise ValueError("Attribute '_headers' is not set.")
+        return self._headers
+
+    @property
+    def header_row_count(self) -> int:
+        """
+        ヘッダー行の行数を返す。
+
+        Returns
+        -------
+        int
+            ヘッダー行の行数
+        """
+        if not hasattr(self, "_header_row_count"):
+            raise ValueError("Attribute '_header_row_count' is not set.")
+        return self._header_row_count
+
+    @property
+    def total_row_count(self) -> int:
+        """
+        ファイル全体の行数を返す。
+
+        Returns
+        -------
+        int
+            ファイル全体の行数
+        """
+        if not hasattr(self, "_total_row_count"):
+            raise ValueError("Attribute '_total_row_count' is not set.")
+        return self._total_row_count
+
+    @property
+    def transposed(self) -> list[list[str | float | int]]:
+        """
+        ボディ（csvの中身）のリストを転置したリストを返す。
+
+        Returns
+        -------
+        list[list[str|float|int]]
+            ボディ（csvの中身）のリストを転置したリスト
+        """
+        if not hasattr(self, "_transposed"):
+            raise ValueError("Attribute '_transposed' is not set")
+        return self._transposed
+
+
+# TODO
+# read, write, append でセットする attribute をまとめる
+# 列ラベル（カラム）を設定する
+# sql の where と同等の機能を実装する
+# sql の select column でカラムを選択する機能を実装する
+# 暇だったら ltsv の解析機能も作る
+
+if __name__ == "__main__":
+    # 動作確認
+    csv_scribe = CSVScribe()
+    sample_file = Path(__file__).parent / "sample/csv_scribe/sample.csv"
+    csv_scribe.read(sample_file, header_rows=2)
+    dic = csv_scribe.bodies
+    print(dic)
+
+# CSV
+# 行
+# 列
+# ヘッダー行
+# ボディ行
+# データ型
+# データ型の自動解析
+# データ型の指定
+# データの追記
+# データの削除
+# データの更新
+# データの選択
+# データのソート
+# データの結合
+# データの分割
+# データの集計
+# データの集約
+# データの統計量
+# データの可視化
+# データの保存
+# データの読み込み
+# データの変換
+# データの検証
+# データの加工
+# データの整形
+# データの出力
+# データの入力
+# データの取得
+# データの設定
+# データの割り当て
+# データの比較
+# データの結果
+# データの処理
