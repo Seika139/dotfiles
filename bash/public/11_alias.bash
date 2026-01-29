@@ -126,15 +126,6 @@ elif command -v aws >/dev/null 2>&1; then
   echo "Please ensure AWS CLI is properly installed."
 fi
 
-# GitHub CLI のエイリアス
-alias gal='gh auth login'
-alias gas='gh auth status'
-
-# GitHub CLI の補完を有効化する
-if command -v gh &>/dev/null; then
-  eval "$(gh completion -s bash)"
-fi
-
 # Claude Code のエイリアス
 alias cc='claude --dangerously-skip-permissions'
 
