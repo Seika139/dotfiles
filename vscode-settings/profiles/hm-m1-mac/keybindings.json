@@ -174,5 +174,12 @@
     "key": "ctrl+shift+[",
     "command": "workbench.view.explorer",
     "when": "viewContainer.workbench.view.explorer.enabled"
+  },
+  {
+    // グローバル検索サイドバーを開いている時に cmd + up で
+    // ファイルのトップに移動できない不具合を解消するためにユーザー設定で上書きする
+    "key": "cmd+up",
+    "command": "cursorTop",
+    "when": "editorTextFocus"
   }
 ]
