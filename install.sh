@@ -114,7 +114,7 @@ if [[ "${OSTYPE}" == msys* ]]; then
 
   # .bash_profile のシンボリックリンクも貼り直す必要がある
   CURRENT_DIR=$(pwd)
-  cd "${ROOT}" && ln -sfv "bash/.bashenv" ".bash_profile"
+  cd "${ROOT}" && ln -sfnv "bash/.bashenv" ".bash_profile"
   cd "${CURRENT_DIR}" && unset CURRENT_DIR
 fi
 
@@ -133,7 +133,7 @@ echo "${files_to_link[@]}"
 echo ""
 
 for file in "${files_to_link[@]}"; do # [@] で全ての要素にアクセス
-  ln -sfv "${ROOT}/${file}" "${HOME}"
+  ln -sfnv "${ROOT}/${file}" "${HOME}"
   # ln コマンドのオプション
   # -s : シンボリックリンク(無いとハードリンクになる)
   # -i : 別名となるパス名が存在する時は確認する
@@ -160,8 +160,8 @@ if ! grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
       cp "${HOME}/.ssh/config" "${ROOT}/.ssh/config_save_${backup_suffix}"
     fi
   fi
-  ln -sfv "${ROOT}/.ssh/config" "${HOME}/.ssh"
-  ln -sfv "${ssh_config_secret}" "${HOME}/.ssh"
+  ln -sfnv "${ROOT}/.ssh/config" "${HOME}/.ssh"
+  ln -sfnv "${ssh_config_secret}" "${HOME}/.ssh"
 fi
 
 #-------------------------------------
@@ -286,7 +286,7 @@ EOF
 fi
 
 # シンボリックリンクを貼る
-ln -sfv "${file}" "${HOME}"
+ln -sfnv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
@@ -343,7 +343,7 @@ if [ ! -d "${HOME}/.claude" ] || [ -z "$(ls -A "${HOME}/.claude" 2>/dev/null)" ]
           target_file="${HOME}/.claude/${file}"
 
           if [ -f "${source_file}" ]; then
-            ln -sfv "${source_file}" "${target_file}"
+            ln -sfnv "${source_file}" "${target_file}"
           fi
         done
 
@@ -351,7 +351,7 @@ if [ ! -d "${HOME}/.claude" ] || [ -z "$(ls -A "${HOME}/.claude" 2>/dev/null)" ]
         commands_source="${CLAUDE_PROFILE_DIR}/commands"
         commands_target="${HOME}/.claude/commands"
         if [ -d "${commands_source}" ]; then
-          ln -sfv "${commands_source}" "${commands_target}"
+          ln -sfnv "${commands_source}" "${commands_target}"
         fi
 
         echo -e "\\033[32m✅ Claude設定を '${DEFAULT_CLAUDE_PROFILE}' プロファイルからリンクしました\\033[0m"

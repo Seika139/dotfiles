@@ -56,13 +56,13 @@ fi
 if [ -e "/usr/bin/batcat" ] && [ ! -e "$HOME/.local/bin/bat" ]; then
   printf "%s\n" "Creating symlink for batcat to bat"
   mkdir -p "$HOME/.local/bin"
-  ln -s /usr/bin/batcat "$HOME/.local/bin/bat"
+  ln -sfnv /usr/bin/batcat "$HOME/.local/bin/bat"
 fi
 # fdfind も同様
 if [ -e "/usr/bin/fdfind" ] && [ ! -e "$HOME/.local/bin/fd" ]; then
   printf "%s\n" "Creating symlink for fdfind to fd"
   mkdir -p "$HOME/.local/bin"
-  ln -s /usr/bin/fdfind "$HOME/.local/bin/fd"
+  ln -sfnv /usr/bin/fdfind "$HOME/.local/bin/fd"
 fi
 
 # cat を bat に置き換える

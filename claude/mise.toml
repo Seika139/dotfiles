@@ -223,7 +223,7 @@ for file in settings.json settings.local.json CLAUDE.md commands skills status_l
 
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "\\033[36m  "
-    ln -sfv "$source" "$target"
+    ln -sfnv "$source" "$target"
     printf "\\033[0m"
   else
     printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
