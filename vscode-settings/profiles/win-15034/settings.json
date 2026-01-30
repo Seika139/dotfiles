@@ -416,6 +416,7 @@
     "dom",
     "enchant",
     "exif",
+    "fdfind",
     "FFI",
     "fileinfo",
     "filter",
