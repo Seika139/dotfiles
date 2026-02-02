@@ -6,7 +6,7 @@ if [ "$REMOTE_CONTAINERS" = "true" ]; then
   # Remote-Containers 環境の場合は dotfiles のパスを固定(VSCode の設定ファイルの "dotfiles.targetPath" に合わせる)
   # shellcheck disable=SC2088
   DOTPATH="$HOME/dotfiles"
-elif [ -e /proc/version ] && grep -qi microsoft /proc/version; then
+elif [ -e /proc/version ] && command grep -qi microsoft /proc/version; then
   # WSL 環境の場合は Windows のホームディレクトリを参照する
   DOTPATH="$(wslpath "$(cmd.exe /c "echo %USERPROFILE%" | tr -d '\r')")/dotfiles"
 else
