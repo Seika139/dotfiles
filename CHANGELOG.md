@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **bash**
   - gh 関連のエイリアスを [11_alias.bash](./bash/public/11_alias.bash) から [13_gh_alias.bash](./bash/public/13_gh_alias.bash) に分離
+  - [01_util.bash](./bash/public/01_util.bash) の os判定系のメソッドを [02_system.bash](./bash/public/02_system.bash) に分離した
+    - それに関連して、一部の関数名と public 内のファイル名をリネームした
 - **docs**
   - Claude Code のインストール方法がネイティブインストールに変更されたことを記載
   - set コマンドのヘルプにオプションフラグの確認方法を追記

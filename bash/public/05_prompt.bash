@@ -46,7 +46,7 @@ function normalize_ps1() {
 }
 
 # 環境に応じて使用するプロンプトを変える
-if is_msys; then
+if is_mingw; then
   lighten_ps1
 else
   normalize_ps1

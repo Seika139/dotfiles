@@ -197,48 +197,7 @@ error() {
 # debug 5
 # verbose 6
 
-# 03 : OS distinction
-# ref : https://www.trhrkmk.com/posts/bashrc-os-check/
-
-os() {
-  case ${OSTYPE} in
-  solaris*) echo "SOLARIS" ;;
-  darwin*) echo "OSX" ;;
-  linux*) echo "LINUX" ;;
-  bsd*) echo "BSD" ;;
-  cygwin*) echo "CYGWIN" ;; # POSIX compatibility layer and Linux environment emulation for Windows
-  msys*) echo "MSYS" ;;     # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-  *) error "unknown" && return 1 ;;
-  esac
-}
-
-is_osx() {
-  [[ $(os) = "OSX" ]]
-}
-
-is_win() {
-  [[ $(os) =~ ^(MSYS|CYGWIN|winnt)$ ]]
-}
-
-is_wsl() {
-  if [[ $(os) = "LINUX" ]] && command grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
-    return 0
-  fi
-  return 1
-}
-
-is_msys() {
-  [[ $(os) = "MSYS" ]]
-}
-
-# Windows の Git Bash でシンボリックリンクを作成できるようにしておく
-# ref : https://blog.logicky.com/2017/06/07/windows10-git-bash%E3%81%A7%E3%82%B7%E3%83%B3%E3%83%9C%E3%83%AA%E3%83%83%E3%82%AF%E3%83%AA%E3%83%B3%E3%82%AF%E3%82%92%E3%81%A4%E3%81%8F%E3%82%8C%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%99%E3%82%8B/
-# ref : https://qiita.com/ucho/items/c5ea0beb8acf2f1e4772#%E7%92%B0%E5%A2%83%E5%A4%89%E6%95%B0msys%E3%81%ABwinsymlinksnativestrict%E3%82%92%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B
-if is_msys; then
-  export MSYS=winsymlinks:nativestrict
-fi
-
-# 04 : executable
+# 03 : executable
 # コマンドが実行可能なら 0 を、そうでなければ 1 を返す
 
 # >/dev/null 2>&1 → 標準エラー出力を標準出力にマージして /dev/null に捨てる
@@ -252,7 +211,7 @@ executable() {
   type "$1" >/dev/null 2>&1
 }
 
-# 05 : add path
+# 04 : add path
 # PATHは先にある方が優先されることに留意する
 
 add_path() {
@@ -278,7 +237,7 @@ add_path() {
   [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "Added to PATH: $dir"
 }
 
-# 06 : absolute_path
+# 05 : absolute_path
 # 任意のファイルの絶対パスを取得する
 # ref : https://maku77.github.io/linux/path/absolute-path-of-file.html
 

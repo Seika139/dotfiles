@@ -20,7 +20,7 @@
 - **SC2089/SC2090 (Complex quoting)**: 文字列として構築されていた `command1` を配列形式 (`local -a command1`) に変更し、クォートと引数が正しく解釈されるようにしました。
 - **SC2086 (Quoting)**: `git diff` の引数を適切にクォートしました。
 
-#### [MODIFY] [04_prompt.bash](file:///Users/suzukikenichi/dotfiles/bash/public/04_prompt.bash)
+#### [MODIFY] [05_prompt.bash](file:///Users/suzukikenichi/dotfiles/bash/public/05_prompt.bash)
 
 - **SC2016 (Literal backticks)**: プロンプト (`PS1`) 内で実行時評価のために使用しているバッククォートについて、意図的であることを明示するために `# shellcheck disable=SC2016` を追加しました。
 

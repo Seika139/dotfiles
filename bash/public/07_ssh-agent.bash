@@ -29,7 +29,7 @@ start_agent() {
 
   if [ -f "${PF_FILE}" ]; then
     # パスフレーズのファイルがあるならクリップボードに登録する
-    if is_osx; then
+    if detect_os | command grep -q "macos"; then
       pbcopy <"${PF_FILE}" # macOSの場合はpbcopyを使用
     else
       clip <"${PF_FILE}" # 他のOSの場合はclipを使用
@@ -43,7 +43,7 @@ start_agent() {
 }
 
 # mac では ssh-agent が自動的に立ち上がるので ssh-agent の面倒は見ない
-if is_osx; then
+if detect_os | command grep -q "macos"; then
   # 1Password SSH Agent を利用している場合にそのソケットを指定する
   #
   # ※ Mac では ~/.ssh/config の IdentityAgent 設定が ssh コマンドを実行した瞬間にしか効かないため

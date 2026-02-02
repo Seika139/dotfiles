@@ -8,7 +8,7 @@
 
 ### [Component Name] bash
 
-#### [MODIFY] [07_daily_runner.bash](file:///Users/suzukikenichi/dotfiles/bash/public/07_daily_runner.bash)
+#### [MODIFY] [22_daily_runner.bash](file:///Users/suzukikenichi/dotfiles/bash/public/22_daily_runner.bash)
 
 1. **ロックファイルの導入**: `bash/daily/.cache/runner.lock` を使用します。
 2. **実行前チェック**: `_bdotdir_run_profile_daily_scripts` の開始時にロックファイルの存在を確認します。

@@ -35,7 +35,7 @@ DevContainer 内で開発環境を構築する際に、ホストマシンの dot
 
 ### 環境変数に git ユーザー情報を設定する
 
-[03_git.bash](../../bash/public/03_git.bash) にて以下のように環境変数を設定するようにした。
+[04_git.bash](../../bash/public/04_git.bash) にて以下のように環境変数を設定するようにした。
 
 ```plain
 git config user.name →  GIT_USER_NAME

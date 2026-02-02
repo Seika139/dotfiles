@@ -6,7 +6,7 @@
 
 ### [Component Name] bash
 
-#### [MODIFY] [07_daily_runner.bash](file:///Users/suzukikenichi/dotfiles/bash/public/07_daily_runner.bash)
+#### [MODIFY] [22_daily_runner.bash](file:///Users/suzukikenichi/dotfiles/bash/public/22_daily_runner.bash)
 
 - **ロックファイルの導入**: `bash/daily/.cache/runner.lock` に実行中のプロセスID (PID) を記録するようにしました。
 - **実行中チェック**: すでにロックファイルが存在し、そのPIDが実行中の場合は、処理をスキップするようにしました。

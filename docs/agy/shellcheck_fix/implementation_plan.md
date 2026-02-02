@@ -22,7 +22,7 @@
 - **SC2089/SC2090**: `command1` を配列に変更し、`"${command1[@]}"` で実行するように修正します。
 - **SC2086**: `git diff "$2".."$3"` のようにクォートを追加します。
 
-#### [MODIFY] [04_prompt.bash](file:///Users/suzukikenichi/dotfiles/bash/public/04_prompt.bash)
+#### [MODIFY] [05_prompt.bash](file:///Users/suzukikenichi/dotfiles/bash/public/05_prompt.bash)
 
 - **SC2016**: `PS1` 設定時のバッククォートは遅延評価のために意図的に使用されているため、`# shellcheck disable=SC2016` を追加します。
 
