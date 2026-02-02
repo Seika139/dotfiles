@@ -122,10 +122,11 @@ fi
 files_to_link=(
   ".bash_logout"
   ".bash_profile"
+  ".cursor"
   ".gitconfig"
   ".gitignore_global"
   ".gitmessage"
-  ".cursor"
+  ".tmux.conf"
 )
 
 echo -e "\033[01;37m以下のファイルのシンボリックリンクを作成します。\033[0m"
