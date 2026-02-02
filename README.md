@@ -9,6 +9,10 @@
     <img alt="Markdown Lint" src="https://github.com/Seika139/dotfiles/actions/workflows/lint-markdown.yml/badge.svg">
   </a>
   &nbsp;&nbsp;
+  <a href="https://github.com/Seika139/dotfiles/actions/workflows/lint-yaml.yml">
+    <img alt="YAML Lint" src="https://github.com/Seika139/dotfiles/actions/workflows/lint-yaml.yml/badge.svg">
+  </a>
+  &nbsp;&nbsp;
   <a href="https://github.com/Seika139/dotfiles/actions/workflows/shellcheck.yml">
     <img alt="ShellCheck" src="https://github.com/Seika139/dotfiles/actions/workflows/shellcheck.yml/badge.svg">
   </a>
