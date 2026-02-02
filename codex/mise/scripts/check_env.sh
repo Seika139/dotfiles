@@ -7,6 +7,11 @@
 
 set -eu
 
+# ~/.codex ディレクトリが存在しない場合は作成する
+if [ ! -d "${HOME}/.codex" ]; then
+  mkdir -p "${HOME}/.codex"
+fi
+
 # 必要な環境変数があれば OK
 if [ -n "${DEFAULT_CODEX_PROFILE:-}" ] && [ -n "${WSL_CODEX_PROFILE:-}" ]; then
   exit 0
@@ -52,20 +57,17 @@ if [ -z "${WSL_CODEX_PROFILE:-}" ]; then
 fi
 
 # 最終的に必要な環境変数が設定されていない場合はエラーとする
-is_missing=false
-if [[ -z "${DEFAULT_CODEX_PROFILE:-}" && -z "${default_codex_profile}" ]]; then
-  printf "%s\n" "🚨 'DEFAULT_CODEX_PROFILE' を '${local_toml}' に設定してください。"
-  is_missing=true
+if [[ -z "${DEFAULT_CODEX_PROFILE:-}" ]]; then
+  if [[ -z "${default_codex_profile}" ]]; then
+    printf "%s\n" "🚨 'DEFAULT_CODEX_PROFILE' を '${local_toml}' に設定してください。"
+  else
+    printf "%s\n" "🚨 'DEFAULT_CODEX_PROFILE' に '${default_codex_profile}' を設定しました。再実行したら正しく読み込まれます。"
+  fi
 fi
-if [[ -z "${WSL_CODEX_PROFILE:-}" && -z "${wsl_codex_profile}" ]]; then
-  printf "%s\n" "🚨 'WSL_CODEX_PROFILE' を '${local_toml}' に設定してください。"
-  is_missing=true
-fi
-if $is_missing; then
-  exit 1
-fi
-
-# ~/.codex ディレクトリが存在しない場合は作成する
-if [ ! -d "${HOME}/.codex" ]; then
-  mkdir -p "${HOME}/.codex"
+if [[ -z "${WSL_CODEX_PROFILE:-}" ]]; then
+  if [[ -z "${wsl_codex_profile}" ]]; then
+    printf "%s\n" "🚨 'WSL_CODEX_PROFILE' を '${local_toml}' に設定してください。"
+  else
+    printf "%s\n" "🚨 'WSL_CODEX_PROFILE' に '${wsl_codex_profile}' を設定しました。再実行したら正しく読み込まれます。"
+  fi
 fi
