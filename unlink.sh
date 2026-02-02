@@ -26,11 +26,12 @@ main() {
   linked_files=(
     ".bash_logout"
     ".bash_profile"
+    ".cursor"
     ".gitconfig"
     ".gitconfig.local"
     ".gitignore_global"
     ".gitmessage"
-    ".cursor"
+    ".tmux.conf"
   )
 
   for file in "${linked_files[@]}"; do
