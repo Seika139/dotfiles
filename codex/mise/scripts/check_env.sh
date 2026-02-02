@@ -29,6 +29,9 @@ else
   *"15365")
     default_codex_profile="cg-m2-mac"
     ;;
+  *"-2nd")
+    default_codex_profile="hm-m1-mac"
+    ;;
   *)
     default_codex_profile=""
     ;;

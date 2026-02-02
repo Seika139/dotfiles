@@ -29,6 +29,9 @@ else
   *"15365")
     default_claude_profile="cg-m2-mac"
     ;;
+  *"-2nd")
+    default_claude_profile="hm-m1-mac"
+    ;;
   *)
     default_claude_profile=""
     ;;
