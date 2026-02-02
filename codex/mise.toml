@@ -12,35 +12,10 @@ description = "環境変数がちゃんと設定されているか確認する"
 quiet = true
 hide = true
 shell = "bash -c"
-run = """
-set -eu
-
-# mise.local.tomlファイルの存在確認と初期化
-if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
-  {
-    printf "%s\n" '[env]'
-    printf "%s\n" 'DEFAULT_CODEX_PROFILE=""'
-    printf "%s\n" 'WSL_CODEX_PROFILE=""'
-  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
-  printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
-  printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
-  printf "%s\n" "🚨 DEFAULT_CODEX_PROFILE=\"\" と WSL_CODEX_PROFILE=\"\" に適切なプロファイル名を設定してください。"
-  exit 1
-fi
-if [ -z "${DEFAULT_CODEX_PROFILE:-}" ]; then
-  printf "%s\n" "🚨 'DEFAULT_CODEX_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
-  exit 1
-fi
-if [ -z "${WSL_CODEX_PROFILE:-}" ]; then
-  printf "%s\n" "🚨 'WSL_CODEX_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
-  exit 1
-fi
-
-# ~/.codex ディレクトリが存在しない場合は作成する
-if [ ! -d "${HOME}/.codex" ]; then
-  mkdir -p "${HOME}/.codex"
-fi
-"""
+run = '''
+chmod +x "{{env.MISE_CONFIG_ROOT}}/mise/scripts/check_env.sh"
+bash "{{env.MISE_CONFIG_ROOT}}/mise/scripts/check_env.sh"
+'''
 
 [tasks.check]
 description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
