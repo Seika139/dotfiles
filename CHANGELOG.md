@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - tmux の使い方ドキュメント ([docs/help/linux/tmux.md](./docs/help/linux/tmux.md)) を追加
 - **bash**
   - GitHub CLI のブランチ保護ルール・ルールセット関連エイリアスを追加 (`gh-branch-rules`, `gh-rulesets`, `gh-ruleset-detail`)
+  - [99_monitor_aws.sh](./bash/public/99_monitor_aws.sh) を追加
 
 ### Changed
 
