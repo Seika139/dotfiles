@@ -18,8 +18,6 @@ if [[ -n "${REMOTE_CONTAINERS}" ]] || [[ -n "${CI}" ]] || [[ -n "${NONINTERACTIV
   printf "%s" "\033[33m⚠️  非対話モードで実行します"
   printf "%s" "（環境変数: REMOTE_CONTAINERS=${REMOTE_CONTAINERS:-undefined}, "
   printf "%s" "CI=${CI:-undefined}, NONINTERACTIVE=${NONINTERACTIVE:-undefined}）\033[0m"
-else
-  NONINTERACTIVE=false
 fi
 
 # カラー出力ヘルパがまだ読み込まれていない環境でも利用できるようにする
