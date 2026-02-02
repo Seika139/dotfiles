@@ -7,6 +7,11 @@
 
 set -eu
 
+# ~/.claude ディレクトリが存在しない場合は作成する
+if [ ! -d "${HOME}/.claude" ]; then
+  mkdir -p "${HOME}/.claude"
+fi
+
 # 必要な環境変数があれば OK
 if [ -n "${DEFAULT_CLAUDE_PROFILE:-}" ] && [ -n "${WSL_CLAUDE_PROFILE:-}" ]; then
   exit 0
@@ -52,20 +57,18 @@ if [ -z "${WSL_CLAUDE_PROFILE:-}" ]; then
 fi
 
 # 最終的に必要な環境変数が設定されていない場合はエラーとする
-is_missing=false
-if [[ -z "${DEFAULT_CLAUDE_PROFILE:-}" && -z "${default_claude_profile}" ]]; then
-  printf "%s\n" "🚨 'DEFAULT_CLAUDE_PROFILE' を '${local_toml}' に設定してください。"
-  is_missing=true
+if [[ -z "${DEFAULT_CLAUDE_PROFILE:-}" ]]; then
+  if [[ -z "${default_claude_profile}" ]]; then
+    printf "%s\n" "🚨 'DEFAULT_CLAUDE_PROFILE' を '${local_toml}' に設定してください。"
+  else
+    printf "%s\n" "🚨 'DEFAULT_CLAUDE_PROFILE' に '${default_claude_profile}' を設定しました。再実行したら正しく読み込まれます。"
+  fi
 fi
-if [[ -z "${WSL_CLAUDE_PROFILE:-}" && -z "${wsl_claude_profile}" ]]; then
-  printf "%s\n" "🚨 'WSL_CLAUDE_PROFILE' を '${local_toml}' に設定してください。"
-  is_missing=true
+if [[ -z "${WSL_CLAUDE_PROFILE:-}" ]]; then
+  if [[ -z "${wsl_claude_profile}" ]]; then
+    printf "%s\n" "🚨 'WSL_CLAUDE_PROFILE' を '${local_toml}' に設定してください。"
+  else
+    printf "%s\n" "🚨 'WSL_CLAUDE_PROFILE' に '${wsl_claude_profile}' を設定しました。再実行したら正しく読み込まれます。"
+  fi
 fi
-if $is_missing; then
-  exit 1
-fi
-
-# ~/.claude ディレクトリが存在しない場合は作成する
-if [ ! -d "${HOME}/.claude" ]; then
-  mkdir -p "${HOME}/.claude"
-fi
+exit 1

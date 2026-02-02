@@ -1,10 +1,12 @@
 {
   "env": {
-    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "ANTHROPIC_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0",
     "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
     "AWS_REGION": "us-east-1",
     "CLAUDE_CODE_USE_BEDROCK": "1",
-    "API_TIMEOUT_MS": "1200000"
+    "API_TIMEOUT_MS": "1200000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "4096",
+    "MAX_THINKING_TOKENS": "1024"
   },
   "permissions": {
     "allow": [
@@ -54,7 +56,6 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "opusplan",
   "hooks": {
     "Stop": [
       {
@@ -62,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh.exe -c \"New-BurntToastNotification -Text 'Claude finished', (Get-Date).ToString('HH:mm:ss')\""
+            "command": "pwsh.exe -c \"New-BurntToastNotification -Text '🦄 Claude Code', \\\"実行中の claude が停止しました.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"\""
           },
           {
             "type": "command",
@@ -74,12 +75,15 @@
           },
           {
             "type": "command",
-            "command": "curl https://hooks.slack.com/triggers/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"
+            "command": "pwsh -c \"[Console]::OutputEncoding = [Text.Encoding]::UTF8; $msg = \\\"実行中の claude が停止しました.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"; $body = @{message = $msg} | ConvertTo-Json -Compress; Invoke-RestMethod -Uri 'https://hooks.slack.com/triggers/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' -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body))\""
           }
         ]
       }
     ]
   },
-  "outputStyle": "Explanatory",
-  "statusLine": { "type": "command", "command": "~/.claude/status_line.sh" }
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/status_line.sh"
+  },
+  "outputStyle": "Explanatory"
 }

@@ -57,11 +57,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "terminal-notifier -title '🦄 Claude Code' -message 'Claude Code has stopped' -sound Glass"
+            "command": "terminal-notifier -title '🦖 Claude Code' -message \"実行中の claude が停止しました.\\n$USER@$(hostname) $(pwd)\" -sound Glass"
           },
           {
             "type": "command",
-            "command": "curl https://hooks.slack.com/triggers/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"
+            "command": "curl -s -X POST -H 'Content-type: application/json; charset=utf-8' --data \"$(printf '{\"message\": \"実行中の claude が停止しました.\\n%s@%s %s\"}' \"$USER\" \"$(hostname)\" \"$(pwd)\" | iconv -t utf-8)\" https://hooks.slack.com/triggers/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"
           }
         ]
       }
