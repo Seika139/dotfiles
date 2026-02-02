@@ -18,6 +18,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **tmux**
+  - tmux の設定ファイル (.tmux.conf) を追加
+  - tmux の使い方ドキュメント ([docs/help/linux/tmux.md](./docs/help/linux/tmux.md)) を追加
+- **bash**
+  - GitHub CLI のブランチ保護ルール・ルールセット関連エイリアスを追加 (`gh-branch-rules`, `gh-rulesets`, `gh-ruleset-detail`)
+
+### Changed
+
+- **bash**
+  - gh 関連のエイリアスを [11_alias.bash](./bash/public/11_alias.bash) から [13_gh_alias.bash](./bash/public/13_gh_alias.bash) に分離
+- **docs**
+  - Claude Code のインストール方法がネイティブインストールに変更されたことを記載
+  - set コマンドのヘルプにオプションフラグの確認方法を追記
+- **claude**
+  - mise.local.toml の環境変数を自動で設定する機能を追加
+  - Slack に通知するワークフローを変更し、メッセージに変数を埋め込めるようにした
+- **codex**
+  - mise.local.toml の環境変数を自動で設定する機能を追加
+
+### Fixed
+
+- **[install.sh](./install.sh)**
+  - ln コマンドに `-n` オプションを追加し、既存のシンボリックリンクディレクトリへの再リンク時にディレクトリ内にリンクが作成されて使い物にならなくなる不具合を修正
+  - [install.sh](./install.sh) を複数回実行したときに、非対話モードになってしまう不具合を修正
+  - Windows で [install.sh](./install.sh) を複数回実行して grep が rg に置き換わった際に、rg ではアクセスできない場所を検索しようとしてエラーになる不具合を修正
+- **vscode-settings**
+  - グローバル検索サイドバー表示時に `cmd + up` でファイル先頭に移動できない不具合を修正
+- **claude/codex/gemini**
+  - Claude Code / Codex / Gemini の各ディレクトリに移動した際にログインシェルを再帰的に起動して無限ループが発生する不具合を修正 - [diff](https://github.com/Seika139/dotfiles/compare/2a6eee63a2e9edf88e89c368a5db9bcfeac54475..1b15ca66872ab8bf6a178ddaa299c210fb42e3df)
+
 ## [0.5.0] - 2026-01-28
 
 ### Added
