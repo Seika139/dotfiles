@@ -148,7 +148,7 @@ unset files_to_link file
 # 元々あった .ssh/config が消されないように dotfiles/.ssh 内に保存する
 #-------------------------------------
 
-if ! grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
+if ! command grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
   # WSL には ~/.ssh/config をシンボリックリンクで貼らないようにする
   ssh_config_secret="${ROOT}/.ssh/config.secret"
 
