@@ -46,7 +46,8 @@ check_tmux() {
 # Get the stored Codex pane ID
 get_codex_pane() {
   if [ -f "$PANE_ID_FILE" ]; then
-    local pane_id=$(cat "$PANE_ID_FILE")
+    local pane_id
+    pane_id=$(cat "$PANE_ID_FILE")
     # Verify pane still exists
     if tmux list-panes -F '#{pane_id}' | grep -q "^${pane_id}$"; then
       echo "$pane_id"
@@ -58,7 +59,8 @@ get_codex_pane() {
 
 # Check if Codex pane exists
 codex_pane_exists() {
-  local pane_id=$(get_codex_pane)
+  local pane_id
+  pane_id=$(get_codex_pane)
   [ -n "$pane_id" ]
 }
 
@@ -71,20 +73,23 @@ cmd_setup() {
 
   # Check if Codex pane already exists
   if codex_pane_exists; then
-    local existing_pane=$(get_codex_pane)
+    local existing_pane
+    existing_pane=$(get_codex_pane)
     log_info "Codex pane already exists: $existing_pane"
     echo "PANE_EXISTS:$existing_pane"
     return 0
   fi
 
   # Get current pane ID (Claude's pane)
-  local claude_pane=$(tmux display-message -p '#{pane_id}')
+  local claude_pane
+  claude_pane=$(tmux display-message -p '#{pane_id}')
 
   # Split the current pane horizontally (creates pane on the right)
   tmux split-window -h -d
 
   # Get the new pane ID (the one we just created)
-  local codex_pane=$(tmux list-panes -F '#{pane_id}' | tail -1)
+  local codex_pane
+  codex_pane=$(tmux list-panes -F '#{pane_id}' | tail -1)
 
   # Save the Codex pane ID for later use
   echo "$codex_pane" >"$PANE_ID_FILE"
@@ -124,7 +129,8 @@ cmd_send() {
     exit 1
   fi
 
-  local codex_pane=$(get_codex_pane)
+  local codex_pane
+  codex_pane=$(get_codex_pane)
 
   log_info "Sending prompt to Codex pane: $codex_pane"
 
@@ -155,7 +161,8 @@ cmd_capture() {
     exit 1
   fi
 
-  local codex_pane=$(get_codex_pane)
+  local codex_pane
+  codex_pane=$(get_codex_pane)
 
   # Capture pane content
   # -p: print to stdout
@@ -182,8 +189,9 @@ cmd_wait() {
 
   log_info "Waiting for Codex response (timeout: ${timeout}s)..."
 
-  while [ $elapsed -lt $timeout ]; do
-    local current_content=$(cmd_capture 50)
+  while [ $elapsed -lt "$timeout" ]; do
+    local current_content
+    current_content=$(cmd_capture 50)
 
     if [ "$current_content" = "$prev_content" ]; then
       ((stable_count++)) || true
@@ -211,7 +219,8 @@ cmd_cleanup() {
   check_tmux
 
   if codex_pane_exists; then
-    local codex_pane=$(get_codex_pane)
+    local codex_pane
+    codex_pane=$(get_codex_pane)
     log_info "Closing Codex pane: $codex_pane"
 
     # Send exit command to Codex first
@@ -236,7 +245,8 @@ cmd_status() {
   check_tmux
 
   if codex_pane_exists; then
-    local codex_pane=$(get_codex_pane)
+    local codex_pane
+    codex_pane=$(get_codex_pane)
     echo "PANE_EXISTS:$codex_pane"
     tmux list-panes -F 'Pane #{pane_index}: #{pane_id} (#{pane_width}x#{pane_height}) Title: #{pane_title}'
   else
@@ -249,7 +259,8 @@ cmd_focus() {
   check_tmux
 
   if codex_pane_exists; then
-    local codex_pane=$(get_codex_pane)
+    local codex_pane
+    codex_pane=$(get_codex_pane)
     tmux select-pane -t "$codex_pane"
     echo "FOCUSED:$codex_pane"
   else
