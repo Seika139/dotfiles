@@ -12,7 +12,7 @@ monitor_stacks() {
       query_conditions="contains(StackName, \\\`$stack_name\\\`)"
     fi
   done
-  if [[ ! -z "$query_conditions" ]]; then
+  if [[ -n "$query_conditions" ]]; then
     query_conditions="?$query_conditions"
   fi
 
