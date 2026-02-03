@@ -55,6 +55,19 @@ gll() {
   "${command[@]}"
 }
 
+# git の不要なブランチを削除する
+grm() {
+  default_branch=$(git rev-parse --abbrev-ref origin/HEAD | sed 's/origin\///') || return 1
+  echo_yellow "git checkout ${default_branch}" &&
+    git checkout "${default_branch}" &&
+    echo_yellow "git pull" &&
+    git pull &&
+    echo_yellow "git remote prune origin" &&
+    git remote prune origin &&
+    echo_yellow "git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -d" &&
+    git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -d
+}
+
 alias gd='git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/"'
 
 alias gr='git remote'
