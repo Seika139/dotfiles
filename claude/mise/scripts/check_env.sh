@@ -7,6 +7,10 @@
 
 set -eu
 
+if [ "${MISE_CONFIG_ROOT:-}" = "" ]; then
+  MISE_CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+fi
+
 # ~/.claude ディレクトリが存在しない場合は作成する
 if [ ! -d "${HOME}/.claude" ]; then
   mkdir -p "${HOME}/.claude"
