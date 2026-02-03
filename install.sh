@@ -314,57 +314,32 @@ echo 'finish loading'
 echo ''
 
 #-------------------------------------
-# 5. setup Claude settings (if ~/.claude is empty)
+# 5. setup Claude settings
 #-------------------------------------
 
-# ~/.claude が空または存在しない場合のみシンボリックリンクを作成
-if [ ! -d "${HOME}/.claude" ] || [ -z "$(ls -A "${HOME}/.claude" 2>/dev/null)" ]; then
-  echo -e "\\033[01;37m~/.claude が空です。Claude設定のシンボリックリンクを作成します。\\033[0m"
-
-  # ~/.claude ディレクトリを作成（存在しない場合）
-  mkdir -p "${HOME}/.claude"
-
-  # mise.local.tomlから DEFAULT_CLAUDE_PROFILE を読み取り
-  CLAUDE_MISE_LOCAL="${ROOT}/claude/mise.local.toml"
-  if [ -f "${CLAUDE_MISE_LOCAL}" ]; then
-    DEFAULT_CLAUDE_PROFILE=$(grep '^DEFAULT_CLAUDE_PROFILE=' "${CLAUDE_MISE_LOCAL}" | cut -d'"' -f2)
-
-    if [ -n "${DEFAULT_CLAUDE_PROFILE}" ]; then
-      CLAUDE_PROFILE_DIR="${ROOT}/claude/profiles/${DEFAULT_CLAUDE_PROFILE}"
-
-      if [ -d "${CLAUDE_PROFILE_DIR}" ]; then
-        echo "Claude profile '${DEFAULT_CLAUDE_PROFILE}' からシンボリックリンクを作成します"
-
-        # Claude設定ファイルのシンボリックリンクを作成
-        claude_files=("settings.json" "settings.local.json" "CLAUDE.md")
-        for file in "${claude_files[@]}"; do
-          source_file="${CLAUDE_PROFILE_DIR}/${file}"
-          target_file="${HOME}/.claude/${file}"
-
-          if [ -f "${source_file}" ]; then
-            ln -sfnv "${source_file}" "${target_file}"
-          fi
-        done
-
-        # commands ディレクトリのシンボリックリンクを作成
-        commands_source="${CLAUDE_PROFILE_DIR}/commands"
-        commands_target="${HOME}/.claude/commands"
-        if [ -d "${commands_source}" ]; then
-          ln -sfnv "${commands_source}" "${commands_target}"
-        fi
-
-        echo -e "\\033[32m✅ Claude設定を '${DEFAULT_CLAUDE_PROFILE}' プロファイルからリンクしました\\033[0m"
-      else
-        echo -e "\\033[33m⚠️ Claude profile directory '${CLAUDE_PROFILE_DIR}' が見つかりません\\033[0m"
-      fi
-    else
-      echo -e "\\033[33m⚠️ DEFAULT_CLAUDE_PROFILE が設定されていません\\033[0m"
-    fi
-  else
-    echo -e "\\033[33m⚠️ ${CLAUDE_MISE_LOCAL} が見つかりません\\033[0m"
-  fi
+if [ ! -d "${ROOT}/claude/" ]; then
+  error "dotfiles/claude/ ディレクトリが存在しません。dotfiles を正しくクローンしたか確認してください。"
+  exit 1
+elif command -v mise &>/dev/null; then
+  # dotfiles/claude/ が存在し mise コマンドが利用可能な場合は mise を利用して claude の設定を行う
+  info "mise コマンドを利用して Claude の設定を行います"
+  (
+    cd "${ROOT}/claude/" || {
+      error "No such directory: ${ROOT}/claude/"
+      exit 1
+    }
+    mise trust -a
+    mise run check_env
+    info "🚀 mise.local.toml が存在しない場合に 'Error task failed' と表示されますが問題ありません"
+    mise run link
+  )
 else
-  echo -e "\\033[33m~/.claude に既存のファイルがあります。Claude設定のセットアップをスキップします。\\033[0m"
+  # mise が利用できない場合は従来のスクリプトを利用して claude の設定を行う
+  info "mise コマンドが見つからないため、従来のスクリプトを利用して Claude の設定を行います"
+  [ -n "$(detect_wsl)" ] && is_wsl=true || is_wsl=false
+  # mise.local.toml が存在しない場合に作成する
+  IS_WSL=$is_wsl bash "${ROOT}/claude/mise/scripts/check_env.sh"
+  IS_WSL=$is_wsl bash "${ROOT}/claude/mise/scripts/link.sh"
 fi
 
 #-------------------------------------
