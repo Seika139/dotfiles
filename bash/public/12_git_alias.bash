@@ -28,6 +28,8 @@ alias gc='git commit'
 alias gw='git worktree'
 # git worktree list
 alias gwl='git worktree list'
+# git pull
+alias gpl='git pull'
 
 PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
 
