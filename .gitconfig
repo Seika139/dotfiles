@@ -58,12 +58,15 @@
 [alias]
 	br = branch
 	co = checkout
+    oc = checkout
+	cb = checkout -b
 	cm = commit
 	cp = cherry-pick
 	st = status
 	ts = status
 	ss = stash
 	pl = pull
+    lp = pull
 	ps = push
 	wk = worktree
 	wt = worktree
