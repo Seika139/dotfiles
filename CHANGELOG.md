@@ -19,11 +19,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **alias**
+  - git 関連のエイリアスを追加
+    - gpl: git pull
+    - grm: git の不要ブランチを削除
+  - gitconfig にもエイリアスを追加
+
 ### Changed
 
 - **shellcheck**
   - CI で shellcheck をする対象のディレクトリを増やした
     - それに伴って警告が生じるファイルを修正した
+- **docs**
+  - [006_storage.md](./docs/docker/006_storage.md) を大幅に拡充した
+    - Long/Short syntax
+    - 匿名/名前付きボリュームの使い分け
+    - `consistency` オプション
+    - `tmpfs` マウントの説明を追加
+- **install.sh**
+  - Claude 設定のセットアップを mise タスクベースの処理にリファクタリング
+  - 新規スクリプト [link.sh](./claude/mise/scripts/link.sh) にシンボリックリンク作成処理を分離
+- **README**
+  - yamllint の CI ステータスバッジを追加
 
 ## [0.5.1] - 2026-02-03
 
