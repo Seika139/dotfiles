@@ -161,52 +161,10 @@ description = "指定プロファイルの設定ファイルをシンボリッ�
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
-run = """
-{% if env.IS_WSL == 'true' %}
-DEFAULT_PROFILE="{{ env.WSL_CLAUDE_PROFILE }}"
-{% else %}
-DEFAULT_PROFILE="{{ env.DEFAULT_CLAUDE_PROFILE }}"
-{% endif %}
-PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
-mise run check --prof "$PROFILE"
-
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
-
-printf "%s\n" "🦄 Linking Claude settings from profile: $PROFILE"
-
-# 既存のシンボリックリンクを削除（ファイルの場合は退避）
-for file in settings.json settings.local.json CLAUDE.md commands skills status_line.sh; do
-  target="${HOME}/.claude/$file"
-  if [ -L "$target" ]; then
-    printf "%s\n" "   Removing existing symlink: $target"
-    rm "$target"
-  elif [ -f "$target" ]; then
-    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
-    printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
-    mv "$target" "$backup"
-  elif [ -d "$target" ]; then
-    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
-    printf "%s\n" "   既存のディレクトリをバックアップしました: $target -> $backup"
-    mv "$target" "$backup"
-  fi
-done
-
-# シンボリックリンク作成
-for file in settings.json settings.local.json CLAUDE.md commands skills status_line.sh; do
-  source="$PROFILE_PATH/$file"
-  target="${HOME}/.claude/$file"
-
-  if [ -f "$source" ] || [ -d "$source" ]; then
-    printf "\\033[36m  "
-    ln -sfnv "$source" "$target"
-    printf "\\033[0m"
-  else
-    printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
-  fi
-done
-
-printf "%s\n" "✅ Linked Claude settings from profile '$PROFILE'"
-"""
+run = '''
+chmod +x "{{env.MISE_CONFIG_ROOT}}/mise/scripts/link.sh"
+bash "{{env.MISE_CONFIG_ROOT}}/mise/scripts/link.sh" {{option(name="prof", default="")}}
+'''
 
 [tasks.status]
 description = "現在のプロファイル設定と~/.claudeの状態を確認"
