@@ -176,3 +176,17 @@ rd() {
   echo_yellow "# rsync -rn $compare_opt --out-format=\"%n\" \"$src\" \"$dest\""
   rsync -rn $compare_opt --out-format="%n" "$src" "$dest"
 }
+
+sd() {
+  # dotfiles を速攻で更新する
+  if [[ -n "${DOTPATH:-}" && -d "${DOTPATH}" ]]; then
+    (
+      cd "${DOTPATH}" || return 1
+      git pull origin main --ff-only
+    )
+    source "${HOME}/.bash_profile"
+  else
+    echo_red "Error: DOTPATH is not set or directory does not exist."
+    return 1
+  fi
+}
