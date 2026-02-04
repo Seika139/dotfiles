@@ -65,13 +65,15 @@ function f() {
 
 function hlp() {
   if type bat fd fzf &>/dev/null; then
-    local target_dir="${DOTPATH}/docs/help/"
+    local target_dirs=(
+      "${DOTPATH}/docs/help/"
+    )
     local file
 
     # docs/help/ 以降の相対パスとフルパスをタブ区切りで出力
     # 表示: git/git-config.md、選択値: フルパス
     # 注: fd の出力形式（C:/...）と $DOTPATH（/c/...）が異なるため、正規表現で抽出
-    file=$(fd --type f . "$target_dir" | awk '{
+    file=$(fd --type f . "${target_dirs[@]}" | awk '{
       rel = $0
       sub(/.*docs\/help\//, "", rel)
       print rel"\t"$0
