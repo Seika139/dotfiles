@@ -8,7 +8,9 @@ if [ "$REMOTE_CONTAINERS" = "true" ]; then
   DOTPATH="$HOME/dotfiles"
 elif [ -e /proc/version ] && command grep -qi microsoft /proc/version; then
   # WSL 環境の場合は Windows のホームディレクトリを参照する
-  DOTPATH="$(wslpath "$(cmd.exe /c "echo %USERPROFILE%" | tr -d '\r')")/dotfiles"
+  # DOTPATH="$(wslpath "$(cmd.exe /c "echo %USERPROFILE%" | tr -d '\r')")/dotfiles"
+  # WSL でも直接 Linux 側のホームディレクトリに dotfiles を置くことにした
+  DOTPATH="${HOME}/dotfiles"
 else
   DOTPATH="${HOME}/dotfiles"
 fi
