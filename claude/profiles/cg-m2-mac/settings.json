@@ -1,6 +1,6 @@
 {
   "env": {
-    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "ANTHROPIC_MODEL": "global.anthropic.claude-opus-4-6-v1",
     "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
     "AWS_REGION": "us-east-1",
     "CLAUDE_CODE_USE_BEDROCK": "1",
@@ -49,7 +49,6 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "outputStyle": "Explanatory",
   "hooks": {
     "Stop": [
       {
@@ -67,5 +66,10 @@
       }
     ]
   },
-  "statusLine": { "type": "command", "command": "~/.claude/status_line.sh" }
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/status_line.sh"
+  },
+  "outputStyle": "Explanatory",
+  "model": "global.anthropic.claude-opus-4-5-20251101-v1:0"
 }
