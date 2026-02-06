@@ -22,6 +22,7 @@
     "coloneqq",
     "Colour",
     "Colours",
+    "confusables",
     "Conv",
     "cooldown",
     "cygames",
@@ -193,6 +194,7 @@
     "symfony",
     "timedelta",
     "TINYINT",
+    "tmpfs",
     "tomllib",
     "traceback",
     "trunc",
@@ -511,7 +513,7 @@
     },
     {
       "name": "ANTHROPIC_MODEL",
-      "value": "us.anthropic.claude-opus-4-5-20251101-v1:0"
+      "value": "global.anthropic.claude-opus-4-6-v1"
     },
     {
       "name": "AWS_REGION",

@@ -18,9 +18,11 @@
     "CROSSSLOT",
     "Cygames",
     "datapoints",
+    "dockercompose",
     "dotenvx",
     "DOTPATH",
     "ecpu",
+    "Eeuo",
     "elasticloadbalancingv",
     "elbv",
     "elif",
@@ -73,11 +75,14 @@
     "pyright",
     "pytesseract",
     "pytest",
+    "PYTHONPATH",
+    "PYTHONUNBUFFERED",
     "Qiita",
     "readlink",
     "SCRIPTDIR",
     "Sercuit",
     "shellcheck",
+    "signingkey",
     "songdb",
     "Tesseract",
     "trunc",
@@ -85,6 +90,7 @@
     "typer",
     "Umatoria",
     "USPTO",
+    "uvicorn",
     "Valkey",
     "venv",
     "wada",
@@ -238,5 +244,8 @@
     "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
     "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
     "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
+  },
+  "[dockercompose]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   }
 }
