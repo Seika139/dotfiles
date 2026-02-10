@@ -41,15 +41,18 @@ export LSCOLORS=cxfxgxdxbxegedabagacad
 if command -v rg &>/dev/null; then
   # --glob '!.git' を追加して、.gitディレクトリを"絶対に"検索しないようにする
   # -S/--smart-case を追加して、賢い大文字小文字の区別を有効にする
-  alias grep='rg --color=auto --glob "!.git" -S'
+  # 2-26.0210 追記: AI が grep の使用方法を誤るのでエイリアスは使わない
+  # alias grep='rg --color=auto --glob "!.git" -S'
 
   # 全てのファイル（隠しファイルや.gitignoreも）を検索するエイリアスを追加
   alias rga='rg -uuu'
 else
-  alias grep='grep --color=auto'
+  # alias grep='grep --color=auto'
   alias fgrep='fgrep --color=auto'
   alias egrep='egrep --color=auto'
 fi
+# grep エイリアスが設定されている場合は解除する
+if alias | grep -q 'alias grep='; then unalias grep; fi
 
 # Ubuntu に bat をインストールすると /usr/bin/batcat という名前でインストールされるため、
 # ~/.local/bin/bat としてシンボリックリンクを作成して、bat で使えるようにする。
