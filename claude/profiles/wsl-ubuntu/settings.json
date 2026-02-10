@@ -69,6 +69,10 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/status_line.sh"
+  },
   "outputStyle": "Explanatory",
-  "statusLine": { "type": "command", "command": "~/.claude/status_line.sh" }
+  "model": "us.anthropic.claude-opus-4-6-v1"
 }
