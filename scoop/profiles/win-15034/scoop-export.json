@@ -88,8 +88,8 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2026-01-27T14:19:56.2524193+09:00",
-      "Version": "2026.1.8"
+      "Updated": "2026-02-05T11:34:56.7443785+09:00",
+      "Version": "2026.2.3"
     },
     {
       "Info": "",
@@ -109,36 +109,43 @@
       "Info": "",
       "Name": "uv",
       "Source": "main",
-      "Updated": "2026-01-27T10:44:22.1930546+09:00",
-      "Version": "0.9.27"
+      "Updated": "2026-02-12T14:48:33.5064229+09:00",
+      "Version": "0.10.2"
     },
     {
       "Info": "",
       "Name": "vscode",
       "Source": "extras",
-      "Updated": "2026-01-21T12:05:17.6780702+09:00",
-      "Version": "1.108.1"
+      "Updated": "2026-01-29T18:10:03.8206971+09:00",
+      "Version": "1.108.2"
+    },
+    {
+      "Info": "",
+      "Name": "win32yank",
+      "Source": "main",
+      "Updated": "2026-02-12T14:43:51.1980119+09:00",
+      "Version": "0.1.1"
     },
     {
       "Info": "",
       "Name": "zoxide",
       "Source": "main",
-      "Updated": "2026-01-23T11:19:08.1797598+09:00",
-      "Version": "0.9.8"
+      "Updated": "2026-02-02T11:04:51.0747414+09:00",
+      "Version": "0.9.9"
     }
   ],
   "buckets": [
     {
-      "Manifests": 1422,
+      "Manifests": 1435,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2026-01-27T13:36:59+09:00"
+      "Updated": "2026-02-12T14:00:32+09:00"
     },
     {
-      "Manifests": 2257,
+      "Manifests": 2261,
       "Name": "extras",
       "Source": "https://github.com/ScoopInstaller/Extras",
-      "Updated": "2026-01-27T13:37:46+09:00"
+      "Updated": "2026-02-12T13:59:40+09:00"
     }
   ]
 }
