@@ -91,14 +91,15 @@ alias d='docker'
 alias dc='docker compose'
 if command -v docker &>/dev/null; then
   # 一時ファイルに補完スクリプトを保存して読み込む
+  # NOTE: WSL環境ではDocker Desktop未起動時にdockerスタブが警告をstdoutに出力し
+  #       exit code 1 を返すため、終了コードで成否を判定する
   _docker_completion_tmp="/tmp/docker_completion_$$"
-  docker completion bash >"$_docker_completion_tmp" 2>/dev/null
-  if [ -f "$_docker_completion_tmp" ]; then
+  if docker completion bash >"$_docker_completion_tmp" 2>/dev/null; then
     # shellcheck source=/dev/null
     source "$_docker_completion_tmp"
     complete -F __start_docker d dc
-    rm -f "$_docker_completion_tmp"
   fi
+  rm -f "$_docker_completion_tmp"
 fi
 
 # 補完設定: miseの補完を設定（シンプルな代替方法）
