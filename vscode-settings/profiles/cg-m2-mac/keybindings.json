@@ -158,5 +158,17 @@
     "key": "cmd+up",
     "command": "cursorTop",
     "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+l",
+    "command": "editor.action.transformToLowercase"
+  },
+  {
+    "key": "ctrl+shift+u",
+    "command": "editor.action.transformToUppercase"
+  },
+  {
+    "key": "ctrl+shift+k",
+    "command": "extension.changeCase.commands"
   }
 ]
