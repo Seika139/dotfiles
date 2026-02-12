@@ -20,6 +20,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **bash**
+  - `sd` 関数を追加（dotfiles を `git pull` して即座にシェルに反映する）
+- **claude**
+  - Playwright による Microsoft SSO ログインを自動化する `login-microsoft` コマンドを追加
+- **vscode-settings**
+  - 大文字/小文字変換のキーバインド (`Ctrl+Shift+L` / `Ctrl+Shift+U`) を追加
+- **docs**
+  - Docker Compose の `expose` セクションのドキュメントを新設
+  - Terraform のインストール手順を追加
+
+### Changed
+
+- **tmux**
+  - WSL のクリップボードコピーを `clip.exe` から `win32yank.exe` に変更（日本語の文字化け対策）
+  - Enter キーによるコピーを無効化
+- **bash**
+  - WSL の DOTPATH を Windows 側から Linux 側のホームディレクトリに変更
+  - `grep` を `rg` にエイリアスする設定を廃止（AI ツールとの互換性のため）
+- **claude**
+  - 各プロファイルのモデルを Claude Opus 4.6 に更新
+- **docs**
+  - Docker ドキュメントを `docs/help/` ディレクトリに統合
+  - Docker Compose の `ports` セクションを大幅に拡充
+- **brew**
+  - 各環境の Brewfile を更新（terraform, fd, tmux 等を追加）
+
 ## [0.5.2] - 2026-02-04
 
 ### Added
