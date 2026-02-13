@@ -53,10 +53,14 @@ fi
 
 # 必要な環境変数が設定されていない場合は追記する
 if [ -z "${DEFAULT_CODEX_PROFILE:-}" ]; then
-  sed -i "s/^DEFAULT_CODEX_PROFILE.*/DEFAULT_CODEX_PROFILE = \"${default_codex_profile}\"/" "${local_toml}"
+  sed "s/^DEFAULT_CODEX_PROFILE.*/DEFAULT_CODEX_PROFILE = \"${default_codex_profile}\"/" \
+    "${local_toml}" > "${local_toml}.tmp" \
+    && mv "${local_toml}.tmp" "${local_toml}"
 fi
 if [ -z "${WSL_CODEX_PROFILE:-}" ]; then
-  sed -i "s/^WSL_CODEX_PROFILE.*/WSL_CODEX_PROFILE = \"${wsl_codex_profile}\"/" "${local_toml}"
+  sed "s/^WSL_CODEX_PROFILE.*/WSL_CODEX_PROFILE = \"${wsl_codex_profile}\"/" \
+    "${local_toml}" > "${local_toml}.tmp" \
+    && mv "${local_toml}.tmp" "${local_toml}"
 fi
 
 # 最終的に必要な環境変数が設定されていない場合はエラーとする
