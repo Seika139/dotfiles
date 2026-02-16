@@ -193,7 +193,7 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 printf "\n📂 Original files and directories:\n"
-for file in settings.json settings.local.json CLAUDE.md commands skills status_line.sh; do
+for file in settings.json settings.local.json CLAUDE.md commands skills status_line.sh custom-config; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -203,7 +203,7 @@ for file in settings.json settings.local.json CLAUDE.md commands skills status_l
 done
 
 printf "\n🔗 Symlinks in\\033[36m %s/.claude:\\033[0m\n" "$HOME"
-for file in settings.json settings.local.json CLAUDE.md commands skills status_line.sh; do
+for file in settings.json settings.local.json CLAUDE.md commands skills status_line.sh custom-config; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
 
