@@ -55,7 +55,7 @@ fi
 PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR:-profiles}/$PROFILE"
 
 # シンボリックリンクを作成するターゲットファイル・ディレクトリのリスト
-targets=(settings.json settings.local.json CLAUDE.md commands skills status_line.sh)
+targets=(settings.json settings.local.json CLAUDE.md commands skills status_line.sh custom-config)
 
 printf "%s\n" "🦄 Linking Claude settings from profile: $PROFILE"
 
