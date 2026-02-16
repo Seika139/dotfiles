@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **hlp**
+  - free コマンドのヘルプを追加 [docs/help/linux/free.md](./docs/help/linux/free.md)
+
 ## [0.5.4] - 2026-02-17
 
 ### Added
