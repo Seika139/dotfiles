@@ -1,0 +1,23 @@
+---
+version: 2
+
+# プライベートリポジトリの認証設定
+registries:
+  github-private:
+    type: git
+    url: https://github.com
+    username: x-access-token
+    password: ${{secrets.PUSH_AND_RUN_WORKFLOW_TOKEN}}
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "Asia/Tokyo"
+    groups:
+      github-actions-deps:
+        patterns:
+          - "*"
