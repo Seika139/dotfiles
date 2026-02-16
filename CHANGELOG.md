@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - プロファイルのシンボリックリンク対象に `custom-config` ディレクトリを追加
 - **vscode-settings**
   - `cg-m2-mac` プロファイルに changeCase 拡張のキーバインド (`Ctrl+Shift+K`) を追加
+- **.github/workflows**
+  - 依存関係の自動更新の対象に GitHub Actions を追加
 
 ### Changed
 
