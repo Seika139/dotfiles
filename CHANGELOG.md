@@ -21,6 +21,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **claude**
+  - GitHub Issue を起票する `create-issue` コマンドを追加（全プロファイル対応）
+  - プロファイルのシンボリックリンク対象に `custom-config` ディレクトリを追加
+- **vscode-settings**
+  - `cg-m2-mac` プロファイルに changeCase 拡張のキーバインド (`Ctrl+Shift+K`) を追加
+
+### Changed
+
+- **claude**
+  - `login-microsoft` コマンドを `commands/` ディレクトリ配下に移動（`cg-m2-mac`, `win-15034`）
+  - `git push/commit/merge`, `gh issue create`, `gh pr create` を deny リストから除外し、許可プロンプトなしで実行可能に変更
+- **bash**
+  - Docker 補完スクリプトの読み込み判定を終了コードベースに変更（WSL で Docker Desktop 未起動時の誤動作を修正）
+- **claude/codex**
+  - `sed -i` を一時ファイル経由の書き換えに変更（macOS 互換性の修正）
+
+### Removed
+
+- **brew**
+  - `cg-m2-mac` の Brewfile から `github.copilot` 拡張を削除
+
 ## [0.5.3] - 2026-02-12
 
 ### Added
