@@ -170,5 +170,9 @@
   {
     "key": "ctrl+shift+k",
     "command": "extension.changeCase.commands"
+  },
+  {
+    "key": "ctrl+e",
+    "command": "-workbench.action.quickOpen"
   }
 ]
