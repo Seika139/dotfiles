@@ -193,5 +193,15 @@
   {
     "key": "ctrl+e",
     "command": "-workbench.action.quickOpen"
+  },
+  {
+    "key": "ctrl+shift+[IntlYen]",
+    "command": "workbench.files.action.focusOpenEditorsView",
+    "when": "workbench.explorer.openEditorsView.active"
+  },
+  {
+    "key": "cmd+k e",
+    "command": "-workbench.files.action.focusOpenEditorsView",
+    "when": "workbench.explorer.openEditorsView.active"
   }
 ]
