@@ -3,44 +3,7 @@ description = "コンテナに関する操作"
 shell = "bash -c"
 run = """
 selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune"], default="")}}
-
-if [ -z "${selected_option}" ]; then
-  selected_option=$(
-  printf "show-all\nshow-deletable\nprune\n" |
-  fzf --height 7 --border --prompt "選択: " \
-      --preview '
-        case {} in
-          show-all) printf "全コンテナを表示します\n" ;;
-          show-deletable) printf "削除可能なコンテナを表示します\n" ;;
-          prune) printf "停止中のコンテナを削除します\n" ;;
-        esac
-      ' --preview-window=right,50%
-  )
-fi
-
-case $selected_option in
-  show-all)
-    printf "show-all: 全コンテナを表示します\n"
-    printf "\\033[36m$ docker ps -a\\033[0m\n"
-    docker ps -a
-    ;;
-  show-deletable)
-    printf "show-deletable: 削除可能なコンテナを表示します\n\n"
-    printf "\\033[36m$ docker ps -a -f status=exited\\033[0m # 停止中のコンテナ\n"
-    docker ps -a -f status=exited
-    printf "\n\\033[36m$ docker ps -a -f status=dead\\033[0m # 異常終了したコンテナ\n"
-    docker ps -a -f status=dead
-    ;;
-  prune)
-    printf "prune: 停止中のコンテナを削除します\n"
-    printf "\\033[36m$ docker container prune --force\\033[0m\n"
-    docker container prune --force
-    ;;
-  *)
-    printf "無効なオプションです: $selected_option\n"
-    exit 1
-    ;;
-esac
+bash "${MISE_CONFIG_ROOT}/mise/scripts/container.sh" "$selected_option"
 """
 
 [tasks.image]
@@ -48,69 +11,7 @@ description = "イメージに関する操作"
 shell = "bash -c"
 run = """
 selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"], default="")}}
-
-if [ -z "${selected_option}" ]; then
-  selected_option=$(
-  printf "show-all\nshow-deletable\nprune\nprune-all\n" | fzf --height 8 --border --prompt "選択: " \
-      --preview '
-        case {} in
-          show-all) printf "全イメージを表示します\n" ;;
-          show-deletable) printf "削除可能なイメージを表示します\n" ;;
-          prune) printf "タグづけされてないイメージ(dangling image)を削除します\n" ;;
-          prune-all) printf "停止中のコンテナを含む全てのコンテナから参照されていないイメージを削除します\n" ;;
-        esac
-      ' --preview-window=right,50%
-  )
-fi
-
-case $selected_option in
-  show-all)
-    printf "show-all: 全イメージを表示します\n"
-    printf "\\033[36m$ docker image ls\\033[0m\n"
-    docker image ls
-    ;;
-  show-deletable)
-    printf "show-deletable: タグづけされてないイメージ(dangling image)を表示します\n\n"
-    printf "\\033[36m$ docker images -f dangling=true\\033[0m\n"
-    docker images -f dangling=true
-    printf "\n"
-    USED_IDS_FILE="$(mktemp)"
-    {% raw %}
-    docker ps -aq | xargs -r docker inspect -f '{{.Image}}' | sort -u > "$USED_IDS_FILE"
-    {% endraw %}
-    printf "\\033[36m未使用（docker image prune -a の削除対象）イメージ一覧\\033[0m\n"
-    {% raw %}
-    docker images --no-trunc \
-      --format '{{.ID}}\\t{{.Repository}}:{{.Tag}}\\t{{.CreatedSince}}\\t{{.Size}}' \
-    {% endraw %} \
-    | awk -F '\\t' -v f="$USED_IDS_FILE" '
-      BEGIN {
-        while ((getline line < f) > 0) used[line]=1; close(f);
-        print "IMAGE ID\tREPOSITORY:TAG\tCREATED\tSIZE"
-        print "--------\t--------------\t-------\t----"
-      }
-      {
-        id=$1;
-        if (!(id in used)) printf "%s\\t%s\\t%s\\t%s\\n", $1,$2,$3,$4;
-      }
-    ' | column -t -s $'\t'
-    rm -f "$USED_IDS_FILE"
-    ;;
-  prune)
-    printf "prune: タグづけされてないイメージ(dangling image)を削除します\n"
-    printf "\\033[36m$ docker image prune --force\\033[0m\n"
-    docker image prune --force
-    ;;
-  prune-all)
-    printf "prune-all: 停止中のコンテナを含む全てのコンテナから参照されていないイメージを削除します\n"
-    printf "\\033[36m$ docker image prune --all --force\\033[0m\n"
-    docker image prune --all --force
-    ;;
-  *)
-    printf "無効なオプションです: $selected_option\n"
-    exit 1
-    ;;
-esac
+bash "${MISE_CONFIG_ROOT}/mise/scripts/image.sh" "$selected_option"
 """
 
 [tasks.network]
