@@ -189,5 +189,9 @@
   {
     "key": "ctrl+shift+u",
     "command": "editor.action.transformToUppercase"
+  },
+  {
+    "key": "ctrl+e",
+    "command": "-workbench.action.quickOpen"
   }
 ]
