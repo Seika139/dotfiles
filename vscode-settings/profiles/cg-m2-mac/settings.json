@@ -1,4 +1,15 @@
 {
+  // workbench
+  "workbench.activityBar.orientation": "vertical",
+  "workbench.editor.revealIfOpen": true,
+  "workbench.editor.wrapTabs": false,
+  "workbench.iconTheme": "vscode-icons",
+  // explorer
+  "explorer.confirmDragAndDrop": false,
+  "explorer.openEditors.sortOrder": "alphabetical",
+  // window
+  "window.zoomLevel": -1.15,
+  "window.commandCenter": true,
   "cSpell.userWords": [
     "afplay",
     "Agones",
@@ -208,9 +219,6 @@
     "editor.formatOnSave": true
   },
   "diffEditor.ignoreTrimWhitespace": false,
-  "window.zoomLevel": -1.15,
-  "explorer.confirmDragAndDrop": false,
-  "workbench.editor.wrapTabs": true,
   "git.blame.statusBarItem.enabled": false,
   "files.watcherExclude": {
     "": true
@@ -225,16 +233,13 @@
     "*.md": "markdown",
     "*.yml": "yaml"
   },
-  "workbench.editor.revealIfOpen": true,
   "japanese-proofreading.textlint.ひらく漢字": false,
   "japanese-proofreading.textlint.外来語カタカナ表記": false,
   "japanese-proofreading.textlint.全角文字と半角文字の間": false,
   "gitlens.views.commits.files.layout": "tree",
   "makefile.configureOnOpen": true,
   "remote.autoForwardPortsSource": "hybrid",
-  "window.commandCenter": true,
   "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
-  "workbench.activityBar.orientation": "vertical",
   "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
   "gitlens.ai.model": "vscode",
   "gitlens.ai.vscode.model": "copilot:gpt-4.1",

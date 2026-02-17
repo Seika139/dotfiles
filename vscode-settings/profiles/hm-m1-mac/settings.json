@@ -5,10 +5,20 @@
   "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
   "editor.rulers": [40, 80, 88, 120, 160, 200], // 垂直ルーラーの表示
   // workbench
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
+  "workbench.editor.revealIfOpen": true,
+  "workbench.editor.wrapTabs": false,
   "workbench.iconTheme": "vscode-icons",
+  // explorer
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmPasteNative": false,
+  "explorer.openEditors.sortOrder": "alphabetical",
   // git
   "git.autofetch": true,
   "git.confirmSync": false,
+  "git.suggestSmartCommit": false,
   // python
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
@@ -85,7 +95,6 @@
     "vue-html": "html"
   },
   "emmet.triggerExpansionOnTab": true, // これをオンにしないと ctrl + e が効かない
-  "git.suggestSmartCommit": false,
   "cSpell.userWords": [
     "Abema",
     "afplay",
@@ -254,9 +263,6 @@
     "**/.git": true,
     "**/node_modules": true
   },
-  "workbench.editorAssociations": {
-    "*.ipynb": "jupyter-notebook"
-  },
   // テキスト校正くん
   "japanese-proofreading.textlint.丸かっこ（）": false,
   "japanese-proofreading.textlint.全角文字と半角文字の間": false,
@@ -352,10 +358,7 @@
   "omnisharp.useModernNet": false,
   "editor.formatOnPaste": true,
   "jupyter.interactiveWindow.textEditor.executeSelection": true,
-  "workbench.editor.revealIfOpen": true,
-  "workbench.editor.wrapTabs": true,
   "security.workspace.trust.untrustedFiles": "open",
-  "explorer.confirmPasteNative": false,
   "github.copilot.enable": {
     "*": true,
     "markdown": true,
@@ -406,8 +409,6 @@
   "remote.autoForwardPortsSource": "hybrid",
   "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
-  "explorer.confirmDragAndDrop": false,
-  "explorer.confirmDelete": false,
   // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
   "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
   "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
