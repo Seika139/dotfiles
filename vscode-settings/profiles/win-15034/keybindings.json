@@ -122,5 +122,9 @@
     "key": "ctrl+shift+1",
     "command": "workbench.view.explorer",
     "when": "viewContainer.workbench.view.explorer.enabled"
+  },
+  {
+    "key": "ctrl+e",
+    "command": "-workbench.action.quickOpen"
   }
 ]
