@@ -22,6 +22,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **bash**
+  - Docker エイリアスと補完を専用ファイル [14_docker_alias.bash](./bash/public/14_docker_alias.bash) に分離
+  - `dps` 関数を追加（稼働中コンテナの名前・イメージ・compose ファイル・サービス名を一覧表示）
+- **hlp**
+  - fd コマンドのヘルプを追加 [docs/help/linux/fd.md](./docs/help/linux/fd.md)
+  - free コマンドのヘルプを追加 [docs/help/linux/free.md](./docs/help/linux/free.md)
+  - rg コマンドのヘルプを追加 [docs/help/linux/rg.md](./docs/help/linux/rg.md)
+- **vscode-settings**
+  - 開いているエディターの一覧にフォーカスするキーバインド (`Ctrl+Shift+¥`) を追加（全プロファイル対応）
+  - `Ctrl+Shift+]` で補助サイドバーのトグル開閉に対応（Mac プロファイル）
+  - `Ctrl+E` のデフォルトショートカット（クイックオープン）を無効化（全プロファイル対応）
+  - `cg-m2-mac`, `win-15034` プロファイルに vscode-icons テーマを追加
+- **brew**
+  - `cg-m2-mac` の Brewfile に `shellcheck`, `yamllint` を追加
+- **claude**
+  - `/solve-issue` `/close-issue` コマンドを追加
+
+### Changed
+
+- **docker**
+  - コンテナ・イメージ操作の mise タスクを外部スクリプト (`container.sh`, `image.sh`) に分離し、mise.toml を簡潔化
+- **vscode-settings**
+  - Mac プロファイルの設定を整理（workbench/explorer/window 設定をファイル先頭にグルーピング）
+  - `wrapTabs` をデフォルト (`false`) に変更（`cg-m2-mac`, `hm-m1-mac`）
+  - `win-15034` プロファイルのキーバインドを Mac プロファイルに合わせて統一（`ctrl+shift+[` / `]`）
+  - 拡張機能リスト (`cg-m2-mac`) をアルファベット順にソート
+- **docs**
+  - `claude_with_wsl.md` のモデル名を Claude Opus 4.6 に更新
+- **claude**
+  - `release:prepare` コマンドに「推奨バージョン判定」セクションを追加（全プロファイル対応）
+
 ### Added
 
 - **hlp**
