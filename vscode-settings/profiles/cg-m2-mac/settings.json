@@ -233,9 +233,12 @@
     "*.md": "markdown",
     "*.yml": "yaml"
   },
+  // テキスト校正くん
   "japanese-proofreading.textlint.ひらく漢字": false,
   "japanese-proofreading.textlint.外来語カタカナ表記": false,
   "japanese-proofreading.textlint.全角文字と半角文字の間": false,
+  "japanese-proofreading.textlint.丸かっこ（）": false,
+  "japanese-proofreading.textlint.助詞の連続": false,
   "japanese-proofreading.textlint.技術用語": false,
   "gitlens.views.commits.files.layout": "tree",
   "makefile.configureOnOpen": true,
