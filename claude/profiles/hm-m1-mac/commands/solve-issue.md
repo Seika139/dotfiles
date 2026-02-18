@@ -1,0 +1,235 @@
+---
+allowed-tools: Bash(gh issue create:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh issue edit:*), Bash(gh label list:*), Bash(gh project:*), Bash(gh pr create:*), Bash(gh repo view:*), Bash(git checkout:*), Bash(git switch:*), Bash(git push:*), Bash(git add:*), Bash(git commit:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(date:*), Bash(cat:*)
+argument-hint: "[Issue 番号 or URL] [--repo <owner/repo>]"
+description: "Issue を作成（または既存 Issue を指定）し、実装して PR を作成する"
+---
+
+# Solve Issue
+
+会話のコンテキストや既存の Issue に基づいて、ブランチ作成 → 実装 → PR 作成を一連で行います。
+
+## デフォルト設定
+
+以下は設定ファイルから読み込まれたデフォルト値です。
+引数で上書きされない場合、この値を使用してください。
+
+```json
+!`cat ~/.claude/custom-config/create-issue-config.json 2>/dev/null || echo '{"repo":"","labels":[],"assignee":"","status":"","start_date":"today"}'`
+```
+
+repo の指定がない場合、カレントリポジトリを対象とします。
+
+`custom-config/create-issue-config.json` が存在しない場合は、ユーザーに以下の内容でファイルを作成するよう促してください。
+
+```json
+{
+  "repo": "org/repo",
+  "labels": [],
+  "assignee": "",
+  "status": "",
+  "start_date": "today"
+}
+```
+
+## 引数のパースルール
+
+```text
+/solve-issue [Issue 番号 or URL] [--repo <owner/repo>]
+```
+
+- 引数なし → **パターン A**（会話コンテキストから新規 Issue を作成）
+- 引数が数字または GitHub Issue URL → **パターン B**（既存 Issue を解決）
+- `--repo`: 対象リポジトリを指定（省略時はデフォルト設定 → カレントリポジトリの順で決定）
+
+### 例
+
+```text
+/solve-issue
+→ 会話のコンテキストから Issue を新規作成し、実装、PR 作成まで行う
+
+/solve-issue 42
+→ Issue #42 の内容を取得し、ブランチ作成 → 実装 → PR 作成
+
+/solve-issue 42 --repo other-org/other-repo
+→ other-org/other-repo の Issue #42 を解決
+```
+
+---
+
+## Step 1: 計画立案
+
+1. 会話のコンテキストからタイトル・概要・完了条件を整理する
+2. 情報が不足している場合はユーザーに質問する
+
+### 計画に含めるべき項目
+
+- 完了条件とそれを満たすために必要な具体的なタスク
+- 課題を達成したことをどのように確認するか（例: 追加するテストケースの内容や、動作確認の手順）
+- ユニットテストや統合テスト・E2Eテストの追加が必要な場合は、その内容を計画に含める
+
+## Step 2: Issue の準備
+
+Step 1 で整理した内容をもとに、Issue を作成するか既存 Issue を指定するかユーザーに確認する
+新規 Issue を作成する場合は、タイトル・概要・完了条件をユーザーに提示して確認を取る
+
+### パターン A: 新規 Issue 作成
+
+以下のコマンドで Issue を起票する
+
+```bash
+gh issue create \
+  --repo {repo} \
+  --title "{タイトル}" \
+  --label "{label1}" --label "{label2}" \
+  --assignee {assignee} \
+  --body "$(cat <<'EOF'
+## 概要
+
+{概要}
+
+## 完了条件
+
+{完了条件}
+
+## プルリク
+
+（なし）
+
+## 依頼元
+
+（なし）
+EOF
+)"
+```
+
+1. 起票後、GitHub Projects のフィールドを設定する（設定値がある場合のみ）
+   - **Status**: 設定値に設定
+   - **Start Date**: `start_date` が `today` の場合は `date +%Y-%m-%d` で今日の日付を取得して設定
+
+### パターン B: 既存 Issue の取得
+
+1. `gh issue view {番号} --repo {repo}` で Issue の内容を取得する
+2. Issue のタイトル・本文・ラベル・担当者を確認する
+3. Issue の内容をユーザーに提示し、解決方針を確認する
+
+---
+
+## Step 3: ブランチ作成
+
+1. デフォルトブランチを自動検出する
+
+```bash
+gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
+```
+
+1. デフォルトブランチの最新状態を取得する
+
+```bash
+git switch {デフォルトブランチ}
+git pull
+```
+
+1. Issue 番号とタイトルからブランチ名を生成する（すでにブランチが存在する場合はそのブランチを使用する）
+   - 形式: `feature/{issue-number}-{slug}`
+   - slug: Issue タイトルを英数字小文字+ハイフンに変換（日本語はローマ字化せず省略し、英単語のみ抽出。適切な英語の slug がない場合はユーザーに確認する）
+   - 例: `feature/42-add-login-feature`
+
+2. ブランチを作成する
+
+```bash
+git switch -c feature/{issue-number}-{slug}
+```
+
+---
+
+## Step 4: 実装
+
+1. Issue の概要と完了条件に基づいて、実装方針をユーザーに提示する
+2. ユーザーの承認を得てから実装に着手する
+3. 通常の Claude Code の実装能力をフル活用してコードを実装する
+
+### 実装後の確認ポイント
+
+- 完了条件をすべて満たしているか
+- 追加したコードに対して適切なテストが書かれているか
+- コードの品質やスタイルがプロジェクトの基準を満たしているか
+
+特に mise.toml などのタスクランナーにはコードフォーマット・リンティング・ユニットテストのタスクが含まれていることが多いので、これらを活用してコード品質を担保してください。
+
+#### MarkDown を生成・編集した場合
+
+mise.toml に Markdown 用のフォーマットタスクが定義されている場合は、生成・編集した Markdown ファイルをそのタスクで整形してください。
+存在しない場合は、一般的な Markdown フォーマッタ（例: Prettier）を使用して整形してください。その際に .markdownlint.json などの設定ファイルが存在する場合は、それに従って整形してください。
+
+#### Shell Script を生成・編集した場合
+
+mise.toml に Shell Script 用のフォーマットタスクが定義されている場合は、生成・編集した Shell Script ファイルをそのタスクで整形してください。
+存在しない場合は、一般的な Shell Script フォーマッタ（例: shfmt）を使用して整形してください。
+
+#### YAML を生成・編集した場合
+
+mise.toml に YAML 用のフォーマットタスクが定義されている場合は、生成・編集した YAML ファイルをそのタスクで整形してください。
+存在しない場合は、yamllint を使用して整形してください。その際に .yamllint.yml などの設定ファイルが存在する場合は、それに従って整形してください。
+
+---
+
+## Step 5: Commit & Push & PR 作成
+
+実装完了後、変更内容をコミットする
+
+```bash
+git add <適切なファイルパス>
+git commit -m "{コミットメッセージ}"
+```
+
+- コミットメッセージはコミット規約に従う（リポジトリに規約がある場合はそれに従う）
+- 変更が大きい場合は適宜複数コミットに分割する
+- 実装と関係ないファイルの変更が含まれている場合は、それがコミットに含まれないように注意する
+
+ブランチをリモートにプッシュする
+
+```bash
+git push -u origin feature/{issue-number}-{slug}
+```
+
+PR を作成する
+
+```bash
+gh pr create \
+  --repo {repo} \
+  --base {デフォルトブランチ} \
+  --title "{PR タイトル}" \
+  --body "$(cat <<'EOF'
+## Summary
+
+{Issue の内容と実際の変更内容に基づく要約}
+
+Closes #{issue-number}
+
+## Changes
+
+{変更内容の箇条書き}
+
+## Test Plan
+
+{テスト手順}
+EOF
+)"
+```
+
+- PR タイトルは Issue タイトルを元に作成する
+- `Closes #{issue-number}` を含めて Issue を自動クローズ可能にする
+
+---
+
+## Step 6: 報告
+
+実行結果をユーザーに報告する。
+
+```text
+✅ Issue → 実装 → PR の一連のワークフローが完了しました。
+
+- Issue: {Issue URL}
+- Branch: feature/{issue-number}-{slug}
+- PR: {PR URL}
+```
