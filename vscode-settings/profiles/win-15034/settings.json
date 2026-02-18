@@ -51,6 +51,7 @@
     "fastapi",
     "fastcgi",
     "fastmcp",
+    "fdfind",
     "Fernet",
     "FQCN",
     "Franken",
@@ -183,6 +184,7 @@
     "sfnv",
     "shellcheck",
     "shellenv",
+    "shfmt",
     "SIGNINGKEY",
     "Spilo",
     "sqlalchemy",
@@ -290,6 +292,7 @@
   "workbench.editor.revealIfOpen": true,
   "workbench.editor.wrapTabs": true,
   "workbench.editor.limit.value": 40,
+  "workbench.iconTheme": "vscode-icons",
   // "workbench.editor.tabSizing": "shrink",
   // ↑ workbench
   "remote.SSH.remotePlatform": {
@@ -543,4 +546,5 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
   "redhat.telemetry.enabled": true
+  // "terminal.integrated.shellIntegration.enabled": false // 要るか要らないか判定中
 }

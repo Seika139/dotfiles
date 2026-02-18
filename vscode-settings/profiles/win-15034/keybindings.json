@@ -115,13 +115,28 @@
     "when": "workbench.scm.active"
   },
   {
-    "key": "ctrl+shift+oem_102",
+    "key": "ctrl+shift+]",
     "command": "gitlens.openFileHistory"
   },
   {
-    "key": "ctrl+shift+1",
+    "key": "ctrl+shift+[",
     "command": "workbench.view.explorer",
     "when": "viewContainer.workbench.view.explorer.enabled"
+  },
+  {
+    "key": "ctrl+shift+oem_5",
+    "command": "workbench.files.action.focusOpenEditorsView",
+    "when": "workbench.explorer.openEditorsView.active"
+  },
+  {
+    "key": "ctrl+shift+oem_5",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+k e",
+    "command": "-workbench.files.action.focusOpenEditorsView",
+    "when": "workbench.explorer.openEditorsView.active"
   },
   {
     "key": "ctrl+e",
