@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Tagged Releases
 
-- [unreleased](https://github.com/Seika139/dotfiles/compare/v0.5.4...HEAD)
+- [unreleased](https://github.com/Seika139/dotfiles/compare/v0.6.0...HEAD)
+- [0.6.0](https://github.com/Seika139/dotfiles/compare/v0.5.4...v0.6.0)
 - [0.5.4](https://github.com/Seika139/dotfiles/compare/v0.5.3...v0.5.4)
 - [0.5.3](https://github.com/Seika139/dotfiles/compare/v0.5.2...v0.5.3)
 - [0.5.2](https://github.com/Seika139/dotfiles/compare/v0.5.1...v0.5.2)
@@ -21,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [0.1.0](https://github.com/Seika139/dotfiles/tree/v0.1.0)
 
 ## [Unreleased]
+
+## [0.6.0] - 2026-02-18
 
 - **bash**
   - Docker エイリアスと補完を専用ファイル [14_docker_alias.bash](./bash/public/14_docker_alias.bash) に分離
