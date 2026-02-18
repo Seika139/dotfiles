@@ -168,12 +168,33 @@
   },
   {
     "key": "ctrl+shift+]",
-    "command": "gitlens.openFileHistory"
+    "command": "gitlens.openFileHistory",
+    "when": "!auxiliaryBarVisible"
+  },
+  {
+    "key": "ctrl+shift+]",
+    "command": "workbench.action.closeAuxiliaryBar",
+    "when": "auxiliaryBarVisible"
   },
   {
     "key": "ctrl+shift+[",
     "command": "workbench.view.explorer",
     "when": "viewContainer.workbench.view.explorer.enabled"
+  },
+  {
+    "key": "ctrl+shift+[IntlYen]",
+    "command": "workbench.files.action.focusOpenEditorsView",
+    "when": "workbench.explorer.openEditorsView.active"
+  },
+  {
+    "key": "ctrl+shift+[IntlYen]",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "sideBarFocus"
+  },
+  {
+    "key": "cmd+k e",
+    "command": "-workbench.files.action.focusOpenEditorsView",
+    "when": "workbench.explorer.openEditorsView.active"
   },
   {
     // グローバル検索サイドバーを開いている時に cmd + up で
@@ -193,15 +214,5 @@
   {
     "key": "ctrl+e",
     "command": "-workbench.action.quickOpen"
-  },
-  {
-    "key": "ctrl+shift+[IntlYen]",
-    "command": "workbench.files.action.focusOpenEditorsView",
-    "when": "workbench.explorer.openEditorsView.active"
-  },
-  {
-    "key": "cmd+k e",
-    "command": "-workbench.files.action.focusOpenEditorsView",
-    "when": "workbench.explorer.openEditorsView.active"
   }
 ]
