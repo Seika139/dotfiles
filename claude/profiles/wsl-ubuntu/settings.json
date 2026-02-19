@@ -51,6 +51,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "model": "us.anthropic.claude-opus-4-6-v1",
   "hooks": {
     "Stop": [
       {
@@ -69,5 +70,5 @@
     "command": "~/.claude/status_line.sh"
   },
   "outputStyle": "Explanatory",
-  "model": "us.anthropic.claude-opus-4-6-v1"
+  "skipDangerousModePermissionPrompt": true
 }
