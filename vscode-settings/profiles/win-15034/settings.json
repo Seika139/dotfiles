@@ -545,6 +545,7 @@
   "[dockercompose]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
-  "redhat.telemetry.enabled": true
+  "redhat.telemetry.enabled": true,
+  "vsicons.dontShowNewVersionMessage": true
   // "terminal.integrated.shellIntegration.enabled": false // 要るか要らないか判定中
 }
