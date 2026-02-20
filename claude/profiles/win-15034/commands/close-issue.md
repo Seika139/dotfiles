@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh issue view:*), Bash(gh issue close:*), Bash(gh issue edit:*), Bash(gh issue comment:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh pr comment:*), Bash(gh project:*), Bash(gh repo view:*), Bash(git switch:*), Bash(git pull:*), Bash(git branch:*), Bash(git push:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(make:*), Bash(mise:*), Bash(date:*), Bash(cat:*)
+allowed-tools: Bash(gh issue view:*), Bash(gh issue close:*), Bash(gh issue edit:*), Bash(gh issue comment:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh pr comment:*), Bash(gh project:*), Bash(gh api:*), Bash(gh repo view:*), Bash(git switch:*), Bash(git pull:*), Bash(git branch:*), Bash(git push:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(make:*), Bash(mise:*), Bash(date:*), Bash(cat:*)
 argument-hint: "<Issue 番号 or URL> [--repo <owner/repo>]"
 description: "Issue のクローズ・動作確認・ブランチ片付けを行う"
 ---
@@ -14,12 +14,12 @@ description: "Issue のクローズ・動作確認・ブランチ片付けを行
 引数で上書きされない場合、この値を使用してください。
 
 ```json
-!`cat ~/.claude/custom-config/create-issue-config.json 2>/dev/null || echo '{"repo":"","labels":[],"assignee":"","status":"","done_status":"Done","start_date":"today"}'`
+!`cat ~/.claude/custom-config/create-issue-config.json 2>/dev/null || echo '{"repo":"","project":{"owner":"","number":0,"status":"","done_status":"Done","start_date":"today"},"labels":[],"assignee":""}'`
 ```
 
 repo の指定がない場合、カレントリポジトリを対象とします。
 
-`done_status` が設定ファイルに存在しない場合は `"Done"` をデフォルト値として使用してください。
+`project.done_status` が設定ファイルに存在しない場合は `"Done"` をデフォルト値として使用してください。
 
 ## 引数のパースルール
 
@@ -101,16 +101,62 @@ repo の指定がない場合、カレントリポジトリを対象とします
 
 ## Step 3: 関連する Issue と PR の更新
 
-### Step 3-1: Issue body から関連 Issue/PR を検出
+### Step 3-1: GraphQL API で親子関係を取得
 
-Step 1 で取得済みの Issue body をパースし、関連する Issue・PR を抽出する。
+GraphQL API を使って Parent Issue と Sub Issues を正確に取得する。
+`{owner}` と `{repo}` は対象リポジトリの owner と name にそれぞれ分解して指定する。
 
-1. Issue body 内の `#番号` や GitHub URL（`https://github.com/{owner}/{repo}/issues/{番号}` 等）、また Issue の Relationships を抽出する
+```bash
+gh api graphql -f query='
+{
+  repository(owner: "{owner}", name: "{repo}") {
+    issue(number: {番号}) {
+      id
+      number
+      title
+      state
+      url
+      body
+      parent {
+        id
+        number
+        title
+        state
+        url
+        body
+        repository { nameWithOwner }
+      }
+      subIssues(first: 50) {
+        totalCount
+        nodes {
+          id
+          number
+          title
+          state
+          url
+          repository { nameWithOwner }
+        }
+      }
+    }
+  }
+}'
+```
+
+取得結果を以下のように分類する:
+
+- **Parent Issue**: `parent` フィールドの値（`null` の場合は親なし）
+- **Sub Issues**: `subIssues.nodes` の配列
+
+### Step 3-2: Issue body から関連 Issue/PR を検出
+
+Step 3-1 で取得した親子関係に加え、Issue body からそれ以外の関連 Issue/PR を抽出する。
+
+1. Issue body 内の `#番号` や GitHub URL（`https://github.com/{owner}/{repo}/issues/{番号}` 等）を抽出する
    - コードブロック（` ``` ` で囲まれた部分）内の記述は除外する
-2. 抽出した参照を以下のルールで分類する
-   - Parent Issue: Relationships で Parent Issue として指定されているもの、または `## 依頼元` セクション内にある参照項目
-   - Sub Issue: Relationships で Sub Issue として指定されているもの、または Issue 内で依頼先として明示的に記載されているもの（例: `- [ ] #123` などのタスクリスト形式）
-   - **関連 Issue / 関連 PR**: それ以外のセクションにある参照
+   - Step 3-1 で既に取得済みの Parent Issue / Sub Issues は除外する
+2. 残りの参照を以下のルールで分類する
+   - **関連 Issue**: `## 依頼元` セクションやその他のセクションにある Issue 参照
+   - **関連 PR**: PR への参照
 3. `#番号` が Issue か PR かの判定
 
    ```bash
@@ -119,32 +165,34 @@ Step 1 で取得済みの Issue body をパースし、関連する Issue・PR �
    gh pr view {番号} --repo {repo} --json number 2>/dev/null
    ```
 
-4. 関連 Issue/PR が1件も見つからない場合は Step 3 全体をスキップする
+4. Step 3-1 の親子関係も、Step 3-2 の関連 Issue/PR も1件も見つからない場合は Step 3 全体をスキップする
 
-### Step 3-2: メイン Issue の更新
+### Step 3-3: メイン Issue の更新
 
 本 Issue 自体の body を以下のように更新する。
 
 a. タスクリストのチェック更新
 b. `## プルリク` セクションの更新 → 作成された PR の URL を記載する
 
-### Step 3-3: Parent Issue の更新
+### Step 3-4: Parent Issue の更新
 
-Parent Issue が存在する場合、その Issue body を以下のように更新する。Parent Issue が複数ある場合は、すべてのParent Issue に対して同様の更新を行う。
+Step 3-1 で取得した Parent Issue が存在する場合、その Issue body を以下のように更新する。
 
-- Parent Issue 内に本 Issue への参照がある場合は、Step 3-2 と同様の更新を行う（タスクリストのチェック更新、`## プルリク` セクションの更新）
+- Parent Issue 内に本 Issue への参照がある場合は、Step 3-3 と同様の更新を行う（タスクリストのチェック更新、`## プルリク` セクションの更新）
 - Parent Issue 内に本 Issue への参照がない場合は、`## 関連 Issue` セクションを新たに作成し、そこに本 Issue への参照と PR URL を記載する
 - Parent Issue に本 Issue で解決した内容と同等の内容であるチェックリストが存在する場合は、該当するチェックリスト項目をチェック済みに更新する
 
-### Step 3-4: Sub Issue の更新
+**注意**: Parent Issue が別リポジトリにある場合（`repository.nameWithOwner` が異なる場合）は、`--repo` を Parent Issue のリポジトリに切り替えて操作する。
 
-もし本 Issue に対して、未解決の Sub Issue が存在する場合は、Sub Issue の body を確認し、本 Issue だけをクローズしても問題ないかを判断する。
-もし、Sub Issue の内容が本 Issue と密接に関連しており本 Issue のクローズと同時に Sub Issue もクローズすべきであると判断した場合は、Sub Issue にも Step 3-2 と同様の更新を行い、さらに Sub Issue 自体もクローズする。
+### Step 3-5: Sub Issue の更新
+
+Step 3-1 で取得した Sub Issues のうち、未解決（`state: "OPEN"`）のものがある場合は、Sub Issue の body を確認し、本 Issue だけをクローズしても問題ないかを判断する。
+もし、Sub Issue の内容が本 Issue と密接に関連しており本 Issue のクローズと同時に Sub Issue もクローズすべきであると判断した場合は、Sub Issue にも Step 3-3 と同様の更新を行い、さらに Sub Issue 自体もクローズする。
 逆に Sub Issue が未解決のまま本 Issue をクローズすることが不適切であると判断した場合は、ユーザーに確認を取る（例:「Sub Issue #123 は未解決ですが、本 Issue をクローズしてもよろしいですか？」）。
 
-### Step 3-5: 関連 Issue の更新
+### Step 3-6: 関連 Issue の更新
 
-上記以外の関連 Issue にコメントを投稿する。
+Step 3-2 で検出した関連 Issue にコメントを投稿する。
 body 更新に失敗した Parent Issue / Sub Issue にもフォールバックとしてコメントを投稿する。
 
 ```bash
@@ -155,7 +203,7 @@ gh issue comment {番号} --repo {repo} --body "🔗 関連 Issue #{番号} ({�
 - `{番号}` と `{タイトル}` はクローズした Issue の情報
 - `{PR URL}` は Step 1 で取得した紐づく PR の URL
 
-### Step 3-6: 関連 PR にコメント
+### Step 3-7: 関連 PR にコメント
 
 関連 PR に対して特筆すべき内容がある場合は、関連 PR にもコメントを投稿する。
 
@@ -167,6 +215,8 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 
 ### エッジケース
 
+- Parent Issue が別リポジトリにある場合 → `repository.nameWithOwner` を使って正しいリポジトリを指定する
+- Sub Issues が 50 件を超える場合 → `pageInfo.hasNextPage` / `endCursor` でページネーションする
 - Parent Issue / Sub Issue や関連する Issue/PR が複数ある場合 → すべてに対して同様の更新を行う
 - Parent Issue / Sub Issue や関連する Issue/PR がない場合はその項目の処理はスキップする
 - API エラー → 報告してスキップ（後続処理は継続）
@@ -174,15 +224,17 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 
 ## Step 4: GitHub Projects 更新
 
-1. Issue が追加されている Project を特定する
+`project` 設定が存在する場合、`project.owner` と `project.number` で対象の GitHub Project を特定して更新する。
+
+1. Issue が追加されている Project アイテムを特定する
 
    ```bash
-   gh project item-list --owner {owner} --format json | ...
+   gh project item-list {project.number} --owner {project.owner} --format json | ...
    ```
 
    または Issue のメタデータから Project 情報を取得する。
 
-2. **Status** を `done_status`（デフォルト: `"Done"`）に更新する
+2. **Status** を `project.done_status`（デフォルト: `"Done"`）に更新する
 
    ```bash
    gh project item-edit --project-id {project-id} --id {item-id} --field-id {status-field-id} --single-select-option-id {done-option-id}
