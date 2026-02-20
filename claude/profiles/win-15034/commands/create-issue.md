@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh issue create:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh label list:*), Bash(gh project:*), Bash(date:*), Bash(cat:*)
+allowed-tools: Bash(gh issue create:*), Bash(gh issue view:*), Bash(gh issue list:*), Bash(gh label list:*), Bash(gh project:*), Bash(gh api:*), Bash(date:*), Bash(cat:*)
 argument-hint: "<Issue タイトル> [--repo <owner/repo>] [--label <label>] [--assignee <user>] [--status <status>]"
 description: "Issue を起票する"
 ---
@@ -12,7 +12,7 @@ description: "Issue を起票する"
 引数で上書きされない場合、この値を使用してください。
 
 ```json
-!`cat ~/.claude/custom-config/create-issue-config.json 2>/dev/null || echo '{"repo":"org/repo","labels":[],"assignee":"","status":"","start_date":"today"}'`
+!`cat ~/.claude/custom-config/create-issue-config.json 2>/dev/null || echo '{"repo":"org/repo","project":{"owner":"","number":0,"status":"","done_status":"Done","start_date":"today"},"labels":[],"assignee":""}'`
 ```
 
 もし `custom-config/create-issue-config.json` が存在しない場合は、ユーザーに以下の内容でファイルを作成するよう促してください。
@@ -20,12 +20,24 @@ description: "Issue を起票する"
 ```json
 {
   "repo": "org/repo",
+  "project": {
+    "owner": "org-or-user-name",
+    "number": 1,
+    "status": "",
+    "done_status": "Done",
+    "start_date": "today"
+  },
   "labels": [],
-  "assignee": "",
-  "status": "",
-  "start_date": "today"
+  "assignee": ""
 }
 ```
+
+- `repo`: Issue を起票するリポジトリ（形式: `owner/repo`）
+- `project.owner`: GitHub Projects のオーナー（Organization 名またはユーザー名）
+- `project.number`: GitHub Projects の番号
+- `project.status`: Issue 起票時に設定する Status の値
+- `project.done_status`: Issue クローズ時に設定する Status の値
+- `project.start_date`: `"today"` の場合、起票時に今日の日付を Start Date に設定
 
 ## 引数のパースルール
 
@@ -108,10 +120,31 @@ EOF
 )"
 ```
 
-1. 起票後、GitHub Projects のフィールドを設定する
-   - **Status**: 設定値（デフォルト: `In Progress`）に設定
-   - **Start Date**: `start_date` が `today` の場合は `date +%Y-%m-%d` で今日の日付を取得して設定
+1. 起票後、`project` 設定が存在する場合は GitHub Projects のフィールドを設定する
+   - `project.owner` と `project.number` で対象の GitHub Project を特定する
+   - **Status**: `project.status` の値に設定
+   - **Start Date**: `project.start_date` が `today` の場合は `date +%Y-%m-%d` で今日の日付を取得して設定
 
    GitHub Projects のフィールド設定には `gh project` 関連サブコマンドを使用してください。
+   プロジェクトの特定には `--owner {project.owner}` と プロジェクト番号 `{project.number}` を使用してください。
 
-2. 起票した Issue の URL をユーザーに報告する
+2. 会話のコンテキストから親 Issue が特定できる場合は、ユーザーに確認の上、親子関係を設定する
+
+   ```bash
+   # 親 Issue の node ID を取得
+   gh issue view {親Issue番号} --repo {repo} --json id --jq '.id'
+
+   # 子 Issue（今起票した Issue）を親に紐づけ
+   gh api graphql -f query='
+   mutation {
+     addSubIssue(input: {
+       issueId: "{親IssueのnodeID}"
+       subIssueUrl: "{起票したIssueのURL}"
+     }) {
+       issue { number title }
+       subIssue { number title }
+     }
+   }'
+   ```
+
+3. 起票した Issue の URL をユーザーに報告する
