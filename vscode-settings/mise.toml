@@ -1,3 +1,6 @@
+[settings]
+env_shell_expand = false
+
 [vars]
 config_files = "settings.json keybindings.json tasks.json snippets"
 vscode_path_mac = "$HOME/Library/Application Support/Code/User"
