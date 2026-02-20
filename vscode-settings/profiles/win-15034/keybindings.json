@@ -141,5 +141,10 @@
   {
     "key": "ctrl+e",
     "command": "-workbench.action.quickOpen"
+  },
+  {
+    "key": "backspace",
+    "command": "git.clean",
+    "when": "focusedView == 'workbench.scm'"
   }
 ]
