@@ -145,6 +145,6 @@
   {
     "key": "backspace",
     "command": "git.clean",
-    "when": "focusedView == 'workbench.scm'"
+    "when": "focusedView == 'workbench.scm' && !inputFocus"
   }
 ]
