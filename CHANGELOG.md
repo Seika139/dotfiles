@@ -23,6 +23,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **bash**
+  - WSL Ubuntu 向けのパッケージ一括更新スクリプト（`daily_init.sh`）を追加（mise / volta / uv を更新、`--with-apt` で apt も対象）
+- **claude**
+  - `create-issue-config.json` に `project` オブジェクトを追加し、Issue のリポジトリとは別に GitHub Projects の場所（owner / number）を明示可能に
+  - `/create-issue`、`/solve-issue` で Issue 起票後に GraphQL API（`addSubIssue`）で親子関係を設定する機能を追加
+  - `/close-issue` で GraphQL API（`parent` / `subIssues`）による親子 Issue の取得・更新に対応
+  - `/close-issue` に関連 Issue へのコメント投稿・関連 PR へのコメント投稿機能を追加
+- **hlp**
+  - GitHub Sub-issues の GraphQL API チートシートを追加 [docs/help/gh/gh-sub-issues.md](./docs/help/gh/gh-sub-issues.md)
+- **docs**
+  - Terraform の Linux（Ubuntu/Debian）インストール手順を追記
+- **vscode-settings**
+  - SCM ビューで `Backspace` キーによるファイル差分の削除に対応（3プロファイル）
+
+### Changed
+
+- **claude**
+  - `create-issue-config.json` の `status`、`done_status`、`start_date` を `project` オブジェクト内にネスト（破壊的変更）
+  - `/close-issue` の関連 Issue 検出を body パースから GraphQL API ベースに変更し、正式な親子関係を正確に取得するように改善
+  - `wsl-ubuntu` プロファイルで `skipDangerousModePermissionPrompt` を有効化
+- **vscode-settings**
+  - mise.toml に `env_shell_expand = false` を追加し、シェル変数の自動展開を抑制
+
 ## [0.6.0] - 2026-02-18
 
 - **bash**
