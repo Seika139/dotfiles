@@ -26,8 +26,9 @@ function less_lf() {
 # ls にデフォルトで色をつける
 # 2025.09.03 追記: brewでインストールしたezaを使用
 if command -v eza &>/dev/null; then
+  alias l='eza'
   alias ls='eza'
-  alias ll='eza -al'
+  alias ll='eza -goal -h --git --time-style=iso'
 else
   alias ls='ls -GF --color=auto'
   alias ll="ls -al --color=auto"
