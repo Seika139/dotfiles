@@ -28,7 +28,7 @@ function less_lf() {
 if command -v eza &>/dev/null; then
   alias l='eza'
   alias ls='eza'
-  alias ll='eza -goal -h --git --time-style=iso'
+  alias ll="eza -goal -h --git --time-style='+%y-%m-%d %H:%M'"
 else
   alias ls='ls -GF --color=auto'
   alias ll="ls -al --color=auto"
