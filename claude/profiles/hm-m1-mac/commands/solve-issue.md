@@ -166,27 +166,27 @@ EOF
 
 1. デフォルトブランチを自動検出する
 
-```bash
-gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
-```
+   ```bash
+   gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
+   ```
 
-1. デフォルトブランチの最新状態を取得する
+2. デフォルトブランチの最新状態を取得する
 
-```bash
-git switch {デフォルトブランチ}
-git pull
-```
+   ```bash
+   git switch {デフォルトブランチ}
+   git pull
+   ```
 
-1. Issue 番号とタイトルからブランチ名を生成する（すでにブランチが存在する場合はそのブランチを使用する）
+3. Issue 番号とタイトルからブランチ名を生成する（すでにブランチが存在する場合はそのブランチを使用する）
    - 形式: `feature/{issue-number}-{slug}`
    - slug: Issue タイトルを英数字小文字+ハイフンに変換（日本語はローマ字化せず省略し、英単語のみ抽出。適切な英語の slug がない場合はユーザーに確認する）
    - 例: `feature/42-add-login-feature`
 
-2. ブランチを作成する
+4. ブランチを作成する
 
-```bash
-git switch -c feature/{issue-number}-{slug}
-```
+   ```bash
+   git switch -c feature/{issue-number}-{slug}
+   ```
 
 ---
 
@@ -252,7 +252,11 @@ gh pr create \
 
 {Issue の内容と実際の変更内容に基づく要約}
 
-Closes #{issue-number}
+## Related Issues
+
+- <issue-url-1>
+- <issue-url-2>
+- ...
 
 ## Changes
 
@@ -266,7 +270,8 @@ EOF
 ```
 
 - PR タイトルは Issue タイトルを元に作成する
-- `Closes #{issue-number}` を含めて Issue を自動クローズ可能にする
+- `Closes <issue-url>` 形式で Issue を自動クローズ可能にする（クロスリポジトリでも機能する）
+- Issue と PR が同じリポジトリの場合でも `<issue-url>` 形式を使用する（一貫性のため）
 
 ---
 

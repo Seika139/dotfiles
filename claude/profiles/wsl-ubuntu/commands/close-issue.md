@@ -53,13 +53,40 @@ repo の指定がない場合、カレントリポジトリを対象とします
    gh issue view {番号} --repo {repo} --json number,title,state,body,labels,assignees
    ```
 
-2. Issue に紐づく PR と Issue に関連する Issue を検索する
+2. Issue に紐づく PR を検索する
+
+   まず Issue body の `## プルリク` セクションに PR URL が記載されていればそれを使う。
+   記載がない場合は、GraphQL `timelineItems` でクロスリポジトリの PR を検索する。
 
    ```bash
-   gh pr list --repo {repo} --search "{Issue番号}" --state merged --json number,title,headRefName,state,mergedAt,url
+   gh api graphql -f query='
+   {
+     repository(owner: "{owner}", name: "{repo}") {
+       issue(number: {番号}) {
+         timelineItems(itemTypes: [CROSS_REFERENCED_EVENT], first: 50) {
+           nodes {
+             ... on CrossReferencedEvent {
+               source {
+                 ... on PullRequest {
+                   number
+                   title
+                   url
+                   state
+                   mergedAt
+                   headRefName
+                   repository { nameWithOwner }
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+   }'
    ```
 
-   見つからない場合は `--state all` でも検索し、マージされていない PR があるか確認する。
+   取得した `timelineItems` から `source` が PullRequest であるものを抽出し、PR 一覧とする。
+   PR が複数リポジトリにまたがる場合でも正しく検出できる。
 
 3. 判定ロジック
    - マージ済み PR が見つかった場合 → 次のステップへ進む
@@ -226,15 +253,43 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 
 `project` 設定が存在する場合、`project.owner` と `project.number` で対象の GitHub Project を特定して更新する。
 
-1. Issue が追加されている Project アイテムを特定する
+1. Issue 側から GraphQL `projectItems` で Project アイテムを逆引きする
 
    ```bash
-   gh project item-list {project.number} --owner {project.owner} --format json | ...
+   gh api graphql -f query='
+   {
+     repository(owner: "{owner}", name: "{repo}") {
+       issue(number: {番号}) {
+         projectItems(first: 10) {
+           nodes {
+             id
+             project { id number title }
+             fieldValues(first: 20) {
+               nodes {
+                 ... on ProjectV2ItemFieldSingleSelectValue {
+                   name
+                   field { ... on ProjectV2SingleSelectField { id name } }
+                   optionId
+                 }
+                 ... on ProjectV2ItemFieldDateValue {
+                   date
+                   field { ... on ProjectV2Field { id name } }
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+   }'
    ```
 
-   または Issue のメタデータから Project 情報を取得する。
+   取得した `projectItems` から `project.number` が設定値と一致するアイテムを特定する。
+   アイテムが見つからない場合は、ユーザーに報告してスキップする。
 
 2. **Status** を `project.done_status`（デフォルト: `"Done"`）に更新する
+
+   `fieldValues` から Status フィールドの `field.id` を取得し、`project.done_status` に対応する `optionId` を特定して更新する。
 
    ```bash
    gh project item-edit --project-id {project-id} --id {item-id} --field-id {status-field-id} --single-select-option-id {done-option-id}
@@ -242,11 +297,13 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 
 3. **End Date** を今日の日付に設定する
 
+   `fieldValues` から End Date フィールドの `field.id` を取得して更新する。
+
    ```bash
    gh project item-edit --project-id {project-id} --id {item-id} --field-id {end-date-field-id} --date "$(date +%Y-%m-%d)"
    ```
 
-   Projects に追加されていない場合や更新に失敗した場合は、ユーザーに報告してスキップする。
+   更新に失敗した場合は、ユーザーに報告してスキップする。
 
 ---
 
@@ -271,7 +328,7 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 
 ---
 
-## Step 5: 報告
+## Step 6: 報告
 
 実行結果をユーザーに報告する。
 
