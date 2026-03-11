@@ -219,5 +219,15 @@
     "key": "backspace",
     "command": "git.clean",
     "when": "focusedView == 'workbench.scm' && !inputFocus"
+  },
+  {
+    "key": "alt+cmd+c",
+    "command": "copyFilePath",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+k alt+cmd+c",
+    "command": "-copyFilePath",
+    "when": "editorFocus"
   }
 ]
