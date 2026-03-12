@@ -97,6 +97,7 @@
   "emmet.triggerExpansionOnTab": true, // これをオンにしないと ctrl + e が効かない
   "cSpell.userWords": [
     "Abema",
+    "adduser",
     "afplay",
     "Anzu",
     "arange",
@@ -116,6 +117,7 @@
     "cgsf",
     "chdir",
     "Clawd",
+    "Clawdbot",
     "cloudinary",
     "ConoHa",
     "cooldown",
@@ -136,6 +138,7 @@
     "errtrace",
     "esac",
     "esbenp",
+    "fallocate",
     "fdfind",
     "Fernet",
     "ffprobe",
@@ -189,6 +192,7 @@
     "printf",
     "Println",
     "protocolbuffers",
+    "psql",
     "pwsh",
     "pyautogui",
     "pycache",
@@ -225,6 +229,8 @@
     "strcpy",
     "struct",
     "suzukikenichi",
+    "swapfile",
+    "swapon",
     "tada",
     "teratail",
     "Tesseract",
@@ -240,6 +246,7 @@
     "Unicursal",
     "Unipack",
     "untap",
+    "usermod",
     "USERPROFILE",
     "VARCHAR",
     "vbscript",
@@ -423,5 +430,6 @@
     "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
     "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
   },
-  "terraform.languageServer.enable": true
+  "terraform.languageServer.enable": true,
+  "agq.pinnedModels": ["MODEL_PLACEHOLDER_M37"]
 }
