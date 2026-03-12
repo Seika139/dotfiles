@@ -1,43 +1,172 @@
 #!/bin/bash
+# shellcheck disable=SC2154
 
 # Claude Code のステータスライン表示スクリプト
 # 公式ドキュメント: https://code.claude.com/docs/ja/statusline
 # 参考: https://dev.classmethod.jp/articles/claude-code-statusline-context-usage-display/
 
+# 色付けヘルパー関数
+# 基本色（ANSI 16色）
+red() { printf '\e[31m%s\e[0m' "$*"; }
+green() { printf '\e[32m%s\e[0m' "$*"; }
+yellow() { printf '\e[33m%s\e[0m' "$*"; }
+blue() { printf '\e[34m%s\e[0m' "$*"; }
+magenta() { printf '\e[35m%s\e[0m' "$*"; }
+cyan() { printf '\e[36m%s\e[0m' "$*"; }
+# スタイル
+dim() { printf '\e[2m%s\e[0m' "$*"; }
+bold() { printf '\e[1m%s\e[0m' "$*"; }
+# RGB カスタムカラー（引数: R G B テキスト）
+rgb() {
+  local r=$1 g=$2 b=$3
+  shift 3
+  printf '\e[38;2;%d;%d;%dm%s\e[0m' "$r" "$g" "$b" "$*"
+}
+# よく使うカスタムカラー
+orange() { rgb 250 180 100 "$*"; }
+soft_green() { rgb 160 255 190 "$*"; }
+soft_blue() { rgb 160 190 255 "$*"; }
+pink() { rgb 255 150 200 "$*"; }
+
 # 標準入力からJSON形式のデータを読み込む
 input=$(cat)
 
-# 各種情報を取得
-model=$(echo "$input" | jq -r '.model.display_name // "Claude"')
-input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // "0"')
-output_tokens=$(echo "$input" | jq -r '.context_window.total_output_tokens // "0"')
-duration_ms=$(echo "$input" | jq -r '.cost.total_api_duration_ms // "0"')
+# 各種情報を一括取得（jq呼び出しを最小化）
+eval "$(echo "$input" | jq -r '
+  @sh "model=\(.model.display_name // "Claude")",
+  @sh "model_id=\(.model.id // "")",
+  @sh "input_tokens=\(.context_window.total_input_tokens // "0")",
+  @sh "output_tokens=\(.context_window.total_output_tokens // "0")",
+  @sh "used=\(.context_window.used_percentage // "0")",
+  @sh "cost_usd=\(.cost.total_cost_usd // "0")",
+  @sh "duration_ms=\(.cost.total_duration_ms // "0")",
+  @sh "lines_added=\(.cost.total_lines_added // "0")",
+  @sh "lines_removed=\(.cost.total_lines_removed // "0")",
+  @sh "current_dir=\(.workspace.current_dir // "unknown")",
+  @sh "project_dir=\(.workspace.project_dir // "unknown")"
+')"
 
-# コンテキスト使用率の計算
-# context_size=$(echo "$input" | jq -r '.context_window.context_window_size')
-# usage=$(echo "$input" | jq '.context_window.current_usage')
-# if [ "$usage" != "null" ]; then
-#   current_tokens=$(echo "$usage" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
-#   percent_used=$((current_tokens * 100 / context_size))
-# else
-#   percent_used="0"
-# fi
-
-# 上記の方法は以下のように簡略化可能
-used=$(echo "$input" | jq -r '.context_window.used_percentage // "0"')
-
-# レイテンシを秒に変換（小数点1桁）
-latency=$(echo "$duration_ms" | awk '{printf "%.1f\n", $1 / 1000}')
-if [ -z "$latency" ]; then
-  latency="-"
+# コンテキスト使用率の色分け
+if [ "$used" -ge 80 ] 2>/dev/null; then
+  used_colored=$(red "${used}%")
+elif [ "$used" -ge 50 ] 2>/dev/null; then
+  used_colored=$(yellow "${used}%")
 else
-  latency="${latency}s"
+  used_colored=$(green "${used}%")
 fi
 
-# ディレクトリ情報
-current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "unknown"')
-project_dir=$(echo "$input" | jq -r '.workspace.project_dir // "unknown"')
+# モデル別コスト閾値（USD）
+# Opus: 高単価のため低め / Sonnet: 中間 / Haiku: 安価のため低め
+case "$model_id" in
+*opus*)
+  cost_lv_1=1.50
+  cost_lv_2=3.00
+  cost_lv_3=4.50
+  cost_lv_4=6.00
+  cost_lv_5=8.00
+  cost_lv_6=10.00
+  ;;
+*haiku*)
+  cost_lv_1=0.15
+  cost_lv_2=0.30
+  cost_lv_3=0.45
+  cost_lv_4=0.60
+  cost_lv_5=0.80
+  cost_lv_6=1.00
+  ;;
+*)
+  cost_lv_1=0.60
+  cost_lv_2=1.20
+  cost_lv_3=1.80
+  cost_lv_4=2.40
+  cost_lv_5=3.20
+  cost_lv_6=4.00
+  ;; # Sonnet 等
+esac
+
+# コストの色分け（awk 1回で判定）
+cost_fmt=$(printf '$%.2f' "$cost_usd")
+cost_level=$(awk "BEGIN {
+  c=$cost_usd
+  if      (c >= $cost_lv_6) print 6
+  else if (c >= $cost_lv_5) print 5
+  else if (c >= $cost_lv_4) print 4
+  else if (c >= $cost_lv_3) print 3
+  else if (c >= $cost_lv_2) print 2
+  else if (c >= $cost_lv_1) print 1
+  else print 0
+}")
+# 水色 → 青紫 → 紫 → マゼンタ → 赤のグラデーション
+case "$cost_level" in
+  0) cost_colored=$(rgb 100 200 255 "$cost_fmt") ;;  # 水色
+  1) cost_colored=$(rgb 120 150 255 "$cost_fmt") ;;  # 青
+  2) cost_colored=$(rgb 150 120 255 "$cost_fmt") ;;  # 青紫
+  3) cost_colored=$(rgb 180 100 240 "$cost_fmt") ;;  # 紫
+  4) cost_colored=$(rgb 220  80 180 "$cost_fmt") ;;  # マゼンタ
+  5) cost_colored=$(rgb 250  60 100 "$cost_fmt") ;;  # 赤寄りピンク
+  6) cost_colored=$(rgb 255  40  40 "$cost_fmt") ;;  # 赤
+esac
+
+# セッション経過時間（分:秒）
+duration_sec=$((duration_ms / 1000))
+duration_min=$((duration_sec / 60))
+duration_s=$((duration_sec % 60))
+duration_fmt=$(printf '%dm %02ds' "$duration_min" "$duration_s")
+
+# コード変更量の色付け
+lines_changed=""
+if [ "$lines_added" -gt 0 ] || [ "$lines_removed" -gt 0 ]; then
+  lines_changed="$(green "+${lines_added}") $(red "-${lines_removed}")"
+fi
+
+# 日時
+current_date=$(date '+%Y-%m-%d')
+current_time=$(date '+%H:%M')
+
+# Git 情報の取得
+git_info=""
+if cd "$current_dir" 2>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null; then
+  branch_name=$(git branch --show-current 2>/dev/null || echo "detached")
+  git_info="$(cyan Branch:) $(bold "$branch_name")"
+
+  # uncommitted changes
+  if [[ -n $(git status -s 2>/dev/null) ]]; then
+    git_info="${git_info} $(yellow '[uncommitted]')"
+  fi
+
+  # unpushed commits
+  # shellcheck disable=SC1083
+  ahead=$(git rev-list '@{u}..HEAD' 2>/dev/null | wc -l | tr -d ' ')
+  if [[ $ahead -gt 0 ]]; then
+    git_info="${git_info} $(yellow "[unpushed: $ahead]")"
+  fi
+fi
 
 # ステータスライン表示
-echo "Context: ${used}% used | Tokens in: ${input_tokens} / out: ${output_tokens} | Total API Latency: ${latency} | ${model}"
-echo "Project dir: ${project_dir} | Current dir: ${current_dir}"
+# Line 1: コンテキスト・トークン・コスト・コード変更量・モデル
+line1="$(cyan Context:) ${used_colored} used"
+line1+=" $(dim '|') $(cyan Tokens:)"
+line1+=" in: $(soft_blue "${input_tokens}") /"
+line1+=" out: $(soft_blue "${output_tokens}")"
+line1+=" $(dim '|') ${cost_colored}"
+if [ -n "$lines_changed" ]; then
+  line1+=" $(dim '|') ${lines_changed}"
+fi
+line1+=" $(dim '|') $(soft_blue "$model")"
+printf '%b\n' "$line1"
+
+# Line 2: プロジェクト・ディレクトリ・経過時間・日時
+if [ "$project_dir" = "$current_dir" ]; then
+  line2="$(cyan 'Project & cwd:') $(soft_green "$project_dir")"
+else
+  line2="$(cyan 'Project:') $(soft_green "$project_dir")"
+  line2+=" $(dim '|') $(cyan 'cwd:') $(soft_green "$current_dir")"
+fi
+line2+=" $(dim '|') $(soft_green "${duration_fmt}")"
+line2+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
+printf '%b\n' "$line2"
+
+# Line 3: Git 情報（Gitリポジトリ内の場合のみ）
+if [ -n "$git_info" ]; then
+  printf '%b\n' "$git_info"
+fi
