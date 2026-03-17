@@ -299,6 +299,31 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 
    `fieldValues` から End Date フィールドの `field.id` を取得して更新する。
 
+   **注意**: End Date が未設定の場合、`fieldValues` にはフィールドが含まれない。
+   その場合は、プロジェクト自体の `fields` を別途クエリして End Date の `field.id` を取得する。
+
+   ```bash
+   # fieldValues に End Date が含まれない場合のフォールバック
+   gh api graphql -f query='
+   {
+     node(id: "{project-id}") {
+       ... on ProjectV2 {
+         fields(first: 30) {
+           nodes {
+             ... on ProjectV2Field {
+               id
+               name
+               dataType
+             }
+           }
+         }
+       }
+     }
+   }'
+   ```
+
+   取得した `fields` から `name` が `"End date"` のフィールドの `id` を使用する。
+
    ```bash
    gh project item-edit --project-id {project-id} --id {item-id} --field-id {end-date-field-id} --date "$(date +%Y-%m-%d)"
    ```
@@ -310,15 +335,19 @@ gh pr comment {番号} --repo {repo} --body "コメント"
 ## Step 5: ブランチ片付け
 
 1. PR の head ブランチ名を取得する（Step 1 で取得済み）
-2. リモートの feature ブランチを削除する
+2. **PR が複数リポジトリにまたがる場合**は、各リポジトリごとにブランチ削除を行う。
+   各 PR の `repository.nameWithOwner` からリポジトリのローカルパスを特定し、そのディレクトリで操作する。
+3. リモートの feature ブランチを削除する
 
    ```bash
+   cd {リポジトリのローカルパス}
    git push origin --delete {ブランチ名}
    ```
 
-3. ローカルの feature ブランチを削除する
+4. ローカルの feature ブランチを削除する
 
    ```bash
+   cd {リポジトリのローカルパス}
    git branch -d {ブランチ名}
    ```
 
