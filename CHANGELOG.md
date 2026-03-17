@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Tagged Releases
 
-- [unreleased](https://github.com/Seika139/dotfiles/compare/v0.7.0...HEAD)
+- [unreleased](https://github.com/Seika139/dotfiles/compare/v0.8.0...HEAD)
+- [0.8.0](https://github.com/Seika139/dotfiles/compare/v0.7.0...v0.8.0)
 - [0.7.0](https://github.com/Seika139/dotfiles/compare/v0.6.0...v0.7.0)
 - [0.6.0](https://github.com/Seika139/dotfiles/compare/v0.5.4...v0.6.0)
 - [0.5.4](https://github.com/Seika139/dotfiles/compare/v0.5.3...v0.5.4)
@@ -23,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [0.1.0](https://github.com/Seika139/dotfiles/tree/v0.1.0)
 
 ## [Unreleased]
+
+## [0.8.0] - 2026-03-18
 
 ### Added
 
