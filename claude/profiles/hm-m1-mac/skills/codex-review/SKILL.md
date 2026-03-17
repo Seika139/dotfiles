@@ -67,7 +67,7 @@ codex exec --full-auto --ephemeral "<レビュー指示>"
 
 #### カスタムレビューのプロンプト例
 
-```
+```plain
 # セキュリティレビュー
 codex exec --full-auto --ephemeral \
   "app/routers/messages.py を読んで、セキュリティの観点からレビューしてください。重要度付きで指摘をリスト形式で出力してください。"
@@ -128,7 +128,7 @@ Codex の出力を読み、以下の形式でユーザーに報告する:
 
 ## Bash ツール呼び出し時の注意
 
-```
+```plain
 - timeout: 120000 を必ず指定する（Codex は大きな diff で時間がかかる）
 - cd で対象リポジトリに移動してから実行する
 - 出力が長い場合は tail で末尾を取得する
