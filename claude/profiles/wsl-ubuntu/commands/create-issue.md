@@ -142,76 +142,78 @@ EOF
 
    a. Issue 側から `projectItems` でプロジェクトアイテムを取得する。Issue がまだプロジェクトに追加されていない場合は `gh project item-add` で追加する。
 
-      ```bash
-      # Issue がプロジェクトに追加されていない場合
-      gh project item-add {project.number} --owner {project.owner} --url {IssueのURL}
-      ```
+   ```bash
+   # Issue がプロジェクトに追加されていない場合
+   gh project item-add {project.number} --owner {project.owner} --url {IssueのURL}
+   ```
 
    b. Issue の `projectItems` から対象プロジェクトのアイテム ID とフィールド情報を取得する。
 
-      ```bash
-      gh api graphql -f query='
-      {
-        repository(owner: "{owner}", name: "{repo}") {
-          issue(number: {番号}) {
-            projectItems(first: 10) {
-              nodes {
-                id
-                project { id number title }
-                fieldValues(first: 20) {
-                  nodes {
-                    ... on ProjectV2ItemFieldSingleSelectValue {
-                      name
-                      field { ... on ProjectV2SingleSelectField { id name options { id name } } }
-                    }
-                    ... on ProjectV2ItemFieldDateValue {
-                      date
-                      field { ... on ProjectV2Field { id name } }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }'
-      ```
+   ```bash
+   gh api graphql -f query='
+   {
+     repository(owner: "{owner}", name: "{repo}") {
+       issue(number: {番号}) {
+         projectItems(first: 10) {
+           nodes {
+             id
+             project { id number title }
+             fieldValues(first: 20) {
+               nodes {
+                 ... on ProjectV2ItemFieldSingleSelectValue {
+                   name
+                   field { ... on ProjectV2SingleSelectField { id name options { id name } } }
+                 }
+                 ... on ProjectV2ItemFieldDateValue {
+                   date
+                   field { ... on ProjectV2Field { id name } }
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+   }'
+   ```
 
    c. **フィールド ID のフォールバック**: 新規 Issue では Start Date 等の Date フィールドは未設定のため `fieldValues` に含まれない。その場合はプロジェクト自体の `fields` を別途クエリして field ID を取得する。
 
-      ```bash
-      gh api graphql -f query='
-      {
-        node(id: "{project-id}") {
-          ... on ProjectV2 {
-            fields(first: 30) {
-              nodes {
-                ... on ProjectV2Field {
-                  id
-                  name
-                  dataType
-                }
-                ... on ProjectV2SingleSelectField {
-                  id
-                  name
-                  options { id name }
-                }
-              }
-            }
-          }
-        }
-      }'
-      ```
+   ```bash
+   gh api graphql -f query='
+   {
+     node(id: "{project-id}") {
+       ... on ProjectV2 {
+         fields(first: 30) {
+           nodes {
+             ... on ProjectV2Field {
+               id
+               name
+               dataType
+             }
+             ... on ProjectV2SingleSelectField {
+               id
+               name
+               options { id name }
+             }
+           }
+         }
+       }
+     }
+   }'
+   ```
 
    d. 取得したフィールド ID を使って Status と Start Date を更新する。
 
-      ```bash
-      # Status の更新
-      gh project item-edit --project-id {project-id} --id {item-id} --field-id {status-field-id} --single-select-option-id {option-id}
+   ```bash
+   # Status の更新
+   gh project item-edit --project-id {project-id} --id {item-id} --field-id {status-field-id} --single-select-option-id {option-id}
 
-      # Start Date の更新
-      gh project item-edit --project-id {project-id} --id {item-id} --field-id {start-date-field-id} --date "$(date +%Y-%m-%d)"
-      ```
+   # Start Date の更新（未設定の場合のみ）
+   gh project item-edit --project-id {project-id} --id {item-id} --field-id {start-date-field-id} --date "$(date +%Y-%m-%d)"
+   ```
+
+   **注意**: Start Date は b. で取得した `fieldValues` 内の `ProjectV2ItemFieldDateValue` を確認し、`date` が既に設定されている場合は更新をスキップする。Start Date の上書きは行わない。
 
 2. 会話のコンテキストから親 Issue が特定できる場合は、ユーザーに確認の上、親子関係を設定する
 
