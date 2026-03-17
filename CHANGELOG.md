@@ -24,6 +24,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **claude**
+  - スラッシュコマンド `/discover`（曖昧な課題意識からコードベースを分析し Issue 草案を生成）を追加
+  - スラッシュコマンド `/scaffold`（サービスの方向性から技術設計と Issue セットを生成）を追加
+  - スキル `codex-review`（Codex CLI によるコードレビュー連携）を追加
+  - スキル `gh-link-subissues` / `gh-unlink-subissue`（GitHub Sub-issue の紐付け管理）を追加
+  - コマンド `aws-auth`（AWS 認証情報と環境変数の注意事項ガイド）を追加
+  - ドキュメント `memory.md`、`skills-loop.md` を追加
+- **hlp**
+  - `eza` コマンドのヘルプドキュメントを追加（[docs/help/linux/eza.md](./docs/help/linux/eza.md)）
+- **bash**
+  - `l` エイリアス（`eza`）を追加
+- **vscode-settings**
+  - `Alt+Cmd+C` でファイルの絶対パスをコピーするキーバインドを追加（Mac 2プロファイル）
+
+### Changed
+
+- **claude**
+  - `status_line.sh` を大幅リニューアル: jq 一括呼び出し、コンテキスト使用率・コストの色分け表示、モデル別コスト閾値、Git ブランチ・未コミット・未プッシュ状態の表示、日時表示に対応
+  - 既存コマンド `/close-issue`、`/create-issue`、`/solve-issue` の内容を拡充
+  - settings.json のファイル読み取り拒否パターン `Read(**/*key*)` を `Read(**/*_key)` / `Read(**/*.key)` / `Read(**/key_*)` の3パターンに細分化
+  - `CLAUDE_CODE_MAX_OUTPUT_TOKENS` を `4096` → `530000` に拡大（win-15034, wsl-ubuntu）
+- **bash**
+  - `ll` エイリアスをグループ・Git ステータス・ヘッダー付きの詳細表示に変更
+  - `daily_init.sh` から `@anthropic-ai/claude-code` の volta install を削除
+
 ## [0.7.0] - 2026-02-24
 
 ### Added
