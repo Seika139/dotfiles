@@ -227,7 +227,7 @@
     "wslpath",
     "wslvar",
     "xhprof",
-    "zizmor",
+    "zizmor"
   ],
   "cSpell.enabledFileTypes": {
     "groovy": true,
