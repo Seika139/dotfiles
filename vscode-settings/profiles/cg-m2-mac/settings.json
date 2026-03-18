@@ -273,5 +273,6 @@
   },
   "[dockercompose]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
-  }
+  },
+  "python.terminal.activateEnvironment": false
 }
