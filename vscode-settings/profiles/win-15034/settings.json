@@ -344,6 +344,7 @@
   },
   "isort.args": ["--profile", "black"],
   "python.analysis.typeCheckingMode": "basic",
+  "python.terminal.activateEnvironment": false,
   // ↑ python
   "[csharp]": {
     "editor.defaultFormatter": "ms-dotnettools.csharp"
