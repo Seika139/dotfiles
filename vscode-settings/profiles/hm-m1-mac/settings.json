@@ -26,6 +26,7 @@
   "black-formatter.args": ["--line-length=88"],
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
+  "python.terminal.activateEnvironment": false,
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "prettier.endOfLine": "lf",
