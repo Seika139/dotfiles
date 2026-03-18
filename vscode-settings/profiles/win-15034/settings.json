@@ -38,6 +38,7 @@
     "ECPU",
     "ECPUs",
     "Eeuo",
+    "elbv2",
     "elif",
     "Embedder",
     "endraw",
@@ -225,7 +226,8 @@
     "worktree",
     "wslpath",
     "wslvar",
-    "xhprof"
+    "xhprof",
+    "zizmor",
   ],
   "cSpell.enabledFileTypes": {
     "groovy": true,
