@@ -233,6 +233,8 @@ EOF
 1. `gh issue view {番号} --repo {repo}` で Issue の内容を取得する
 2. Issue のタイトル・本文・ラベル・担当者を確認する
 3. Issue の内容をユーザーに提示し、解決方針を確認する
+4. `project` 設定が存在する場合は GitHub Projects のフィールドを設定する（パターン A の手順 1 と同様）
+   - **Start Date の決定方法**: `project.start_date` が `"today"` の場合でも、既存 Issue では Issue の作成日（`createdAt`）を使用する。`gh issue view {番号} --repo {repo} --json createdAt --jq '.createdAt[:10]'` で取得する
 
 ---
 
