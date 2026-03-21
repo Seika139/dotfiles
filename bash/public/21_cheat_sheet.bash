@@ -101,3 +101,38 @@ function hlp_curl() {
     printf "%s\n" "ブラウザを開くコマンドが見つかりません: $url" >&2
   fi
 }
+
+ansi() {
+  echo -e "⭐️ 16 色: FG / FG(Light) / BG / BG(Light)"
+  echo ""
+
+  for i in {30..37}; do
+    bright=$((i + 60))
+    bg_std=$((i + 10))
+    bg_brt=$((i + 70))
+
+    # 文字色(FG)と背景色(BG)のコードを表示しつつ、その色を適用
+    printf "%b %b %b %b\n" \
+      "\e[${i}m\\\\e[${i}m\e[0m" \
+      "\e[${bright}m\\\\e[${bright}m\e[0m" \
+      "\e[${bg_std}m\\\\e[${bg_std}m\e[0m" \
+      "\e[${bg_brt}m\\\\e[${bg_brt}m\e[0m"
+  done
+
+  echo ""
+  echo -e "⭐️ 256 色: FG (\\\\e[38;5;n m) / BG (\\\\e[48;5;n m)"
+  echo ""
+
+  for j in 38 48; do
+    for i in {0..255}; do
+      # %3d で3桁固定にしてズレを防止
+      printf "\e[${j};5;${i}m%3d\e[0m " "$i"
+
+      # 6個（1ブロック分）ごとに改行
+      if [ $((("${i}" + 1) % 32)) -eq 0 ]; then
+        echo
+      fi
+    done
+    echo -e "\e[0m"
+  done
+}
