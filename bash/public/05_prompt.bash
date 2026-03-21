@@ -27,32 +27,39 @@ function _bdot_build_ps1() {
   fi
   local c_user c_time c_dir c_git
 
+  # 先頭の 1; は太字を示す
   case "$profile" in
-  cg-m2-mac) # グリーン基調
+  cg-m2-mac)
     c_user='\[\e[40;92m\]'
     c_time='\[\e[95m\]'
     c_dir='\[\e[93m\]'
     c_git='\[\e[1;32m\]'
     ;;
-  h1-m1-mac) # ブルー/シアン基調
+  hm-m1-mac)
     c_user='\[\e[40;96m\]'
     c_time='\[\e[94m\]'
     c_dir='\[\e[97m\]'
     c_git='\[\e[1;36m\]'
     ;;
-  wsl-ubuntu) # オレンジ基調
+  wsl-ubuntu)
     c_user='\[\e[40;33m\]'
     c_time='\[\e[38;5;214m\]'
     c_dir='\[\e[38;5;228m\]'
     c_git='\[\e[1;33m\]'
     ;;
-  win-15034) # マゼンタ基調
+  win-15034)
     c_user='\[\e[40;35m\]'
     c_time='\[\e[38;5;213m\]'
     c_dir='\[\e[38;5;225m\]'
     c_git='\[\e[1;35m\]'
     ;;
-  *) # default グリーン基調
+  xsv*)
+    c_user='\[\e[38;5;0;48;5;210m\]'
+    c_time='\[\e[38;5;0;48;5;209m\]'
+    c_dir='\[\e[38;5;0;48;5;208m\]'
+    c_git='\[\e[1;38;5;202m\]'
+    ;;
+  *)
     c_user='\[\e[40;92m\]'
     c_time='\[\e[95m\]'
     c_dir='\[\e[93m\]'
@@ -64,7 +71,8 @@ function _bdot_build_ps1() {
   local time_part="${c_time}\t"
   local dir_part="${c_dir}\w\[\e[49m\]"
   local git_part=""
-  local last_part='\[\e[0m\]\n\$ '
+  local sep=' '
+  local last_part='\[\e[0m\]\n$ '
 
   # shellcheck disable=SC2016
   if is_mingw; then
@@ -73,7 +81,13 @@ function _bdot_build_ps1() {
     git_part="${c_git}"'`__git_ps1 "(%s)"`'
   fi
 
-  export PS1="${user_part} ${time_part} ${dir_part} ${git_part} ${last_part}"
+  PS1="${user_part}"
+  PS1+="${sep}${time_part}"
+  PS1+="${sep}${dir_part}"
+  PS1+="${sep}${git_part}"
+  PS1+="${last_part}"
+
+  export PS1
 }
 
 # PROMPT_COMMAND に登録（既存値があれば末尾に追加）
