@@ -289,6 +289,26 @@ ln -sfnv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
+# 2-1. .active-profile
+#-------------------------------------
+
+# 無い場合は作成する（プロンプトの配色テーマ切り替えなどで使用）
+file="${ROOT}/.active-profile"
+if [ ! -e "${file}" ]; then
+  echo ".active-profile を作成します"
+  if [[ "${NONINTERACTIVE}" == "true" ]]; then
+    echo -e "\033[33m非対話モードのため、デフォルトプロファイルで .active-profile を作成します\033[0m"
+    echo "default" >"${file}"
+  else
+    echo "利用可能なプロファイル: hm-m1-mac, cg-m2-mac, wsl-ubuntu, win-15034, default"
+    read -p "$(echo -e '\033[00;33mプロファイル名を入力してください [default]: \033[0m')" PROFILE_NAME
+    echo "${PROFILE_NAME:-default}" >"${file}"
+    unset PROFILE_NAME
+  fi
+fi
+unset file
+
+#-------------------------------------
 # 3. pre load bash_profile
 #-------------------------------------
 
