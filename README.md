@@ -64,6 +64,44 @@ lighten_ps1 # 軽くする(gitによるファイル差分を表示しない)
 normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 ```
 
+## ディレクトリ構成
+
+<!-- markdownlint-disable MD033 -->
+
+| ディレクトリ | 概要 | 対象 OS |
+| --- | --- | --- |
+| `bash/` | シェル初期化・環境変数・関数定義 | All |
+| `brew/` | Homebrew パッケージ管理（mise 経由） | macOS |
+| `claude/` | Claude Code 設定（プロファイル別） | All |
+| `codex/` | Codex CLI 設定（プロファイル別） | All |
+| `gemini/` | Gemini CLI カスタムスラッシュコマンド | All |
+| `vscode-settings/` | VS Code / Cursor の設定・拡張機能管理 | All |
+| `scoop/` | Scoop パッケージ管理 | Windows |
+| `winget/` | winget パッケージ管理 | Windows |
+| `docker/` | Docker 環境管理 | All |
+| `devcontainer-example/` | DevContainer の設定例 | All |
+| `automation/` | Python 自動化スクリプト | All |
+| `mouse_emulator/` | キーボードによるマウスエミュレーション | macOS |
+| `chrome_extensions/` | 自作 Chrome 拡張機能 | All |
+| `docs/` | 各種技術ドキュメント | — |
+| `go/` | Go 学習用コード | — |
+| `gtts_sample/` | Google Text-to-Speech サンプル | — |
+| `python/` | Python ユーティリティ・セットアップ | — |
+
+<!-- markdownlint-enable MD033 -->
+
+### ルート直下の主要ファイル
+
+| ファイル | 概要 |
+| --- | --- |
+| `install.sh` | シンボリックリンク作成・環境セットアップ |
+| `unlink.sh` | install.sh で作成したリンクの削除 |
+| `.gitconfig` | Git グローバル設定 |
+| `.gitignore_global` | Git グローバル除外パターン |
+| `.gitmessage` | Git コミットメッセージテンプレート |
+| `.tmux.conf` | tmux 設定 |
+| `.editorconfig` | エディタ共通フォーマット設定 |
+
 ## dotfiles とは
 
 ホームディレクトリに置いてあるドット `.` から始まる設定ファイル（`.bashrc` など）を管理しているリポジトリのこと。
