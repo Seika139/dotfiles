@@ -66,8 +66,6 @@ normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 
 ## ディレクトリ構成
 
-<!-- markdownlint-disable MD033 -->
-
 | ディレクトリ | 概要 | 対象 OS |
 | --- | --- | --- |
 | `bash/` | シェル初期化・環境変数・関数定義 | All |
@@ -87,8 +85,6 @@ normalize_ps1 # 普通にする(gitによるファイル差分を表示する)
 | `go/` | Go 学習用コード | — |
 | `gtts_sample/` | Google Text-to-Speech サンプル | — |
 | `python/` | Python ユーティリティ・セットアップ | — |
-
-<!-- markdownlint-enable MD033 -->
 
 ### ルート直下の主要ファイル
 
