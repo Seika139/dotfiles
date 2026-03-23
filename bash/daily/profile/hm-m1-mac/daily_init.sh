@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+volta install node@latest @openai/codex@latest
+
 (
   cd "${DOTPATH}" || true
   (cd brew && mise run sync && mise run dump)
