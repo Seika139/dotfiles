@@ -22,7 +22,7 @@ main() {
   fi
   unset ans1
 
-  # $HOME のシンボリックリンクを削除する
+  # $HOME のシンボリックリンクを削除する (install.sh セクション 1, 2 に対応)
   linked_files=(
     ".bash_logout"
     ".bash_profile"
@@ -42,6 +42,22 @@ main() {
     fi
   done
   unset linked_files file abs_path
+
+  # $HOME/.ssh のシンボリックリンクを削除する (install.sh セクション 1-1 に対応)
+  if ! command grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
+    ssh_linked_files=(
+      ".ssh/config"
+      ".ssh/config.secret"
+    )
+    for file in "${ssh_linked_files[@]}"; do
+      abs_path=$(abs_path "${HOME}/${file}")
+      if [[ -L "${abs_path}" && $(readlink "${abs_path}") = *dotfiles* ]]; then
+        echo_yellow "Removing symlink: ${abs_path}"
+        rm "${abs_path}"
+      fi
+    done
+    unset ssh_linked_files file abs_path
+  fi
 
   # Claude 設定のシンボリックリンクを削除する
   claude_linked_files=(
