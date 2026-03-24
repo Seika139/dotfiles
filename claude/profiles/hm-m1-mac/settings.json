@@ -56,5 +56,9 @@
       }
     ]
   },
-  "statusLine": { "type": "command", "command": "~/.claude/status_line.sh" }
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/status_line.sh"
+  },
+  "skipDangerousModePermissionPrompt": true
 }
