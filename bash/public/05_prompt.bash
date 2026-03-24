@@ -38,7 +38,7 @@ function _bdot_build_ps1() {
   hm-m1-mac)
     c_user='\[\e[40;96m\]'
     c_time='\[\e[94m\]'
-    c_dir='\[\e[97m\]'
+    c_dir='\[\e[38;5;183m\]'
     c_git='\[\e[1;36m\]'
     ;;
   wsl-ubuntu)
