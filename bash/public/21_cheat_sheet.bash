@@ -129,10 +129,9 @@ ansi() {
       printf "\e[${j};5;${i}m%3d\e[0m " "$i"
 
       # 6個（1ブロック分）ごとに改行
-      if [ $((("${i}" + 1) % 32)) -eq 0 ]; then
-        echo
+      if [ $(((i + 1) % 32)) -eq 0 ]; then
+        printf "%b\n" "\e[0m\e[K"
       fi
     done
-    echo -e "\e[0m"
   done
 }
