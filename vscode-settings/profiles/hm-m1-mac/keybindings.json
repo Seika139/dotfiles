@@ -229,5 +229,13 @@
     "key": "cmd+k alt+cmd+c",
     "command": "-copyFilePath",
     "when": "editorFocus"
+  },
+  {
+    "key": "shift+enter",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "\u001b\r"
+    },
+    "when": "terminalFocus"
   }
 ]
