@@ -101,6 +101,7 @@ input=$(cat)
 eval "$(echo "$input" | jq -r '
   @sh "model=\(.model.display_name // "Claude")",
   @sh "model_id=\(.model.id // "")",
+  @sh "version=\(.version // "")",
   @sh "input_tokens=\(.context_window.total_input_tokens // "0")",
   @sh "output_tokens=\(.context_window.total_output_tokens // "0")",
   @sh "used=\(.context_window.used_percentage // "0")",
@@ -254,14 +255,15 @@ fi
 printf '%b\n' "$line1"
 
 # Line 2: コスト・トークン・コード変更量・モデル
-line2="$(cyan cost:) ${cost_colored}"
-line2+=" $(dim '|') $(cyan tokens:)"
-line2+=" in: $(soft_blue "${input_tokens}") /"
-line2+=" out: $(soft_blue "${output_tokens}")"
+line2="$(cyan cst:) ${cost_colored}"
+line2+=" $(dim '|') $(cyan tkn:)"
+line2+=" 入:$(soft_blue "${input_tokens}")"
+line2+=" 出:$(soft_blue "${output_tokens}")"
 if [ -n "$lines_changed" ]; then
   line2+=" $(dim '|') ${lines_changed}"
 fi
 line2+=" $(dim '|') $(soft_blue "$model")"
+line2+=" $(dim '|') $(soft_blue "$version")"
 printf '%b\n' "$line2"
 
 # Line 3: プロジェクト・経過時間・日時
