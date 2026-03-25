@@ -28,6 +28,72 @@ soft_green() { rgb 160 255 190 "$*"; }
 soft_blue() { rgb 160 190 255 "$*"; }
 pink() { rgb 255 150 200 "$*"; }
 
+# Fine Bar + Gradient 表示関数
+# 使用率(0-100)を受け取り、色付きバー + パーセント表示を返す
+# バー幅: 10セル、緑→黄→赤のグラデーション
+fine_bar() {
+  local pct=${1:-0}
+  local width=10
+  local bar_chars=(▏ ▎ ▍ ▌ ▋ ▊ ▉ █)
+  local filled_units=$(( pct * width * 8 / 100 ))
+  local full_blocks=$(( filled_units / 8 ))
+  local partial=$(( filled_units % 8 ))
+  local empty=$(( width - full_blocks - (partial > 0 ? 1 : 0) ))
+  local result=""
+
+  # 使用率に応じた色（緑→黄→赤グラデーション）
+  local r g b
+  if [ "$pct" -le 50 ] 2>/dev/null; then
+    # 緑(80,220,100) → 黄(240,220,80)
+    r=$(( 80 + (240 - 80) * pct / 50 ))
+    g=220
+    b=$(( 100 + (80 - 100) * pct / 50 ))
+  else
+    # 黄(240,220,80) → 赤(255,60,60)
+    local p=$(( pct - 50 ))
+    r=$(( 240 + (255 - 240) * p / 50 ))
+    g=$(( 220 + (60 - 220) * p / 50 ))
+    b=$(( 80 + (60 - 80) * p / 50 ))
+  fi
+
+  # バー構築
+  local i
+  for (( i = 0; i < full_blocks; i++ )); do
+    result+="${bar_chars[7]}"
+  done
+  if [ "$partial" -gt 0 ]; then
+    result+="${bar_chars[$((partial - 1))]}"
+  fi
+  for (( i = 0; i < empty; i++ )); do
+    result+=" "
+  done
+
+  printf '\e[38;2;%d;%d;%dm%s\e[0m' "$r" "$g" "$b" "$result"
+}
+
+# レートリミットのリセット時刻を残り時間に変換
+reset_remaining() {
+  local resets_at=$1
+  if [ -z "$resets_at" ]; then
+    echo "?"
+    return
+  fi
+  local now
+  now=$(date +%s)
+  local diff=$(( resets_at - now ))
+  if [ "$diff" -le 0 ]; then
+    echo "now"
+    return
+  fi
+  local hours=$(( diff / 3600 ))
+  local mins=$(( (diff % 3600) / 60 ))
+  if [ "$hours" -gt 0 ]; then
+    printf '%dh%02dm' "$hours" "$mins"
+  else
+    printf '%dm' "$mins"
+  fi
+}
+
 # 標準入力からJSON形式のデータを読み込む
 input=$(cat)
 
@@ -43,7 +109,11 @@ eval "$(echo "$input" | jq -r '
   @sh "lines_added=\(.cost.total_lines_added // "0")",
   @sh "lines_removed=\(.cost.total_lines_removed // "0")",
   @sh "current_dir=\(.workspace.current_dir // "unknown")",
-  @sh "project_dir=\(.workspace.project_dir // "unknown")"
+  @sh "project_dir=\(.workspace.project_dir // "unknown")",
+  @sh "rl_5h_used=\(.rate_limits.five_hour.used_percentage // "")",
+  @sh "rl_5h_resets=\(.rate_limits.five_hour.resets_at // "")",
+  @sh "rl_7d_used=\(.rate_limits.seven_day.used_percentage // "")",
+  @sh "rl_7d_resets=\(.rate_limits.seven_day.resets_at // "")"
 ')"
 
 # コンテキスト使用率の色分け
@@ -155,7 +225,41 @@ fi
 line1+=" $(dim '|') $(soft_blue "$model")"
 printf '%b\n' "$line1"
 
-# Line 2: プロジェクト・ディレクトリ・経過時間・日時
+# Line 2: レートリミット（rate_limits が存在する場合のみ）
+if [ -n "$rl_5h_used" ] || [ -n "$rl_7d_used" ]; then
+  line_rl=""
+  if [ -n "$rl_5h_used" ]; then
+    rl_5h_int=${rl_5h_used%.*}
+    rl_5h_bar=$(fine_bar "$rl_5h_int")
+    rl_5h_reset=$(reset_remaining "$rl_5h_resets")
+    # パーセント表示の色分け
+    if [ "$rl_5h_int" -ge 80 ] 2>/dev/null; then
+      rl_5h_pct=$(red "${rl_5h_used}%")
+    elif [ "$rl_5h_int" -ge 50 ] 2>/dev/null; then
+      rl_5h_pct=$(yellow "${rl_5h_used}%")
+    else
+      rl_5h_pct=$(green "${rl_5h_used}%")
+    fi
+    line_rl+="$(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} $(dim "reset:${rl_5h_reset}")"
+  fi
+  if [ -n "$rl_7d_used" ]; then
+    rl_7d_int=${rl_7d_used%.*}
+    rl_7d_bar=$(fine_bar "$rl_7d_int")
+    rl_7d_reset=$(reset_remaining "$rl_7d_resets")
+    if [ "$rl_7d_int" -ge 80 ] 2>/dev/null; then
+      rl_7d_pct=$(red "${rl_7d_used}%")
+    elif [ "$rl_7d_int" -ge 50 ] 2>/dev/null; then
+      rl_7d_pct=$(yellow "${rl_7d_used}%")
+    else
+      rl_7d_pct=$(green "${rl_7d_used}%")
+    fi
+    [ -n "$line_rl" ] && line_rl+=" $(dim '|') "
+    line_rl+="$(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} $(dim "reset:${rl_7d_reset}")"
+  fi
+  printf '%b\n' "$line_rl"
+fi
+
+# Line 3: プロジェクト・ディレクトリ・経過時間・日時
 if [ "$project_dir" = "$current_dir" ]; then
   line2="$(cyan 'Project & cwd:') $(soft_green "$project_dir")"
 else
@@ -166,7 +270,7 @@ line2+=" $(dim '|') $(soft_green "${duration_fmt}")"
 line2+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
 printf '%b\n' "$line2"
 
-# Line 3: Git 情報（Gitリポジトリ内の場合のみ）
+# Line 4: Git 情報（Gitリポジトリ内の場合のみ）
 if [ -n "$git_info" ]; then
   printf '%b\n' "$git_info"
 fi
