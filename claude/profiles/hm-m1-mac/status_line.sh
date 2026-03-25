@@ -35,36 +35,36 @@ fine_bar() {
   local pct=${1:-0}
   local width=10
   local bar_chars=(▏ ▎ ▍ ▌ ▋ ▊ ▉ █)
-  local filled_units=$(( pct * width * 8 / 100 ))
-  local full_blocks=$(( filled_units / 8 ))
-  local partial=$(( filled_units % 8 ))
-  local empty=$(( width - full_blocks - (partial > 0 ? 1 : 0) ))
+  local filled_units=$((pct * width * 8 / 100))
+  local full_blocks=$((filled_units / 8))
+  local partial=$((filled_units % 8))
+  local empty=$((width - full_blocks - (partial > 0 ? 1 : 0)))
   local result=""
 
   # 使用率に応じた色（緑→黄→赤グラデーション）
   local r g b
   if [ "$pct" -le 50 ] 2>/dev/null; then
     # 緑(80,220,100) → 黄(240,220,80)
-    r=$(( 80 + (240 - 80) * pct / 50 ))
+    r=$((80 + (240 - 80) * pct / 50))
     g=220
-    b=$(( 100 + (80 - 100) * pct / 50 ))
+    b=$((100 + (80 - 100) * pct / 50))
   else
     # 黄(240,220,80) → 赤(255,60,60)
-    local p=$(( pct - 50 ))
-    r=$(( 240 + (255 - 240) * p / 50 ))
-    g=$(( 220 + (60 - 220) * p / 50 ))
-    b=$(( 80 + (60 - 80) * p / 50 ))
+    local p=$((pct - 50))
+    r=$((240 + (255 - 240) * p / 50))
+    g=$((220 + (60 - 220) * p / 50))
+    b=$((80 + (60 - 80) * p / 50))
   fi
 
   # バー構築
   local i
-  for (( i = 0; i < full_blocks; i++ )); do
+  for ((i = 0; i < full_blocks; i++)); do
     result+="${bar_chars[7]}"
   done
   if [ "$partial" -gt 0 ]; then
     result+="${bar_chars[$((partial - 1))]}"
   fi
-  for (( i = 0; i < empty; i++ )); do
+  for ((i = 0; i < empty; i++)); do
     result+=" "
   done
 
@@ -80,17 +80,17 @@ reset_remaining() {
   fi
   local now
   now=$(date +%s)
-  local diff=$(( resets_at - now ))
+  local diff=$((resets_at - now))
   if [ "$diff" -le 0 ]; then
     echo "now"
     return
   fi
-  local hours=$(( diff / 3600 ))
-  local mins=$(( (diff % 3600) / 60 ))
+  local hours=$((diff / 3600))
+  local mins=$(((diff % 3600) / 60))
   if [ "$hours" -gt 0 ]; then
-    printf '%dh%02dm' "$hours" "$mins"
+    printf '%d:%02d' "$hours" "$mins"
   else
-    printf '%dm' "$mins"
+    printf '%d' "$mins"
   fi
 }
 
@@ -131,12 +131,12 @@ fi
 # Opus: 高単価のため低め / Sonnet: 中間 / Haiku: 安価のため低め
 case "$model_id" in
 *opus*)
-  cost_lv_1=1.50
-  cost_lv_2=3.00
-  cost_lv_3=4.50
-  cost_lv_4=6.00
-  cost_lv_5=8.00
-  cost_lv_6=10.00
+  cost_lv_1=5.00
+  cost_lv_2=10.00
+  cost_lv_3=15.00
+  cost_lv_4=20.00
+  cost_lv_5=30.00
+  cost_lv_6=40.00
   ;;
 *haiku*)
   cost_lv_1=0.15
@@ -170,13 +170,13 @@ cost_level=$(awk "BEGIN {
 }")
 # 水色 → 青紫 → 紫 → マゼンタ → 赤のグラデーション
 case "$cost_level" in
-  0) cost_colored=$(rgb 100 200 255 "$cost_fmt") ;;  # 水色
-  1) cost_colored=$(rgb 120 150 255 "$cost_fmt") ;;  # 青
-  2) cost_colored=$(rgb 150 120 255 "$cost_fmt") ;;  # 青紫
-  3) cost_colored=$(rgb 180 100 240 "$cost_fmt") ;;  # 紫
-  4) cost_colored=$(rgb 220  80 180 "$cost_fmt") ;;  # マゼンタ
-  5) cost_colored=$(rgb 250  60 100 "$cost_fmt") ;;  # 赤寄りピンク
-  6) cost_colored=$(rgb 255  40  40 "$cost_fmt") ;;  # 赤
+0) cost_colored=$(rgb 100 200 255 "$cost_fmt") ;; # 水色
+1) cost_colored=$(rgb 120 150 255 "$cost_fmt") ;; # 青
+2) cost_colored=$(rgb 150 120 255 "$cost_fmt") ;; # 青紫
+3) cost_colored=$(rgb 180 100 240 "$cost_fmt") ;; # 紫
+4) cost_colored=$(rgb 220 80 180 "$cost_fmt") ;;  # マゼンタ
+5) cost_colored=$(rgb 250 60 100 "$cost_fmt") ;;  # 赤寄りピンク
+6) cost_colored=$(rgb 255 40 40 "$cost_fmt") ;;   # 赤
 esac
 
 # セッション経過時間（分:秒）
@@ -199,19 +199,25 @@ current_time=$(date '+%H:%M')
 git_info=""
 if cd "$current_dir" 2>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null; then
   branch_name=$(git branch --show-current 2>/dev/null || echo "detached")
-  git_info="$(bold "$branch_name")"
+  git_info="$(orange "($branch_name")"
 
   # uncommitted changes
+  uc=""
   if [[ -n $(git status -s 2>/dev/null) ]]; then
-    git_info="${git_info} $(yellow '[uncommitted]')"
+    uc="$(yellow '*')"
   fi
 
-  # unpushed commits
+  # commits ahead
   # shellcheck disable=SC1083
   ahead=$(git rev-list '@{u}..HEAD' 2>/dev/null | wc -l | tr -d ' ')
+  ah=""
   if [[ $ahead -gt 0 ]]; then
-    git_info="${git_info} $(yellow "[unpushed: $ahead]")"
+    ah+="$(green "+$ahead")"
   fi
+  if [[ -n "$uc$ah" ]]; then
+    git_info+=" "
+  fi
+  git_info+="${uc}${ah}$(orange ")")"
 fi
 
 # ステータスライン表示
@@ -228,7 +234,8 @@ if [ -n "$rl_5h_used" ]; then
   else
     rl_5h_pct=$(green "${rl_5h_used}%")
   fi
-  line1+=" $(dim '|') $(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} $(dim "reset:${rl_5h_reset}")"
+  line1+=" $(dim '|') $(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} "
+  line1+="$(soft_blue "${rl_5h_reset}")"
 fi
 if [ -n "$rl_7d_used" ]; then
   rl_7d_int=${rl_7d_used%.*}
@@ -241,13 +248,14 @@ if [ -n "$rl_7d_used" ]; then
   else
     rl_7d_pct=$(green "${rl_7d_used}%")
   fi
-  line1+=" $(dim '|') $(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} $(dim "reset:${rl_7d_reset}")"
+  line1+=" $(dim '|') $(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} "
+  line1+="$(soft_blue "${rl_7d_reset}")"
 fi
 printf '%b\n' "$line1"
 
 # Line 2: コスト・トークン・コード変更量・モデル
-line2="$(cyan Cost:) ${cost_colored}"
-line2+=" $(dim '|') $(cyan Tokens:)"
+line2="$(cyan cost:) ${cost_colored}"
+line2+=" $(dim '|') $(cyan tokens:)"
 line2+=" in: $(soft_blue "${input_tokens}") /"
 line2+=" out: $(soft_blue "${output_tokens}")"
 if [ -n "$lines_changed" ]; then
@@ -257,7 +265,7 @@ line2+=" $(dim '|') $(soft_blue "$model")"
 printf '%b\n' "$line2"
 
 # Line 3: プロジェクト・経過時間・日時
-line3="$(cyan Project:) $(soft_green "$project_dir")"
+line3="$(cyan prj:) $(soft_green "$project_dir")"
 line3+=" $(dim '|') $(soft_green "${duration_fmt}")"
 line3+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
 printf '%b\n' "$line3"
@@ -265,6 +273,6 @@ printf '%b\n' "$line3"
 # Line 4: cwd・ブランチ・Git状態
 line4="$(cyan cwd:) $(soft_green "$current_dir")"
 if [ -n "$git_info" ]; then
-  line4+="  ${git_info}"
+  line4+=" ${git_info}"
 fi
 printf '%b\n' "$line4"
