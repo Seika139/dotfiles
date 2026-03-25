@@ -199,7 +199,7 @@ current_time=$(date '+%H:%M')
 git_info=""
 if cd "$current_dir" 2>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null; then
   branch_name=$(git branch --show-current 2>/dev/null || echo "detached")
-  git_info="$(cyan Branch:) $(bold "$branch_name")"
+  git_info="$(bold "$branch_name")"
 
   # uncommitted changes
   if [[ -n $(git status -s 2>/dev/null) ]]; then
@@ -215,64 +215,56 @@ if cd "$current_dir" 2>/dev/null && git rev-parse --is-inside-work-tree &>/dev/n
 fi
 
 # ステータスライン表示
-# Line 1: コンテキスト・トークン・コスト・コード変更量・モデル
+# Line 1: ctx + 5h + 7d（バー・使用率・リセット時刻）
 line1="$(cyan ctx:) ${used_bar} ${used_pct}"
-line1+=" $(dim '|') $(cyan Tokens:)"
-line1+=" in: $(soft_blue "${input_tokens}") /"
-line1+=" out: $(soft_blue "${output_tokens}")"
-line1+=" $(dim '|') ${cost_colored}"
-if [ -n "$lines_changed" ]; then
-  line1+=" $(dim '|') ${lines_changed}"
+if [ -n "$rl_5h_used" ]; then
+  rl_5h_int=${rl_5h_used%.*}
+  rl_5h_bar=$(fine_bar "$rl_5h_int")
+  rl_5h_reset=$(reset_remaining "$rl_5h_resets")
+  if [ "$rl_5h_int" -ge 80 ] 2>/dev/null; then
+    rl_5h_pct=$(red "${rl_5h_used}%")
+  elif [ "$rl_5h_int" -ge 50 ] 2>/dev/null; then
+    rl_5h_pct=$(yellow "${rl_5h_used}%")
+  else
+    rl_5h_pct=$(green "${rl_5h_used}%")
+  fi
+  line1+=" $(dim '|') $(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} $(dim "reset:${rl_5h_reset}")"
 fi
-line1+=" $(dim '|') $(soft_blue "$model")"
+if [ -n "$rl_7d_used" ]; then
+  rl_7d_int=${rl_7d_used%.*}
+  rl_7d_bar=$(fine_bar "$rl_7d_int")
+  rl_7d_reset=$(reset_remaining "$rl_7d_resets")
+  if [ "$rl_7d_int" -ge 80 ] 2>/dev/null; then
+    rl_7d_pct=$(red "${rl_7d_used}%")
+  elif [ "$rl_7d_int" -ge 50 ] 2>/dev/null; then
+    rl_7d_pct=$(yellow "${rl_7d_used}%")
+  else
+    rl_7d_pct=$(green "${rl_7d_used}%")
+  fi
+  line1+=" $(dim '|') $(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} $(dim "reset:${rl_7d_reset}")"
+fi
 printf '%b\n' "$line1"
 
-# Line 2: レートリミット（rate_limits が存在する場合のみ）
-if [ -n "$rl_5h_used" ] || [ -n "$rl_7d_used" ]; then
-  line_rl=""
-  if [ -n "$rl_5h_used" ]; then
-    rl_5h_int=${rl_5h_used%.*}
-    rl_5h_bar=$(fine_bar "$rl_5h_int")
-    rl_5h_reset=$(reset_remaining "$rl_5h_resets")
-    # パーセント表示の色分け
-    if [ "$rl_5h_int" -ge 80 ] 2>/dev/null; then
-      rl_5h_pct=$(red "${rl_5h_used}%")
-    elif [ "$rl_5h_int" -ge 50 ] 2>/dev/null; then
-      rl_5h_pct=$(yellow "${rl_5h_used}%")
-    else
-      rl_5h_pct=$(green "${rl_5h_used}%")
-    fi
-    line_rl+="$(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} $(dim "reset:${rl_5h_reset}")"
-  fi
-  if [ -n "$rl_7d_used" ]; then
-    rl_7d_int=${rl_7d_used%.*}
-    rl_7d_bar=$(fine_bar "$rl_7d_int")
-    rl_7d_reset=$(reset_remaining "$rl_7d_resets")
-    if [ "$rl_7d_int" -ge 80 ] 2>/dev/null; then
-      rl_7d_pct=$(red "${rl_7d_used}%")
-    elif [ "$rl_7d_int" -ge 50 ] 2>/dev/null; then
-      rl_7d_pct=$(yellow "${rl_7d_used}%")
-    else
-      rl_7d_pct=$(green "${rl_7d_used}%")
-    fi
-    [ -n "$line_rl" ] && line_rl+=" $(dim '|') "
-    line_rl+="$(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} $(dim "reset:${rl_7d_reset}")"
-  fi
-  printf '%b\n' "$line_rl"
+# Line 2: コスト・トークン・コード変更量・モデル
+line2="$(cyan Cost:) ${cost_colored}"
+line2+=" $(dim '|') $(cyan Tokens:)"
+line2+=" in: $(soft_blue "${input_tokens}") /"
+line2+=" out: $(soft_blue "${output_tokens}")"
+if [ -n "$lines_changed" ]; then
+  line2+=" $(dim '|') ${lines_changed}"
 fi
-
-# Line 3: プロジェクト・ディレクトリ・経過時間・日時
-if [ "$project_dir" = "$current_dir" ]; then
-  line2="$(cyan 'Project & cwd:') $(soft_green "$project_dir")"
-else
-  line2="$(cyan 'Project:') $(soft_green "$project_dir")"
-  line2+=" $(dim '|') $(cyan 'cwd:') $(soft_green "$current_dir")"
-fi
-line2+=" $(dim '|') $(soft_green "${duration_fmt}")"
-line2+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
+line2+=" $(dim '|') $(soft_blue "$model")"
 printf '%b\n' "$line2"
 
-# Line 4: Git 情報（Gitリポジトリ内の場合のみ）
+# Line 3: プロジェクト・経過時間・日時
+line3="$(cyan Project:) $(soft_green "$project_dir")"
+line3+=" $(dim '|') $(soft_green "${duration_fmt}")"
+line3+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
+printf '%b\n' "$line3"
+
+# Line 4: cwd・ブランチ・Git状態
+line4="$(cyan cwd:) $(soft_green "$current_dir")"
 if [ -n "$git_info" ]; then
-  printf '%b\n' "$git_info"
+  line4+="  ${git_info}"
 fi
+printf '%b\n' "$line4"
