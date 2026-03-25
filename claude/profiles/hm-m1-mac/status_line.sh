@@ -116,13 +116,15 @@ eval "$(echo "$input" | jq -r '
   @sh "rl_7d_resets=\(.rate_limits.seven_day.resets_at // "")"
 ')"
 
-# コンテキスト使用率の色分け
-if [ "$used" -ge 80 ] 2>/dev/null; then
-  used_colored=$(red "${used}%")
-elif [ "$used" -ge 50 ] 2>/dev/null; then
-  used_colored=$(yellow "${used}%")
+# コンテキスト使用率の色分け（Fine Bar + 数値）
+used_int=${used%.*}
+used_bar=$(fine_bar "$used_int")
+if [ "$used_int" -ge 80 ] 2>/dev/null; then
+  used_pct=$(red "${used}%")
+elif [ "$used_int" -ge 50 ] 2>/dev/null; then
+  used_pct=$(yellow "${used}%")
 else
-  used_colored=$(green "${used}%")
+  used_pct=$(green "${used}%")
 fi
 
 # モデル別コスト閾値（USD）
@@ -214,7 +216,7 @@ fi
 
 # ステータスライン表示
 # Line 1: コンテキスト・トークン・コスト・コード変更量・モデル
-line1="$(cyan Context:) ${used_colored} used"
+line1="$(cyan ctx:) ${used_bar} ${used_pct}"
 line1+=" $(dim '|') $(cyan Tokens:)"
 line1+=" in: $(soft_blue "${input_tokens}") /"
 line1+=" out: $(soft_blue "${output_tokens}")"
