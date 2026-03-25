@@ -24,9 +24,75 @@ rgb() {
 }
 # よく使うカスタムカラー
 orange() { rgb 250 180 100 "$*"; }
-soft_green() { rgb 160 255 190 "$*"; }
+soft_green() { rgb 150 255 200 "$*"; }
 soft_blue() { rgb 160 190 255 "$*"; }
 pink() { rgb 255 150 200 "$*"; }
+
+# Fine Bar + Gradient 表示関数
+# 使用率(0-100)を受け取り、色付きバー + パーセント表示を返す
+# バー幅: 7セル、緑→黄→赤のグラデーション
+fine_bar() {
+  local pct=${1:-0}
+  local width=7
+  local bar_chars=(▏ ▎ ▍ ▌ ▋ ▊ ▉ █)
+  local filled_units=$((pct * width * 8 / 100))
+  local full_blocks=$((filled_units / 8))
+  local partial=$((filled_units % 8))
+  local empty=$((width - full_blocks - (partial > 0 ? 1 : 0)))
+  local result=""
+
+  # 使用率に応じた色（緑→黄→赤グラデーション）
+  local r g b
+  if [ "$pct" -le 50 ] 2>/dev/null; then
+    # 緑(80,220,100) → 黄(240,220,80)
+    r=$((80 + (240 - 80) * pct / 50))
+    g=220
+    b=$((100 + (80 - 100) * pct / 50))
+  else
+    # 黄(240,220,80) → 赤(255,60,60)
+    local p=$((pct - 50))
+    r=$((240 + (255 - 240) * p / 50))
+    g=$((220 + (60 - 220) * p / 50))
+    b=$((80 + (60 - 80) * p / 50))
+  fi
+
+  # バー構築
+  local i
+  for ((i = 0; i < full_blocks; i++)); do
+    result+="${bar_chars[7]}"
+  done
+  if [ "$partial" -gt 0 ]; then
+    result+="${bar_chars[$((partial - 1))]}"
+  fi
+  for ((i = 0; i < empty; i++)); do
+    result+=" "
+  done
+
+  printf '\e[38;2;%d;%d;%dm%s\e[0m' "$r" "$g" "$b" "$result"
+}
+
+# レートリミットのリセット時刻を残り時間に変換
+reset_remaining() {
+  local resets_at=$1
+  if [ -z "$resets_at" ]; then
+    echo "?"
+    return
+  fi
+  local now
+  now=$(date +%s)
+  local diff=$((resets_at - now))
+  if [ "$diff" -le 0 ]; then
+    echo "now"
+    return
+  fi
+  local hours=$((diff / 3600))
+  local mins=$(((diff % 3600) / 60))
+  if [ "$hours" -gt 0 ]; then
+    printf '%d:%02d' "$hours" "$mins"
+  else
+    printf '%d' "$mins"
+  fi
+}
 
 # 標準入力からJSON形式のデータを読み込む
 input=$(cat)
@@ -35,6 +101,7 @@ input=$(cat)
 eval "$(echo "$input" | jq -r '
   @sh "model=\(.model.display_name // "Claude")",
   @sh "model_id=\(.model.id // "")",
+  @sh "version=\(.version // "")",
   @sh "input_tokens=\(.context_window.total_input_tokens // "0")",
   @sh "output_tokens=\(.context_window.total_output_tokens // "0")",
   @sh "used=\(.context_window.used_percentage // "0")",
@@ -43,28 +110,34 @@ eval "$(echo "$input" | jq -r '
   @sh "lines_added=\(.cost.total_lines_added // "0")",
   @sh "lines_removed=\(.cost.total_lines_removed // "0")",
   @sh "current_dir=\(.workspace.current_dir // "unknown")",
-  @sh "project_dir=\(.workspace.project_dir // "unknown")"
+  @sh "project_dir=\(.workspace.project_dir // "unknown")",
+  @sh "rl_5h_used=\(.rate_limits.five_hour.used_percentage // "")",
+  @sh "rl_5h_resets=\(.rate_limits.five_hour.resets_at // "")",
+  @sh "rl_7d_used=\(.rate_limits.seven_day.used_percentage // "")",
+  @sh "rl_7d_resets=\(.rate_limits.seven_day.resets_at // "")"
 ')"
 
-# コンテキスト使用率の色分け
-if [ "$used" -ge 80 ] 2>/dev/null; then
-  used_colored=$(red "${used}%")
-elif [ "$used" -ge 50 ] 2>/dev/null; then
-  used_colored=$(yellow "${used}%")
+# コンテキスト使用率の色分け（Fine Bar + 数値）
+used_int=${used%.*}
+used_bar=$(fine_bar "$used_int")
+if [ "$used_int" -ge 80 ] 2>/dev/null; then
+  used_pct=$(red "${used}%")
+elif [ "$used_int" -ge 50 ] 2>/dev/null; then
+  used_pct=$(yellow "${used}%")
 else
-  used_colored=$(green "${used}%")
+  used_pct=$(green "${used}%")
 fi
 
 # モデル別コスト閾値（USD）
 # Opus: 高単価のため低め / Sonnet: 中間 / Haiku: 安価のため低め
 case "$model_id" in
 *opus*)
-  cost_lv_1=1.50
-  cost_lv_2=3.00
-  cost_lv_3=4.50
-  cost_lv_4=6.00
-  cost_lv_5=8.00
-  cost_lv_6=10.00
+  cost_lv_1=5.00
+  cost_lv_2=10.00
+  cost_lv_3=15.00
+  cost_lv_4=20.00
+  cost_lv_5=30.00
+  cost_lv_6=40.00
   ;;
 *haiku*)
   cost_lv_1=0.15
@@ -98,13 +171,13 @@ cost_level=$(awk "BEGIN {
 }")
 # 水色 → 青紫 → 紫 → マゼンタ → 赤のグラデーション
 case "$cost_level" in
-  0) cost_colored=$(rgb 100 200 255 "$cost_fmt") ;;  # 水色
-  1) cost_colored=$(rgb 120 150 255 "$cost_fmt") ;;  # 青
-  2) cost_colored=$(rgb 150 120 255 "$cost_fmt") ;;  # 青紫
-  3) cost_colored=$(rgb 180 100 240 "$cost_fmt") ;;  # 紫
-  4) cost_colored=$(rgb 220  80 180 "$cost_fmt") ;;  # マゼンタ
-  5) cost_colored=$(rgb 250  60 100 "$cost_fmt") ;;  # 赤寄りピンク
-  6) cost_colored=$(rgb 255  40  40 "$cost_fmt") ;;  # 赤
+0) cost_colored=$(rgb 100 200 255 "$cost_fmt") ;; # 水色
+1) cost_colored=$(rgb 120 150 255 "$cost_fmt") ;; # 青
+2) cost_colored=$(rgb 150 120 255 "$cost_fmt") ;; # 青紫
+3) cost_colored=$(rgb 180 100 240 "$cost_fmt") ;; # 紫
+4) cost_colored=$(rgb 220 80 180 "$cost_fmt") ;;  # マゼンタ
+5) cost_colored=$(rgb 250 60 100 "$cost_fmt") ;;  # 赤寄りピンク
+6) cost_colored=$(rgb 255 40 40 "$cost_fmt") ;;   # 赤
 esac
 
 # セッション経過時間（分:秒）
@@ -127,46 +200,81 @@ current_time=$(date '+%H:%M')
 git_info=""
 if cd "$current_dir" 2>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null; then
   branch_name=$(git branch --show-current 2>/dev/null || echo "detached")
-  git_info="$(cyan Branch:) $(bold "$branch_name")"
+  git_info="$(orange "($branch_name")"
 
   # uncommitted changes
+  uc=""
   if [[ -n $(git status -s 2>/dev/null) ]]; then
-    git_info="${git_info} $(yellow '[uncommitted]')"
+    uc="$(yellow '*')"
   fi
 
-  # unpushed commits
+  # commits ahead
   # shellcheck disable=SC1083
   ahead=$(git rev-list '@{u}..HEAD' 2>/dev/null | wc -l | tr -d ' ')
+  ah=""
   if [[ $ahead -gt 0 ]]; then
-    git_info="${git_info} $(yellow "[unpushed: $ahead]")"
+    ah+="$(green "+$ahead")"
   fi
+  if [[ -n "$uc$ah" ]]; then
+    git_info+=" "
+  fi
+  git_info+="${uc}${ah}$(orange ")")"
 fi
 
 # ステータスライン表示
-# Line 1: コンテキスト・トークン・コスト・コード変更量・モデル
-line1="$(cyan Context:) ${used_colored} used"
-line1+=" $(dim '|') $(cyan Tokens:)"
-line1+=" in: $(soft_blue "${input_tokens}") /"
-line1+=" out: $(soft_blue "${output_tokens}")"
-line1+=" $(dim '|') ${cost_colored}"
-if [ -n "$lines_changed" ]; then
-  line1+=" $(dim '|') ${lines_changed}"
+# Line 1: ctx + 5h + 7d（バー・使用率・リセット時刻）
+line1="$(cyan ctx:) ${used_bar} ${used_pct}"
+if [ -n "$rl_5h_used" ]; then
+  rl_5h_int=${rl_5h_used%.*}
+  rl_5h_bar=$(fine_bar "$rl_5h_int")
+  rl_5h_reset=$(reset_remaining "$rl_5h_resets")
+  if [ "$rl_5h_int" -ge 80 ] 2>/dev/null; then
+    rl_5h_pct=$(red "${rl_5h_used}%")
+  elif [ "$rl_5h_int" -ge 50 ] 2>/dev/null; then
+    rl_5h_pct=$(yellow "${rl_5h_used}%")
+  else
+    rl_5h_pct=$(green "${rl_5h_used}%")
+  fi
+  line1+=" $(dim '|') $(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} "
+  line1+="$(soft_blue "${rl_5h_reset}")"
 fi
-line1+=" $(dim '|') $(soft_blue "$model")"
+if [ -n "$rl_7d_used" ]; then
+  rl_7d_int=${rl_7d_used%.*}
+  rl_7d_bar=$(fine_bar "$rl_7d_int")
+  rl_7d_reset=$(reset_remaining "$rl_7d_resets")
+  if [ "$rl_7d_int" -ge 80 ] 2>/dev/null; then
+    rl_7d_pct=$(red "${rl_7d_used}%")
+  elif [ "$rl_7d_int" -ge 50 ] 2>/dev/null; then
+    rl_7d_pct=$(yellow "${rl_7d_used}%")
+  else
+    rl_7d_pct=$(green "${rl_7d_used}%")
+  fi
+  line1+=" $(dim '|') $(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} "
+  line1+="$(soft_blue "${rl_7d_reset}")"
+fi
 printf '%b\n' "$line1"
 
-# Line 2: プロジェクト・ディレクトリ・経過時間・日時
-if [ "$project_dir" = "$current_dir" ]; then
-  line2="$(cyan 'Project & cwd:') $(soft_green "$project_dir")"
-else
-  line2="$(cyan 'Project:') $(soft_green "$project_dir")"
-  line2+=" $(dim '|') $(cyan 'cwd:') $(soft_green "$current_dir")"
+# Line 2: コスト・トークン・コード変更量・モデル
+line2="$(cyan cst:) ${cost_colored}"
+line2+=" $(dim '|') $(cyan tkn:)"
+line2+=" i:$(soft_green "${input_tokens}")"
+line2+=" o:$(soft_green "${output_tokens}")"
+if [ -n "$lines_changed" ]; then
+  line2+=" $(dim '|') ${lines_changed}"
 fi
-line2+=" $(dim '|') $(soft_green "${duration_fmt}")"
-line2+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
+line2+=" $(dim '|') $(soft_green "$model")"
+line2+=" $(dim '|') $(soft_green "$version")"
 printf '%b\n' "$line2"
 
-# Line 3: Git 情報（Gitリポジトリ内の場合のみ）
+# Line 3: プロジェクト・経過時間・日時
+line3="$(cyan prj:) $(soft_blue "$project_dir")"
+line3+=" $(dim '|') $(soft_blue "${duration_fmt}")"
+line3+=" $(dim '|') $(soft_blue "${current_date} ${current_time}")"
+printf '%b\n' "$line3"
+
+# Line 4: cwd・ブランチ・Git状態
+line4="$(cyan cwd:) $(soft_green "$current_dir")"
 if [ -n "$git_info" ]; then
-  printf '%b\n' "$git_info"
+  line4+=" ${git_info}"
 fi
+printf '%b\n' "$line4"

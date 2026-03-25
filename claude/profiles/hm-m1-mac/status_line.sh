@@ -24,16 +24,16 @@ rgb() {
 }
 # よく使うカスタムカラー
 orange() { rgb 250 180 100 "$*"; }
-soft_green() { rgb 160 255 190 "$*"; }
+soft_green() { rgb 150 255 200 "$*"; }
 soft_blue() { rgb 160 190 255 "$*"; }
 pink() { rgb 255 150 200 "$*"; }
 
 # Fine Bar + Gradient 表示関数
 # 使用率(0-100)を受け取り、色付きバー + パーセント表示を返す
-# バー幅: 10セル、緑→黄→赤のグラデーション
+# バー幅: 7セル、緑→黄→赤のグラデーション
 fine_bar() {
   local pct=${1:-0}
-  local width=10
+  local width=7
   local bar_chars=(▏ ▎ ▍ ▌ ▋ ▊ ▉ █)
   local filled_units=$((pct * width * 8 / 100))
   local full_blocks=$((filled_units / 8))
@@ -257,19 +257,19 @@ printf '%b\n' "$line1"
 # Line 2: コスト・トークン・コード変更量・モデル
 line2="$(cyan cst:) ${cost_colored}"
 line2+=" $(dim '|') $(cyan tkn:)"
-line2+=" 入:$(soft_blue "${input_tokens}")"
-line2+=" 出:$(soft_blue "${output_tokens}")"
+line2+=" i:$(soft_green "${input_tokens}")"
+line2+=" o:$(soft_green "${output_tokens}")"
 if [ -n "$lines_changed" ]; then
   line2+=" $(dim '|') ${lines_changed}"
 fi
-line2+=" $(dim '|') $(soft_blue "$model")"
-line2+=" $(dim '|') $(soft_blue "$version")"
+line2+=" $(dim '|') $(soft_green "$model")"
+line2+=" $(dim '|') $(soft_green "$version")"
 printf '%b\n' "$line2"
 
 # Line 3: プロジェクト・経過時間・日時
-line3="$(cyan prj:) $(soft_green "$project_dir")"
-line3+=" $(dim '|') $(soft_green "${duration_fmt}")"
-line3+=" $(dim '|') $(soft_green "${current_date} ${current_time}")"
+line3="$(cyan prj:) $(soft_blue "$project_dir")"
+line3+=" $(dim '|') $(soft_blue "${duration_fmt}")"
+line3+=" $(dim '|') $(soft_blue "${current_date} ${current_time}")"
 printf '%b\n' "$line3"
 
 # Line 4: cwd・ブランチ・Git状態
