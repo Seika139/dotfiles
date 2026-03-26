@@ -1,0 +1,83 @@
+# CloudFront
+
+## 一言でいうと
+
+世界中にある「出張所」にコンテンツのコピーを置いて、ユーザーに近い場所から素早く配信する CDN（Content Delivery Network）。
+
+## 何をするもの？
+
+ALB の前段に置いて、静的ファイル（画像、CSS、JS）のキャッシュや、WAF によるセキュリティ強化を行う。
+
+```text
+【CloudFront なし】
+ブラウザ → ALB → ECS
+
+【CloudFront あり】
+ブラウザ → CloudFront（エッジ） → ALB → ECS
+             ↑
+         キャッシュがあれば
+         ALB に行かずにここで返す
+```
+
+## なぜ必要？（必要なケース）
+
+| メリット | 説明 |
+|---|---|
+| キャッシュ | 静的アセットをエッジにキャッシュ。ALB/ECS への負荷を軽減 |
+| WAF 連携 | Web Application Firewall でレートリミットや攻撃パターンのブロック |
+| DDoS 対策 | AWS Shield Standard が自動適用。大量アクセスをエッジで吸収 |
+| グローバル配信 | 世界中のエッジロケーションからコンテンツを配信。海外ユーザーにも高速 |
+
+## 必要ないケース
+
+- **社内ユーザー限定サービス**: CDN のグローバル配信やキャッシュの恩恵が少ない
+- **HTTPS だけが目的**: ALB + ACM で十分に実現可能
+- **まず動かしたい段階**: 後から CloudFront を追加しても、ドメインやコールバック URL は変わらない
+
+## CloudFront を後から追加する場合
+
+ドメイン名は変わらないので、EntraID のコールバック URL 等の再設定は不要。
+
+```text
+変更点:
+1. DNS の A レコードを ALB → CloudFront に向ける
+2. ALB の SG を CloudFront のプレフィックスリストからのみ受付に変更
+3. CloudFront 用の ACM 証明書を us-east-1 で発行
+```
+
+## CloudFront の主要な設定項目
+
+| 設定 | 説明 |
+|---|---|
+| オリジン | 配信元サーバー（ALB や S3） |
+| ビヘイビア | URL パスごとのキャッシュルール。例: `/_next/static/*` はキャッシュ、`/v1/*` はキャッシュしない |
+| TTL | キャッシュの有効期間 |
+| カスタムドメイン | `spark.cygames.jp` のような独自ドメインを設定可能 |
+| WAF Web ACL | 紐づける WAF ルール |
+
+## SSE（Server-Sent Events）利用時の注意
+
+チャットのストリーミング応答など、長時間接続を使う場合は `origin_read_timeout` を長め（例: 300秒）に設定する必要がある。デフォルト（30秒）だとタイムアウトする。
+
+## リージョンに関する注意
+
+CloudFront 自体はグローバルサービスだが、関連リソースのリージョンに制約がある。
+
+| リソース | リージョン |
+|---|---|
+| CloudFront ディストリビューション | グローバル（リージョン指定不要） |
+| ACM 証明書（CloudFront 用） | **必ず `us-east-1`** |
+| WAF Web ACL（CloudFront 用） | **必ず `us-east-1`** |
+| オリジンの ALB | 任意（例: `ap-northeast-1`） |
+
+## 料金の目安
+
+- リクエスト数 + 転送量による従量課金
+- 社内向け小規模サービスなら月 $5〜20 程度（WAF は別途 $5/Web ACL + ルール単価）
+
+## 関連サービス
+
+- **ALB**: CloudFront のオリジン（配信元）として使う → [alb.md](./alb.md)
+- **ACM**: CloudFront 用の証明書は us-east-1 で発行が必要 → [acm.md](./acm.md)
+- **WAF**: CloudFront に紐づけてセキュリティルールを適用
+- **Shield Standard**: CloudFront に自動適用される DDoS 対策
