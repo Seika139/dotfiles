@@ -54,6 +54,17 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "terminal-notifier -title '🍤 Claude Code' -message \"実行中の claude が許可を要求しています.\\n$USER@$(hostname) $(pwd)\" -sound Glass"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
