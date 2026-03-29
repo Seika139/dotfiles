@@ -1,8 +1,8 @@
 # dotfiles
 
 <div align="center">
-  <a href="https://github.com/Seika139/dotfiles/releases/tag/v0.8.0">
-    <img alt="version" src="https://img.shields.io/badge/version-v0.8.0-white.svg">
+  <a href="https://github.com/Seika139/dotfiles/releases/tag/v0.9.0">
+    <img alt="version" src="https://img.shields.io/badge/version-v0.9.0-white.svg">
   </a>
   &nbsp;&nbsp;
   <a href="https://github.com/Seika139/dotfiles/actions/workflows/lint-markdown.yml">
