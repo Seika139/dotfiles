@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/notify_discord.sh"
+            "command": "~/dotfiles/claude/notify_discord.sh"
           }
         ]
       }
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/notify_discord.sh"
+            "command": "~/dotfiles/claude/notify_discord.sh"
           }
         ]
       }
