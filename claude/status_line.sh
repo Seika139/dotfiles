@@ -121,11 +121,11 @@ eval "$(echo "$input" | jq -r '
 used_int=${used%.*}
 used_bar=$(fine_bar "$used_int")
 if [ "$used_int" -ge 80 ] 2>/dev/null; then
-  used_pct=$(red "${used}%")
+  used_pct=$(red "${used_int}%")
 elif [ "$used_int" -ge 50 ] 2>/dev/null; then
-  used_pct=$(yellow "${used}%")
+  used_pct=$(yellow "${used_int}%")
 else
-  used_pct=$(green "${used}%")
+  used_pct=$(green "${used_int}%")
 fi
 
 # モデル別コスト閾値（USD）

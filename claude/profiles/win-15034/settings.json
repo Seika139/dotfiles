@@ -80,7 +80,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/status_line.sh"
+    "command": "~/dotfiles/claude/status_line.sh"
   },
   "outputStyle": "Explanatory"
 }
