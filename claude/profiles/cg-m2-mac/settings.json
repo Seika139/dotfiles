@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "terminal-notifier -title '🦖 Claude Code' -message \"実行中の claude が停止しました.\\n$USER@$(hostname) $(pwd)\" -sound Glass"
+            "command": "terminal-notifier -title '🦖 Claude Code' -message \"実行中の claude が停止しました.\"$'\\n'\"$USER@$(hostname) $(pwd)\" -sound Glass"
           },
           {
             "type": "command",
