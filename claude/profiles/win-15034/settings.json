@@ -76,6 +76,17 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh.exe -c \"New-BurntToastNotification -Text '🦄 Claude Code', \\\"実行中の claude が許可を要求しています.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"\""
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
