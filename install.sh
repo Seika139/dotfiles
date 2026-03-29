@@ -404,3 +404,64 @@ if command -v brew >/dev/null 2>&1; then
     unset ANS FORMULA formulae
   fi
 fi
+
+#-------------------------------------
+# 7. install CLI tools (if Linux)
+#-------------------------------------
+
+if [[ "$(uname)" == "Linux" ]]; then
+  LINUX_TOOLS=("fzf" "bat" "fd" "rg" "eza" "tmux")
+
+  # パッケージマネージャの判定
+  if command -v apt-get >/dev/null 2>&1; then
+    # apt のパッケージ名へのマッピング（パッケージ名がコマンド名と異なるもの）
+    declare -A APT_PKG_MAP=(
+      [bat]="bat"
+      [fd]="fd-find"
+      [rg]="ripgrep"
+    )
+
+    missing_packages=()
+    for tool in "${LINUX_TOOLS[@]}"; do
+      if ! command -v "${tool}" >/dev/null 2>&1; then
+        pkg="${APT_PKG_MAP[$tool]:-$tool}"
+        missing_packages+=("${pkg}")
+      fi
+    done
+
+    if [[ ${#missing_packages[@]} -eq 0 ]]; then
+      echo_yellow "CLI ツール (${LINUX_TOOLS[*]}) はすべてインストール済みです"
+    else
+      echo_yellow "以下の CLI ツールをインストールします: ${missing_packages[*]}"
+
+      if [[ "${NONINTERACTIVE}" == "true" ]]; then
+        sudo apt-get update -y
+        sudo apt-get install -y "${missing_packages[@]}"
+      else
+        read -p "$(echo_yellow 'apt でインストールしてよろしいですか？ [Y/n]: ')" ANS
+        if [[ $ANS != [nN] ]]; then
+          sudo apt-get update -y
+          sudo apt-get install -y "${missing_packages[@]}"
+        fi
+        unset ANS
+      fi
+    fi
+
+    # fd-find は fdfind、bat は batcat としてインストールされる場合があるのでシンボリックリンクを作成
+    mkdir -p "${HOME}/.local/bin"
+    if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+      ln -sfnv "$(command -v fdfind)" "${HOME}/.local/bin/fd"
+      echo_yellow "fdfind -> fd のシンボリックリンクを作成しました"
+    fi
+    if command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1; then
+      ln -sfnv "$(command -v batcat)" "${HOME}/.local/bin/bat"
+      echo_yellow "batcat -> bat のシンボリックリンクを作成しました"
+    fi
+
+    unset APT_PKG_MAP missing_packages pkg
+  else
+    echo_yellow "⚠️  apt-get が見つかりません。手動で以下のツールをインストールしてください: ${LINUX_TOOLS[*]}"
+  fi
+
+  unset LINUX_TOOLS
+fi
