@@ -106,6 +106,7 @@
     "astype",
     "autoremove",
     "bashenv",
+    "batcat",
     "BDOT",
     "BDOTDIR",
     "Behaviour",
