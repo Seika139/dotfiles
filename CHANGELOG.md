@@ -25,6 +25,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **install.sh**
+  - Linux 環境で fzf, bat, fd, rg, eza, tmux を apt で自動インストールする機能を追加（`fd-find` → `fd`, `batcat` → `bat` のシンボリックリンクも自動作成）
+  - `.active-profile` の初期作成処理を追加（プロンプトの配色テーマ切り替えに使用）
+- **bash**
+  - ANSI エスケープコードの 16 色・256 色を一覧表示する `ansi` 関数を追加
+- **claude**
+  - Discord Webhook による通知スクリプト（`notify_discord.sh`）を追加（Stop / Notification イベント対応）
+  - 新プロファイル `xsv-linux-1` を追加（コマンド・スキル一式を含む）
+- **unlink.sh**
+  - `~/.ssh/config` 関連のシンボリックリンク削除処理を追加（[#25](https://github.com/Seika139/dotfiles/issues/25)）
+- **README**
+  - ディレクトリ構成マップを追加（[#28](https://github.com/Seika139/dotfiles/issues/28)）
+- **.gitignore**
+  - `.active-profile` および `.ssh/config_save_*` を除外対象に追加（[#24](https://github.com/Seika139/dotfiles/issues/24)）
+
+### Changed
+
+- **bash**
+  - PS1 のプロンプト生成を `.active-profile` に基づくプロファイル別配色に変更し、`PROMPT_COMMAND` で動的に構築するように刷新
+  - `hm-m1-mac` の daily に `volta install node@latest @openai/codex@latest` を追加
+- **claude**
+  - `status_line.sh` を全プロファイル共通のスクリプトに統一し、プロファイルごとのコピーを削除
+  - ステータスラインにコンテキスト使用率バー（Fine Bar）、5h/7d レートリミット、バージョン表示、Git ブランチ状態を追加
+  - ステータスラインの参照パスを `~/.claude/status_line.sh` → `~/dotfiles/claude/status_line.sh` に変更
+  - Opus のコスト閾値を引き上げ（$1.50〜$10 → $5〜$40）
+  - `hm-m1-mac` プロファイルの権限設定・hooks・通知を拡充（terminal-notifier による通知、deny リスト強化、`skipDangerousModePermissionPrompt` 有効化）
+  - `cg-m2-mac` の `ANTHROPIC_SMALL_FAST_MODEL` を `claude-sonnet-4-5` に更新
+
 ## [0.8.0] - 2026-03-18
 
 ### Added
