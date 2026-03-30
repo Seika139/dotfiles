@@ -156,6 +156,16 @@ printf "%s\n" "   - $PROFILE_PATH/commands/"
 printf "%s\n" "   - $PROFILE_PATH/skills/"
 """
 
+[tasks.recover]
+description = "~/.claude/settings.json が上書きされていたら変更をリポジトリに反映し symlink を復元する"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = '''
+chmod +x "{{env.MISE_CONFIG_ROOT}}/mise/scripts/recover-settings.sh"
+bash "{{env.MISE_CONFIG_ROOT}}/mise/scripts/recover-settings.sh" {{option(name="prof", default="")}}
+'''
+
 [tasks.link]
 description = "指定プロファイルの設定ファイルをシンボリックリンクする"
 depends = ["check_env"]
