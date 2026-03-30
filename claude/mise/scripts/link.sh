@@ -57,6 +57,15 @@ PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR:-profiles}/$PROFILE"
 # シンボリックリンクを作成するターゲットファイル・ディレクトリのリスト
 targets=(settings.json settings.local.json CLAUDE.md commands skills custom-config)
 
+# ---------------------------------------------------------------------------
+# symlink が実ファイルに置き換わっていたら、先に recover して変更を取り込む
+# ---------------------------------------------------------------------------
+RECOVER_SCRIPT="${MISE_CONFIG_ROOT}/mise/scripts/recover-settings.sh"
+if [ -x "$RECOVER_SCRIPT" ] && [ -f "${HOME}/.claude/settings.json" ] && [ ! -L "${HOME}/.claude/settings.json" ]; then
+  printf "%s\n" "🔄 settings.json が実ファイルに置き換わっています。設定の回収を実行します..."
+  bash "$RECOVER_SCRIPT" --prof "$PROFILE" || true
+fi
+
 printf "%s\n" "🦄 Linking Claude settings from profile: $PROFILE"
 
 # 既存のシンボリックリンクを削除（ファイルの場合は退避）
