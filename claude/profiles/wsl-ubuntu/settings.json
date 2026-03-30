@@ -1,12 +1,15 @@
 {
   "env": {
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "global.anthropic.claude-opus-4-6-v1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "ANTHROPIC_MODEL": "global.anthropic.claude-opus-4-6-v1",
     "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "AWS_REGION": "us-east-1",
-    "CLAUDE_CODE_USE_BEDROCK": "1",
     "API_TIMEOUT_MS": "1200000",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "530000",
-    "MAX_THINKING_TOKENS": "1024"
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "409600",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "MAX_THINKING_TOKENS": "102400"
   },
   "permissions": {
     "allow": [
@@ -30,9 +33,6 @@
       "Read(.env)",
       "Read(**/*token*)",
       "Read(**/secrets/**)",
-      "Read(**/*_key)",
-      "Read(**/*.key)",
-      "Read(**/key_*)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
       "Bash(cdk deploy:*)",
@@ -50,9 +50,11 @@
       "Bash(gh api PUT:*)",
       "Bash(gh api PATCH:*)",
       "Bash(gh api DELETE:*)"
-    ],
-    "defaultMode": "acceptEdits"
+    ]
   },
+  "outputStyle": "Explanatory",
+  "defaultMode": "acceptEdits",
+  "skipDangerousModePermissionPrompt": true,
   "model": "us.anthropic.claude-opus-4-6-v1",
   "hooks": {
     "Stop": [
@@ -61,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST -H 'Content-type: application/json; charset=utf-8' --data \"$(printf '{\"message\": \"実行中の claude が停止しました.\\n%s@%s %s\"}' \"$USER\" \"$(hostname)\" \"$PWD\" | iconv -t utf-8)\" https://hooks.slack.com/triggers/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"
+            "command": "~/dotfiles/claude/notify_slack.sh"
           }
         ]
       }
@@ -72,16 +74,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST -H 'Content-type: application/json; charset=utf-8' --data \"$(printf '{\"message\": \"実行中の claude が許可を要求しています.\\n%s@%s %s\"}' \"$USER\" \"$(hostname)\" \"$PWD\" | iconv -t utf-8)\" https://hooks.slack.com/triggers/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"
+            "command": "~/dotfiles/claude/notify_slack.sh"
           }
         ]
       }
     ]
   },
   "statusLine": {
-    "type": "command",
-    "command": "~/dotfiles/claude/status_line.sh"
-  },
-  "outputStyle": "Explanatory",
-  "skipDangerousModePermissionPrompt": true
+    "command": "~/dotfiles/claude/status_line.sh",
+    "type": "command"
+  }
 }
