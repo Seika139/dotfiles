@@ -1,13 +1,42 @@
 {
   "env": {
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "global.anthropic.claude-opus-4-6-v1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "ANTHROPIC_MODEL": "global.anthropic.claude-opus-4-6-v1",
     "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "AWS_REGION": "us-east-1",
-    "CLAUDE_CODE_USE_BEDROCK": "1",
     "API_TIMEOUT_MS": "1200000",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "530000",
+    "CLAUDE_CODE_USE_BEDROCK": "1",
     "MAX_THINKING_TOKENS": "1024"
   },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "pwsh.exe -c \"New-BurntToastNotification -Text '🦄 Claude Code', \\\"実行中の claude が停止しました.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"\"",
+            "type": "command"
+          },
+          {
+            "command": "sleep 9.7 && mshta vbscript:Execute(\"CreateObject(\"\"SAPI.SpVoice\"\").Speak(\"\"クロードが停止しました\"\"):close\")",
+            "type": "command"
+          },
+          {
+            "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath('UserProfile'); $dir=Join-Path $homePath 'dotfiles\\claude\\ringtones'; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match '^\\.(mp3|wav)' }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Volume = 0.4; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }\"",
+            "type": "command"
+          },
+          {
+            "command": "~/dotfiles/claude/notify_slack.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
+  "outputStyle": "Explanatory",
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -24,15 +53,13 @@
       "PowerShell(powershell:*)",
       "Command(curl:*)"
     ],
+    "defaultMode": "acceptEdits",
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
       "Read(.env)",
       "Read(**/*token*)",
       "Read(**/secrets/**)",
-      "Read(**/*_key)",
-      "Read(**/*.key)",
-      "Read(**/key_*)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
       "Bash(cdk deploy:*)",
@@ -50,48 +77,10 @@
       "Bash(gh api PUT:*)",
       "Bash(gh api PATCH:*)",
       "Bash(gh api DELETE:*)"
-    ],
-    "defaultMode": "acceptEdits"
-  },
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh.exe -c \"New-BurntToastNotification -Text '🦄 Claude Code', \\\"実行中の claude が停止しました.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"\""
-          },
-          {
-            "type": "command",
-            "command": "sleep 9.7 && mshta vbscript:Execute(\"CreateObject(\"\"SAPI.SpVoice\"\").Speak(\"\"クロードが停止しました\"\"):close\")"
-          },
-          {
-            "type": "command",
-            "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath('UserProfile'); $dir=Join-Path $homePath 'dotfiles\\claude\\ringtones'; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match '^\\.(mp3|wav)' }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Volume = 0.4; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }\""
-          },
-          {
-            "type": "command",
-            "command": "pwsh -c \"[Console]::OutputEncoding = [Text.Encoding]::UTF8; $msg = \\\"実行中の claude が停止しました.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"; $body = @{message = $msg} | ConvertTo-Json -Compress; Invoke-RestMethod -Uri 'https://hooks.slack.com/triggers/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' -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body))\""
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "permission_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pwsh.exe -c \"New-BurntToastNotification -Text '🦄 Claude Code', \\\"実行中の claude が許可を要求しています.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"\""
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
-    "type": "command",
-    "command": "~/dotfiles/claude/status_line.sh"
-  },
-  "outputStyle": "Explanatory"
+    "command": "~/dotfiles/claude/status_line.sh",
+    "type": "command"
+  }
 }
