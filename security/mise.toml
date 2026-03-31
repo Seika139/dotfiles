@@ -1,2 +1,5 @@
 [env]
 DEFAULT_GH_ORG = ""
+
+[tools]
+shfmt = "latest"
