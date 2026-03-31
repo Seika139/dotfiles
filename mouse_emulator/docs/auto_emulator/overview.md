@@ -17,6 +17,7 @@
 | `mise run auto-run --config <path>` | ワークフローを実行 |
 | `mise run auto-validate --config <path>` | 設定ファイルの検証 |
 | `mise run auto-probe --mode <mode>` | キャリブレーション領域に対する座標のプローブ |
+| `mise run auto-dodge --config <path>` | 障害物回避ゲーム用エンジン（[dodge.md](dodge.md)） |
 
 > **Note:** これらのタスクは内部で `.venv/bin/python` を呼び出します。macOS では `uv run` が SystemConfiguration の制限でクラッシュする環境があるため、`.venv` を前提とした構成にしています。
 

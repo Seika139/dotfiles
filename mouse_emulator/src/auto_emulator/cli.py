@@ -316,6 +316,94 @@ def validate_config(
         raise typer.Exit(code=1) from None
 
 
+@app.command("dodge")
+def run_dodge(
+    config_path: str = typer.Argument(..., help="dodge 設定ファイル (YAML/JSON)"),
+    *,
+    calibrate: bool | None = CALIBRATE_OPTION,
+    pause_key: str | None = PAUSE_KEY_OPTION,
+) -> None:
+    """障害物回避ゲーム用のリアルタイムエンジンを実行する。
+
+    Raises:
+        BadParameter: pause-key の値が不正な場合。
+        Exit: 設定ファイルの読み込みに失敗した場合、
+            または Ctrl+C で中断した場合。
+    """
+    from auto_emulator.games.dodge import (  # noqa: PLC0415
+        DodgeEngine,
+        load_dodge_config,
+    )
+
+    path = _resolve_config_path(config_path)
+    try:
+        config = load_dodge_config(path)
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"エラー: {exc}")
+        raise typer.Exit(code=1) from None
+
+    pause_source = (
+        pause_key if pause_key is not None else config.runtime.controls.pause_toggle
+    )
+    try:
+        pause_combo = _normalize_pause_combo(pause_source)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--pause-key") from exc
+
+    capture_service = MSSScreenCaptureService()
+
+    calibrate_flag = calibrate
+    if calibrate_flag is None:
+        calibrate_flag = config.runtime.calibration.enabled
+
+    calibration_settings = config.runtime.calibration
+    printer = ColorPrinter(COLOR_MAP.get(calibration_settings.color, Colors.GREEN))
+
+    if calibrate_flag:
+        region = run_calibration(printer)
+    elif calibration_settings.preset is not None:
+        preset_region = calibration_settings.preset.to_region()
+        is_valid, error_message = _validate_preset_region(
+            preset_region,
+            capture_service,
+        )
+        if is_valid:
+            typer.echo("キャリブレーションをスキップし、設定済みの座標を使用します。")
+            region = preset_region
+        else:
+            if error_message:
+                typer.echo(error_message)
+            typer.echo("手動キャリブレーションを実行します。")
+            region = run_calibration(printer)
+    else:
+        typer.echo(
+            "キャリブレーション設定が見つからないため、手動キャリブレーションを実行します。",
+        )
+        region = run_calibration(printer)
+
+    if pause_combo is not None:
+        combo_label = "+".join(pause_combo)
+        typer.echo(f"一時停止キー: {combo_label} (同じキーで再開)")
+
+    engine = DodgeEngine(
+        config=config,
+        region=region,
+        capture_service=capture_service,
+        pointer=PointerController(),
+        logger=typer.echo,
+    )
+    try:
+        with TerminationMonitor(
+            pause_combo=pause_combo,
+            on_pause=(lambda: typer.echo(PAUSE_NOTICE)) if pause_combo else None,
+            on_resume=(lambda: typer.echo(RESUME_NOTICE)) if pause_combo else None,
+        ) as monitor:
+            engine.run(stop_monitor=monitor)
+    except KeyboardInterrupt:
+        typer.echo("ユーザー操作により中断しました")
+        raise typer.Exit(code=0) from None
+
+
 def main() -> None:
     app()
 

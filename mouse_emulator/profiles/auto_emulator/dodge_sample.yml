@@ -1,0 +1,57 @@
+version: "1.0"
+name: "obstacle-dodge-sample"
+
+# --- 障害物の色定義 ---
+obstacle:
+  r: 255
+  g: 0
+  b: 0
+  tolerance: 30  # 各 RGB チャンネルの許容誤差
+
+# --- 障害物をスキャンする縦方向の範囲 (相対座標 0.0-1.0) ---
+# キャリブレーション領域内の上から 40%-60% の帯をスキャン
+detection_zone:
+  top: 0.4
+  bottom: 0.6
+
+# --- 3レーン定義 ---
+# x_min/x_max: スキャンする横方向の範囲 (相対座標)
+# tap: 安全と判断した場合にタップする座標 (相対座標)
+lanes:
+  - name: left
+    x_min: 0.0
+    x_max: 0.33
+    tap:
+      x: 0.17
+      y: 0.9
+
+  - name: center
+    x_min: 0.33
+    x_max: 0.66
+    tap:
+      x: 0.5
+      y: 0.9
+
+  - name: right
+    x_min: 0.66
+    x_max: 1.0
+    tap:
+      x: 0.83
+      y: 0.9
+
+# --- ランタイム設定 ---
+runtime:
+  scan_interval: 0.03      # スキャン間隔 (秒) - 30ms ≒ 33 FPS
+  min_obstacle_pixels: 50   # 障害物判定の最小ピクセル数
+  start_lane: 1             # 初期レーン (0=left, 1=center, 2=right)
+
+  calibration:
+    enabled: true            # true: 起動時に手動キャリブレーション
+    # preset:                # キャリブレーション済みの場合は enabled: false にしてこちらを指定
+    #   left: 100
+    #   top: 200
+    #   right: 1100
+    #   bottom: 900
+
+  controls:
+    pause_toggle: "ctrl+p"

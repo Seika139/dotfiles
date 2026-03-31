@@ -145,6 +145,15 @@ run = '''
 uv run python -m auto_emulator run {{option(name='config', default='profiles/auto_emulator/sample2.yml')}}
 '''
 
+[tasks.auto-dodge]
+description = "障害物回避ゲーム用エンジンを実行します --config <設定ファイルパス>"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+run = '''
+uv run python -m auto_emulator dodge {{option(name='config', default='profiles/auto_emulator/dodge_sample.yml')}}
+'''
+
 [tasks.probe]
 description = "キャリブレーション後に相対座標をプローブします"
 shell = "bash -c"
