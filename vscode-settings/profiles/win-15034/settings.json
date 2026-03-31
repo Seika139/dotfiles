@@ -227,6 +227,7 @@
     "wslpath",
     "wslvar",
     "xhprof",
+    "xlarge",
     "zizmor"
   ],
   "cSpell.enabledFileTypes": {
@@ -287,7 +288,7 @@
   "editor.rulers": [40, 80, 88, 120, 160, 200],
   // ↑ editor
   // ↓ workbench
-  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorTheme": "Dark Modern",
   "workbench.colorCustomizations": {
     "editorRuler.foreground": "#6666"
   },
