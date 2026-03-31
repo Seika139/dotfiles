@@ -4,6 +4,7 @@
   "workbench.editor.revealIfOpen": true,
   "workbench.editor.wrapTabs": false,
   "workbench.iconTheme": "vscode-icons",
+  "workbench.colorTheme": "Dark Modern",
   // explorer
   "explorer.confirmDragAndDrop": false,
   "explorer.openEditors.sortOrder": "alphabetical",
