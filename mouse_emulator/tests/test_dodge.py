@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -8,10 +9,13 @@ import pytest
 from PIL import Image
 
 from auto_emulator.games.dodge import (
+    DetectionZone,
     DodgeConfig,
     DodgeEngine,
     LaneConfig,
     ObstacleColor,
+    Phase,
+    ScoreRegion,
     TapPosition,
     load_dodge_config,
 )
@@ -169,7 +173,8 @@ class TestDodgeEngine:
         config = _make_config(start_lane=0)
         frame = _make_frame(obstacle_lanes=[2])
         engine, pointer, _logs = self._build_engine(
-            config=config, frames=[frame],
+            config=config,
+            frames=[frame],
         )
         engine.run(stop_monitor=_make_stop_monitor())
         pointer.click_relative.assert_not_called()
@@ -178,7 +183,8 @@ class TestDodgeEngine:
         config = _make_config(start_lane=2)
         frame = _make_frame(obstacle_lanes=[0, 2])
         engine, pointer, _logs = self._build_engine(
-            config=config, frames=[frame],
+            config=config,
+            frames=[frame],
         )
         engine.run(stop_monitor=_make_stop_monitor())
         pointer.click_relative.assert_called_once()
@@ -218,6 +224,127 @@ class TestScanLanes:
         states = engine._scan_lanes(frame, target, 30, 5)
 
         assert all(not s.has_obstacle for s in states)
+
+
+class TestPhaseConfig:
+    def test_phases_require_score_region(self) -> None:
+        with pytest.raises(Exception, match="score_region"):
+            DodgeConfig(
+                obstacle=ObstacleColor(r=255, g=0, b=0),
+                detection_zone={"top": 0.4, "bottom": 0.6},
+                lanes=LANES,
+                phases=[Phase(min_score=100)],
+            )
+
+    def test_phases_valid_with_score_region(self) -> None:
+        config = DodgeConfig(
+            obstacle=ObstacleColor(r=255, g=0, b=0),
+            detection_zone={"top": 0.4, "bottom": 0.6},
+            lanes=LANES,
+            score_region=ScoreRegion(x=0.4, y=0.0, width=0.2, height=0.05),
+            phases=[
+                Phase(min_score=300, scan_interval=0.01),
+                Phase(
+                    min_score=100,
+                    detection_zone=DetectionZone(top=0.35, bottom=0.6),
+                ),
+            ],
+        )
+        assert len(config.phases) == 2  # type: ignore[arg-type]
+
+
+class TestPhaseEngine:
+    def _build_phase_engine(
+        self,
+        *,
+        frames: list[Image.Image],
+        score_reader: Callable[[Image.Image], int | None] | None = None,
+    ) -> tuple[DodgeEngine, MagicMock, list[str]]:
+        config = DodgeConfig(
+            obstacle=ObstacleColor(r=255, g=0, b=0),
+            detection_zone={"top": 0.4, "bottom": 0.6},
+            lanes=LANES,
+            runtime={
+                "scan_interval": 0.001,
+                "min_obstacle_pixels": 10,
+                "start_lane": 1,
+                "calibration": {"enabled": False},
+            },
+            score_region=ScoreRegion(
+                x=0.4,
+                y=0.0,
+                width=0.2,
+                height=0.05,
+                interval=0.001,
+            ),
+            phases=[
+                Phase(
+                    min_score=300,
+                    detection_zone=DetectionZone(top=0.3, bottom=0.7),
+                    scan_interval=0.005,
+                    min_obstacle_pixels=5,
+                ),
+                Phase(
+                    min_score=100,
+                    scan_interval=0.01,
+                ),
+            ],
+        )
+        region = Region(left=0, top=0, right=300, bottom=100)
+        capture = MagicMock()
+        capture.capture.side_effect = frames
+        pointer = MagicMock()
+        logs: list[str] = []
+        engine = DodgeEngine(
+            config=config,
+            region=region,
+            capture_service=capture,
+            pointer=pointer,
+            logger=logs.append,
+        )
+        if score_reader:
+            engine._read_score = score_reader  # type: ignore[assignment]
+        return engine, pointer, logs
+
+    def test_phase_switches_on_score(self) -> None:
+        frames = [_make_frame() for _ in range(3)]
+        scores = iter([50, 150, 350])
+        engine, _pointer, logs = self._build_phase_engine(
+            frames=frames,
+            score_reader=lambda _img: next(scores),
+        )
+        engine.run(stop_monitor=_make_stop_monitor(max_iterations=3))
+
+        assert engine.last_score == 350
+        assert engine.current_phase is not None
+        assert engine.current_phase.min_score == 300
+
+        phase_logs = [msg for msg in logs if "フェーズ変更" in msg]
+        assert len(phase_logs) == 2
+
+    def test_no_phase_when_score_low(self) -> None:
+        frames = [_make_frame()]
+        engine, _pointer, _logs = self._build_phase_engine(
+            frames=frames,
+            score_reader=lambda _img: 50,
+        )
+        engine.run(stop_monitor=_make_stop_monitor(max_iterations=1))
+
+        assert engine.current_phase is None
+        assert engine._active_scan_interval == 0.001
+
+    def test_phase_updates_active_params(self) -> None:
+        frames = [_make_frame()]
+        engine, _pointer, _logs = self._build_phase_engine(
+            frames=frames,
+            score_reader=lambda _img: 300,
+        )
+        engine.run(stop_monitor=_make_stop_monitor(max_iterations=1))
+
+        assert engine._active_scan_interval == 0.005
+        assert engine._active_threshold == 5
+        assert engine._active_detection_zone.top == 0.3
+        assert engine._active_detection_zone.bottom == 0.7
 
 
 class TestLoadDodgeConfig:

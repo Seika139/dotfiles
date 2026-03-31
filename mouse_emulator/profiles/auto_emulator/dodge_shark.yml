@@ -1,0 +1,83 @@
+version: "1.0"
+name: "shark-dodge"
+
+# --- 障害物の色定義 (サメの体の暗い紫青色) ---
+obstacle:
+  r: 60
+  g: 55
+  b: 95
+  tolerance: 40
+
+# --- 障害物をスキャンする縦方向の範囲 ---
+# キャラ直前をスキャン（少し上に広げて高速落下に対応）
+detection_zone:
+  top: 0.38
+  bottom: 0.58
+
+# --- 3レーン定義 (probe 座標より) ---
+lanes:
+  - name: left
+    x_min: 0.0
+    x_max: 0.33
+    tap:
+      x: 0.183
+      y: 0.760
+
+  - name: center
+    x_min: 0.33
+    x_max: 0.66
+    tap:
+      x: 0.515
+      y: 0.756
+
+  - name: right
+    x_min: 0.66
+    x_max: 1.0
+    tap:
+      x: 0.841
+      y: 0.754
+
+# --- スコア読取り領域 (画面上部中央のスコア表示) ---
+score_region:
+  x: 0.35
+  y: 0.02
+  width: 0.30
+  height: 0.06
+  interval: 1.5
+  threshold: 180
+
+# --- スコアに応じたフェーズ切替 ---
+phases:
+  - min_score: 500
+    detection_zone:
+      top: 0.30
+      bottom: 0.62
+    scan_interval: 0.008
+    min_obstacle_pixels: 20
+
+  - min_score: 300
+    detection_zone:
+      top: 0.33
+      bottom: 0.60
+    scan_interval: 0.010
+    min_obstacle_pixels: 25
+
+  - min_score: 100
+    scan_interval: 0.012
+
+# --- ランタイム設定 ---
+runtime:
+  scan_interval: 0.015
+  min_obstacle_pixels: 30
+  start_lane: 1
+
+  calibration:
+    enabled: false
+    preset:
+      # left: 1848
+      # top: 109
+      # right: 2231
+      # bottom: 955
+
+  controls:
+    pause_toggle: "ctrl+p"

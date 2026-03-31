@@ -31,11 +31,12 @@ mise run auto-dodge --config profiles/auto_emulator/dodge_sample.yml
 ```
 ループ (scan_interval 間隔):
   1. mss で画面キャプチャ
-  2. detection_zone 内の各レーンを numpy でスキャン
-  3. 障害物色 (RGB ±tolerance) に一致するピクセル数をカウント
-  4. min_obstacle_pixels 以上 → そのレーンに障害物あり
-  5. 安全なレーンのうち現在位置に最も近いものを選択
-  6. レーン変更が必要な場合のみタップ（同じレーンならスキップ）
+  2. (score_region 設定時) 定期的にスコアを OCR で読取り → フェーズ切替
+  3. detection_zone 内の各レーンを numpy でスキャン
+  4. 障害物色 (RGB ±tolerance) に一致するピクセル数をカウント
+  5. min_obstacle_pixels 以上 → そのレーンに障害物あり
+  6. 安全なレーンのうち現在位置に最も近いものを選択
+  7. レーン変更が必要な場合のみタップ（同じレーンならスキップ）
 ```
 
 ## 設定ファイル
@@ -80,13 +81,29 @@ runtime:
   start_lane: 1             # 初期レーン (0-indexed)
   calibration:
     enabled: true
-    # preset:              # キャリブレーション済みの場合
-    #   left: 100
-    #   top: 200
-    #   right: 1100
-    #   bottom: 900
   controls:
     pause_toggle: "ctrl+p"
+
+# --- スコアに応じた動的パラメータ切替 (任意) ---
+score_region:               # スコア表示領域 (相対座標)
+  x: 0.35
+  y: 0.02
+  width: 0.30
+  height: 0.06
+  interval: 1.5             # スコア読取り間隔 (秒)
+  threshold: 180             # 二値化閾値
+
+phases:                      # スコア閾値ごとのパラメータ変更
+  - min_score: 500
+    detection_zone:
+      top: 0.30
+      bottom: 0.62
+    scan_interval: 0.008
+    min_obstacle_pixels: 20
+  - min_score: 300
+    scan_interval: 0.010
+  - min_score: 100
+    scan_interval: 0.012
 ```
 
 ### 設定項目の詳細
@@ -129,6 +146,31 @@ runtime:
 | `calibration` | object | — | キャリブレーション設定（[cli.md](cli.md) 参照） |
 | `controls` | object | — | 一時停止キー設定 |
 
+#### `score_region` — スコア読取り領域（任意）
+
+スコアを OCR で読取り、`phases` によるパラメータの動的切替に使用します。
+
+| キー | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `x` | float (0-1) | — | スコア領域の左端（相対） |
+| `y` | float (0-1) | — | スコア領域の上端（相対） |
+| `width` | float (0-1) | — | スコア領域の幅（相対） |
+| `height` | float (0-1) | — | スコア領域の高さ（相対） |
+| `interval` | float | 1.0 | スコア読取り間隔（秒）。毎フレーム読む必要はない |
+| `threshold` | int \| null | 180 | 二値化閾値。null で無効 |
+| `tesseract_config` | str | `--psm 7 ...` | tesseract に渡すオプション |
+
+#### `phases` — スコア連動フェーズ（任意）
+
+`score_region` で読み取ったスコアに応じて `detection_zone`、`scan_interval`、`min_obstacle_pixels` を動的に変更します。`min_score` が大きいフェーズから優先的に適用されます。未指定の項目はデフォルト値（`runtime` / `detection_zone` の値）が使われます。
+
+| キー | 型 | 説明 |
+| --- | --- | --- |
+| `min_score` | int | このフェーズが有効になる最低スコア |
+| `detection_zone` | object \| null | 上書きする検出ゾーン |
+| `scan_interval` | float \| null | 上書きするスキャン間隔 |
+| `min_obstacle_pixels` | int \| null | 上書きする最小ピクセル数 |
+
 ## チューニングガイド
 
 ### 検出精度を上げるには
@@ -147,3 +189,4 @@ runtime:
 
 - `detection_zone.top` を小さくする — より上部（早い段階）で障害物を検出
 - `scan_interval` を小さくする — ポーリング頻度を上げる
+- `score_region` + `phases` でスコアに応じて自動調整 — 高スコア時にスキャン範囲を広げ、間隔を短くする
