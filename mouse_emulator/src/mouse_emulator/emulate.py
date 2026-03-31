@@ -10,7 +10,7 @@ from pynput import keyboard, mouse
 from tabulate import tabulate
 
 from auto_emulator.runtime.termination import TerminationMonitor
-from auto_emulator.services.capture import PILScreenCaptureService
+from auto_emulator.services.capture import MSSScreenCaptureService
 from mouse_core import ColorPrinter, Colors, PointerController, Region, run_calibration
 from mouse_core.display import is_region_within_displays
 from mouse_core.loggers import SessionLogger
@@ -63,7 +63,7 @@ def _resolve_emulation_region(
     calibrate_flag: bool | None,
     printer: ColorPrinter,
     emit: Callable[[str], None],
-    capture_service: PILScreenCaptureService,
+    capture_service: MSSScreenCaptureService,
 ) -> Region:
     if _should_calibrate(calibrate_flag, settings):
         return run_calibration(printer)
@@ -101,7 +101,7 @@ def _should_calibrate(cli_flag: bool | None, settings: CalibrationSettings) -> b
 def _validate_preset_region(
     region: Region,
     *,
-    capture_service: PILScreenCaptureService,
+    capture_service: MSSScreenCaptureService,
 ) -> tuple[bool, str | None]:
     if not is_region_within_displays(region):
         message = (
@@ -275,7 +275,7 @@ def emulate_from_profile(
                 print(message)
             session_logger.log(_strip_ansi(message))
 
-        capture_service = PILScreenCaptureService()
+        capture_service = MSSScreenCaptureService()
         region = _resolve_emulation_region(
             settings,
             opts.calibrate,

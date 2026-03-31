@@ -23,7 +23,7 @@ from .exceptions import AutoEmulatorError, ConfigurationError
 from .runtime.engine import AutomationEngine
 from .runtime.termination import TerminationMonitor
 from .services.capture import (
-    PILScreenCaptureService,
+    MSSScreenCaptureService,
     ScreenCaptureService,
 )
 
@@ -272,7 +272,7 @@ def run_automation(
             typer.echo(message)
             session_logger.log(message)
 
-        capture_service = PILScreenCaptureService()
+        capture_service = MSSScreenCaptureService()
         region = _resolve_region(config, calibrate, capture_service, emit)
 
         if log_path is not None:

@@ -78,7 +78,7 @@ class LoggingSettings(BaseModel):
 class RuntimeSettings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    capture_interval: float = Field(default=0.2, gt=0.0)
+    capture_interval: float = Field(default=0.05, gt=0.0)
     max_iterations: int | None = Field(default=None, gt=0)
     calibration: CalibrationSettings = Field(default_factory=CalibrationSettings)
     controls: ControlSettings = Field(default_factory=ControlSettings)

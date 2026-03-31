@@ -18,7 +18,7 @@ from auto_emulator.detectors import BaseDetector, DetectionResult, create_detect
 from auto_emulator.exceptions import ConfigurationError, EngineRuntimeError
 from auto_emulator.runtime.context import AutomationContext, StepRuntimeContext
 from auto_emulator.runtime.termination import TerminationMonitor
-from auto_emulator.services.capture import PILScreenCaptureService, ScreenCaptureService
+from auto_emulator.services.capture import MSSScreenCaptureService, ScreenCaptureService
 from mouse_core import PointerController, Region
 
 
@@ -182,7 +182,7 @@ class AutomationEngine:
         self._config = config
         self._pointer = pointer or PointerController()
         self._region = region
-        self._capture_service = capture_service or PILScreenCaptureService()
+        self._capture_service = capture_service or MSSScreenCaptureService()
         self._logger = logger or (lambda message: print(message, flush=True))
         self._executors: dict[str, StepExecutor] = {}
         self._prepare()

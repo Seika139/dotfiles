@@ -101,7 +101,7 @@ def test_emulate_uses_preset_when_valid(
         "TerminationMonitor",
         _create_dummy_monitor,
     )
-    monkeypatch.setattr(emulate, "PILScreenCaptureService", _DummyCaptureService)
+    monkeypatch.setattr(emulate, "MSSScreenCaptureService", _DummyCaptureService)
     run_calls: list[None] = []
 
     def fake_run_calibration(_printer: object) -> Region:
@@ -140,7 +140,7 @@ def test_emulate_fallbacks_when_preset_invalid(
         "TerminationMonitor",
         _create_dummy_monitor,
     )
-    monkeypatch.setattr(emulate, "PILScreenCaptureService", _DummyCaptureService)
+    monkeypatch.setattr(emulate, "MSSScreenCaptureService", _DummyCaptureService)
     run_calls: list[None] = []
 
     def fake_run_calibration(_printer: object) -> Region:
@@ -175,7 +175,7 @@ def test_emulate_runs_calibration_when_preset_missing(
         "TerminationMonitor",
         _create_dummy_monitor,
     )
-    monkeypatch.setattr(emulate, "PILScreenCaptureService", _DummyCaptureService)
+    monkeypatch.setattr(emulate, "MSSScreenCaptureService", _DummyCaptureService)
     run_calls: list[None] = []
 
     def fake_run_calibration(_printer: object) -> Region:
@@ -213,7 +213,7 @@ def test_emulate_fallbacks_when_capture_fails(
     )
     monkeypatch.setattr(
         emulate,
-        "PILScreenCaptureService",
+        "MSSScreenCaptureService",
         partial(_DummyCaptureService, should_raise=True),
     )
 

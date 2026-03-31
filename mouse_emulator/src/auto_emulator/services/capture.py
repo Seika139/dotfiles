@@ -4,6 +4,8 @@ import time
 from dataclasses import dataclass
 from typing import Protocol
 
+import mss
+import mss.base
 from PIL import Image, ImageGrab
 
 from mouse_core.region import Region
@@ -49,6 +51,55 @@ class PILScreenCaptureService:
         if last_error is not None:
             raise last_error
         raise RuntimeError("スクリーンキャプチャに失敗しました")
+
+
+class MSSScreenCaptureService:
+    """mss を利用した高速キャプチャ実装。PIL ImageGrab の 3-5 倍高速。"""
+
+    def __init__(self, config: CaptureConfig | None = None) -> None:
+        self._config = config or CaptureConfig()
+        self._sct: mss.base.MSSBase | None = None
+
+    def _get_sct(self) -> mss.base.MSSBase:
+        if self._sct is None:
+            self._sct = mss.mss()
+        return self._sct
+
+    def capture(self, region: Region | None = None) -> Image.Image:
+        sct = self._get_sct()
+        if region is not None:
+            monitor = {
+                "left": int(region.left),
+                "top": int(region.top),
+                "width": int(region.right - region.left),
+                "height": int(region.bottom - region.top),
+            }
+        else:
+            monitor = sct.monitors[0]
+
+        attempts = self._config.retry_count + 1
+        last_error: Exception | None = None
+        for _ in range(attempts):
+            try:
+                screenshot = sct.grab(monitor)
+                return Image.frombytes(
+                    "RGB",
+                    screenshot.size,
+                    screenshot.bgra,
+                    "raw",
+                    "BGRX",
+                )
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                time.sleep(self._config.retry_interval)
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("スクリーンキャプチャに失敗しました")
+
+    def close(self) -> None:
+        if self._sct is not None:
+            self._sct.close()
+            self._sct = None
 
 
 class FileSequenceCaptureService:
