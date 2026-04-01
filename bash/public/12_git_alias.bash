@@ -30,6 +30,8 @@ alias gw='git worktree'
 alias gwl='git worktree list'
 # git pull
 alias gpl='git pull'
+# git tag list でバージョンタグを降順で表示
+alias gtl="git tag | sort -rV"
 
 PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
 
