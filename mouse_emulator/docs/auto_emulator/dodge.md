@@ -28,7 +28,7 @@ mise run auto-dodge --config profiles/auto_emulator/dodge_sample.yml
 
 ## アルゴリズム
 
-```
+```text
 ループ (scan_interval 間隔):
   1. mss で画面キャプチャ
   2. (score_region 設定時) 定期的にスコアを OCR で読取り → フェーズ切替
