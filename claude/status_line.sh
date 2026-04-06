@@ -229,11 +229,11 @@ if [ -n "$rl_5h_used" ]; then
   rl_5h_bar=$(fine_bar "$rl_5h_int")
   rl_5h_reset=$(reset_remaining "$rl_5h_resets")
   if [ "$rl_5h_int" -ge 80 ] 2>/dev/null; then
-    rl_5h_pct=$(red "${rl_5h_used}%")
+    rl_5h_pct=$(red "${rl_5h_int}%")
   elif [ "$rl_5h_int" -ge 50 ] 2>/dev/null; then
-    rl_5h_pct=$(yellow "${rl_5h_used}%")
+    rl_5h_pct=$(yellow "${rl_5h_int}%")
   else
-    rl_5h_pct=$(green "${rl_5h_used}%")
+    rl_5h_pct=$(green "${rl_5h_int}%")
   fi
   line1+=" $(dim '|') $(cyan '5h:') ${rl_5h_bar} ${rl_5h_pct} "
   line1+="$(soft_blue "${rl_5h_reset}")"
@@ -243,11 +243,11 @@ if [ -n "$rl_7d_used" ]; then
   rl_7d_bar=$(fine_bar "$rl_7d_int")
   rl_7d_reset=$(reset_remaining "$rl_7d_resets")
   if [ "$rl_7d_int" -ge 80 ] 2>/dev/null; then
-    rl_7d_pct=$(red "${rl_7d_used}%")
+    rl_7d_pct=$(red "${rl_7d_int}%")
   elif [ "$rl_7d_int" -ge 50 ] 2>/dev/null; then
-    rl_7d_pct=$(yellow "${rl_7d_used}%")
+    rl_7d_pct=$(yellow "${rl_7d_int}%")
   else
-    rl_7d_pct=$(green "${rl_7d_used}%")
+    rl_7d_pct=$(green "${rl_7d_int}%")
   fi
   line1+=" $(dim '|') $(cyan '7d:') ${rl_7d_bar} ${rl_7d_pct} "
   line1+="$(soft_blue "${rl_7d_reset}")"
