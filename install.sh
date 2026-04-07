@@ -300,7 +300,7 @@ if [ ! -e "${file}" ]; then
     echo -e "\033[33m非対話モードのため、デフォルトプロファイルで .active-profile を作成します\033[0m"
     echo "default" >"${file}"
   else
-    echo "利用可能なプロファイル: hm-m1-mac, cg-m2-mac, wsl-ubuntu, win-15034, default"
+    echo "利用可能なプロファイル: hm-m1-mac, cg-m2-mac, wsl-ubuntu, win-15034, xsv-linux-1, default"
     read -p "$(echo -e '\033[00;33mプロファイル名を入力してください [default]: \033[0m')" PROFILE_NAME
     echo "${PROFILE_NAME:-default}" >"${file}"
     unset PROFILE_NAME
@@ -319,6 +319,42 @@ if [ ! -d "${SSH_DIR}" ]; then
   # ~/.ssh がないと 06_ssh-agent.bash 内で start_agent の実行に失敗するので必ず ~/.ssh があることを保証する
   mkdir -p "${SSH_DIR}"
   chmod 700 "${SSH_DIR}"
+fi
+
+#-------------------------------------
+# 3-1. install mise (if Linux)
+#-------------------------------------
+
+# mise はセクション 4 (bash_profile の mise completion) と
+# セクション 5 (Claude 設定) で必要なので、ここでインストールする
+if [[ "$(uname)" == "Linux" ]] && ! command -v mise >/dev/null 2>&1; then
+  if command -v apt-get >/dev/null 2>&1; then
+    echo_yellow "mise がインストールされていません。"
+
+    _install_mise() {
+      # ref: https://mise.jdx.dev/installing-mise.html
+      sudo apt-get update -y && sudo apt-get install -y curl
+      sudo install -dm 755 /etc/apt/keyrings
+      curl -fSs https://mise.jdx.dev/gpg-key.pub | sudo tee /etc/apt/keyrings/mise-archive-keyring.asc 1>/dev/null
+      echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.asc] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
+      sudo apt-get update -y
+      sudo apt-get install -y mise
+    }
+
+    if [[ "${NONINTERACTIVE}" == "true" ]]; then
+      echo -e "\033[33m非対話モードのため、mise を自動インストールします\033[0m"
+      _install_mise
+    else
+      read -p "$(echo_yellow 'apt で mise をインストールしてよろしいですか？ [Y/n]: ')" ANS
+      if [[ $ANS != [nN] ]]; then
+        _install_mise
+      fi
+      unset ANS
+    fi
+    unset -f _install_mise
+  else
+    echo_yellow "⚠️  apt-get が見つかりません。mise を手動でインストールしてください: https://mise.jdx.dev/getting-started.html"
+  fi
 fi
 
 #-------------------------------------

@@ -14,24 +14,15 @@ Architecture:                    x86_64
 
 ## mise のインストール
 
-AMD/Intel 系の場合
+ref: <https://mise.jdx.dev/installing-mise.html>
 
 ```bash
-sudo apt update -y && sudo apt install -y gpg sudo wget curl
+sudo apt update -y && sudo apt install -y curl
 sudo install -dm 755 /etc/apt/keyrings
-wget -qO - https://mise.jdx.dev/gpg-key.pub | gpg --dearmor | sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg 1> /dev/null
-echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg arch=amd64] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
-sudo apt update
+curl -fSs https://mise.jdx.dev/gpg-key.pub | sudo tee /etc/apt/keyrings/mise-archive-keyring.asc 1> /dev/null
+echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.asc] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
+sudo apt update -y
 sudo apt install -y mise
 ```
 
-ARM 系の場合
-
-```bash
-sudo apt update -y && sudo apt install -y gpg sudo wget curl
-sudo install -dm 755 /etc/apt/keyrings
-wget -qO - https://mise.jdx.dev/gpg-key.pub | gpg --dearmor | sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg 1> /dev/null
-echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg arch=arm64] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
-sudo apt update
-sudo apt install -y mise
-```
+> **Note:** 以前は AMD/Intel 系と ARM 系で `arch=amd64` / `arch=arm64` の指定が必要だったが、現在は不要。
