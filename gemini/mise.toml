@@ -1,11 +1,22 @@
 [env]
 PROFILES_DIR = "profiles"
 # WSL 環境なら true になる
-IS_WSL = '''{% if
-os() == 'linux' and exec(
-  command="bash -c 'if grep -qi microsoft /proc/version 2>/dev/null || [ -n ${WSL_DISTRO_NAME:-} ]; then echo 0; else echo 1; fi'",
-  allow_failure=true
-) == "0" %}true{% else %}false{% endif %}'''
+# exec() はバージョン間で挙動が不安定なため read_file + containing で判定する
+# Tera の is テストは変数にしか使えないため set で一旦変数に入れる
+# {%- -%} で空白・改行を除去して "true" / "false" のみが値になるようにする
+IS_WSL = '''
+{%- set proc = "/proc/version" -%}
+{%- if os() == "linux" and proc is file -%}
+  {%- set content = read_file(path="/proc/version") -%}
+  {%- if content is containing("microsoft") -%}
+    true
+  {%- else -%}
+    false
+  {%- endif -%}
+{%- else -%}
+  false
+{%- endif -%}
+'''
 
 [tasks.check_env]
 description = "環境変数がちゃんと設定されているか確認する"
@@ -49,11 +60,11 @@ hide = true
 quiet = true
 shell = "bash -c"
 run = """
-{% if env.IS_WSL == 'true' %}
-DEFAULT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
-{% else %}
-DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
-{% endif %}
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_GEMINI_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_GEMINI_PROFILE:-}"
+fi
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
 if [ -z "$PROFILE" ]; then
@@ -61,14 +72,14 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
     printf "   Available profiles:\n"
-    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    if [ -d "{{config_root}}/$PROFILES_DIR" ]; then
+      ls -1 "{{config_root}}/$PROFILES_DIR" | sed 's/^/   - /'
     else
       printf "   (No profiles directory found)\n"
     fi
@@ -92,7 +103,7 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
 if [ -d "$PROFILE_PATH" ]; then
   printf "❌ Error: Profile '$PROFILE' already exists\n" >&2
   exit 1
@@ -110,15 +121,15 @@ depends = ["check_env"]
 shell = "bash -c"
 quiet = true
 run = """
-{% if env.IS_WSL == 'true' %}
-DEFAULT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
-{% else %}
-DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
-{% endif %}
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_GEMINI_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_GEMINI_PROFILE:-}"
+fi
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 mise run check --prof "$PROFILE"
 
-PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
 
 printf "%s\n" "🦄 Linking Gemini CLI settings from profile: $PROFILE"
 
@@ -161,18 +172,18 @@ depends = ["check_env"]
 shell = "bash -c"
 quiet = true
 run = """
-{% if env.IS_WSL == 'true' %}
-DEFAULT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
-{% else %}
-DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
-{% endif %}
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_GEMINI_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_GEMINI_PROFILE:-}"
+fi
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 
-PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
 
 printf "%s\n" "🦄 Environment Check"
 printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
-printf "env.IS_WSL           =\\033[36m %s\\033[0m\n" "{{ env.IS_WSL }}"
+printf "IS_WSL               =\\033[36m %s\\033[0m\n" "$IS_WSL"
 printf "config_root          =\\033[36m %s\\033[0m\n" "{{ config_root }}"
 printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
 
@@ -229,8 +240,8 @@ if [ -z "$NEW_PROFILE" ]; then
     printf "%s\n" "❌ Error: profile name is required."
     printf "%s\n" "   Usage: mise run switch <profile-name>\n"
     printf "%s\n" "   Available profiles:"
-    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
+    if [ -d "{{config_root}}/$PROFILES_DIR" ]; then
+      ls -1 "{{config_root}}/$PROFILES_DIR" | sed 's/^/     - /'
     fi
   } >&2
   exit 1
@@ -241,19 +252,19 @@ mise run check --prof "$NEW_PROFILE"
 
 # WSL か否かに応じて mise.local.toml の適切な環境変数を更新
 LOCAL_CONFIG="{{config_root}}/mise.local.toml"
-{% if env.IS_WSL == 'true' %}
-{
-  printf "%s\n" '[env]'
-  printf "%s\n" "DEFAULT_GEMINI_PROFILE = \\\"${DEFAULT_GEMINI_PROFILE:-}\\\""
-  printf "%s\n" "WSL_GEMINI_PROFILE = \\\"$NEW_PROFILE\\\""
-} > "$LOCAL_CONFIG"
-{% else %}
-{
-  printf "%s\n" '[env]'
-  printf "%s\n" "DEFAULT_GEMINI_PROFILE = \\\"$NEW_PROFILE\\\""
-  printf "%s\n" "WSL_GEMINI_PROFILE = \\\"${WSL_GEMINI_PROFILE:-}\\\""
-} > "$LOCAL_CONFIG"
-{% endif %}
+if [ "$IS_WSL" = "true" ]; then
+  {
+    printf "%s\n" '[env]'
+    printf "%s\n" "DEFAULT_GEMINI_PROFILE = \\\"${DEFAULT_GEMINI_PROFILE:-}\\\""
+    printf "%s\n" "WSL_GEMINI_PROFILE = \\\"$NEW_PROFILE\\\""
+  } > "$LOCAL_CONFIG"
+else
+  {
+    printf "%s\n" '[env]'
+    printf "%s\n" "DEFAULT_GEMINI_PROFILE = \\\"$NEW_PROFILE\\\""
+    printf "%s\n" "WSL_GEMINI_PROFILE = \\\"${WSL_GEMINI_PROFILE:-}\\\""
+  } > "$LOCAL_CONFIG"
+fi
 
 printf "%s\n" "🦄 Switching Gemini CLI profile to: $NEW_PROFILE"
 
@@ -270,13 +281,13 @@ depends = ["check_env"]
 shell = "bash -c"
 quiet = true
 run = """
-PROFILES_DIR="{{config_root}}/{{env.PROFILES_DIR}}"
+PROFILES_DIR="{{config_root}}/$PROFILES_DIR"
 
-{% if env.IS_WSL == 'true' %}
-CURRENT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"
-{% else %}
-CURRENT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
-{% endif %}
+if [ "$IS_WSL" = "true" ]; then
+  CURRENT_PROFILE="${WSL_GEMINI_PROFILE:-}"
+else
+  CURRENT_PROFILE="${DEFAULT_GEMINI_PROFILE:-}"
+fi
 
 printf "%s\n" "🦄 Available Gemini CLI Profiles:"
 if [ -d "$PROFILES_DIR" ]; then
