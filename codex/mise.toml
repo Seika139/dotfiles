@@ -235,26 +235,37 @@ done
 
 printf "%s\n" "\n💡 Commands:"
 printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
-printf "%s\n" "   プロファイル変更: mise run switch <profile-name>"
+printf "%s\n" "   プロファイル変更: mise run switch [--prof <profile-name>]"
 """
 
 [tasks.switch]
-description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch <profile-name>)"
+description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch [--prof <profile-name>])"
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
 run = """
-NEW_PROFILE={{arg(name="prof")}}
+NEW_PROFILE="{{option(name="prof")}}"
 if [ -z "$NEW_PROFILE" ]; then
-  {
-    printf "%s\n" "❌ Error: profile name is required."
-    printf "%s\n" "   Usage: mise run switch <profile-name>\n"
-    printf "%s\n" "   Available profiles:"
-    if [ -d "{{config_root}}/$PROFILES_DIR" ]; then
-      ls -1 "{{config_root}}/$PROFILES_DIR" | sed 's/^/     - /'
+  PROFILES_PATH="{{config_root}}/$PROFILES_DIR"
+  if [ ! -d "$PROFILES_PATH" ] || [ -z "$(ls -A "$PROFILES_PATH" 2>/dev/null)" ]; then
+    printf "%s\n" "❌ Error: No profiles found in $PROFILES_PATH" >&2
+    exit 1
+  fi
+  if command -v fzf &>/dev/null && [ -t 0 ]; then
+    NEW_PROFILE=$(ls -1 "$PROFILES_PATH" | fzf --prompt="Select Codex profile: " --height=~50% --reverse)
+    if [ -z "$NEW_PROFILE" ]; then
+      printf "%s\n" "❌ cancelled."
+      exit 1
     fi
-  } >&2
-  exit 1
+  else
+    {
+      printf "%s\n" "❌ Error: profile name is required."
+      printf "%s\n" "   Usage: mise run switch --prof <profile-name>"
+      printf "%s\n" "   Available profiles:"
+      ls -1 "$PROFILES_PATH" | sed 's/^/     - /'
+    } >&2
+    exit 1
+  fi
 fi
 
 # プロファイル存在確認
