@@ -384,13 +384,6 @@ elif command -v mise &>/dev/null; then
       error "No such directory: ${ROOT}/claude/"
       exit 1
     }
-    # mise.toml の IS_WSL は Tera の exec() で評価されるが、初回実行時に失敗することがある
-    # 確実に利用できるように環境変数としてもエクスポートしておく
-    if [ -n "$(detect_wsl)" ]; then
-      export IS_WSL=true
-    else
-      export IS_WSL=false
-    fi
     mise trust -a
     mise run check_env
     info "🚀 mise.local.toml が存在しない場合に 'Error task failed' と表示されますが問題ありません"
