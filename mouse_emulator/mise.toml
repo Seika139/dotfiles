@@ -11,7 +11,7 @@ description = "uvを利用して仮想環境を作成します。ある場合は
 shell = "bash -c"
 quiet = true
 run = '''
-if [ ! -d "{{env.MISE_CONFIG_ROOT}}/.venv" ]; then
+if [ ! -d "{{config_root}}/.venv" ]; then
   echo "Creating .venv ..."
   uv venv --clear
 fi
@@ -23,7 +23,7 @@ shell = "bash -c"
 quiet = true
 run = '''
 echo "Resetting .venv ..."
-venv_dir="{{env.MISE_CONFIG_ROOT}}/.venv"
+venv_dir="{{config_root}}/.venv"
 if [ -d "$venv_dir" ]; then
   echo "Removing existing .venv ...";
   chmod -R +w "$venv_dir" 2>/dev/null || true;
@@ -41,9 +41,9 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-if [ -d "{{env.MISE_CONFIG_ROOT}}/.venv" ] \
-  && [ ! -f "{{env.MISE_CONFIG_ROOT}}/.venv/bin/python" ] \
-  && [ ! -f "{{env.MISE_CONFIG_ROOT}}/.venv/Scripts/python.exe" ]; then
+if [ -d "{{config_root}}/.venv" ] \
+  && [ ! -f "{{config_root}}/.venv/bin/python" ] \
+  && [ ! -f "{{config_root}}/.venv/Scripts/python.exe" ]; then
   echo "virtual environment is broken. Recreating..."
   mise run reset-venv
 fi
@@ -108,7 +108,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 run = '''
-# PY_BIN="{{env.MISE_CONFIG_ROOT}}/.venv/bin/python"
+# PY_BIN="{{config_root}}/.venv/bin/python"
 # "$PY_BIN" -m mouse_emulator register {{option(name='prof', default='default')}}
 uv run python -m mouse_emulator register {{option(name='prof', default='default')}}
 '''

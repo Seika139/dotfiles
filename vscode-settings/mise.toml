@@ -23,17 +23,17 @@ hide = true
 shell = "bash -c"
 run = """
 set -eu
-if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+if [ ! -e "{{config_root}}/mise.local.toml" ]; then
   {
     echo '[env]'
     echo 'DEFAULT_PROFILE=""'
-  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
-  echo "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  } > "{{config_root}}/mise.local.toml"
+  echo "🚨 '{{config_root}}/mise.local.toml' に環境変数を設定する必要があります。"
   echo "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。"
   exit 1
 fi
 if [ -z "${DEFAULT_PROFILE:-}" ]; then
-  echo "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  echo "🚨 'DEFAULT_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。"
   exit 1
 fi
 """

@@ -16,23 +16,23 @@ run = """
 set -eu
 
 # mise.local.tomlファイルの存在確認と初期化
-if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+if [ ! -e "{{config_root}}/mise.local.toml" ]; then
   {
     printf "%s\n" '[env]'
     printf "%s\n" 'DEFAULT_GEMINI_PROFILE=""'
     printf "%s\n" 'WSL_GEMINI_PROFILE=""'
-  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
-  printf "%s\n" "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。"
+  } > "{{config_root}}/mise.local.toml"
+  printf "%s\n" "🚨 '{{config_root}}/mise.local.toml' に環境変数を設定する必要があります。"
   printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
   printf "%s\n" "🚨 DEFAULT_GEMINI_PROFILE=\"\" と WSL_GEMINI_PROFILE=\"\" に適切なプロファイル名を設定してください。"
   exit 1
 fi
 if [ -z "${DEFAULT_GEMINI_PROFILE:-}" ]; then
-  printf "%s\n" "🚨 'DEFAULT_GEMINI_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。"
+  printf "%s\n" "🚨 'DEFAULT_GEMINI_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。"
   exit 1
 fi
 if [ -z "${WSL_GEMINI_PROFILE:-}" ]; then
-  printf "%s\n" "🚨 'WSL_GEMINI_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
+  printf "%s\n" "🚨 'WSL_GEMINI_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
   exit 1
 fi
 
@@ -61,14 +61,14 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
     printf "   Available profiles:\n"
-    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
     else
       printf "   (No profiles directory found)\n"
     fi
@@ -92,7 +92,7 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 if [ -d "$PROFILE_PATH" ]; then
   printf "❌ Error: Profile '$PROFILE' already exists\n" >&2
   exit 1
@@ -118,7 +118,7 @@ DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 mise run check --prof "$PROFILE"
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 printf "%s\n" "🦄 Linking Gemini CLI settings from profile: $PROFILE"
 
@@ -168,12 +168,12 @@ DEFAULT_PROFILE="{{ env.DEFAULT_GEMINI_PROFILE }}"
 {% endif %}
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 printf "%s\n" "🦄 Environment Check"
 printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
 printf "env.IS_WSL           =\\033[36m %s\\033[0m\n" "{{ env.IS_WSL }}"
-printf "env.MISE_CONFIG_ROOT =\\033[36m %s\\033[0m\n" "{{ env.MISE_CONFIG_ROOT }}"
+printf "config_root          =\\033[36m %s\\033[0m\n" "{{ config_root }}"
 printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
@@ -229,8 +229,8 @@ if [ -z "$NEW_PROFILE" ]; then
     printf "%s\n" "❌ Error: profile name is required."
     printf "%s\n" "   Usage: mise run switch <profile-name>\n"
     printf "%s\n" "   Available profiles:"
-    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
+    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
     fi
   } >&2
   exit 1
@@ -240,7 +240,7 @@ fi
 mise run check --prof "$NEW_PROFILE"
 
 # WSL か否かに応じて mise.local.toml の適切な環境変数を更新
-LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+LOCAL_CONFIG="{{config_root}}/mise.local.toml"
 {% if env.IS_WSL == 'true' %}
 {
   printf "%s\n" '[env]'
@@ -270,7 +270,7 @@ depends = ["check_env"]
 shell = "bash -c"
 quiet = true
 run = """
-PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
+PROFILES_DIR="{{config_root}}/{{env.PROFILES_DIR}}"
 
 {% if env.IS_WSL == 'true' %}
 CURRENT_PROFILE="{{ env.WSL_GEMINI_PROFILE }}"

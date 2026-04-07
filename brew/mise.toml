@@ -4,20 +4,20 @@ quiet = true
 hide = true
 run = """
 set -eu
-if [ ! -e "{{env.MISE_CONFIG_ROOT}}/mise.local.toml" ]; then
+if [ ! -e "{{config_root}}/mise.local.toml" ]; then
   {
     printf '[env]\n'
     printf 'PROFILES_DIR="profiles"\n'
     printf 'BREWFILE_NAME="Brewfile"\n'
     printf 'DEFAULT_PROFILE=""\n'
-  } > "{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
-  printf "🚨 '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に環境変数を設定する必要があります。\n"
+  } > "{{config_root}}/mise.local.toml"
+  printf "🚨 '{{config_root}}/mise.local.toml' に環境変数を設定する必要があります。\n"
   printf "🚨 必要な環境変数をデフォルトでセットしました。\n"
   printf "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。\n"
   exit 1
 fi
 if [ -z "${DEFAULT_PROFILE:-}" ]; then
-  printf "🚨 'DEFAULT_PROFILE' を '{{env.MISE_CONFIG_ROOT}}/mise.local.toml' に設定してください。\n"
+  printf "🚨 'DEFAULT_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。\n"
   exit 1
 fi
 """
@@ -54,15 +54,15 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 # 成功時は無音、エラー時のみ詳細を表示する
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
     printf "   Available profiles:\n"
-    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
     else
       printf "   (No profiles directory found)\n"
     fi
@@ -84,9 +84,9 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 echo "🦄 Dumping current brew packages to profile: $PROFILE"
-mkdir -p "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
-brew bundle dump --file="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}" --force
-echo "✅ Dumped current packages to {{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+mkdir -p "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
+brew bundle dump --file="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}" --force
+echo "✅ Dumped current packages to {{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 """
 
 [tasks.status_simple]
@@ -95,7 +95,7 @@ depends = ["check_env", "brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -131,7 +131,7 @@ make_tmp(){ mktemp "$TMP_DIR/tmp.XXXXXX"; }
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
 
-BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -249,7 +249,7 @@ depends = ["check_env", "brew_available"]
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -278,7 +278,7 @@ depends = ["check_env", "brew_available"]
 run = '''
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -338,7 +338,7 @@ confirm = "選択したBrewfileに記載のないパッケージを削除しま�
 run = """
 PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1

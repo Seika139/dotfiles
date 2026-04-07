@@ -197,7 +197,7 @@ run = "docker compose -f compose.$SOME.yml up"
 ```toml
 [tasks.printf]
 run = """
-printf "\\033[36m {{env.MISE_CONFIG_ROOT}} \\033[0m\n"
+printf "\\033[36m {{config_root}} \\033[0m\n"
 """
 ```
 
@@ -211,7 +211,7 @@ bash: line 9: printf: missing unicode digit for \U
 ```toml
 [tasks.printf]
 run = """
-printf "\\033[36m %s \\033[0m\n" "{{env.MISE_CONFIG_ROOT}}"
+printf "\\033[36m %s \\033[0m\n" "{{config_root}}"
 """
 ```
 

@@ -13,8 +13,8 @@ quiet = true
 hide = true
 shell = "bash -c"
 run = '''
-chmod +x "{{env.MISE_CONFIG_ROOT}}/mise/scripts/check_env.sh"
-bash "{{env.MISE_CONFIG_ROOT}}/mise/scripts/check_env.sh"
+chmod +x "{{config_root}}/mise/scripts/check_env.sh"
+bash "{{config_root}}/mise/scripts/check_env.sh"
 '''
 
 [tasks.check]
@@ -36,14 +36,14 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
     printf "   Available profiles:\n"
-    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
     else
       printf "   (No profiles directory found)\n"
     fi
@@ -67,7 +67,7 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 if [ -d "$PROFILE_PATH" ]; then
   printf "❌ Error: Profile '$PROFILE' already exists\n" >&2
   exit 1
@@ -127,7 +127,7 @@ DEFAULT_PROFILE="{{ env.DEFAULT_CODEX_PROFILE }}"
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 mise run check --prof "$PROFILE"
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
 
@@ -178,12 +178,12 @@ DEFAULT_PROFILE="{{ env.DEFAULT_CODEX_PROFILE }}"
 {% endif %}
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
 
-PROFILE_PATH="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
 
 printf "%s\n" "🦄 Environment Check"
 printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
 printf "env.IS_WSL           =\\033[36m %s\\033[0m\n" "{{ env.IS_WSL }}"
-printf "env.MISE_CONFIG_ROOT =\\033[36m %s\\033[0m\n" "{{ env.MISE_CONFIG_ROOT }}"
+printf "config_root          =\\033[36m %s\\033[0m\n" "{{ config_root }}"
 printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
@@ -239,8 +239,8 @@ if [ -z "$NEW_PROFILE" ]; then
     printf "%s\n" "❌ Error: profile name is required."
     printf "%s\n" "   Usage: mise run switch <profile-name>\n"
     printf "%s\n" "   Available profiles:"
-    if [ -d "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
+    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
+      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/     - /'
     fi
   } >&2
   exit 1
@@ -250,7 +250,7 @@ fi
 mise run check --prof "$NEW_PROFILE"
 
 # WSL か否かに応じて mise.local.toml の適切な環境変数を更新
-LOCAL_CONFIG="{{env.MISE_CONFIG_ROOT}}/mise.local.toml"
+LOCAL_CONFIG="{{config_root}}/mise.local.toml"
 {% if env.IS_WSL == 'true' %}
 {
   printf "%s\n" '[env]'
@@ -280,7 +280,7 @@ depends = ["check_env"]
 shell = "bash -c"
 quiet = true
 run = """
-PROFILES_DIR="{{env.MISE_CONFIG_ROOT}}/{{env.PROFILES_DIR}}"
+PROFILES_DIR="{{config_root}}/{{env.PROFILES_DIR}}"
 
 {% if env.IS_WSL == 'true' %}
 CURRENT_PROFILE="{{ env.WSL_CODEX_PROFILE }}"
