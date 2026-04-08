@@ -25,7 +25,7 @@ User's preferred tools include:
 
 - Python: uv, ruff
 - JavaScript: eslint, prettier
-- Markdown: markdownlint-cli2
+- Markdown: rumdl
 - shellscript: shfmt
 - yaml: yamllint
 
