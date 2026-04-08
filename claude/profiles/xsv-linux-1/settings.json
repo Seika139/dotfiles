@@ -67,7 +67,6 @@
     "type": "command",
     "command": "~/dotfiles/claude/status_line.sh"
   },
-  "skipDangerousModePermissionPrompt": true,
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
@@ -84,5 +83,6 @@
         "repo": "anthropics/claude-plugins-official"
       }
     }
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }

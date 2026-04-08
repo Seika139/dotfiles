@@ -31,7 +31,7 @@ User's preferred tools include:
 
 ## Environment-Specific Notes
 
-This machine is ubuntu with 4GB RAM.
+This machine is ubuntu with 8GB RAM.
 I have a separate development machine that uses a Mac book with 32GB RAM. This Ubuntu is on a VPS, so you can take advantage of the fact that you can work from anywhere 24 hours a day, and while you handle what is possible with Ubuntu's specs, consider having a Mac book perform heavy processing as needed.
 
 ## Restrictions
