@@ -389,14 +389,28 @@
   },
   "github.copilot.nextEditSuggestions.enabled": true,
   "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "text": "日本語で書く。" },
+    { "text": "Subject は50文字以内（全角約25文字目安）に収める。" },
     {
-      "text": "Write commit message in Japanese."
+      "text": "NEVER use Conventional Commits prefixes. Do NOT start with feat:, fix:, docs:, chore:, refactor:, etc."
+    },
+    { "text": "gitmoji や絵文字は使わない。" },
+    {
+      "text": "変更内容を直接記述する。日本語の場合は動詞で終える: 「〜を追加、〜を修正、〜に変更、〜を削除」など"
     },
     {
-      "text": "Follow the Conventional Commits format strictly for commit messages. "
+      "text": "コード参照（クラス名・設定キー・ファイル名等）はバッククォートで囲む。"
+    },
+    { "text": "Subject の末尾にピリオド（。）を付けない。" },
+    {
+      "text": "Body は変更の理由や背景を説明する。ただし、Subjectだけで十分な場合は省略する。"
+    },
+    { "text": "Subject と Body は空行で分離する。" },
+    {
+      "text": "Body の箇条書きは - を使う。what と why を説明し、how は書かない。最大でも72文字になるように端的に書く。"
     },
     {
-      "text": "Use the structure below:\n\n```\n<type>[optional scope]: <gitmoji> <description>\n\n[optional body]\n```\n\nGuidelines:\n\n1. **Type and Scope**: Choose an appropriate type (e.g., `feat`, `fix`) and optional scope to describe the affected module or feature.\n\n2. **Gitmoji**: Include a relevant `gitmoji` that best represents the nature of the change.\n\n3. **Description**: Write a concise, informative description in the header; use backticks if referencing code or specific terms.\n\n4. **Body**: For additional details, use a well-structured body section:\n   - Use bullet points (`*`) for clarity.\n   - Clearly describe the motivation, context, or technical details behind the change, if applicable.\n\nCommit messages should be clear, informative, and professional, aiding readability and project tracking."
+      "text": "良い Subject の例: `Config\\Database` のリトライポリシー適用漏れを修正 / PHP標準Exception使用箇所を `ExceptionBase` に変更"
     }
   ],
   "accessibility.signals.onDebugBreak": {

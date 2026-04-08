@@ -34,6 +34,10 @@ User's preferred tools include:
 This machine is ubuntu with 8GB RAM.
 I have a separate development machine that uses a Mac book with 32GB RAM. This Ubuntu is on a VPS, so you can take advantage of the fact that you can work from anywhere 24 hours a day, and while you handle what is possible with Ubuntu's specs, consider having a Mac book perform heavy processing as needed.
 
+## 検索・フィルタリングルール
+
+- Bash でコマンド出力をフィルタリングする際は `grep` ではなく `rg` を使うこと。
+
 ## Restrictions
 
 - No sensitive data should be hardcoded in the source code.

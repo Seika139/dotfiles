@@ -31,6 +31,10 @@ User's preferred tools include:
 
 - Ensure that Docker is running when using Docker Compose or DevContainers.
 
+## 検索・フィルタリングルール
+
+- Bash でコマンド出力をフィルタリングする際は `grep` ではなく `rg` を使うこと。
+
 ## Restrictions
 
 - No sensitive data should be hardcoded in the source code.

@@ -18,18 +18,18 @@ These rules are enforced by the `.editorconfig` file.
 
 ## Commit Messages
 
-Commit messages should follow the Conventional Commits specification, as defined in the `.gitmessage` template.
-
-- **Format**: `<type>(<scope>): <subject>`
-- **Header**: The header line should not exceed 50 characters.
-- **Body**: The body should be wrapped at 72 characters.
-- **Example**:
+- **言語**: 日本語で書く。定型的な操作（Add test, Fix phpdoc 等）のみ英語可。
+- **Subject**: 50文字以内。変更内容を直接記述し、日本語は動詞で終える（〜を追加、〜を修正、〜に変更など）。
+- **プレフィックス**: Conventional Commits (`feat:`, `fix:` 等) や gitmoji は**使わない**。
+- **コード参照**: クラス名・設定キー等はバッククォートで囲む。
+- **Body**: Subject と空行で分離。`-` の箇条書きで what/why を説明。72文字で折り返す。
+- **例**:
 
   ```plain
-  feat(brew): add new package to Brewfile
+  `Config\Database` で指定したリトライポリシーの適用漏れを修正
 
-  This commit adds the 'ripgrep' package to the Brewfile to
-  provide a faster search tool.
+  * AbstractDriverManagerでDriverインスタンス作成時にconnectRetryPolicyを適用していなかった
+  * issue #2075 の再現テストを追加
   ```
 
 ## Shell Scripts

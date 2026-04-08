@@ -55,7 +55,7 @@ fi
 PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR:-profiles}/$PROFILE"
 
 # シンボリックリンクを作成するターゲットファイル・ディレクトリのリスト
-targets=(settings.json settings.local.json CLAUDE.md commands skills custom-config)
+targets=(settings.json settings.local.json CLAUDE.md commands skills custom-config rules)
 
 # ---------------------------------------------------------------------------
 # symlink が実ファイルに置き換わっていたら、先に recover して変更を取り込む

@@ -11,27 +11,30 @@ description: "ステージされている差分をコミットする"
 
 ## コミットメッセージのルール
 
-**Follow the Conventional Commits format strictly for commit messages.**
-**Write commit message in Japanese.**
+**日本語で書く。** 定型的な操作（Add test, Fix phpdoc 等）のみ英語可。
 
-Use the structure below:
+### Subject line
 
-```plain
-<type>[optional scope]: <gitmoji> <description>
+- **50文字以内**（全角約25文字）に収める
+- Conventional Commits プレフィックス（feat:, fix: 等）は**使わない**
+- gitmoji や絵文字は**使わない**
+- 変更内容を直接記述する。日本語の場合は動詞で終える: 〜を追加、〜を修正、〜に変更、〜を削除など
+- クラス名・設定キー・ファイル名などのコード参照はバッククォートで囲む
+- Subject の末尾にピリオド（。）を付けない
 
-[optional body]
+### Body
+
+- Subject と Body は空行で分離する
+- 箇条書きは `-` を使う
+- what と why を説明する（how ではない）
+- 72文字で折り返す
+
+### 良い Subject の例
+
+```text
+`Config\Database` で指定したリトライポリシーの適用漏れを修正
+PHP標準のException使用箇所を `BaseException` に変更
+`TlsContext` で `verify_peer` を指定可能にする
+Add CHANGELOG
+Fix phpdoc
 ```
-
-Guidelines:
-
-1. **Type and Scope**: Choose an appropriate type (e.g., `feat`, `fix`) and optional scope to describe the affected module or feature.
-
-2. **Gitmoji**: Include a relevant `gitmoji` that best represents the nature of the change.
-
-3. **Description**: Write a concise, informative description in the header; use backticks if referencing code or specific terms.
-
-4. **Body**: For additional details, use a well-structured body section:
-   - Use bullet points (`*`) for clarity.
-   - Clearly describe the motivation, context, or technical details behind the change, if applicable.
-
-Commit messages should be clear, informative, and professional, aiding readability and project tracking.
