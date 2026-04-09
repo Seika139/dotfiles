@@ -45,7 +45,7 @@
     "elif",
     "Embedder",
     "endraw",
-    "endwith",
+    "endswith",
     "envsubst",
     "errexit",
     "errtrace",
