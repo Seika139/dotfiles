@@ -4,11 +4,23 @@
 # 既定のパスは bash/envs/00_secrets.bash (SECRETS_FILE で上書き可)。
 
 SECRETS_FILE="${SECRETS_FILE:-${BDOTDIR:-$HOME/dotfiles/bash}/envs/00_secrets.bash}"
+SECRETS_SAMPLE_FILE="${SECRETS_FILE%.bash}.sample.bash"
 if [[ -f "$SECRETS_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$SECRETS_FILE"
 elif [[ "${BDOTDIR_SHELL_IS_INTERACTIVE:-0}" == "1" ]]; then
-  printf "%b%s%b%s%b\n" '\033[31m' '🚨 [Secrets Warning] ' '\033[36m' "$SECRETS_FILE" '\033[31m が見つかりません。必要な機密情報を記載してください。\033[0m'
+  printf "%b%s%b%s%b\n" '\033[33m' '🚨 [Secrets Warning] ' '\033[36m' "$SECRETS_FILE" '\033[33m が見つかりません。\033[0m'
+  if [[ -f "$SECRETS_SAMPLE_FILE" ]] && [[ -t 0 ]]; then
+    printf "%b%s%b" '\033[33m' '   sample からコピーして作成しますか？ [Y/n]: ' '\033[0m'
+    read -r BDOT_SECRETS_REPLY </dev/tty
+    if [[ "$BDOT_SECRETS_REPLY" != [nN]* ]]; then
+      cp "$SECRETS_SAMPLE_FILE" "$SECRETS_FILE"
+      printf "%b%s%b%s%b\n" '\033[32m' '   ✔ ' '\033[36m' "$SECRETS_FILE" '\033[32m を作成しました。必要に応じて編集してください。\033[0m'
+      # shellcheck disable=SC1090
+      source "$SECRETS_FILE"
+    fi
+    unset BDOT_SECRETS_REPLY
+  fi
 fi
 
 # 必要な環境変数が設定されているか確認する関数
@@ -44,4 +56,4 @@ if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE:-0}" == "1" ]] && ((${#BDOT_SECRETS_REQUIR
 fi
 
 unset BDOT_SECRETS_REQUIRED_VARS
-unset SECRETS_FILE
+unset SECRETS_FILE SECRETS_SAMPLE_FILE
