@@ -18,23 +18,40 @@ load_file() {
 }
 
 if ! load_file "$SELECT_FILE" && [[ -f "$SELECT_SAMPLE_FILE" ]]; then
-  load_file "$SELECT_SAMPLE_FILE"
-  USED_SELECT_FILE="$SELECT_SAMPLE_FILE"
   if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE:-0}" == "1" ]]; then
-    printf '🚨 \033[31m[Env Warning] \033[36m%s\033[31m が見つからないため sample を読み込みました。\033[0m\n' "$SELECT_FILE"
+    printf "%b%s%b%s%b\n" '\033[33m' '🚨 [Env Warning] ' '\033[36m' "$SELECT_FILE" '\033[33m が見つかりません。\033[0m'
+    if [[ -t 0 ]]; then
+      printf "%b%s%b" '\033[33m' '   sample からコピーして作成しますか？ [Y/n]: ' '\033[0m'
+      read -r BDOT_ENV_REPLY </dev/tty
+    else
+      BDOT_ENV_REPLY="n"
+    fi
+    if [[ "$BDOT_ENV_REPLY" != [nN]* ]]; then
+      cp "$SELECT_SAMPLE_FILE" "$SELECT_FILE"
+      printf "%b%s%b%s%b\n" '\033[32m' '   ✔ ' '\033[36m' "$SELECT_FILE" '\033[32m を作成しました。必要に応じて編集してください。\033[0m'
+      load_file "$SELECT_FILE"
+    else
+      load_file "$SELECT_SAMPLE_FILE"
+      USED_SELECT_FILE="$SELECT_SAMPLE_FILE"
+      printf "   %b%s%b\n" '\033[33m' 'sample を一時的に読み込みました。' '\033[0m'
+    fi
+    unset BDOT_ENV_REPLY
+  else
+    load_file "$SELECT_SAMPLE_FILE"
+    USED_SELECT_FILE="$SELECT_SAMPLE_FILE"
   fi
 fi
 
 if [[ ${#BDOT_ENV_PROFILE_FILES[@]} -eq 0 ]]; then
   if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE:-0}" == "1" ]]; then
-    printf '🚨 \033[31m[Env Warning] BDOT_ENV_PROFILE_FILES が設定されていません。\033[36m %s\033[31m を編集してください。\033[0m\n' "$SELECT_FILE"
+    printf "%b%s%b%s%b\n" '\033[31m' '🚨 [Env Warning] BDOT_ENV_PROFILE_FILES が設定されていません。' '\033[36m' " $SELECT_FILE" '\033[31m を編集してください。\033[0m'
   fi
 else
   for profile_file in "${BDOT_ENV_PROFILE_FILES[@]}"; do
     profile_path="${ENV_DIR}/${profile_file}"
     if ! load_file "$profile_path"; then
       if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE:-0}" == "1" ]]; then
-        printf '🚨 \033[31m[Env Warning] \033[36m%s\033[31m を読み込めませんでした。\033[0m\n' "$profile_path"
+        printf "%b%s%b%s%b\n" '\033[31m' '🚨 [Env Warning] ' '\033[36m' "$profile_path" '\033[31m を読み込めませんでした。\033[0m'
       fi
     fi
   done
@@ -50,7 +67,9 @@ check_required_env_vars() {
   done
 
   if ((${#missing_vars[@]} > 0)); then
-    printf '🚨 \033[31m[Env Error] 以下の環境変数が設定されていません。\033[36m%s\033[31m を確認してください。\033[33m\n %s\033[0m\n' "$USED_SELECT_FILE" "${missing_vars[*]}" >&2
+    printf "%b%s%b%s%b\n" '\033[31m' '🚨 [Env Error] 以下の環境変数が設定されていません: ' '\033[33m' "${missing_vars[*]}" '\033[0m' >&2
+    printf "%b%s%b%s%b\n" '\033[31m' '   → ' '\033[36m' "$USED_SELECT_FILE" '\033[31m を確認してください。\033[0m' >&2
+    printf "%b%s%b\n" '\033[2m' '   ヒント: 環境プロファイルで BDOT_ENV_REQUIRED_VARS を定義すれば必須変数を変更できます。' '\033[0m' >&2
     return 1
   fi
   return 0
