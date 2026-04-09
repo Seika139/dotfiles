@@ -158,6 +158,9 @@ mkdir -p "$PROFILE_PATH/commands"
 # skills ディレクトリ作成
 mkdir -p "$PROFILE_PATH/skills"
 
+# rules ディレクトリ作成
+mkdir -p "$PROFILE_PATH/rules"
+
 printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 printf "%s\n" "📝 Edit settings in:"
 printf "%s\n" "   - $PROFILE_PATH/settings.json"
@@ -214,7 +217,7 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 printf "\n📂 Original files and directories:\n"
-for file in settings.json settings.local.json CLAUDE.md commands skills custom-config; do
+for file in settings.json settings.local.json CLAUDE.md commands skills custom-config rules; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -224,7 +227,7 @@ for file in settings.json settings.local.json CLAUDE.md commands skills custom-c
 done
 
 printf "\n🔗 Symlinks in\\033[36m %s/.claude:\\033[0m\n" "$HOME"
-for file in settings.json settings.local.json CLAUDE.md commands skills custom-config; do
+for file in settings.json settings.local.json CLAUDE.md commands skills custom-config rules; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
 
