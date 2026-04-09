@@ -1,23 +1,27 @@
+# サブプロセス (mise run ...) から参照できるよう、config_root をシェル環境変数に変換する
+[env]
+BREW_CONFIG_ROOT = "{{config_root}}"
+
 [tasks.check_env]
 description = "環境変数がちゃんと設定されているか確認する"
 quiet = true
 hide = true
 run = """
 set -eu
-if [ ! -e "{{config_root}}/mise.local.toml" ]; then
+if [ ! -e "$BREW_CONFIG_ROOT/mise.local.toml" ]; then
   {
     printf '[env]\n'
     printf 'PROFILES_DIR="profiles"\n'
     printf 'BREWFILE_NAME="Brewfile"\n'
     printf 'DEFAULT_PROFILE=""\n'
-  } > "{{config_root}}/mise.local.toml"
-  printf "🚨 '{{config_root}}/mise.local.toml' に環境変数を設定する必要があります。\n"
+  } > "$BREW_CONFIG_ROOT/mise.local.toml"
+  printf "🚨 '$BREW_CONFIG_ROOT/mise.local.toml' に環境変数を設定する必要があります。\n"
   printf "🚨 必要な環境変数をデフォルトでセットしました。\n"
   printf "🚨 DEFAULT_PROFILE=\"\" に適切なプロファイル名を設定してください。\n"
   exit 1
 fi
 if [ -z "${DEFAULT_PROFILE:-}" ]; then
-  printf "🚨 'DEFAULT_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。\n"
+  printf "🚨 'DEFAULT_PROFILE' を '$BREW_CONFIG_ROOT/mise.local.toml' に設定してください。\n"
   exit 1
 fi
 """
@@ -33,36 +37,28 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 """
 
-[tasks.test_profile]
-description = "option(name=\"profile\") だと mise の組み込み --profile オプションと衝突するため他の名前を使用すること"
-hide = true
-quiet = true
-run = """
-printf "PROFILE={{option(name=\"profile\", default=\"default_profile\")}}\n"
-printf "PROF={{option(name=\"prof\", default=\"default_prof\")}}\n"
-"""
-
 [tasks.check]
 description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
 depends = ["check_env"]
 hide = true
 quiet = true
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 if [ -z "$PROFILE" ]; then
   printf "❌ Error: DEFAULT_PROFILE is not set in environment variables\n" >&2
   exit 1
 fi
 
-PROFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
+PROFILE_PATH="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE"
 
 # 成功時は無音、エラー時のみ詳細を表示する
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
     printf "   Available profiles:\n"
-    if [ -d "{{config_root}}/{{env.PROFILES_DIR}}" ]; then
-      ls -1 "{{config_root}}/{{env.PROFILES_DIR}}" | sed 's/^/   - /'
+    if [ -d "$BREW_CONFIG_ROOT/$PROFILES_DIR" ]; then
+      ls -1 "$BREW_CONFIG_ROOT/$PROFILES_DIR" | sed 's/^/   - /'
     else
       printf "   (No profiles directory found)\n"
     fi
@@ -75,7 +71,8 @@ fi
 description = "現在インストールされているパッケージをプロファイルに書き出す (Usage: mise run dump <profile-name>)"
 depends = ["check_env", "brew_available"]
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 if [ -z "$PROFILE" ]; then
   {
     echo "❌ Error: profile name is required."
@@ -83,19 +80,46 @@ if [ -z "$PROFILE" ]; then
     } >&2
   exit 1
 fi
+mise run check --prof "$PROFILE"
+PROFILE_DIR="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE"
+BREWFILE="$PROFILE_DIR/$BREWFILE_NAME"
+EXCLUDE_FILE="$PROFILE_DIR/.dump_exclude"
+
 echo "🦄 Dumping current brew packages to profile: $PROFILE"
-mkdir -p "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
-brew bundle dump --file="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}" --force
-echo "✅ Dumped current packages to {{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+mkdir -p "$PROFILE_DIR"
+brew bundle dump --file="$BREWFILE" --force
+
+# 除外リスト (.dump_exclude) があれば該当行を削除する
+# 書式: Brewfile の行と完全一致する文字列を1行1エントリで記載
+#   例: brew "node"
+if [ -f "$EXCLUDE_FILE" ]; then
+  # コメント行・空行を除いた除外パターンを一時ファイルに抽出
+  EXCLUDE_TMP=$(mktemp)
+  rg -v '^(#|$)' "$EXCLUDE_FILE" > "$EXCLUDE_TMP" || true
+  if [ -s "$EXCLUDE_TMP" ]; then
+    BEFORE=$(wc -l < "$BREWFILE")
+    # 除外パターンに完全一致する行を削除
+    rg -vxFf "$EXCLUDE_TMP" "$BREWFILE" > "${BREWFILE}.tmp" && mv "${BREWFILE}.tmp" "$BREWFILE"
+    AFTER=$(wc -l < "$BREWFILE")
+    EXCLUDED=$((BEFORE - AFTER))
+    if [ "$EXCLUDED" -gt 0 ]; then
+      echo "🔇 $EXCLUDE_FILE に基づき ${EXCLUDED} 件を除外しました"
+    fi
+  fi
+  rm -f "$EXCLUDE_TMP"
+fi
+
+echo "✅ Dumped current packages to $BREWFILE"
 """
 
 [tasks.status_simple]
 description = "現在のBrewfileと実際のPCの状態の差分を確認し、差分がある場合はsyncを促す（statusの簡易版）"
 depends = ["check_env", "brew_available"]
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE/$BREWFILE_NAME"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -128,10 +152,11 @@ trap cleanup EXIT
 
 make_tmp(){ mktemp "$TMP_DIR/tmp.XXXXXX"; }
 
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 mise run check --prof "$PROFILE"
 
-BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE/$BREWFILE_NAME"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -205,10 +230,10 @@ OUTDATED_CASK_RAW=$(LC_ALL=C brew outdated --cask --greedy 2>/dev/null || true)
 
 # 1列目（パッケージ名）を抽出して Brewfile 記載分だけに絞る
 OUTDATED_FORMULA=$(
-  echo "$OUTDATED_FORMULA_RAW" | awk '{print $1}' | LC_ALL=C grep -Fxf "$TMP_WANT_BREWS" || true
+  echo "$OUTDATED_FORMULA_RAW" | awk '{print $1}' | LC_ALL=C rg -xFf "$TMP_WANT_BREWS" || true
 )
 OUTDATED_CASK=$(
-  echo "$OUTDATED_CASK_RAW"    | awk '{print $1}' | LC_ALL=C grep -Fxf "$TMP_WANT_CASKS" || true
+  echo "$OUTDATED_CASK_RAW"    | awk '{print $1}' | LC_ALL=C rg -xFf "$TMP_WANT_CASKS" || true
 )
 
 echo "🔄 Outdated (アップグレードが必要なパッケージ)"
@@ -237,7 +262,7 @@ printf "  - Brewfileに記載がないインストール済みパッケージを
 printf "  - パッケージを単体で更新する場合は\\033[36m brew upgrade (--cask) <package-name>\\033[0m\n"
 
 
-# Missing または Outdated があれば 1 を返す（“要対応” を終了コードで示す）
+# Missing または Outdated があれば 1 を返す（"要対応" を終了コードで示す）
 if [ "$missing_count" -gt 0 ] || [ "$outdated_count" -gt 0 ]; then
   exit 1
 fi
@@ -247,9 +272,10 @@ fi
 description = "Brewfileに基づいて install + upgrade を実行します。Brewfileに変更は加えません"
 depends = ["check_env", "brew_available"]
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE/$BREWFILE_NAME"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -276,9 +302,10 @@ run = "mise run sync --greedy"
 description = "Brewfile に無いパッケージを削除（デフォルトは dry-run。--apply で削除を実行）"
 depends = ["check_env", "brew_available"]
 run = '''
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE/$BREWFILE_NAME"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1
@@ -291,21 +318,28 @@ else
 
   TMP_OUT=$(mktemp)
   trap 'rm -f "$TMP_OUT"' EXIT
-  brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | \
-    sed -E 's/^(Would uninstall.*)/\x1b[33m\1\x1b[0m/' | \
-    tee "$TMP_OUT"
+  brew bundle cleanup --file="$BREWFILE_PATH" 2>&1 | tee "$TMP_OUT" | \
+    sed -E 's/^(Would uninstall.*)/\x1b[33m\1\x1b[0m/'
 
   COUNTS=$(
     awk '
-      /^Would uninstall formulae:/ {section="form"; next}
-      /^Would uninstall casks:/    {section="cask"; next}
-      /^Would uninstall taps:/     {section="tap"; next}
-      /^Would uninstall / || /^Run `brew bundle cleanup/ { if (section) section="" }
+      /^Would uninstall formulae:/       {section="form"; next}
+      /^Would uninstall casks:/          {section="cask"; next}
+      /^Would uninstall taps:/           {section="tap"; next}
+      /^Would untap /                    {counts["tap"]++; next}
+      /^Would uninstall VSCode/          {section="vscode"; next}
+      /^Would uninstall Go/              {section="go"; next}
+      /^Would .brew cleanup/             {section=""; next}
+      /^Run .brew bundle cleanup/        {section=""; next}
+      /^Would uninstall /                {section="other"; next}
       section && NF {counts[section]++}
       END {
         print counts["form"]+0
         print counts["cask"]+0
         print counts["tap"]+0
+        print counts["vscode"]+0
+        print counts["go"]+0
+        print counts["other"]+0
       }
     ' "$TMP_OUT"
   )
@@ -313,15 +347,18 @@ else
   FORM_COUNT=$(echo "$COUNTS" | sed -n 1p)
   CASK_COUNT=$(echo "$COUNTS" | sed -n 2p)
   TAP_COUNT=$(echo "$COUNTS" | sed -n 3p)
+  VSCODE_COUNT=$(echo "$COUNTS" | sed -n 4p)
+  GO_COUNT=$(echo "$COUNTS" | sed -n 5p)
+  OTHER_COUNT=$(echo "$COUNTS" | sed -n 6p)
 
-  if [ "$TAP_COUNT" -eq 0 ]; then
-    TAP_COUNT=$(grep -c '^Would untap ' "$TMP_OUT" || true)
-  fi
-
-  TOTAL=$((FORM_COUNT + CASK_COUNT + TAP_COUNT))
+  TOTAL=$((FORM_COUNT + CASK_COUNT + TAP_COUNT + VSCODE_COUNT + GO_COUNT + OTHER_COUNT))
 
   if [ "$TOTAL" -gt 0 ]; then
-    printf "\n⚠️ 削除候補があります（formulae=${FORM_COUNT}, casks=${CASK_COUNT}, taps=${TAP_COUNT} / total=${TOTAL}）\n"
+    DETAIL="formulae=${FORM_COUNT}, casks=${CASK_COUNT}, taps=${TAP_COUNT}"
+    [ "$VSCODE_COUNT" -gt 0 ] && DETAIL="${DETAIL}, vscode=${VSCODE_COUNT}"
+    [ "$GO_COUNT" -gt 0 ] && DETAIL="${DETAIL}, go=${GO_COUNT}"
+    [ "$OTHER_COUNT" -gt 0 ] && DETAIL="${DETAIL}, other=${OTHER_COUNT}"
+    printf "\n⚠️ 削除候補があります（${DETAIL} / total=${TOTAL}）\n"
     printf "   実行するには: mise run prune --apply --prof \"$PROFILE\"\n"
     exit 1
   else
@@ -336,9 +373,10 @@ hide = true
 depends = ["check_env", "brew_available"]
 confirm = "選択したBrewfileに記載のないパッケージを削除します。よろしいですか？"
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE={{option(name="prof", default="")}}
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 mise run check --prof "$PROFILE"
-BREWFILE_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.BREWFILE_NAME}}"
+BREWFILE_PATH="$BREW_CONFIG_ROOT/$PROFILES_DIR/$PROFILE/$BREWFILE_NAME"
 if [ ! -f "$BREWFILE_PATH" ]; then
   printf "❌ Error: Brewfile not found at '$BREWFILE_PATH'\n" >&2
   exit 1

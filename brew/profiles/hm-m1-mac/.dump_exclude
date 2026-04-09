@@ -1,0 +1,3 @@
+# brew bundle dump から除外するエントリ
+# volta で管理しているため brew の明示管理から除外
+brew "node"
