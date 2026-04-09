@@ -100,5 +100,9 @@
   },
   "outputStyle": "Explanatory",
   "skipDangerousModePermissionPrompt": true,
-  "defaultMode": "acceptEdits"
+  "defaultMode": "acceptEdits",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
 }

@@ -85,7 +85,15 @@
     "type": "command",
     "command": "~/dotfiles/claude/status_line.sh"
   },
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  },
   "otelHeadersHelper": "~/claude-code-with-bedrock/bin/otel-helper",
   "outputStyle": "Explanatory",
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
 }
