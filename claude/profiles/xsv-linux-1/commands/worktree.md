@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git worktree:*), Bash(git switch:*), Bash(git checkout:*), Bash(git merge:*), Bash(git branch:*), Bash(git log:*), Bash(git status:*), Bash(git diff:*), Bash(git push:*), Bash(git pull:*), Bash(git add:*), Bash(git commit:*), Bash(git stash:*), EnterWorktree, ExitWorktree
+allowed-tools: Bash(git worktree:*), Bash(git switch:*), Bash(git checkout:*), Bash(git merge:*), Bash(git branch:*), Bash(git log:*), Bash(git status:*), Bash(git diff:*), Bash(git push:*), Bash(git pull:*), Bash(git add:*), Bash(git commit:*), Bash(git stash:*), Bash(rm -rf:*), EnterWorktree, ExitWorktree
 argument-hint: "[worktree 名] [--exit] [--exit-remove]"
 description: "git worktree で隔離された作業環境を作成する"
 ---
@@ -73,12 +73,28 @@ worktree 内の変更をメインブランチに取り込むには:
 ## パターン C: Worktree を削除して出る（--exit-remove）
 
 1. 未コミットの変更やマージされていないコミットがある場合は警告し、確認する
-2. `ExitWorktree` を `action: "remove"` で呼び出す
+2. `ExitWorktree` を呼び出す前に、worktree のパスを変数として記録しておく
+3. `ExitWorktree` を `action: "remove"` で呼び出す
    - 変更がある場合は `discard_changes: true` を設定する前にユーザーの確認を取る
-3. 元のディレクトリに戻ったことを報告する
+4. **ディレクトリ残存チェックと削除**: `ExitWorktree` は git worktree の登録解除を行うが、サンドボックスの制限によりディレクトリが物理的に残る場合がある。以下の手順で対処する:
+   a. `ls {worktree のパス}` でディレクトリが残っているか確認する
+   b. 残っている場合は `rm -rf {worktree のパス}` で削除を試みる
+   c. `rm -rf` が権限エラーで失敗した場合は、ユーザーに手動削除コマンドを案内する
+5. 結果を報告する
+
+削除成功時:
 
 ```text
 🌳 Worktree を削除して元のディレクトリに戻りました。
+```
+
+ディレクトリの手動削除が必要な場合:
+
+```text
+🌳 Worktree の git 登録を解除して元のディレクトリに戻りました。
+
+⚠️ ディレクトリが残っています。以下のコマンドで手動削除してください:
+  rm -rf {worktree のパス}
 ```
 
 ## 運用のベストプラクティス
