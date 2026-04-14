@@ -1,6 +1,7 @@
 aaron-bond.better-comments
 alefragnani.bookmarks
 annsk.alignment
+anthropic.claude-code
 batisteo.vscode-django
 bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
@@ -10,7 +11,6 @@ coderabbit.coderabbit-vscode
 cpylua.language-postcss
 csstools.postcss
 dancheg97.grpc-clicker
-davidanson.vscode-markdownlint
 dbaeumer.vscode-eslint
 discountry.react-redux-react-router-snippets
 docker.docker
@@ -78,6 +78,7 @@ naumovs.color-highlight
 njpwerner.autodocstring
 onecentlin.laravel-blade
 openai.chatgpt
+oxc.oxc-vscode
 peakchen90.open-html-in-browser
 pranaygp.vscode-css-peek
 redhat.vscode-yaml
@@ -85,6 +86,7 @@ rettimo.nextjs-vscode-snippets
 richie5um2.vscode-sort-json
 ritwickdey.liveserver
 rogalmic.bash-debug
+rvben.rumdl
 rvest.vs-code-prettier-eslint
 saoudrizwan.claude-dev
 sdras.vue-vscode-snippets
