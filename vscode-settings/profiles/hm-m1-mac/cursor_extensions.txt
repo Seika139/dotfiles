@@ -6,6 +6,7 @@ anysphere.cpptools
 anysphere.csharp
 anysphere.cursorpyright
 anysphere.remote-containers
+anysphere.remote-ssh
 batisteo.vscode-django
 bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
@@ -81,6 +82,7 @@ redhat.vscode-yaml
 rettimo.nextjs-vscode-snippets
 richie5um2.vscode-sort-json
 rogalmic.bash-debug
+rvben.rumdl
 rvest.vs-code-prettier-eslint
 saoudrizwan.claude-dev
 sdras.vue-vscode-snippets
