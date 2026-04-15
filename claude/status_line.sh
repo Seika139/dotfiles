@@ -222,8 +222,8 @@ if cd "$current_dir" 2>/dev/null && git rev-parse --is-inside-work-tree &>/dev/n
 fi
 
 # ホームディレクトリを ~ に短縮（表示用。cd 等で使った後に変換する）
-project_dir="${project_dir/#$HOME/\~}"
-current_dir="${current_dir/#$HOME/\~}"
+project_dir="${project_dir/#$HOME/~}"
+current_dir="${current_dir/#$HOME/~}"
 
 # ステータスライン表示
 # Line 1: ctx + 5h + 7d（バー・使用率・リセット時刻）
