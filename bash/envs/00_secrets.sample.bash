@@ -4,3 +4,4 @@
 export SOME_SECRET_KEY="your_secret_key_here"
 export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/XXXXXXXXXX/YYYYYYYYYY"
 export OPENCLAW_BACKUP_PASSPHRASE="your_passphrase_here"
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/triggers/XXXXXXXXXX/YYYYYYYYYY/ZZZZZZZZZZ"

@@ -9,7 +9,7 @@
   "explorer.confirmDragAndDrop": false,
   "explorer.openEditors.sortOrder": "alphabetical",
   // window
-  "window.zoomLevel": -1.15,
+  "window.zoomLevel": -1.5,
   "window.commandCenter": true,
   "cSpell.userWords": [
     "afplay",
@@ -292,5 +292,7 @@
   "[dockercompose]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
-  "python.terminal.activateEnvironment": false
+  "python.terminal.activateEnvironment": false,
+  "cursor.general.disableHttp2": true,
+  "cursor.general.disableHttp1SSE": true
 }
