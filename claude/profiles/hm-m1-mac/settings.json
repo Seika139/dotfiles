@@ -1,7 +1,11 @@
 {
   "env": {
-    "ANTHROPIC_MODEL": "claude-opus-4-6",
+    "ANTHROPIC_MODEL": "claude-opus-4-7",
     "ANTHROPIC_SMALL_FAST_MODEL": "claude-sonnet-4-5"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
   },
   "permissions": {
     "allow": [
@@ -71,7 +75,6 @@
     "type": "command",
     "command": "~/dotfiles/claude/status_line.sh"
   },
-  "skipDangerousModePermissionPrompt": true,
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
@@ -80,7 +83,8 @@
     "security-guidance@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "explanatory-output-style@claude-plugins-official": true,
-    "codex@openai-codex": true
+    "codex@openai-codex": true,
+    "swift-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -96,10 +100,7 @@
       }
     }
   },
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
   "outputStyle": "Explanatory",
+  "skipDangerousModePermissionPrompt": true,
   "defaultMode": "acceptEdits"
 }
