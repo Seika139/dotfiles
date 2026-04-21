@@ -1,6 +1,6 @@
 ---
 name: respond-to-pr-reviews
-description: "Pull Request にぶら下がったレビューコメント（人間・bot 問わず）を順番に捌き、妥当性判断 → 修正コード or 説明返信 → commit/push → 返信コメント → resolve conversation までを完走させるスキル。「PR のレビュー対応して」「PR #123 のコメントを全部捌いて」「まだ resolve されてないスレッドを片付けて」「CodeRabbit / Gemini のレビュー対応」といった依頼で必ず使う。単にコードを直して push するだけでは不十分で、各スレッドに対して「返信を残してから resolve する」ところまで含めて完走させる点が重要。PR が更新された後に新しいレビューが付いた場合も、skill 側でループして最後まで対応する。"
+description: "GitHub PR のレビュースレッドを取得し、返信コメントと `resolveReviewThread` GraphQL mutation まで使って完走クローズする skill。`gh` CLI には resolve 相当コマンドが無いため、reply + resolve のループは GraphQL 直接呼び出しが必須で、このノウハウは本 skill にしかない。TRIGGER when: ユーザーが「PR のレビュー対応」「PR #N のコメント捌いて」「未 resolve スレッドを片付けて」「CodeRabbit / Gemini / Codex のレビュー対応」「レビューに返信して resolve」等を依頼した時、または「PR に bot から指摘が N 件来た」「スレッドが open のまま」「レビュー受けたけど返信忘れそう」等の状況説明があった時。自分で `gh pr view --comments` と手動 commit で捌こうとすると (1) `isResolved` 状態が取れない (2) resolve もできない (3) reply 忘れが頻発、のため必ず本 skill を起動すること。SKIP: 自分が PR を review する側（「この PR を review してほしい」「コードの気になる点を指摘して」）は review-pr / codex-review 側。PR 作成・マージ・レビュアー指名も別スキル。"
 ---
 
 # PR レビュー対応スキル
@@ -103,7 +103,20 @@ gh api graphql -f query='
 | **Minor / Nit** | typo、ドキュメント微修正、コメント、軽い refactor、ログ改善 | 自律的に判断して OK |
 | **不要** | 既に別の方法で解決済み、既存の設計意図と合わない、誤読による指摘 | 理由を明文化してユーザーに確認 |
 
-bot レビューでは本文先頭に priority / severity (🔴 Major, 🟡 Minor など) が書かれていることが多いので、判断の一次情報にする。
+bot レビューでは本文先頭に priority / severity (🔴 Major, 🟡 Minor など) が書かれていることが多いので、判断の**参考**にする。
+
+##### **必ず独立検証してから判断する**
+
+bot の主張は **古い情報に基づくことが多い**。手を動かす前に、指摘内容を独立して再現・検証する：
+
+- **依存バージョンの指摘** (`package.json` / `pyproject.toml` など): 変更前に必ず現行版の実態を確認する。
+  - 例: `npm view @typescript-eslint/parser@<current> peerDependencies`
+  - 例: `pip show <pkg>` / `cargo search <crate>`
+  - 特に「peer range 外」「deprecated」系は、bot が古いメタデータを見ている可能性が高い。
+- **レビュー本文にシェルスクリプトが含まれる場合** (CodeRabbit や codex-connector): **そのスクリプトをそのまま実行** して出力を確かめる。bot が結論を見落としているケースもある。
+- **「本当にこのリポジトリで壊れているか」** を確かめる。論理上の整合性ではなく、**実際のビルド・テストが red になるか** を基準にする。
+
+検証結果が bot の主張と食い違った場合、**修正せずに「確認した結果、問題ありません」** と返信して resolve する道を優先する。PR に不要な差分を足さない方が価値が高い。
 
 #### 3b-1. 妥当 → 修正 → commit → push
 
@@ -203,6 +216,16 @@ push 直後に CI が走り始め、新しい bot レビューが数分後に付
 ### 既に別 Claude が対応している場合
 
 たまに「別のセッションが同じ PR を触っている」ことがある。最初に `git log origin/<branch> -5` でリモートの最新コミットを確認し、**自分のローカル作業より先に進んでいたら一度 pull してから判断する**。diverged なら skill を止めてユーザーに報告。
+
+### Scope 判断 — レビューに無い別の問題を見つけたら
+
+レビュー対応中に、**コメントに含まれない別の問題**（CI が既に red、別の deprecation warning、他ファイルの lint 違反など）を発見することがある。判断基準：
+
+- **PR のスコープに直接関係する**（例: PR で入った変更が原因で CI が red になっている）→ 同じ commit にバンドルして修正して OK。commit メッセージで「＋ついでに〜も修正」と明示する。
+- **完全に別件**（無関係な依存更新、別ファイルの refactor、TODO 消化）→ **絶対に触らない**。ユーザーに「この問題を見つけたが別 PR にしますか？」と報告して判断を仰ぐ。
+- **グレー（直接関係と断言できないが近い領域）**→ 1 コミットに押し込むのではなく、**同じ PR に別 commit** として分ける。レビュアーが diff を追えるようにする。
+
+原則：**PR の本来の目的を膨らませない**。skill の価値は「レビューを完走する」ことで、「ついでにリファクタする」ことではない。
 
 ## 完了報告の形式
 

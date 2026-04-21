@@ -1,3 +1,12 @@
 mise.local.toml
 **/settings.local.json
 create-issue-config.json
+
+# skill-creator (run_eval.py) が作る一時コピーを無視する。
+# 本体: foo/, 一時コピー: foo-skill-<hash>/ や foo-skill-<hash>.md
+**/skills/*-skill-*/
+**/commands/*-skill-*.md
+
+# skill-creator eval workspace（中に log, iteration-*, trigger_eval.json 等）
+# 本体の skill と並べると skills/ index を汚すので外に置く運用。誤って置かれたものは無視する。
+**/skills/*-workspace/
