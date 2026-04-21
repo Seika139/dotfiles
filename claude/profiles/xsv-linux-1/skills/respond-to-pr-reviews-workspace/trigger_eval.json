@@ -1,0 +1,82 @@
+[
+  {
+    "query": "PR #13 に gemini-code-assist と coderabbit のレビュー計 4 件ついてる。hook のタイムアウト入れてって指摘とか受けた。全部対応して commit & push して resolve までやって",
+    "should_trigger": true
+  },
+  {
+    "query": "feat/hook-discovery ブランチの PR あるんだけど、bot レビュー 4 件きて、修正終わったやつは resolve まで行きたい。返信コメント残すの忘れがちだからそこも頼む",
+    "should_trigger": true
+  },
+  {
+    "query": "さっき push したら coderabbit が Potential issue って Major で返してきた。OSError ハンドリングを追加しろって言ってて、実装してから resolve conversation までしてほしい",
+    "should_trigger": true
+  },
+  {
+    "query": "PR 13 レビューもらったんだけど、修正は別 Claude がやって commit してくれてたんだが、スレッドの resolve と返信がされてない。残り全部捌いといて",
+    "should_trigger": true
+  },
+  {
+    "query": "pr 42 に gemini から 3 件の指摘きた。全部妥当っぽいから対応して、コミットはテーマごとにまとめて欲しい。テスト通ってから push",
+    "should_trigger": true
+  },
+  {
+    "query": "カレントブランチに紐付いた PR のレビューコメント、unresolved なやつ全部見て対応してほしい。bot は基本自動判断 OK で major だけ聞いて",
+    "should_trigger": true
+  },
+  {
+    "query": "おーい PR #88 にレビューめっちゃ来てるんだけどちょっとしんどいので順番に捌いてほしい。まず list 化して一つずつ妥当性判断お願いします",
+    "should_trigger": true
+  },
+  {
+    "query": "address pr 102 review comments please. the CodeRabbit suggestions look reasonable, apply them and mark threads as resolved after replying",
+    "should_trigger": true
+  },
+  {
+    "query": "repo-sync の pr #13 で残ってる未 resolve のスレッド片付けて。別 claude がコードは修正したけど返信とクローズしてない",
+    "should_trigger": true
+  },
+  {
+    "query": "respond to the PR 55 feedback. some are from gemini, some from a human reviewer. resolve bot ones autonomously, confirm with me for human comments.",
+    "should_trigger": true
+  },
+  {
+    "query": "PR #42 を review してほしい。T4_server_ops のブランチから main へのやつ。security と code quality 観点で気になる点あったらコメントで指摘残して",
+    "should_trigger": false
+  },
+  {
+    "query": "feat/new-login ブランチで作業終わったから PR 作成して。タイトルは 'ログイン画面の認証フロー改善'、本文は commit log から生成して",
+    "should_trigger": false
+  },
+  {
+    "query": "今開いてる PR、diff summary 教えてほしい。なんか変更が大きくなっちゃったから何をいじったのか整理したい",
+    "should_trigger": false
+  },
+  {
+    "query": "Issue #208 を close したい。動作確認して、関連ブランチ（fix/chart-axis）も削除する流れで",
+    "should_trigger": false
+  },
+  {
+    "query": "テストが落ちてる。pytest の output 見て修正してほしい。PR は無関係、ローカルの失敗",
+    "should_trigger": false
+  },
+  {
+    "query": "この Python コード、他のメンバーがレビューする前に自分で批判的に見直したい。`src/repo_sync/sync.py` の気になる点を列挙して",
+    "should_trigger": false
+  },
+  {
+    "query": "GitHub Issue を親子関係で紐付けたい。親は org/repo#5, 子は #8, #9, #10 で、クロスリポジトリも含む",
+    "should_trigger": false
+  },
+  {
+    "query": "git rebase -i で過去 5 commit を squash したい。仕事のコミット履歴をきれいにしてから push",
+    "should_trigger": false
+  },
+  {
+    "query": "PR #88 にレビュアー指名したい。@alice @bob をレビュアーに追加して、teammates も cc に",
+    "should_trigger": false
+  },
+  {
+    "query": "PR #13 のマージボタン押したい。コンフリクトないか確認してから squash merge で",
+    "should_trigger": false
+  }
+]
