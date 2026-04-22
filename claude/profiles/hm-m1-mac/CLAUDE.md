@@ -41,3 +41,10 @@ User's preferred tools include:
 
 - No sensitive data should be hardcoded in the source code.
 - Follow the principle of least privilege when accessing resources.
+
+## コミットルール
+
+- 1つの論理的な変更単位ごとにコミットする
+- テストの追加とプロダクションコードの変更は別コミットにする
+- リファクタリングと機能追加を同じコミットに混ぜない
+- 実装が複数ステップに分かれる場合、各ステップ完了時にコミットする

@@ -42,3 +42,10 @@ I have a separate development machine that uses a Mac book with 32GB RAM. This U
 
 - No sensitive data should be hardcoded in the source code.
 - Follow the principle of least privilege when accessing resources.
+
+## コミットルール
+
+- 1つの論理的な変更単位ごとにコミットする
+- テストの追加とプロダクションコードの変更は別コミットにする
+- リファクタリングと機能追加を同じコミットに混ぜない
+- 実装が複数ステップに分かれる場合、各ステップ完了時にコミットする
