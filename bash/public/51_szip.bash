@@ -1,9 +1,9 @@
 szip() {
   tgt=$(abs_path "$*")
-  (cd "$HOME/programs/scribe/" && mise run encrypt "${tgt}")
+  (cd "$HOME/programs/tools/zipper/" && mise run encrypt "${tgt}")
 }
 
 suz() {
   tgt=$(abs_path "$*")
-  (cd "$HOME/programs/scribe/" && mise run decrypt "${tgt}")
+  (cd "$HOME/programs/tools/zipper/" && mise run decrypt "${tgt}")
 }
