@@ -117,6 +117,8 @@ fi
 
 # Claude Code のエイリアス
 alias cc='claude --dangerously-skip-permissions'
+# Codex CLI のエイリアス
+alias xx='codex --yolo'
 
 # rsync を利用して2ディレクトリ間で差分があるファイル名だけを表示する関数
 rd() {
