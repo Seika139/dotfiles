@@ -29,6 +29,7 @@ fi
 OWNER="${REPO%%/*}"
 NAME="${REPO##*/}"
 
+# shellcheck disable=SC2016  # GraphQL 変数はシェル展開させない
 gh api graphql -F owner="$OWNER" -F name="$NAME" -F pr="$PR" -f query='
 query($owner:String!, $name:String!, $pr:Int!) {
   repository(owner:$owner, name:$name) {

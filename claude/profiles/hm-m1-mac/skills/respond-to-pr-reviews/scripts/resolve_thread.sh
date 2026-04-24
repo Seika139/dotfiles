@@ -12,6 +12,7 @@ set -euo pipefail
 
 THREAD_ID="${1:?thread-node-id is required}"
 
+# shellcheck disable=SC2016  # GraphQL 変数はシェル展開させない
 gh api graphql -f threadId="$THREAD_ID" -f query='
 mutation($threadId: ID!) {
   resolveReviewThread(input: {threadId: $threadId}) {
