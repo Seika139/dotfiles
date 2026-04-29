@@ -225,7 +225,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CI で shellcheck をする対象のディレクトリを増やした
     - それに伴って警告が生じるファイルを修正した
 - **docs**
-  - [006_storage.md](./docs/docker/006_storage.md) を大幅に拡充した
+  - [006_storage.md](./docs/help/docker/006_storage.md) を大幅に拡充した
     - Long/Short syntax
     - 匿名/名前付きボリュームの使い分け
     - `consistency` オプション

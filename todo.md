@@ -1,7 +1,6 @@
 # TODO
 
 - [ ] cg-mc2-mac で以下のことをする
-
   - [x] bash-completion@2 を入れ、 v1 をアンインストールする
 
     ```bash
@@ -19,11 +18,8 @@
     があることを確認する
 
 - [ ] `~/.config/` の一部のアプリを dotfiles で管理するようにする
-
   - [ ] mise の設定ファイル
-
     - [ ] `~/.config/mise/config.toml` を dotfiles で管理するようにする
-
       - [ ] `mise use -g config` で config ファイルのパスを確認する
 
       - [ ] `dotfiles/config/mise/config.toml` に移動させる
