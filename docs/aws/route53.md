@@ -2,14 +2,14 @@
 
 ## 一言でいうと
 
-ドメイン名（`spark.cygames.jp` など）を IP アドレスに変換する「電話帳」。AWS が提供する DNS サービス。
+ドメイン名（`spark.some-company.jp` など）を IP アドレスに変換する「電話帳」。AWS が提供する DNS サービス。
 
 ## 何をするもの？
 
-ブラウザに `https://spark.cygames.jp` と入力すると、まず「このドメインの IP アドレスは？」という問い合わせが走る。Route 53 がその問い合わせに答えて、ALB や CloudFront の IP アドレスを返す。
+ブラウザに `https://spark.some-company.jp` と入力すると、まず「このドメインの IP アドレスは？」という問い合わせが走る。Route 53 がその問い合わせに答えて、ALB や CloudFront の IP アドレスを返す。
 
 ```text
-ブラウザ: 「spark.cygames.jp はどこ？」
+ブラウザ: 「spark.some-company.jp はどこ？」
   ↓
 Route 53: 「ALB の IP アドレスはこれだよ」
   ↓
@@ -20,38 +20,38 @@ Route 53: 「ALB の IP アドレスはこれだよ」
 
 ### ホストゾーン
 
-あるドメイン（例: `spark.cygames.jp`）の DNS レコードをまとめて管理する入れ物。
+あるドメイン（例: `spark.some-company.jp`）の DNS レコードをまとめて管理する入れ物。
 
 ```text
-ホストゾーン: spark.cygames.jp
-  ├── A レコード:   spark.cygames.jp     → ALB の IP
-  ├── A レコード:   stg.spark.cygames.jp → stg 用 ALB の IP
+ホストゾーン: spark.some-company.jp
+  ├── A レコード:   spark.some-company.jp     → ALB の IP
+  ├── A レコード:   stg.spark.some-company.jp → stg 用 ALB の IP
   └── CNAME レコード: _acme-challenge... → ACM の DNS 検証用
 ```
 
 ### サブドメイン委譲
 
-親ゾーン（`cygames.jp`）に「`spark.cygames.jp` の問い合わせはこっちに聞いて」と NS レコードを登録すること。これにより別の AWS アカウントでサブドメインを自由に管理できる。
+親ゾーン（`some-company.jp`）に「`spark.some-company.jp` の問い合わせはこっちに聞いて」と NS レコードを登録すること。これにより別の AWS アカウントでサブドメインを自由に管理できる。
 
 ```text
-cygames.jp のゾーン（cygames-infra アカウント）
-  └── NS レコード: spark.cygames.jp → 別アカウントの Route 53
+some-company.jp のゾーン（cygames-infra アカウント）
+  └── NS レコード: spark.some-company.jp → 別アカウントの Route 53
 
-spark.cygames.jp のゾーン（自チームのアカウント）
-  ├── A レコード: spark.cygames.jp → ALB
-  └── CNAME: _xxx.spark.cygames.jp → ACM 検証用
+spark.some-company.jp のゾーン（自チームのアカウント）
+  ├── A レコード: spark.some-company.jp → ALB
+  └── CNAME: _xxx.spark.some-company.jp → ACM 検証用
       ↑ 自由に追加・変更できる
 ```
 
 ## よく使う DNS レコードの種類
 
-| レコード | 用途 | 例 |
-|---|---|---|
-| A | ドメイン → IP アドレス | `spark.cygames.jp → 203.0.113.10` |
-| AAAA | ドメイン → IPv6 アドレス | A の IPv6 版 |
-| CNAME | ドメイン → 別のドメイン名 | `www.spark.cygames.jp → spark.cygames.jp` |
-| NS | サブドメインの委譲先 | `spark.cygames.jp → ns-xxx.awsdns-xx.com` |
-| Alias | AWS リソースへの直接参照 | `spark.cygames.jp → ALB の DNS 名`（A レコードの AWS 拡張版。Zone Apex でも使える） |
+| レコード | 用途                      | 例                                                                                       |
+| -------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| A        | ドメイン → IP アドレス    | `spark.some-company.jp → 203.0.113.10`                                                   |
+| AAAA     | ドメイン → IPv6 アドレス  | A の IPv6 版                                                                             |
+| CNAME    | ドメイン → 別のドメイン名 | `www.spark.some-company.jp → spark.some-company.jp`                                      |
+| NS       | サブドメインの委譲先      | `spark.some-company.jp → ns-xxx.awsdns-xx.com`                                           |
+| Alias    | AWS リソースへの直接参照  | `spark.some-company.jp → ALB の DNS 名`（A レコードの AWS 拡張版。Zone Apex でも使える） |
 
 ## 社内ルール
 
