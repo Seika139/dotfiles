@@ -1,2 +1,15 @@
 mise.local.toml
+__pycache__/
+
+# Codex runtime config is generated at ~/.codex/config.toml from
+# profile config.base.toml + optional local/private overrides.
 config.toml
+config.local.toml
+config.local.toml.backup.*
+
+create-issue-config.json
+
+# skill-creator が作る一時コピーを無視する。
+**/skills/*-skill-*/
+**/prompts/*-skill-*.md
+**/skills/*-workspace/

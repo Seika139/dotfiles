@@ -88,7 +88,7 @@ printf "🦄 Creating new Codex profile: $PROFILE\n"
 mkdir -p "$PROFILE_PATH"
 
 # デフォルト設定ファイル作成
-cat > "$PROFILE_PATH/config.toml" << 'EOF'
+cat > "$PROFILE_PATH/config.base.toml" << 'EOF'
 model = "gpt-5.1-codex"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
@@ -118,63 +118,63 @@ cat > "$PROFILE_PATH/AGENTS.md" << 'EOF'
 <!-- Note any specific restrictions or security considerations -->
 EOF
 
+mkdir -p "$PROFILE_PATH/prompts"
+mkdir -p "$PROFILE_PATH/custom-config"
+mkdir -p "$PROFILE_PATH/skills"
+
 printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 printf "%s\n" "📝 Edit settings in:"
-printf "%s\n" "   - $PROFILE_PATH/config.toml"
+printf "%s\n" "   - $PROFILE_PATH/config.base.toml"
+printf "%s\n" "   - $PROFILE_PATH/config.local.toml (optional, git-ignored)"
 printf "%s\n" "   - $PROFILE_PATH/AGENTS.md"
+printf "%s\n" "   - $PROFILE_PATH/prompts/"
+printf "%s\n" "   - $PROFILE_PATH/custom-config/"
+printf "%s\n" "   - $PROFILE_PATH/skills/"
 """
 
 [tasks.link]
-description = "指定プロファイルの設定ファイルをシンボリックリンクする"
+description = "指定プロファイルの設定ファイルを~/.codexへ反映する"
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
-run = """
+run = '''
+chmod +x "{{config_root}}/mise/scripts/link.sh"
+bash "{{config_root}}/mise/scripts/link.sh" {{option(name="prof", default="")}}
+'''
+
+[tasks.pull_config]
+description = "現在の~/.codex/config.tomlをプロファイルのconfig.local.tomlへ取り込む"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = '''
+chmod +x "{{config_root}}/mise/scripts/pull_config.sh"
+bash "{{config_root}}/mise/scripts/pull_config.sh" {{option(name="prof", default="")}}
+'''
+
+[tasks.sync_prompt_skills]
+description = "profile promptsをCodex command skillへ変換する"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = '''
 if [ "$IS_WSL" = "true" ]; then
   DEFAULT_PROFILE="${WSL_CODEX_PROFILE:-}"
 else
   DEFAULT_PROFILE="${DEFAULT_CODEX_PROFILE:-}"
 fi
 PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
-mise run check --prof "$PROFILE"
-
+if [ -z "$PROFILE" ]; then
+  printf "❌ Error: profile is not set\n" >&2
+  exit 1
+fi
 PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
-
-printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
-
-# 既存のシンボリックリンクを削除（ファイルの場合は退避）
-for file in config.toml AGENTS.md prompts; do
-  target="${HOME}/.codex/$file"
-  if [ -L "$target" ]; then
-    printf "%s\n" "   Removing existing symlink: $target"
-    rm "$target"
-  elif [ -f "$target" ]; then
-    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
-    printf "%s\n" "   既存のファイルをバックアップしました: $target -> $backup"
-    mv "$target" "$backup"
-  elif [ -d "$target" ]; then
-    backup="${target}.backup.$(date +%Y%m%d_%H%M%S)"
-    printf "%s\n" "   既存のディレクトリをバックアップしました: $target -> $backup"
-    mv "$target" "$backup"
-  fi
-done
-
-# シンボリックリンク作成
-for file in config.toml AGENTS.md prompts; do
-  source="$PROFILE_PATH/$file"
-  target="${HOME}/.codex/$file"
-
-  if [ -f "$source" ] || [ -d "$source" ]; then
-    printf "\\033[36m  "
-    ln -sfnv "$source" "$target"
-    printf "\\033[0m"
-  else
-    printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
-  fi
-done
-
-printf "%s\n" "✅ Linked Codex settings from profile '$PROFILE'"
-"""
+if [ ! -d "$PROFILE_PATH" ]; then
+  printf "❌ Error: Profile directory does not exist: %s\n" "$PROFILE_PATH" >&2
+  exit 1
+fi
+python3 "{{config_root}}/mise/scripts/sync_prompt_skills.py" --profile-path "$PROFILE_PATH"
+'''
 
 [tasks.status]
 description = "現在のプロファイル設定と~/.codexの状態を確認"
@@ -203,7 +203,7 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 printf "\n📂 Original files and directories:\n"
-for file in config.toml AGENTS.md prompts; do
+for file in AGENTS.md prompts custom-config skills; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -212,15 +212,71 @@ for file in config.toml AGENTS.md prompts; do
   fi
 done
 
+printf "\n⚙️ Config sources:\n"
+for file in config.base.toml config.local.toml config.toml; do
+  source="$PROFILE_PATH/$file"
+  if [ -f "$source" ]; then
+    if [ "$file" = "config.local.toml" ]; then
+      printf "%s\n" "   ✅ $source (git-ignored local/private)"
+    elif [ "$file" = "config.toml" ] && [ -f "$PROFILE_PATH/config.base.toml" ]; then
+      printf "%s\n" "   ⚠️  $source (legacy; ignored because config.base.toml exists)"
+    else
+      printf "%s\n" "   ✅ $source"
+    fi
+  elif [ "$file" = "config.local.toml" ]; then
+    printf "%s\n" "   ⭕ $source (optional)"
+  elif [ "$file" = "config.toml" ] && [ -f "$PROFILE_PATH/config.base.toml" ]; then
+    printf "%s\n" "   ⭕ $source (legacy optional)"
+  else
+    printf "\\033[33m%s\\033[0m\n" "   ❌ $source (missing)"
+  fi
+done
+
+printf "\n⚙️ Runtime config in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
+config_target="${HOME}/.codex/config.toml"
+if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ] || [ -f "$PROFILE_PATH/config.local.toml" ]; then
+  tmp_config="$(mktemp)"
+  if python3 "{{config_root}}/mise/scripts/render_config.py" --profile-path "$PROFILE_PATH" --output "$tmp_config"; then
+    if [ -L "$config_target" ]; then
+      printf "%s\n" "   ⚠️  $config_target is still a symlink. Run: mise run link --prof \"$PROFILE\""
+    elif [ -f "$config_target" ]; then
+      if python3 "{{config_root}}/mise/scripts/render_config.py" --profile-path "$PROFILE_PATH" --same-as "$config_target"; then
+        printf "%s\n" "   ✅ $config_target matches rendered profile config"
+      else
+        printf "%s\n" "   ⚠️  $config_target differs from rendered profile config"
+        printf "\\033[36m%s\\033[0m\n" "         import runtime changes: mise run pull_config --prof \"$PROFILE\""
+        printf "\\033[36m%s\\033[0m\n" "         re-render profile config: mise run link --prof \"$PROFILE\""
+      fi
+    else
+      printf "\\033[33m%s\\033[0m\n" "   ❌ $config_target does not exist. Run: mise run link --prof \"$PROFILE\""
+    fi
+  else
+    printf "\\033[31m%s\\033[0m\n" "   ❌ Failed to render profile config"
+  fi
+  rm -f "$tmp_config"
+else
+  printf "%s\n" "   ⚠️  No config sources in profile; existing $config_target is left untouched"
+fi
+
 printf "\n🔗 Symlinks in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
-for file in config.toml AGENTS.md prompts; do
+for file in AGENTS.md prompts custom-config; do
   target="${HOME}/.codex/$file"
   source="$PROFILE_PATH/$file"
 
+  if [ ! -f "$source" ] && [ ! -d "$source" ]; then
+    if [ -e "$target" ]; then
+      printf "%s\n" "   ⚠️  $source (missing); existing $target is left untouched"
+    else
+      printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
+    fi
+    continue
+  fi
+
   if [ -L "$target" ]; then
     link_target=$(readlink "$target")
-    # パスの正規化とマッチング（Windows, WSL対応）
-    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]] || [[ "$link_target" == *"\\${source##*/}" ]]; then
+    source_real=$(realpath -m "$source")
+    target_real=$(realpath -m "$target")
+    if [ "$target_real" = "$source_real" ]; then
       printf "%s\n" "   ✅ $source -> $link_target"
     else
       printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
@@ -233,8 +289,39 @@ for file in config.toml AGENTS.md prompts; do
   fi
 done
 
+printf "\n🧩 Profile skill symlinks in\\033[36m %s/.codex/skills:\\033[0m\n" "$HOME"
+if [ -d "$PROFILE_PATH/skills" ]; then
+  found_skill=false
+  for source in "$PROFILE_PATH/skills"/*; do
+    [ -d "$source" ] || continue
+    [ -f "$source/SKILL.md" ] || continue
+    found_skill=true
+    skill_name=$(basename "$source")
+    target="${HOME}/.codex/skills/$skill_name"
+
+    if [ -L "$target" ]; then
+      link_target=$(readlink "$target")
+      if [ "$link_target" = "$source" ]; then
+        printf "%s\n" "   ✅ $source -> $link_target"
+      else
+        printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
+      fi
+    elif [ -e "$target" ]; then
+      printf "%s\n" "   ⚠️  $target exists but is not a profile symlink"
+    else
+      printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
+    fi
+  done
+  if [ "$found_skill" = "false" ]; then
+    printf "%s\n" "   (No profile skills found)"
+  fi
+else
+  printf "%s\n" "   (No skills directory found)"
+fi
+
 printf "%s\n" "\n💡 Commands:"
-printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
+printf "%s\n" "   反映/更新: mise run link --prof \"$PROFILE\""
+printf "%s\n" "   Codexが書いたconfigを取り込み: mise run pull_config --prof \"$PROFILE\""
 printf "%s\n" "   プロファイル変更: mise run switch [--prof <profile-name>]"
 """
 
