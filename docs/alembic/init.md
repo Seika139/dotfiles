@@ -64,7 +64,7 @@ sqlalchemy.url = postgresql+psycopg://alembic:alembic@localhost:6543/alembic_sam
 
 ## Docker Compose で PostgreSQL を準備する
 
-[compose.yml](./alembic-sample/docker-compose.yml) を用意してるのでこれを利用します。Alembic をローカルで試す際は、以下の手順でデータベースを起動します。
+[compose.yml](./alembic-sample/compose.yml) を用意してるのでこれを利用します。Alembic をローカルで試す際は、以下の手順でデータベースを起動します。
 
 ```bash
 cd docs/alembic/alembic-sample
@@ -164,9 +164,9 @@ INFO  [alembic.runtime.migration] Running upgrade  -> 90e7511fbee5, create users
 
 ```bash
 # スキーマ一覧を取得
-$ docker compose exec postgres psql -U alembic -d alembic_sample -c "\dt"
+docker compose exec postgres psql -U alembic -d alembic_sample -c "\dt"
 # これで users テーブルが表示されれば成功です。
-$ docker compose exec postgres psql -U alembic -d alembic_sample -c "SELECT * FROM users LIMIT 1;"
+docker compose exec postgres psql -U alembic -d alembic_sample -c "SELECT * FROM users LIMIT 1;"
 # を実行し、列が取り出せるか確認する。
 ```
 
