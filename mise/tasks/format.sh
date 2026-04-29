@@ -16,12 +16,15 @@ for arg in "$@"; do
   esac
 done
 
-print_blue "Formatting Markdown files"$'\n'
+print_blue "formatting Markdown files"$'\n'
 rumdl check --fix .
 markdownlint-cli2 --fix
 
-print_blue "Format shell scripts with shfmt"$'\n'
+print_blue "formatting shell scripts with shfmt"$'\n'
 shfmt -w mise/tasks/**
 
-print_blue "Format toml with taplo"$'\n'
+print_blue "formatting toml with taplo"$'\n'
 taplo fmt
+
+print_blue "pnpm textlint --fix"$'\n'
+pnpm textlint --fix --config .textlintrc.yml .

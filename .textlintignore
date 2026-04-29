@@ -1,0 +1,41 @@
+# 依存
+node_modules/**
+
+# Git・各種キャッシュ
+.git/**
+.rumdl_cache/**
+**/__pycache__/**
+**/.pytest_cache/**
+**/.ruff_cache/**
+**/.venv/**
+
+# エディタ・AI ツール内部
+.cursor/**
+.vscode/**
+.claude/**
+.gemini/**
+.agent/**
+.serena/**
+
+# 自動生成
+CHANGELOG.md
+
+# プロファイルミラー（同一内容が複数ホスト分存在するため）
+codex/profiles/**
+claude/profiles/**
+gemini/profiles/**
+
+# サンプル・第三者由来
+docs/alembic/alembic-sample/**
+gtts_sample/**
+devcontainer-example/**
+astro-2/**
+chrome_extensions/**
+
+# 個人スクラッチパッド
+worklog/**
+todo.md
+phonetic_code.md
+
+# バイナリ・暗号化アーカイブ
+*.zip
