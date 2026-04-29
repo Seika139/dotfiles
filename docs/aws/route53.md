@@ -34,7 +34,7 @@ Route 53: 「ALB の IP アドレスはこれだよ」
 親ゾーン（`some-company.jp`）に「`spark.some-company.jp` の問い合わせはこっちに聞いて」と NS レコードを登録すること。これにより別の AWS アカウントでサブドメインを自由に管理できる。
 
 ```text
-some-company.jp のゾーン（cygames-infra アカウント）
+some-company.jp のゾーン（some-company-infra アカウント）
   └── NS レコード: spark.some-company.jp → 別アカウントの Route 53
 
 spark.some-company.jp のゾーン（自チームのアカウント）
@@ -55,7 +55,7 @@ spark.some-company.jp のゾーン（自チームのアカウント）
 
 ## 社内ルール
 
-- Route 53 のゾーンファイルは親アカウント `cygames-infra` に集約されている
+- Route 53 のゾーンファイルは親アカウント `some-company-infra` に集約されている
 - 新しいゾーンが必要な場合はインフラセクションへ依頼
 - 自チームのアカウントでホストゾーンを作成し、親ゾーンに NS 委譲してもらう運用が可能
 
