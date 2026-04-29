@@ -30,7 +30,7 @@ description: "曖昧な課題意識からコードベースを分析し、具体
 /discover "UI/UX を改善したい"
 → フロントエンドのコードを分析し、UI/UX の問題点を列挙
 
-/discover "パフォーマンスが遅い気がする" --repo cyg-ai-tech/spark-conversation-api
+/discover "パフォーマンスが遅い気がする" --repo org/repo
 → API のコードを分析し、パフォーマンスのボトルネック候補を列挙
 
 /discover "フロントのデザインがダサい" --screenshot ~/screenshots/current-ui.png
