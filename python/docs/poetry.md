@@ -136,7 +136,7 @@ pyproject.toml
 # インストーラを利用して依存関係をインストールする
 # OS によってスクリプト名が異なる
 # 引数にプロジェクトのパスを指定すること
-$ bash ~/dotfiles/setup_scripts/pyenv_and_poetry/general/setup_dev_XXX.bash [project_path]
+bash ~/dotfiles/setup_scripts/pyenv_and_poetry/general/setup_dev_XXX.bash [project_path]
 ```
 
 ### 4. インストーラを利用せずにプロジェクトを始める

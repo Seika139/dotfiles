@@ -5,7 +5,7 @@ git diff [before]..[after]
 ```
 
 afterで追加された部分が + で表され、before から消えた部分が - で表される。
-`..` は ` `（空白）でも同じ。
+`..` は ` `（空白）でも同じ。 <!-- rumdl-disable-line MD038 -->
 片方を省略すると HEAD との差分を比較する。
 
 ```bash

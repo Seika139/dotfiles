@@ -83,23 +83,23 @@ go mod tidy
 
 ```bash
 # 1. プロジェクトの初期化
-$ go mod init github.com/{ユーザー名}/{プロジェクト名}
+go mod init github.com/{ユーザー名}/{プロジェクト名}
 
 # 2. コードを書く
-$ vim main.go
+vim main.go
 
 # 3. フォーマットを整える
-$ go fmt ./...
+go fmt ./...
 
 # 4. 静的解析でエラーチェック
-$ go vet ./...
+go vet ./...
 
 # 5. テストを実行
-$ go test ./...
+go test ./...
 
 # 6. ビルド
-$ go build -o {実行ファイル名}
+go build -o {実行ファイル名}
 
 # 7. 依存関係の整理
-$ go mod tidy
+go mod tidy
 ```

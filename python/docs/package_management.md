@@ -6,7 +6,7 @@ Python のパッケージ管理について整理する。
 
 [Python のパッケージ管理ベストプラクティス](https://qiita.com/c60evaporator/items/b6a7394231d1e768ce64) がすごいいい記事なので参考にする。
 
-この記事では conda 系の利用を推奨しているが、 conda 系は商用利用では面倒になるので pyenv + [Poetry](https://python-poetry.org/)  方式を採用する。
+この記事では conda 系の利用を推奨しているが、 conda 系は商用利用では面倒になるので pyenv + [Poetry](https://python-poetry.org/) 方式を採用する。
 それ以外の方式はリンクの記事を参照。
 
 また、docker のようなコンテナ環境が使用可能な場合はそちらを利用したい。それについては後日導入する際にまとめたい。
@@ -62,11 +62,11 @@ poetry のインストールは [ここ](https://qiita.com/c60evaporator/items/b
 
 ```bash
 # プロジェクト用フォルダを作成する
-$ cd [プロジェクト用フォルダの上位フォルダのパス]
-$ poetry new [プロジェクト用フォルダ名]
+cd [プロジェクト用フォルダの上位フォルダのパス]
+poetry new [プロジェクト用フォルダ名]
 
 # 既存のフォルダをプロジェクト用フォルダとして初期化する場合は
-$ poetry init
+poetry init
 ```
 
 ## MEMO
