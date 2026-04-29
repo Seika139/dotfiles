@@ -102,5 +102,12 @@
   },
   "outputStyle": "Explanatory",
   "skipDangerousModePermissionPrompt": true,
-  "defaultMode": "acceptEdits"
+  "defaultMode": "acceptEdits",
+  "mcpServers": {
+    "second-brain": {
+      "command": "/Users/suzukikenichi/programs/second-brain/.venv/bin/python",
+      "args": ["-m", "server.mcp_stdio"],
+      "cwd": "/Users/suzukikenichi/programs/second-brain"
+    }
+  }
 }

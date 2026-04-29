@@ -35,15 +35,19 @@ Detailed workflow documentation for Claude and Codex collaboration.
    ## Analysis Comparison
 
    ### Claude's Approach
+
    [Your detailed analysis]
 
    ### Codex's Approach
+
    [Codex's response]
 
    ### Synthesis
+
    Both approaches agree on [X, Y, Z].
 
    Key differences:
+
    - Claude suggests [A] while Codex suggests [B]
    - Trade-off analysis: [explanation]
 

@@ -134,6 +134,7 @@ gh api graphql -f query='
 ```
 
 取得すべきフィールド ID:
+
 - **Status** フィールド ID と各オプション（Backlog, In progress 等）の ID
 - **Priority** フィールド ID と各オプション（P0, P1, P2）の ID
 - **Start date** フィールド ID

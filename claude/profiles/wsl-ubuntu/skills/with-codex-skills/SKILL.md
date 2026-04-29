@@ -77,12 +77,15 @@ Present results in this format:
 
 ```markdown
 ## Claude's Analysis
+
 [Your independent analysis]
 
 ## Codex's Analysis
+
 [Captured response from Codex]
 
 ## Synthesis
+
 - **Agreement**: [Points where both AIs agree]
 - **Differences**: [Alternative perspectives from Codex]
 - **Recommendation**: [Best combined approach]
