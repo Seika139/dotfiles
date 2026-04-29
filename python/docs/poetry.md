@@ -101,7 +101,7 @@ pyproject.toml  scripts/
 
 ```bash
 # インストーラを利用して依存関係をインストールする
-$ bash scripts/setup_XXX.sh # OS によってスクリプト名が異なる
+bash scripts/setup_XXX.sh # OS によってスクリプト名が異なる
 ```
 
 ### 3. ドキュメント内にあるインストーラを活用する(インストーラをプロジェクトに配置しない場合)

@@ -9,15 +9,15 @@
 ### 変更されたファイル
 
 1. **[install.sh](file:///Users/suzukikenichi/dotfiles/install.sh)**
-    - 初期セットアップ時のシンボリックリンク作成処理を一括更新。
+   - 初期セットアップ時のシンボリックリンク作成処理を一括更新。
 2. **[claude/mise.toml](file:///Users/suzukikenichi/dotfiles/claude/mise.toml)**
-    - Claudeプロファイル切り替え時のリンク処理を更新。
+   - Claudeプロファイル切り替え時のリンク処理を更新。
 3. **[codex/mise.toml](file:///Users/suzukikenichi/dotfiles/codex/mise.toml)**
-    - Codexプロファイル切り替え時のリンク処理を更新。
+   - Codexプロファイル切り替え時のリンク処理を更新。
 4. **[gemini/mise.toml](file:///Users/suzukikenichi/dotfiles/gemini/mise.toml)**
-    - Geminiプロファイル切り替え時のリンク処理を更新。
+   - Geminiプロファイル切り替え時のリンク処理を更新。
 5. **[11_alias.bash](file:///Users/suzukikenichi/dotfiles/bash/public/11_alias.bash)**
-    - `bat` および `fd` のシンボリックリンク作成箇所を更新。
+   - `bat` および `fd` のシンボリックリンク作成箇所を更新。
 
 ## 検証結果
 

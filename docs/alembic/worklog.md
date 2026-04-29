@@ -48,7 +48,7 @@ uv run alembic revision -m "create users table"
 
 実際にマイグレーションを試すために、PostgreSQL データベースを起動します。
 
-[compose.yml](./alembic-sample/docker-compose.yml) を用意してるのでこれを利用します。
+[compose.yml](./alembic-sample/compose.yml) を用意してるのでこれを利用します。
 
 ```bash
 docker compose up -d
@@ -80,8 +80,8 @@ INFO  [alembic.runtime.migration] Running upgrade  -> 90e7511fbee5, create users
 
 ```bash
 # スキーマ一覧を取得
-$ docker compose exec postgres psql -U alembic -d alembic_sample -c "\dt"
+docker compose exec postgres psql -U alembic -d alembic_sample -c "\dt"
 # これで users テーブルが表示されれば成功です。
-$ docker compose exec postgres psql -U alembic -d alembic_sample -c "SELECT * FROM users LIMIT 1;"
+docker compose exec postgres psql -U alembic -d alembic_sample -c "SELECT * FROM users LIMIT 1;"
 # を実行し、列が取り出せるか確認する。
 ```

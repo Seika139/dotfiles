@@ -506,7 +506,7 @@ secrets:
 
 ※ [Networks top-level elements | Docker Docs](https://docs.docker.com/reference/compose-file/networks/)
 
-ネットワークについての詳細は [008_network.md](./008_network.md) を参照。
+ネットワークについての詳細は [008_networks.md](./008_networks.md) を参照。
 
 ### ipam
 
