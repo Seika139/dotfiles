@@ -13,5 +13,6 @@
     "MD060": false // 表の列スタイルの不一致を許可
   },
   "gitignore": true,
-  "globs": ["**/*.md"]
+  "globs": ["**/*.md"],
+  "ignores": [".cursor/", "codex/profiles/", "node_modules/**", "worklog/**"]
 }
