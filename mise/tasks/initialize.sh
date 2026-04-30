@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="brain instance の初期化（ディレクトリ作成、依存同期、index .env 作成）"
+#MISE description="初期化（ディレクトリ作成、依存同期などに利用する）"
 #MISE quiet=true
 #MISE hide=true
 
