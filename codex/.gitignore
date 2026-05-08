@@ -6,6 +6,7 @@ __pycache__/
 config.toml
 config.local.toml
 config.local.toml.backup.*
+config.base.toml.backup.*
 
 create-issue-config.json
 

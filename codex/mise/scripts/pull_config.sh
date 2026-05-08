@@ -67,7 +67,6 @@ fi
 
 PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR}/$PROFILE"
 runtime_config="${HOME}/.codex/config.toml"
-local_config="${PROFILE_PATH}/config.local.toml"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   printf "%s\n" "🚨 Profile directory does not exist: $PROFILE_PATH" >&2
@@ -79,16 +78,6 @@ if [ ! -f "$runtime_config" ]; then
   exit 1
 fi
 
-mkdir -p "$PROFILE_PATH"
-
-if [ -f "$local_config" ] && ! cmp -s "$runtime_config" "$local_config"; then
-  backup="${local_config}.backup.$(date +%Y%m%d_%H%M%S)"
-  printf "%s\n" "   Existing local config backup: $local_config -> $backup"
-  cp -p "$local_config" "$backup"
-fi
-
-cp -p "$runtime_config" "$local_config"
-chmod 600 "$local_config"
-
-printf "%s\n" "✅ Imported $runtime_config into $local_config"
-printf "%s\n" "   This file is git-ignored. Move shareable settings to config.base.toml when needed."
+python3 "${MISE_CONFIG_ROOT}/mise/scripts/pull_config.py" \
+  --runtime "$runtime_config" \
+  --profile-path "$PROFILE_PATH"
