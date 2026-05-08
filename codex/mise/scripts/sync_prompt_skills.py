@@ -78,6 +78,35 @@ def yaml_quote(value: str) -> str:
     return f'"{escaped}"'
 
 
+def shift_heading_levels(markdown: str, by: int = 1) -> str:
+    """ATX heading (`#`) のレベルを `by` だけ下げる。fenced code block 内は触らない。"""
+    lines = markdown.splitlines(keepends=True)
+    in_fence = False
+    fence_marker: str | None = None
+    out: list[str] = []
+    for line in lines:
+        stripped = line.lstrip()
+        if not in_fence and (stripped.startswith("```") or stripped.startswith("~~~")):
+            fence_marker = stripped[:3]
+            in_fence = True
+            out.append(line)
+            continue
+        if in_fence and fence_marker is not None and stripped.startswith(fence_marker):
+            in_fence = False
+            fence_marker = None
+            out.append(line)
+            continue
+        if not in_fence:
+            line = re.sub(
+                r"^(\s{0,3})(#{1,6})(\s)",
+                lambda m: m.group(1) + "#" * min(len(m.group(2)) + by, 6) + m.group(3),
+                line,
+                count=1,
+            )
+        out.append(line)
+    return "".join(out)
+
+
 def limit_description(value: str) -> str:
     value = " ".join(value.split())
     if len(value) <= MAX_DESCRIPTION_LEN:
@@ -121,7 +150,7 @@ Claude 専用の `allowed-tools` メタデータや `!` command interpolation �
 
 ## 元 prompt
 
-{prompt_body.lstrip()}
+{shift_heading_levels(prompt_body.strip(), by=1)}
 """
 
 
