@@ -1,7 +1,28 @@
 ---
 extends: default
 
-ignore-from-file: .gitignore
+ignore: |
+  # `.gitignore` から複製。yamllint は `ignore` と `ignore-from-file` を併用できないため。
+  .active-profile
+  .gitconfig.local
+  .gitconfig.second
+  ideas/
+  stashes/
+  **/private/*
+  !**/private/.gitkeep
+  .ssh/config.secret
+  .ssh/config_save_*
+  .env
+  bash/daily/.cache/
+  .rumdl_cache/
+  __pycache__/
+  *.pyc
+  /.pytest_cache/
+  /.ruff_cache/
+  /.venv/
+  /node_modules/
+  # 自動生成されるロックファイルは lint しない。
+  pnpm-lock.yaml
 
 rules:
   line-length:
