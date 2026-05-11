@@ -1,5 +1,5 @@
 [project]
-name = "uv"
+name = "uv-docs-sample"
 version = "0.1.0"
 description = "uv のドキュメントに書いてあることを検証するためのパッケージ"
 readme = "README.md"

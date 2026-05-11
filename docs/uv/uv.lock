@@ -162,7 +162,7 @@ wheels = [
 ]
 
 [[package]]
-name = "uv"
+name = "uv-docs-sample"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
