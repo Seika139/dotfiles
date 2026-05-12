@@ -80,3 +80,11 @@ get_wsl_info() {
     return 1
   fi
 }
+
+# fzf がインストールされているか確認するユーティリティ
+fzf_available() {
+  if ! command -v fzf >/dev/null 2>&1; then
+    printf "%b%s%b\n" '\e[31m' "fzf がこの環境にないため処理を継続できません。fzf をインストールしてください。" '\e[0m' >&2
+    return 1
+  fi
+}
