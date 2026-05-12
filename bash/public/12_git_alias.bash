@@ -34,11 +34,12 @@ alias gpl='git pull'
 alias gtl="git tag | sort -rV"
 
 PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
+GL_DATE_FORMAT="%Y/%m/%d %H:%M:%S"
 
 # git log … 飾り付けて表示
 gl() {
   local command
-  command=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}")
+  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}")
   echo_yellow "${command[*]}"
   "${command[@]}"
 }
@@ -46,7 +47,7 @@ gl() {
 # git log … グラフ表示
 glr() {
   local command
-  command=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--graph")
+  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--graph")
   echo_yellow "${command[*]}"
   "${command[@]}"
 }
@@ -54,7 +55,7 @@ glr() {
 # git log … 修正ライン数が分かる
 gll() {
   local command
-  command=("git" "log" "--date=format-local:%Y/%m/%d %H:%M:%S" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
+  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
   echo_yellow "${command[*]}"
   "${command[@]}"
 }
@@ -310,4 +311,105 @@ gln() {
 glh() {
   echo_yellow '最初のコミットが古い順に作業者を表示します'
   git log --pretty=format:"%ad %an" --date=short --reverse -- "$@" | awk '{if (!seen[$2]++) {print $0}}'
+}
+
+gf() {
+  local selected
+  selected="${1:-}"
+
+  local SUBCOMMANDS=(
+    "log:通常のログ"
+    "graph:--graph: グラフ表示"
+    "numstat:--numstat: 修正ライン数を表示"
+    "committers:最初のコミットが古い順に作業者を表示します（引数にファイルやディレクトリを指定）"
+    "file-history:指定したパスの変更履歴を表示します（引数にファイル・ディレクトリを指定）"
+  )
+
+  local height
+  height=$((${#SUBCOMMANDS[@]} + 9))
+
+  if [[ -z "$selected" ]]; then
+    if ! fzf_available; then
+      return 2
+    fi
+    selected=$(
+      printf '%s\n' "${SUBCOMMANDS[@]}" |
+        fzf --height "$height" --border \
+          --delimiter=: \
+          --with-nth=1 \
+          --prompt "subcommand を選択: " \
+          --preview 'printf "%b%s%b\n" "\e[38;5;214m" {2..} "\e[0m"' \
+          --preview-window=down,3,wrap
+    )
+
+    if [ -z "$selected" ]; then
+      echo "キャンセルしました。" >&2
+      return 0
+    fi
+  fi
+
+  local subcommand
+  subcommand="${selected%%:*}"
+
+  local command
+  case "$subcommand" in
+  log)
+    command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}")
+    ;;
+  graph)
+    command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--graph")
+    ;;
+  numstat)
+    command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
+    ;;
+  committers)
+    shift
+    glh "$@"
+    return 0
+    ;;
+  file-history)
+    shift
+    local files
+    files=("$@")
+    if [[ ${#files[@]} -eq 0 ]]; then
+      local file
+      file=$(fd --hidden \
+        --exclude .git \
+        --exclude node_modules \
+        --exclude vendor \
+        --exclude __pycache__ \
+        --exclude .venv \
+        --exclude .mypy_cache \
+        --exclude .pytest_cache \
+        --exclude .ruff_cache \
+        --exclude htmlcov \
+        --exclude .cache \
+        --exclude dist \
+        --exclude build \
+        . | fzf \
+        --preview 'if [[ -f {} ]]; then
+          bat --color=always --style=full --line-range :120 {}
+        else
+          eza --tree {}
+        fi
+      ')
+      if [[ -z "$file" ]]; then
+        echo "キャンセルしました。" >&2
+        return 0
+      fi
+      files=("$file")
+    fi
+    echo_yellow "指定したファイルの変更履歴を表示します: ${files[*]}"
+    echo_blue "gf file-history ${files[*]}"
+    git log --date=format-local:"${GL_DATE_FORMAT}" --pretty=format:"${PRETTY_FORMAT}" -- "${files[*]}"
+    return 0
+    ;;
+  *)
+    echo_red "無効なオプションです: $selected" >&2
+    return 1
+    ;;
+  esac
+
+  echo_blue "${command[*]}"
+  "${command[@]}"
 }
