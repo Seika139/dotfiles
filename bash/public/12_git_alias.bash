@@ -399,9 +399,10 @@ gf() {
       fi
       files=("$file")
     fi
-    echo_yellow "指定したファイルの変更履歴を表示します: ${files[*]}"
+    echo_yellow -n "指定したパスの変更履歴を表示します: "
+    echo "${files[*]}"
     echo_blue "gf file-history ${files[*]}"
-    git log --date=format-local:"${GL_DATE_FORMAT}" --pretty=format:"${PRETTY_FORMAT}" -- "${files[*]}"
+    git log --date=format-local:"${GL_DATE_FORMAT}" --pretty=format:"${PRETTY_FORMAT}" -- "${files[@]}"
     return 0
     ;;
   *)
