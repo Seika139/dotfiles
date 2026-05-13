@@ -123,6 +123,7 @@
     "Omni",
     "omnisharp",
     "ondelete",
+    "oneline",
     "onupdate",
     "openpyxl",
     "organisation",
@@ -150,6 +151,7 @@
     "plushie",
     "predis",
     "println",
+    "procinfo",
     "psql",
     "psycopg",
     "pwsh",
@@ -176,6 +178,7 @@
     "reranked",
     "Reranker",
     "retryable",
+    "rumdl",
     "Runbook",
     "SAPI",
     "sashi",
@@ -200,6 +203,9 @@
     "superglobal",
     "svtask",
     "symfony",
+    "taplo",
+    "textlint",
+    "textlintrc",
     "timedelta",
     "TINYINT",
     "tmpfs",
@@ -244,6 +250,9 @@
   "git.confirmSync": false,
   "git.enableSmartCommit": true,
   "git.autofetch": true,
+  "git.inputValidation": true,
+  "git.inputValidationSubjectLength": 50,
+  "git.inputValidationLength": 72,
   "github-enterprise.uri": "https://github.com/enterprises/cygamesinc",
   "github.copilot.chat.localeOverride": "ja",
   "github.copilot.enable": {
@@ -569,6 +578,7 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
   "redhat.telemetry.enabled": true,
-  "vsicons.dontShowNewVersionMessage": true
+  "vsicons.dontShowNewVersionMessage": true,
+  "hediet.vscode-drawio.resizeImages": null
   // "terminal.integrated.shellIntegration.enabled": false // 要るか要らないか判定中
 }
