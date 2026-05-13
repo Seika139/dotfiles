@@ -33,7 +33,7 @@ alias gpl='git pull'
 # git tag list でバージョンタグを降順で表示
 alias gtl="git tag | sort -rV"
 
-PRETTY_FORMAT="%C(Yellow)%h %C(Magenta)%cd %C(Cyan)[%cn] %C(Reset)%s %C(Red)%d"
+PRETTY_FORMAT="%C(Yellow)%h %C(#519acf)%cd %C(#e0a77e)%cn %C(Reset)%s %C(#72e359)%d"
 GL_DATE_FORMAT="%Y/%m/%d %H:%M:%S"
 
 # git log … 飾り付けて表示
@@ -310,7 +310,13 @@ gln() {
 
 glh() {
   echo_yellow '最初のコミットが古い順に作業者を表示します'
-  git log --pretty=format:"%ad %an" --date=short --reverse -- "$@" | awk '{if (!seen[$2]++) {print $0}}'
+  local files=("$@")
+  if [[ ${#files[@]} -eq 0 ]] && fzf_available; then
+    # 引数なしなら fzf でパス選択。キャンセルされたらリポジトリ全体で集計する
+    _gf_pick_paths files || files=()
+  fi
+  git log --pretty=format:"%ad %an" --date=short --reverse -- "${files[@]}" |
+    awk '{if (!seen[$2]++) {print $0}}'
 }
 
 # fd + fzf でパス（ファイル/ディレクトリ）を複数選択するヘルパー
@@ -331,6 +337,8 @@ _gf_pick_paths() {
   done < <(
     {
       printf '.\0'
+      # .gitignore を正しく設定していれば自動的に除外されるが、念のため fd の --exclude オプションで除外するパターンを指定しておく
+      # --hidden は隠しファイルを検索対象にするオプション
       fd --hidden --print0 \
         --exclude .git \
         --exclude node_modules \
@@ -342,8 +350,6 @@ _gf_pick_paths() {
         --exclude .ruff_cache \
         --exclude htmlcov \
         --exclude .cache \
-        --exclude dist \
-        --exclude build \
         --exclude .DS_Store \
         .
     } | fzf --read0 --print0 --multi \
@@ -351,10 +357,12 @@ _gf_pick_paths() {
       --pointer='▶' \
       --marker='✓' \
       --header="$(
-        echo_blue -n 'Tab '
+        echo_blue -n 'Tab  '
         echo -n '選択切替 / '
         echo_blue -n 'Shift+Tab '
-        echo '選択切替（逆へ移動）'
+        echo -n '選択切替（逆へ移動）/ '
+        echo_blue -n 'ESC '
+        echo 'フラグなしで続行'
 
         echo_blue -n 'Ctrl+A '
         echo -n '全選択 / '
@@ -379,100 +387,113 @@ _gf_pick_paths() {
   ((${#_out_arr[@]} > 0))
 }
 
-gf() {
-  local selected
-  selected="${1:-}"
+# git log のフラグを fzf で複数選択するヘルパー
+# 第1引数: 結果を格納する配列名（nameref）
+# 戻り値: 0=fzf 起動成功（選択ゼロでも 0）, 1=fzf 不可
+_gf_pick_flags() {
+  if ! fzf_available; then
+    return 1
+  fi
+  local -n _flags_out="$1"
+  _flags_out=()
 
-  local SUBCOMMANDS=(
-    "log:通常のログ（引数または fzf でパスを絞り込み可能）"
-    "graph:--graph: グラフ表示（引数または fzf でパスを絞り込み可能）"
-    "numstat:--numstat: 修正ライン数を表示（引数または fzf でパスを絞り込み可能）"
-    "committers:最初のコミットが古い順に作業者を表示します（引数または fzf でパスを指定）"
-    "file-history:指定したパスの変更履歴を表示します（引数または fzf でパスを指定）"
+  # フラグ\t説明 の形式。--with-nth=1 で list 表示は左列のみ、preview に説明を表示
+  local FLAG_CHOICES=(
+    $'--stat\tファイルごとの追加/削除行数（視覚的な棒グラフ）'
+    $'-p\tunified diff を含めて表示'
+    $'--graph\tコミットグラフを線で表示'
+    $'--numstat\tファイルごとの追加/削除行数（タブ区切り、機械処理向き）'
+    $'--shortstat\tファイル数と合計追加/削除行数のみ'
+    $'--name-status\t変更ファイル名 + 種別 (A=追加, M=変更, D=削除, R=リネーム)'
+    $'--reverse\t古い順に表示'
+    $'--first-parent\tマージコミットでメインライン側のみを辿る'
+    $'--no-merges\tマージコミットを除外'
   )
 
-  local height
-  height=$((${#SUBCOMMANDS[@]} + 9))
+  local picked
+  picked=$(
+    printf '%s\n' "${FLAG_CHOICES[@]}" |
+      fzf --multi \
+        --delimiter=$'\t' \
+        --with-nth=1 \
+        --prompt='フラグ選択 ❯ ' \
+        --pointer='▶' \
+        --marker='✓' \
+        --header="$(
+          echo_blue -n 'Tab '
+          echo -n '選択切替 / '
+          echo_blue -n 'Shift+Tab '
+          echo -n '選択切替（逆へ移動）/ '
+          echo_blue -n 'ESC '
+          echo -n 'フラグなしで続行 / '
+          echo_blue -n 'Ctrl+A '
+          echo -n '全選択 / '
+          echo_blue -n 'Ctrl+D '
+          echo -n '全解除'
+        )" \
+        --color='prompt:75,pointer:211,marker:84,header:italic:245,hl:84,hl+:84:reverse' \
+        --bind='tab:toggle+down,shift-tab:toggle+up,ctrl-a:toggle-all,ctrl-d:deselect-all' \
+        --preview-window='down,3,wrap' \
+        --preview 'printf "\033[38;5;214m%s\033[0m\n" {2..}'
+  )
 
-  if [[ -z "$selected" ]]; then
-    if ! fzf_available; then
-      return 2
-    fi
-    selected=$(
-      printf '%s\n' "${SUBCOMMANDS[@]}" |
-        fzf --height "$height" --border \
-          --delimiter=: \
-          --with-nth=1 \
-          --prompt "subcommand を選択: " \
-          --preview 'printf "%b%s%b\n" "\e[38;5;214m" {2..} "\e[0m"' \
-          --preview-window=down,3,wrap
-    )
-
-    if [ -z "$selected" ]; then
-      echo "キャンセルしました。" >&2
-      return 0
-    fi
+  # picked が空でも成功扱い（ユーザー意図 = フラグなしで続行）
+  if [[ -z "$picked" ]]; then
+    return 0
   fi
 
-  local subcommand
-  subcommand="${selected%%:*}"
-  [[ $# -gt 0 ]] && shift
+  local line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && _flags_out+=("${line%%$'\t'*}")
+  done <<<"$picked"
 
-  # log/graph/numstat 共通で使うパス配列。引数なしなら fzf で補完
-  local files=("$@")
+  return 0
+}
 
-  local command
-  case "$subcommand" in
-  log | graph | numstat)
-    command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}")
-    [[ "$subcommand" == "graph" ]] && command+=("--graph")
-    [[ "$subcommand" == "numstat" ]] && command+=("--numstat")
+# gf [<git log フラグ>...] [-- <path>...]
+# - 引数なし: fzf でフラグ選択 → fzf でパス選択 → git log 実行
+# - フラグだけ指定: パスは fzf で選択
+# - -- <path> 指定: フラグだけ fzf で選択（フラグも省略可）
+# - フラグも -- も両方指定: fzf を一切起動せず即実行
+# どの fzf もキャンセル可。フラグキャンセル = フラグなし、パスキャンセル = パスなし。
+gf() {
+  # 引数を -- で前後に分割
+  local flags=()
+  local files=()
+  local seen_sep=0
+  local arg
+  for arg in "$@"; do
+    if ((seen_sep == 0)) && [[ "$arg" == "--" ]]; then
+      seen_sep=1
+      continue
+    fi
+    if ((seen_sep == 0)); then
+      flags+=("$arg")
+    else
+      files+=("$arg")
+    fi
+  done
 
-    if [[ ${#files[@]} -eq 0 ]] && fzf_available; then
-      # 引数なしのときだけ fzf で選ばせる。明示的にキャンセルされたら全体ログにフォールバック
-      _gf_pick_paths files || files=()
-    fi
+  # フラグが空なら fzf で選択（キャンセル可: 空のまま続行）
+  if [[ ${#flags[@]} -eq 0 ]] && fzf_available; then
+    _gf_pick_flags flags || flags=()
+  fi
 
-    if [[ ${#files[@]} -gt 0 ]]; then
-      command+=("--" "${files[@]}")
-    fi
-    ;;
-  committers)
-    if [[ ${#files[@]} -eq 0 ]]; then
-      if ! _gf_pick_paths files; then
-        echo "キャンセルしました。" >&2
-        return 0
-      fi
-    fi
-    local args_str
-    printf -v args_str '%q ' "${files[@]}"
-    echo_blue "glh ${args_str% }"
-    glh "${files[@]}"
-    return 0
-    ;;
-  file-history)
-    if [[ ${#files[@]} -eq 0 ]]; then
-      if ! _gf_pick_paths files; then
-        echo "キャンセルしました。" >&2
-        return 0
-      fi
-    fi
-    echo_yellow -n "指定したパスの変更履歴を表示します: "
-    echo "${files[*]}"
-    local args_str
-    printf -v args_str '%q ' "${files[@]}"
-    echo_blue "gf file-history ${args_str% }"
-    git log --date=format-local:"${GL_DATE_FORMAT}" --pretty=format:"${PRETTY_FORMAT}" -- "${files[@]}"
-    return 0
-    ;;
-  *)
-    echo_red "無効なオプションです: $selected" >&2
-    return 1
-    ;;
-  esac
+  # パスが空なら fzf で選択（キャンセル可: 空のまま = リポジトリ全体）
+  if [[ ${#files[@]} -eq 0 ]] && fzf_available; then
+    _gf_pick_paths files || files=()
+  fi
+
+  local command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}")
+  if [[ ${#flags[@]} -gt 0 ]]; then
+    command+=("${flags[@]}")
+  fi
+  if [[ ${#files[@]} -gt 0 ]]; then
+    command+=("--" "${files[@]}")
+  fi
 
   local cmd_str
   printf -v cmd_str '%q ' "${command[@]}"
-  echo_blue "${cmd_str% }"
+  echo_yellow "${cmd_str% }"
   "${command[@]}"
 }
