@@ -313,16 +313,82 @@ glh() {
   git log --pretty=format:"%ad %an" --date=short --reverse -- "$@" | awk '{if (!seen[$2]++) {print $0}}'
 }
 
+# fd + fzf でパス（ファイル/ディレクトリ）を複数選択するヘルパー
+# 第1引数: 結果を格納する配列名（nameref）
+# 戻り値: 0=選択あり, 1=キャンセル/fzf不可
+_gf_pick_paths() {
+  if ! fzf_available; then
+    return 1
+  fi
+  local -n _out_arr="$1"
+  _out_arr=()
+
+  # NUL 区切りで安全に受け渡し、先頭に "." を加えて pwd を選択肢に含める。
+  # コマンド置換 $() は NUL を保持できないので、プロセス置換で直接配列へ読む。
+  local item
+  while IFS= read -r -d '' item; do
+    [[ -n "$item" ]] && _out_arr+=("$item")
+  done < <(
+    {
+      printf '.\0'
+      fd --hidden --print0 \
+        --exclude .git \
+        --exclude node_modules \
+        --exclude vendor \
+        --exclude __pycache__ \
+        --exclude .venv \
+        --exclude .mypy_cache \
+        --exclude .pytest_cache \
+        --exclude .ruff_cache \
+        --exclude htmlcov \
+        --exclude .cache \
+        --exclude dist \
+        --exclude build \
+        --exclude .DS_Store \
+        .
+    } | fzf --read0 --print0 --multi \
+      --prompt='パス選択 ❯ ' \
+      --pointer='▶' \
+      --marker='✓' \
+      --header="$(
+        echo_blue -n 'Tab '
+        echo -n '選択切替 / '
+        echo_blue -n 'Shift+Tab '
+        echo '選択切替（逆へ移動）'
+
+        echo_blue -n 'Ctrl+A '
+        echo -n '全選択 / '
+        echo_blue -n 'Ctrl+D '
+        echo -n '全解除 / '
+        echo_blue -n 'Ctrl+/ '
+        echo -n 'preview 切替'
+      )" \
+      --color='prompt:75,pointer:211,marker:84,header:italic:245,hl:84,hl+:84:reverse' \
+      --bind='tab:toggle+down,shift-tab:toggle+up,ctrl-a:toggle-all,ctrl-d:deselect-all,ctrl-/:toggle-preview' \
+      --preview-window='right,60%,wrap' \
+      --preview 'printf "\033[1;33m── 選択対象a ──\033[0m\n"
+        printf "  %s\n" {+}
+        printf "\n\033[1;36m── ファイル/ディレクトリ ──\033[0m\n"
+        if [[ -f {} ]]; then
+          bat --color=always --style=full --line-range :120 {}
+        else
+          eza --tree --color=always {}
+        fi'
+  )
+
+  ((${#_out_arr[@]} > 0))
+}
+
 gf() {
   local selected
   selected="${1:-}"
 
   local SUBCOMMANDS=(
-    "log:通常のログ"
-    "graph:--graph: グラフ表示"
-    "numstat:--numstat: 修正ライン数を表示"
-    "committers:最初のコミットが古い順に作業者を表示します（引数にファイルやディレクトリを指定）"
-    "file-history:指定したパスの変更履歴を表示します（引数にファイル・ディレクトリを指定）"
+    "log:通常のログ（引数または fzf でパスを絞り込み可能）"
+    "graph:--graph: グラフ表示（引数または fzf でパスを絞り込み可能）"
+    "numstat:--numstat: 修正ライン数を表示（引数または fzf でパスを絞り込み可能）"
+    "committers:最初のコミットが古い順に作業者を表示します（引数または fzf でパスを指定）"
+    "file-history:指定したパスの変更履歴を表示します（引数または fzf でパスを指定）"
   )
 
   local height
@@ -350,58 +416,52 @@ gf() {
 
   local subcommand
   subcommand="${selected%%:*}"
+  [[ $# -gt 0 ]] && shift
+
+  # log/graph/numstat 共通で使うパス配列。引数なしなら fzf で補完
+  local files=("$@")
 
   local command
   case "$subcommand" in
-  log)
+  log | graph | numstat)
     command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}")
-    ;;
-  graph)
-    command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--graph")
-    ;;
-  numstat)
-    command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
+    [[ "$subcommand" == "graph" ]] && command+=("--graph")
+    [[ "$subcommand" == "numstat" ]] && command+=("--numstat")
+
+    if [[ ${#files[@]} -eq 0 ]] && fzf_available; then
+      # 引数なしのときだけ fzf で選ばせる。明示的にキャンセルされたら全体ログにフォールバック
+      _gf_pick_paths files || files=()
+    fi
+
+    if [[ ${#files[@]} -gt 0 ]]; then
+      command+=("--" "${files[@]}")
+    fi
     ;;
   committers)
-    shift
-    glh "$@"
-    return 0
-    ;;
-  file-history)
-    shift
-    local files
-    files=("$@")
     if [[ ${#files[@]} -eq 0 ]]; then
-      local file
-      file=$(fd --hidden \
-        --exclude .git \
-        --exclude node_modules \
-        --exclude vendor \
-        --exclude __pycache__ \
-        --exclude .venv \
-        --exclude .mypy_cache \
-        --exclude .pytest_cache \
-        --exclude .ruff_cache \
-        --exclude htmlcov \
-        --exclude .cache \
-        --exclude dist \
-        --exclude build \
-        . | fzf \
-        --preview 'if [[ -f {} ]]; then
-          bat --color=always --style=full --line-range :120 {}
-        else
-          eza --tree {}
-        fi
-      ')
-      if [[ -z "$file" ]]; then
+      if ! _gf_pick_paths files; then
         echo "キャンセルしました。" >&2
         return 0
       fi
-      files=("$file")
+    fi
+    local args_str
+    printf -v args_str '%q ' "${files[@]}"
+    echo_blue "glh ${args_str% }"
+    glh "${files[@]}"
+    return 0
+    ;;
+  file-history)
+    if [[ ${#files[@]} -eq 0 ]]; then
+      if ! _gf_pick_paths files; then
+        echo "キャンセルしました。" >&2
+        return 0
+      fi
     fi
     echo_yellow -n "指定したパスの変更履歴を表示します: "
     echo "${files[*]}"
-    echo_blue "gf file-history ${files[*]}"
+    local args_str
+    printf -v args_str '%q ' "${files[@]}"
+    echo_blue "gf file-history ${args_str% }"
     git log --date=format-local:"${GL_DATE_FORMAT}" --pretty=format:"${PRETTY_FORMAT}" -- "${files[@]}"
     return 0
     ;;
@@ -411,6 +471,8 @@ gf() {
     ;;
   esac
 
-  echo_blue "${command[*]}"
+  local cmd_str
+  printf -v cmd_str '%q ' "${command[@]}"
+  echo_blue "${cmd_str% }"
   "${command[@]}"
 }
