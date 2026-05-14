@@ -15,6 +15,70 @@ from pydantic import BaseModel, ConfigDict, Field
 from auto_emulator.games.produce.state import GameState
 from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
 
+
+class DialogChoiceRule(BaseModel):
+    """3 択ダイアログのキーワードマッチング規則。
+
+    `prompt` に `prompt_keywords` のいずれかが含まれるとき、選択肢から
+    `option_keywords` を含む最初の候補を選ぶ。
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    prompt_keywords: tuple[str, ...]
+    option_keywords: tuple[str, ...]
+    description: str = ""
+
+
+# 既定の文脈判定規則。先頭の規則ほど優先度が高い。
+DEFAULT_DIALOG_RULES: tuple[DialogChoiceRule, ...] = (
+    DialogChoiceRule(
+        prompt_keywords=("緊張", "落ち着", "リラックス", "ほぐ"),
+        option_keywords=("いつも通り", "落ち着", "リラックス"),
+        description="緊張を解く -> いつも通り (テンション維持)",
+    ),
+    DialogChoiceRule(
+        prompt_keywords=("練習", "上達", "頑張"),
+        option_keywords=("頑張", "本気", "全力"),
+        description="練習文脈 -> 全力 (ステータス重視)",
+    ),
+    DialogChoiceRule(
+        prompt_keywords=("休", "リフレッシュ", "気分転換"),
+        option_keywords=("休", "ゆっくり"),
+        description="休む文脈 -> 休む (体力維持)",
+    ),
+)
+
+
+def choose_dialog_option(
+    prompt: str,
+    options: tuple[str, ...],
+    *,
+    rules: tuple[DialogChoiceRule, ...] = DEFAULT_DIALOG_RULES,
+    fallback_index: int = 2,
+) -> int:
+    """3 択ダイアログで選ぶインデックスを決める純関数。
+
+    Args:
+        prompt: プロデューサーの問いかけテキスト。
+        options: 選択肢テキスト (1-3 個想定)。
+        rules: 優先度順の規則タプル。
+        fallback_index: マッチしないときの既定 (default は黄色: M11)。
+
+    Returns:
+        選択肢のインデックス (0-based)。`options` 長より小さい範囲に正規化。
+    """
+    if not options:
+        return 0
+    for rule in rules:
+        if not any(kw in prompt for kw in rule.prompt_keywords):
+            continue
+        for idx, option in enumerate(options):
+            if any(kw in option for kw in rule.option_keywords):
+                return idx
+    return min(fallback_index, len(options) - 1)
+
+
 ActionKind = Literal["lesson", "rest", "audition", "reflection", "item", "noop"]
 
 

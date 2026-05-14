@@ -5,9 +5,12 @@ Phase 2+ で decision エンジンと action マクロを追加予定。
 """
 
 from auto_emulator.games.produce.decision import (
+    DEFAULT_DIALOG_RULES,
     ActionKind,
+    DialogChoiceRule,
     StrategyEngine,
     TurnDecision,
+    choose_dialog_option,
 )
 from auto_emulator.games.produce.reader import (
     HeaderRegions,
@@ -24,8 +27,10 @@ from auto_emulator.games.produce.state import (
 from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
 
 __all__ = [
+    "DEFAULT_DIALOG_RULES",
     "SEASON_STRATEGY",
     "ActionKind",
+    "DialogChoiceRule",
     "FractionalRegion",
     "GameState",
     "HeaderRegions",
@@ -37,4 +42,5 @@ __all__ = [
     "StatusRegions",
     "StrategyEngine",
     "TurnDecision",
+    "choose_dialog_option",
 ]
