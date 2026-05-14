@@ -18,6 +18,7 @@ from auto_emulator.games.produce.digit_matcher import (
     DigitMatcher,
     DigitTemplate,
     extract_template,
+    load_digit_templates,
 )
 from auto_emulator.games.produce.reader import (
     HeaderRegions,
@@ -57,4 +58,5 @@ __all__ = [
     "choose_dialog_option",
     "extract_template",
     "is_wing_audition",
+    "load_digit_templates",
 ]

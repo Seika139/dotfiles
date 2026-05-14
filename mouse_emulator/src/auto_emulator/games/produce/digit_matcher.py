@@ -12,8 +12,10 @@ fans ピンク) を、digit 0-9 のテンプレートを `cv2.matchTemplate` で
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from operator import itemgetter
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -40,6 +42,37 @@ class DigitTemplate:
         if self.pattern.ndim != 2:
             msg = f"pattern must be 2D grayscale, got {self.pattern.shape}"
             raise ValueError(msg)
+
+
+_TEMPLATE_FILENAME_RE = re.compile(r"^([0-9])(?:_(.+))?\.png$", re.IGNORECASE)
+
+
+def load_digit_templates(directory: Path) -> list[DigitTemplate]:
+    """ディレクトリ内の `{digit}_{style}.png` を全てロードする。
+
+    ファイル名の先頭 1 文字が digit (0-9)、続く `_{style}` は任意。
+    例: `6_pink.png` / `8_yellow_large.png` / `2.png`。
+
+    Args:
+        directory: テンプレート PNG が入ったディレクトリ。
+
+    Returns:
+        ロードされたテンプレートのリスト (ファイル名昇順)。
+        該当ファイルがなければ空リスト。
+    """
+    if not directory.is_dir():
+        return []
+    templates: list[DigitTemplate] = []
+    for path in sorted(directory.iterdir()):
+        match = _TEMPLATE_FILENAME_RE.match(path.name)
+        if match is None:
+            continue
+        digit = int(match.group(1))
+        style = match.group(2) or ""
+        with Image.open(path) as img:
+            pattern = np.asarray(img.convert("L"), dtype=np.uint8)
+        templates.append(DigitTemplate(digit=digit, pattern=pattern, style=style))
+    return templates
 
 
 def extract_template(

@@ -14,6 +14,7 @@ import numpy as np
 import pytesseract  # type: ignore[import-untyped]
 from PIL import Image
 
+from auto_emulator.games.produce.digit_matcher import DigitMatcher
 from auto_emulator.games.produce.state import (
     FractionalRegion,
     GameState,
@@ -44,7 +45,7 @@ class HeaderRegions:
         default_factory=lambda: FractionalRegion(x=0.393, y=0.019, w=0.043, h=0.075),
     )
     fans_to_target: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.609, y=0.040, w=0.080, h=0.047),
+        default_factory=lambda: FractionalRegion(x=0.605, y=0.040, w=0.100, h=0.052),
     )
 
 
@@ -113,19 +114,21 @@ class ProduceStateReader:
     数値のみ抽出する場面では `eng` + 数字ホワイトリストで精度を上げる。
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         header: HeaderRegions | None = None,
         lessons: LessonRegions | None = None,
         stats: StatsRegions | None = None,
         status: StatusRegions | None = None,
+        digit_matcher: DigitMatcher | None = None,
         tesseract_cmd: str | None = None,
     ) -> None:
         self._header = header or HeaderRegions()
         self._lessons = lessons or LessonRegions()
         self._stats = stats or StatsRegions()
         self._status = status or StatusRegions()
+        self._digit_matcher = digit_matcher
         if tesseract_cmd is not None:
             pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
@@ -223,6 +226,12 @@ class ProduceStateReader:
         image: Image.Image,
         region: FractionalRegion,
     ) -> int | None:
+        # DigitMatcher が注入されていれば先にそちらを試す (装飾フォントで強い)
+        if self._digit_matcher is not None:
+            crop = image.crop(region.to_pixels(image.width, image.height))
+            matched = self._digit_matcher.read_number(crop)
+            if matched is not None:
+                return matched
         text = self._ocr_text(image, region, digits_only=True)
         match = _INT_RE.search(text)
         if match is None:
@@ -237,6 +246,11 @@ class ProduceStateReader:
         image: Image.Image,
         region: FractionalRegion,
     ) -> int | None:
+        if self._digit_matcher is not None:
+            crop = image.crop(region.to_pixels(image.width, image.height))
+            matched = self._digit_matcher.read_number(crop)
+            if matched is not None:
+                return matched
         text = self._ocr_text(image, region, digits_only=True)
         match = _FANS_RE.search(text)
         if match is None:
