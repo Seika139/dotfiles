@@ -122,6 +122,18 @@ class ProduceStateReader:
         if tesseract_cmd is not None:
             pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
+    @property
+    def lesson_regions(self) -> LessonRegions:
+        return self._lessons
+
+    @property
+    def stat_regions(self) -> StatsRegions:
+        return self._stats
+
+    @property
+    def status_regions(self) -> StatusRegions:
+        return self._status
+
     def read(self, image: Image.Image) -> GameState:
         screen = self._detect_screen_kind(image)
         state = GameState(screen=screen)
