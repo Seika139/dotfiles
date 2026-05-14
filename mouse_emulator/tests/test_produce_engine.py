@@ -46,8 +46,11 @@ class FakePointer:
 @dataclass
 class FakeCapture:
     image: Image.Image
+    queue: list[Image.Image] = field(default_factory=list)
 
     def capture(self, region: Region) -> Image.Image:  # noqa: ARG002
+        if self.queue:
+            return self.queue.pop(0)
         return self.image
 
 
@@ -193,6 +196,96 @@ class TestRunLoop:
         assert executed == 3
         # 1 ターンで 2 クリック (カード + 決定) → 6 クリック
         assert len(pointer.clicks) == 6
+
+
+class TestScreenDetectionIntegration:
+    @staticmethod
+    def _image_with_br_color(color: tuple[int, int, int]) -> Image.Image:
+        """右下に signature 色を持つ画像を組み立てる。
+
+        Returns:
+            3024x1610 PNG。右下のみ指定色、それ以外は中間グレー。
+        """
+        img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        # 検出が見る領域 (fractional 0.81-0.88 / 0.91-0.96) を塗りつぶす
+        block = Image.new("RGB", (212, 80), color=color)
+        img.paste(block, (2449, 1465))
+        return img
+
+    def test_detect_screen_uses_capture(self) -> None:
+        schedule_img = self._image_with_br_color((220, 149, 191))
+        pointer = FakePointer()
+        capture = FakeCapture(schedule_img)
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        assert engine.detect_screen() == "schedule_lesson"
+
+    def test_wait_for_screen_returns_first_match(self) -> None:
+        home_img = self._image_with_br_color((163, 214, 136))
+        schedule_img = self._image_with_br_color((220, 149, 191))
+        pointer = FakePointer()
+        capture = FakeCapture(
+            image=schedule_img,
+            queue=[home_img, home_img, schedule_img],
+        )
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        result = engine.wait_for_screen(
+            "schedule_lesson",
+            timeout=5.0,
+            poll_interval=0.0,
+        )
+        assert result == "schedule_lesson"
+
+    def test_wait_for_screen_timeout_returns_none(self) -> None:
+        gray = Image.new("RGB", (3024, 1610), color=(180, 195, 220))
+        pointer = FakePointer()
+        capture = FakeCapture(gray)
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        result = engine.wait_for_screen(
+            "home",
+            timeout=0.05,
+            poll_interval=0.01,
+        )
+        assert result is None
+
+    def test_wait_for_screen_accepts_set(self) -> None:
+        home_img = self._image_with_br_color((163, 214, 136))
+        pointer = FakePointer()
+        capture = FakeCapture(home_img)
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        result = engine.wait_for_screen(
+            {"home", "schedule_lesson"},
+            timeout=1.0,
+            poll_interval=0.0,
+        )
+        assert result == "home"
 
 
 class TestCaptureStateMergesLessons:
