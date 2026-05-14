@@ -239,17 +239,49 @@ class ProduceStateReader:
         return image.crop(box).convert("L")
 
     @staticmethod
-    def _detect_screen_kind(image: Image.Image) -> ScreenKind:
-        """画面種別判定のスタブ。
+    def detect_screen_kind(image: Image.Image) -> ScreenKind:
+        """画面種別を右下コーナーの色 signature で識別する。
 
-        Phase 1 では呼び出し側でフィクスチャ種を分かっている前提のため、
-        常に `unknown` を返す。Phase 2 でテンプレ判定を追加する。
+        右下 (fractional 0.81-0.88 / 0.91-0.96) の平均 RGB:
+            schedule_lesson: マゼンタ系 (R>200, G<170, B>150) — 決定ボタン
+            home:            グリーン系 (G>R+10 かつ G>B)    — 流行確認カード
+            audition_battle: ダークグレー (RGB すべて 140 未満) — ステージ背景
+
+        `schedule_audition` / `dialog` / `result` は signature 未整理のため
+        現状 unknown を返す。新しい画面を識別したいときは
+        `tools/calibrate_produce.py` で右下色をサンプルしてから条件を追加する。
 
         Returns:
-            画面種別。Phase 1 では常に `"unknown"`。
+            判定された画面種別。識別できない場合は `"unknown"`。
         """
-        del image
+        arr = np.asarray(image.convert("RGB"))
+        h, w = arr.shape[:2]
+        if h < 10 or w < 10:
+            return "unknown"
+
+        br = arr[int(h * 0.91) : int(h * 0.96), int(w * 0.81) : int(w * 0.88)]
+        if br.size == 0:
+            return "unknown"
+        r = float(br[:, :, 0].mean())
+        g = float(br[:, :, 1].mean())
+        b = float(br[:, :, 2].mean())
+
+        if r > 200.0 and g < 170.0 and b > 150.0:
+            return "schedule_lesson"
+        if g > r + 10.0 and g > b:
+            return "home"
+        if r < 140.0 and g < 140.0 and b < 140.0:
+            return "audition_battle"
         return "unknown"
+
+    @staticmethod
+    def _detect_screen_kind(image: Image.Image) -> ScreenKind:
+        """互換用エイリアス。Phase 5b までの呼び出しを壊さないため残す。
+
+        Returns:
+            `detect_screen_kind` への委譲結果。
+        """
+        return ProduceStateReader.detect_screen_kind(image)
 
     def lessons_from_schedule(self, image: Image.Image) -> list[LessonOption]:
         """スケジュール画面下部のレッスン/お仕事カード 6 枚を抽出する。
