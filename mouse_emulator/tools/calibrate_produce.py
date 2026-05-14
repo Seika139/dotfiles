@@ -3,7 +3,7 @@
 スクリーンショット PNG を入力し、`reader.py` で定義した全リージョン
 (ヘッダー / レッスンカード / ステ / 体力 / トラブル / テンション) と
 `actions.py` の全クリックポイント (ホーム / スケジュール / 戦闘 / 会話) を
-矩形＋マーカー＋ラベルで描き込んだ PNG を出力する。
+矩形 + マーカー + ラベルで描き込んだ PNG を出力する。
 
 使い方:
     .venv/bin/python tools/calibrate_produce.py \
@@ -68,13 +68,19 @@ def collect_regions() -> list[LabeledRegion]:
         LabeledRegion("trouble", status.trouble_pct, "#33ccff"),
         LabeledRegion("tension", status.tension_lv, "#33ccff"),
     ]
-    for label, region in ProduceStateReader.iter_stat_regions(stats):
-        items.append(LabeledRegion(f"stat:{label}", region, "#66ff66"))
+    items.extend(
+        LabeledRegion(f"stat:{label}", region, "#66ff66")
+        for label, region in ProduceStateReader.iter_stat_regions(stats)
+    )
     for slot, (name_region, level_region) in enumerate(
         ProduceStateReader.iter_lesson_regions(lessons),
     ):
-        items.append(LabeledRegion(f"lesson{slot}:name", name_region, "#ffaa00"))
-        items.append(LabeledRegion(f"lesson{slot}:lv", level_region, "#cc8800"))
+        items.extend(
+            (
+                LabeledRegion(f"lesson{slot}:name", name_region, "#ffaa00"),
+                LabeledRegion(f"lesson{slot}:lv", level_region, "#cc8800"),
+            ),
+        )
     return items
 
 
