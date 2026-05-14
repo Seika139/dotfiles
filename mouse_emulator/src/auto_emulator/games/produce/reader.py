@@ -75,15 +75,15 @@ class StatsRegions:
     """
 
     stat_centers_x: tuple[float, ...] = (
-        0.132,
-        0.226,
-        0.332,
-        0.431,
-        0.543,
-        0.875,
+        0.399,
+        0.490,
+        0.583,
+        0.671,
+        0.744,
+        0.870,
     )
-    stat_width: float = 0.08
-    stat_band: tuple[float, float] = (0.555, 0.595)
+    stat_width: float = 0.05
+    stat_band: tuple[float, float] = (0.546, 0.585)
     labels: tuple[str, ...] = ("Vo", "Da", "Vi", "Me", "SP", "Fans")
 
 
@@ -150,9 +150,21 @@ class ProduceStateReader:
         screen = self._detect_screen_kind(image)
         state = GameState(screen=screen)
 
-        season = self._ocr_int(image, self._header.season_digit)
-        week = self._ocr_int(image, self._header.week_remaining)
-        fans = self._ocr_int_with_commas(image, self._header.fans_to_target)
+        season = self._ocr_int(
+            image,
+            self._header.season_digit,
+            styles=("yellow_small", "pink"),
+        )
+        week = self._ocr_int(
+            image,
+            self._header.week_remaining,
+            styles=("yellow_large",),
+        )
+        fans = self._ocr_int_with_commas(
+            image,
+            self._header.fans_to_target,
+            styles=("pink",),
+        )
 
         if season is not None and 1 <= season <= 4:
             state = state.model_copy(update={"season": season})
@@ -163,7 +175,7 @@ class ProduceStateReader:
 
         hp_pct = self.read_hp_pct(image)
         trouble = self.read_trouble_pct(image)
-        tension = self._ocr_int(image, self._status.tension_lv)
+        tension = self._ocr_int(image, self._status.tension_lv)  # Tesseract 経路
         if hp_pct is not None:
             state = state.model_copy(update={"hp_pct": hp_pct})
         if trouble is not None:
@@ -227,11 +239,12 @@ class ProduceStateReader:
         self,
         image: Image.Image,
         region: FractionalRegion,
+        *,
+        styles: tuple[str, ...] | None = None,
     ) -> int | None:
-        # DigitMatcher が注入されていれば先にそちらを試す (装飾フォントで強い)
         if self._digit_matcher is not None:
             crop = image.crop(region.to_pixels(image.width, image.height))
-            matched = self._digit_matcher.read_number(crop)
+            matched = self._digit_matcher.read_number(crop, styles=styles)
             if matched is not None:
                 return matched
         text = self._ocr_text(image, region, digits_only=True)
@@ -247,10 +260,17 @@ class ProduceStateReader:
         self,
         image: Image.Image,
         region: FractionalRegion,
+        *,
+        styles: tuple[str, ...] | None = None,
+        matcher_threshold: float | None = None,
     ) -> int | None:
         if self._digit_matcher is not None:
             crop = image.crop(region.to_pixels(image.width, image.height))
-            matched = self._digit_matcher.read_number(crop)
+            matched = self._digit_matcher.read_number(
+                crop,
+                styles=styles,
+                threshold=matcher_threshold,
+            )
             if matched is not None:
                 return matched
         text = self._ocr_text(image, region, digits_only=True)
@@ -420,7 +440,12 @@ class ProduceStateReader:
         """
         result: dict[str, int] = {}
         for label, region in self.iter_stat_regions(self._stats):
-            value = self._ocr_int_with_commas(image, region)
+            value = self._ocr_int_with_commas(
+                image,
+                region,
+                styles=("stats",),
+                matcher_threshold=0.80,
+            )
             if value is not None:
                 result[label] = value
         if not result:
@@ -451,7 +476,11 @@ class ProduceStateReader:
         Returns:
             0-100 のパーセント値。読めない場合は None。
         """
-        value = self._ocr_int(image, self._status.trouble_pct)
+        value = self._ocr_int(
+            image,
+            self._status.trouble_pct,
+            styles=("yellow_large", "pink"),
+        )
         if value is None:
             return None
         return max(0, min(100, value))

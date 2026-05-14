@@ -127,24 +127,41 @@ class DigitMatcher:
         self._threshold = threshold
         self._nms_overlap_ratio = nms_overlap_ratio
 
-    def find_digits(self, image: Image.Image) -> list[tuple[int, int, float]]:
+    def find_digits(
+        self,
+        image: Image.Image,
+        *,
+        styles: tuple[str, ...] | None = None,
+        threshold: float | None = None,
+    ) -> list[tuple[int, int, float]]:
         """画像内にマッチした digit を `(x, digit, score)` で返す。
 
         Args:
             image: 検索対象画像 (PIL Image)。
+            styles: 利用するテンプレートの style 集合。`None` なら全テンプレ。
+                例えば `("pink",)` を渡すと pink スタイルのみ。
+            threshold: この呼び出し限定の閾値。None なら constructor 値。
 
         Returns:
             左 x 昇順にソート済み。重なりは NMS で 1 つに統合。
         """
+        effective_threshold = (
+            threshold if threshold is not None else self._threshold
+        )
         arr = np.asarray(image.convert("L"), dtype=np.uint8)
         candidates: list[tuple[int, int, float, int]] = []
-        for tmpl in self._templates:
+        templates = (
+            self._templates
+            if styles is None
+            else [t for t in self._templates if t.style in styles]
+        )
+        for tmpl in templates:
             if tmpl.pattern.shape[0] > arr.shape[0]:
                 continue
             if tmpl.pattern.shape[1] > arr.shape[1]:
                 continue
             result = cv2.matchTemplate(arr, tmpl.pattern, cv2.TM_CCOEFF_NORMED)
-            locations = np.where(result >= self._threshold)
+            locations = np.where(result >= effective_threshold)
             for y, x in zip(*locations, strict=False):
                 score = float(result[y, x])
                 candidates.append((int(x), tmpl.digit, score, tmpl.pattern.shape[1]))
@@ -162,13 +179,24 @@ class DigitMatcher:
         accepted.sort(key=itemgetter(0))
         return [(x, d, s) for x, d, s, _ in accepted]
 
-    def read_number(self, image: Image.Image) -> int | None:
+    def read_number(
+        self,
+        image: Image.Image,
+        *,
+        styles: tuple[str, ...] | None = None,
+        threshold: float | None = None,
+    ) -> int | None:
         """画像内の数字列を 1 つの整数として返す。
+
+        Args:
+            image: 検索対象画像。
+            styles: 利用するテンプレートの style 集合。`None` なら全テンプレ。
+            threshold: この呼び出し限定の閾値。None なら constructor 値。
 
         Returns:
             検出できれば int、何もマッチしなければ None。
         """
-        matches = self.find_digits(image)
+        matches = self.find_digits(image, styles=styles, threshold=threshold)
         if not matches:
             return None
         digits = "".join(str(d) for _, d, _ in matches)
