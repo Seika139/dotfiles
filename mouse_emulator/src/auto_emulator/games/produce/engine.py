@@ -225,6 +225,36 @@ class ProduceEngine:
         """
         self._tap(self._points.dialog.choice_yellow)
 
+    def consume_until_home(
+        self,
+        *,
+        max_taps: int = 30,
+        poll_interval: float = 0.5,
+    ) -> bool:
+        """不明な中間画面 (結果表示・会話など) を中央タップで送ってホームへ戻す。
+
+        ホーム or スケジュール画面に到達したら停止する。スケジュール画面は
+        新しいターンが始まった合図なので、呼び出し側 (run_full_produce) が
+        次の `step` を発行する想定で `False` を返す。
+
+        Args:
+            max_taps: 中央タップを試みる最大回数。
+            poll_interval: 各タップ後に画面遷移を待つ秒数。
+
+        Returns:
+            ホーム画面に到達したら True、スケジュール画面に到達 or 上限
+            到達なら False。
+        """
+        for _ in range(max_taps):
+            kind = self.detect_screen()
+            if kind == "home":
+                return True
+            if kind in {"schedule_lesson", "schedule_audition"}:
+                return False
+            self._tap(self._points.dialog.advance_safe)
+            time.sleep(poll_interval)
+        return False
+
     def enable_battle_auto(self) -> None:
         """オーディション戦闘で AUTO ON + 倍速 ON を順に押す (M3)。"""
         self._tap(self._points.audition_battle.auto_toggle)
