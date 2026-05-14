@@ -41,6 +41,22 @@ class SeasonPlan(BaseModel):
         le=1.0,
         description="この HP 比率を下回り、かつトラブル率が閾値超なら休む",
     )
+    reflect_stat_proximity: float = Field(
+        default=0.85,
+        gt=0.0,
+        le=1.0,
+        description="シーズン上限のこの比率以上に到達したステがあれば振り返り発動",
+    )
+
+
+# シーズンごとのステ上限 (Vo/Da/Vi)。実機計測値の概数で初期値とする。
+# 実機データで補正することが前提のため `STAT_CAPS` は const ではなく公開定数。
+SEASON_STAT_CAPS: dict[int, dict[str, int]] = {
+    1: {"Vo": 150, "Da": 150, "Vi": 150, "Me": 200},
+    2: {"Vo": 300, "Da": 300, "Vi": 300, "Me": 400},
+    3: {"Vo": 500, "Da": 500, "Vi": 500, "Me": 600},
+    4: {"Vo": 800, "Da": 800, "Vi": 800, "Me": 900},
+}
 
 
 # シャニマス WING True End ルートのデフォルト戦略。

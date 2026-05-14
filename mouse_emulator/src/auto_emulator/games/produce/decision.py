@@ -13,7 +13,11 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from auto_emulator.games.produce.state import GameState
-from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
+from auto_emulator.games.produce.strategy import (
+    SEASON_STAT_CAPS,
+    SEASON_STRATEGY,
+    SeasonPlan,
+)
 
 
 class DialogChoiceRule(BaseModel):
@@ -111,10 +115,12 @@ class StrategyEngine:
     def __init__(
         self,
         strategy_table: dict[int, SeasonPlan] | None = None,
+        stat_caps: dict[int, dict[str, int]] | None = None,
     ) -> None:
         self._strategy = (
             strategy_table if strategy_table is not None else SEASON_STRATEGY
         )
+        self._stat_caps = stat_caps if stat_caps is not None else SEASON_STAT_CAPS
 
     def decide(self, state: GameState) -> TurnDecision:
         season = state.season or 1
@@ -144,13 +150,11 @@ class StrategyEngine:
                 ),
             )
 
-        if self._should_reflect(state, plan):
+        reflect_reason = self._should_reflect(state, plan)
+        if reflect_reason is not None:
             return TurnDecision(
                 action_kind="reflection",
-                rationale=(
-                    f"skill_phase season={season} "
-                    f"weeks_remaining={state.week_remaining}"
-                ),
+                rationale=reflect_reason,
             )
 
         chosen = self._pick_lesson_slot(state, plan)
@@ -178,16 +182,33 @@ class StrategyEngine:
             return False
         return hp < plan.rest_hp_threshold
 
-    @staticmethod
-    def _should_reflect(state: GameState, plan: SeasonPlan) -> bool:
+    def _should_reflect(self, state: GameState, plan: SeasonPlan) -> str | None:
+        """振り返り発動可否を判定。
+
+        Returns:
+            発動するなら判定理由 (ログ用文字列)、しないなら `None`。
+        """
         if not plan.skill_phase:
-            return False
-        # 週数が十分残っていない (ファン目標まで遠い) ときは振り返りせず加速
+            return None
         if state.week_remaining is None or state.week_remaining < 2:
-            return False
-        # まだ細かな発動条件 (スキルポイント有無、上限突破可能か) を入れていない。
-        # Phase 4 で「上限近接判定」を加えて確度を上げる。
-        return False
+            return None
+        season = state.season
+        if season is None or state.stats is None:
+            return None
+        caps = self._stat_caps.get(season)
+        if not caps:
+            return None
+        for stat_name, current in state.stats.items():
+            cap = caps.get(stat_name)
+            if cap is None or cap <= 0:
+                continue
+            ratio = current / cap
+            if ratio >= plan.reflect_stat_proximity:
+                return (
+                    f"stat cap proximity: {stat_name}={current}/{cap} "
+                    f"({ratio:.0%} >= {plan.reflect_stat_proximity:.0%})"
+                )
+        return None
 
     @staticmethod
     def _pick_lesson_slot(
