@@ -145,6 +145,97 @@ def render(
     return output
 
 
+def _parse_box4(spec: str) -> tuple[float, float, float, float]:
+    """`x,y,w,h` 4 値の文字列を float タプルへ変換する。
+
+    Args:
+        spec: カンマ区切り 4 値の文字列 (例: "0.605,0.040,0.100,0.052")。
+
+    Returns:
+        (x, y, w, h) の float タプル。
+
+    Raises:
+        ValueError: 値が 4 個でない、または数値解釈に失敗したとき。
+    """
+    parts = [p.strip() for p in spec.split(",")]
+    expected = 4
+    if len(parts) != expected:
+        raise ValueError(
+            f"expected 4 comma-separated values, got {len(parts)}: {spec!r}",
+        )
+    x, y, w, h = (float(p) for p in parts)
+    return x, y, w, h
+
+
+def cmd_extract(args: argparse.Namespace) -> int:
+    """`extract` サブコマンド: スクショの指定領域を crop して保存。
+
+    digit テンプレートの補充用。`--frac` (fractional) または `--px`
+    (ピクセル) で領域を指定し、入力 PNG から切り出して `--out` に保存する。
+
+    Returns:
+        終了コード (0 成功, 2 入力ファイル不在, 3 引数不正)。
+    """
+    input_path: Path = args.input
+    if not input_path.exists():
+        sys.stderr.write(f"file not found: {input_path}\n")
+        return 2
+    output_path: Path = args.out
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with Image.open(input_path) as img:
+        width, height = img.size
+        if args.frac is not None:
+            try:
+                fx, fy, fw, fh = _parse_box4(args.frac)
+            except ValueError as e:
+                sys.stderr.write(f"--frac parse error: {e}\n")
+                return 3
+            region = FractionalRegion(x=fx, y=fy, w=fw, h=fh)
+            box = region.to_pixels(width, height)
+        else:
+            try:
+                px, py, pw, ph = _parse_box4(args.px)
+            except ValueError as e:
+                sys.stderr.write(f"--px parse error: {e}\n")
+                return 3
+            box = (int(px), int(py), int(px + pw), int(py + ph))
+        crop = img.crop(box)
+        crop.save(output_path)
+    sys.stdout.write(
+        f"crop saved: {output_path} (box={box}, size={crop.size})\n",
+    )
+    return 0
+
+
+def _build_extract_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "extract",
+        help="スクショの指定領域を crop して PNG として保存 (digit テンプレ補充)",
+    )
+    p.add_argument("input", type=Path, help="入力スクリーンショット PNG")
+    p.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help="出力 PNG パス (例: tests/fixtures/produce/digits/4_pink.png)",
+    )
+    grp = p.add_mutually_exclusive_group(required=True)
+    grp.add_argument(
+        "--frac",
+        type=str,
+        default=None,
+        help="fractional 領域 (0.0-1.0): 'x,y,w,h' (例: '0.605,0.040,0.100,0.052')",
+    )
+    grp.add_argument(
+        "--px",
+        type=str,
+        default=None,
+        help="ピクセル領域: 'x,y,w,h' (例: '1900,80,300,80')",
+    )
+    p.set_defaults(func=cmd_extract)
+
+
 def cmd_overlay(args: argparse.Namespace) -> int:
     """`overlay` サブコマンド: スクショに矩形 + マーカーを描画。
 
@@ -200,6 +291,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
     _build_overlay_parser(sub)
+    _build_extract_parser(sub)
     args = parser.parse_args(argv)
     return int(args.func(args))
 
