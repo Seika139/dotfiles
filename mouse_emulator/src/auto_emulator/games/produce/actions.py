@@ -54,6 +54,42 @@ class HomeActionPoints(BaseModel):
     )
     trend_card: Point = Point(x=0.827, y=0.860, description="右下カード: 流行確認")
     rest_confirm: Point = Point(x=0.598, y=0.553, description="休む確認ダイアログの OK")
+    item_tab: Point = Point(
+        x=0.050,
+        y=0.490,
+        description="左サイドバー: アイテム (バッグアイコン)",
+    )
+
+
+class ItemActionPoints(BaseModel):
+    """アイテム使用画面のクリックポイント。
+
+    座標は実機未検証の推定値。`tools/calibrate_produce.py` で目視
+    キャリブが必要。
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    first_slot: Point = Point(
+        x=0.300,
+        y=0.400,
+        description="アイテム一覧の左上 (最初のスロット)",
+    )
+    use_button: Point = Point(
+        x=0.500,
+        y=0.850,
+        description="使用確認モーダル中央の使用ボタン",
+    )
+    close_button: Point = Point(
+        x=0.500,
+        y=0.700,
+        description="使用後の閉じる/OK ボタン",
+    )
+    back_button: Point = Point(
+        x=0.038,
+        y=0.928,
+        description="アイテム画面から戻る (左下)",
+    )
 
 
 class AuditionBattlePoints(BaseModel):
@@ -108,10 +144,20 @@ class DialogPoints(BaseModel):
         y=0.944,
         description="右下: 早送り x4 ON/OFF",
     )
+    choice_pink: Point = Point(
+        x=0.183,
+        y=0.218,
+        description="3 択ダイアログの左 (ピンク)",
+    )
+    choice_green: Point = Point(
+        x=0.463,
+        y=0.108,
+        description="3 択ダイアログの中央 (緑、いいよ等)",
+    )
     choice_yellow: Point = Point(
         x=0.747,
         y=0.248,
-        description="3 択ダイアログの黄色 (M11/M16 によりデフォルト)",
+        description="3 択ダイアログの右 (黄色、M11/M16 のデフォルト)",
     )
     advance_safe: Point = Point(
         x=0.463,
@@ -140,6 +186,7 @@ SCHEDULE_POINTS = ScheduleActionPoints()
 AUDITION_BATTLE_POINTS = AuditionBattlePoints()
 DIALOG_POINTS = DialogPoints()
 MODAL_DISMISS_POINTS = ModalDismissPoints()
+ITEM_POINTS = ItemActionPoints()
 
 
 def modal_dismiss_sequence(points: ModalDismissPoints) -> tuple[Point, ...]:
