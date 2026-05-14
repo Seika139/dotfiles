@@ -21,11 +21,13 @@ from auto_emulator.games.produce.actions import (
     AUDITION_BATTLE_POINTS,
     DIALOG_POINTS,
     HOME_POINTS,
+    ITEM_POINTS,
     MODAL_DISMISS_POINTS,
     SCHEDULE_POINTS,
     AuditionBattlePoints,
     DialogPoints,
     HomeActionPoints,
+    ItemActionPoints,
     ModalDismissPoints,
     Point,
     ScheduleActionPoints,
@@ -50,6 +52,7 @@ class ProduceActionPoints:
     audition_battle: AuditionBattlePoints = AUDITION_BATTLE_POINTS
     dialog: DialogPoints = DIALOG_POINTS
     modal_dismiss: ModalDismissPoints = MODAL_DISMISS_POINTS
+    item: ItemActionPoints = ITEM_POINTS
 
 
 class ProduceEngine:
@@ -234,8 +237,11 @@ class ProduceEngine:
         if kind == "reflection":
             self._execute_reflection()
             return
-        if kind in {"item", "noop"}:
-            self._log(f"[produce] {kind} action not yet implemented")
+        if kind == "item":
+            self._execute_item()
+            return
+        if kind == "noop":
+            self._log("[produce] noop")
             return
         self._log(f"[produce] unknown action_kind={kind!r}; skipping")
 
@@ -255,6 +261,22 @@ class ProduceEngine:
         self._tap(self._points.home.reflection_card)
         # スキル取得・パッシブ ON はサブシーンで人手 or テンプレ判定が必要
 
+    def _execute_item(self) -> None:
+        """ホーム画面想定: アイテムタブ → 最初のスロット → 使用 → 閉じる。
+
+        旧 `sample2.yml` の 3 ステップ (選択 / 使用 / 閉じる) を等価実装。
+        スロット選択は左上 (`first_slot`) 固定で、最初の手持ちアイテム
+        (スタミナ回復ドリンク等) を使う想定。将来複数アイテム選択や
+        在庫確認を入れる場合はここを拡張する。
+        """
+        self._tap(self._points.home.item_tab)
+        self._sleep_settle()
+        self._tap(self._points.item.first_slot)
+        self._sleep_settle()
+        self._tap(self._points.item.use_button)
+        self._sleep_settle()
+        self._tap(self._points.item.close_button)
+
     def enable_dialog_fast_forward(self) -> None:
         """会話パートで早送り x4 トグルを ON にする (M2 / M14)。
 
@@ -269,6 +291,27 @@ class ProduceEngine:
         テンション低下を許容する。
         """
         self._tap(self._points.dialog.choice_yellow)
+
+    def tap_dialog_green_choice(self) -> None:
+        """3 択ダイアログで緑色 (中央、「いいよ」等) の選択肢をタップする。"""
+        self._tap(self._points.dialog.choice_green)
+
+    def tap_dialog_pink_choice(self) -> None:
+        """3 択ダイアログで桃色 (左) の選択肢をタップする。"""
+        self._tap(self._points.dialog.choice_pink)
+
+    def tap_dialog_choice_by_index(self, index: int) -> None:
+        """0=桃(左) / 1=緑(中央) / 2=黄(右) でインデックス指定タップ.
+
+        `choose_dialog_option` の戻り値とそのまま組み合わせて使える。
+        想定外の index はクランプして安全側 (黄=末尾) に倒す。
+        """
+        if index <= 0:
+            self.tap_dialog_pink_choice()
+        elif index == 1:
+            self.tap_dialog_green_choice()
+        else:
+            self.tap_dialog_yellow_choice()
 
     def run_full_produce(  # noqa: PLR0913
         self,
