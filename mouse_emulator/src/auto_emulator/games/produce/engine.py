@@ -130,6 +130,44 @@ class ProduceEngine:
         lessons = self._reader.lessons_from_schedule(frame)
         return frame, state.model_copy(update={"lessons": lessons})
 
+    def read_state_with_retry(
+        self,
+        *,
+        require_fields: tuple[str, ...] = ("season",),
+        max_attempts: int = 3,
+        poll_interval: float = 0.3,
+    ) -> GameState | None:
+        """重要フィールドが揃うまで `capture_state` をリトライする。
+
+        OCR が失敗してフィールドが None になるターンは捨て、ジターを置いて
+        再撮影する。`max_attempts` 回試して揃わなければ `None`。
+
+        Args:
+            require_fields: 必須フィールド名のタプル (例: ("season",))。
+            max_attempts: 試行回数。
+            poll_interval: 各試行の間で待つ秒数。
+
+        Returns:
+            重要フィールドが揃った `GameState`、または `None`。
+        """
+        last_state: GameState | None = None
+        for attempt in range(max_attempts):
+            _, state = self.capture_state()
+            last_state = state
+            if all(getattr(state, name) is not None for name in require_fields):
+                return state
+            self._log(
+                f"[produce] state OCR retry {attempt + 1}/{max_attempts}: "
+                f"missing fields among {require_fields}",
+            )
+            if attempt + 1 < max_attempts:
+                time.sleep(poll_interval)
+        self._log(
+            f"[produce] state OCR gave up after {max_attempts} attempts; "
+            f"last_state season={last_state.season if last_state else None}",
+        )
+        return None
+
     def step(self) -> tuple[GameState, TurnDecision]:
         """1 ターン進める。state を読んで decide → execute_decision を行う。
 
@@ -229,13 +267,16 @@ class ProduceEngine:
         """
         self._tap(self._points.dialog.choice_yellow)
 
-    def run_full_produce(
+    def run_full_produce(  # noqa: PLR0913
         self,
         *,
         max_turns: int = 200,
         schedule_timeout: float = 12.0,
         consume_max_taps: int = 30,
         consume_poll_interval: float = 0.5,
+        ocr_retry_attempts: int = 3,
+        ocr_retry_interval: float = 0.3,
+        require_fields: tuple[str, ...] = ("season",),
         stop_monitor: TerminationMonitor | None = None,
     ) -> str:
         """ホーム検出 → step → 結果消化 を繰り返し、True End or 上限で停止する。
@@ -246,6 +287,9 @@ class ProduceEngine:
                 出現するまでの最大待ち時間 (秒)。
             consume_max_taps: 中間画面消化の最大タップ回数。
             consume_poll_interval: 中間画面消化時のポーリング間隔 (秒)。
+            ocr_retry_attempts: 状態 OCR のリトライ回数。
+            ocr_retry_interval: OCR リトライの間で待つ秒数。
+            require_fields: 状態に必須のフィールド名 (B1)。
             stop_monitor: 外部停止/一時停止を伝えるモニタ。
 
         Returns:
@@ -254,6 +298,7 @@ class ProduceEngine:
                 "max_turns": ターン上限到達
                 "stuck:home": 中間画面消化に失敗
                 "stuck:schedule": プロデュースカード後にスケジュール未到達
+                "stuck:ocr": 状態 OCR が連続失敗
                 "stopped": stop_monitor からの停止要求
         """
         for _ in range(max_turns):
@@ -264,7 +309,13 @@ class ProduceEngine:
                 poll_interval=consume_poll_interval,
             ):
                 return "stuck:home"
-            _, state = self.capture_state()
+            state = self.read_state_with_retry(
+                require_fields=require_fields,
+                max_attempts=ocr_retry_attempts,
+                poll_interval=ocr_retry_interval,
+            )
+            if state is None:
+                return "stuck:ocr"
             if state.fans_to_target is not None and state.fans_to_target <= 0:
                 return "complete"
             decision = self._strategy.decide(state)
