@@ -38,6 +38,7 @@ class TestCollectRegionDump:
             "stats",
             "status",
             "lessons",
+            "auditions",
         }
 
     def test_points_categories(self) -> None:

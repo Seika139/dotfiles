@@ -218,6 +218,37 @@ class TestAuditionRule:
         assert decision.action_kind == "audition"
         assert decision.target_slot == 2  # ratio 2.0 のほう
 
+    def test_decision_includes_target_audition_name(self) -> None:
+        # G2: decide() が target_audition_name を埋めることを検証
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            stats={"Vo": 200, "Da": 200, "Vi": 200, "Me": 100, "SP": 30, "Fans": 5000},
+            available_auditions=[
+                AuditionOption(
+                    slot=1,
+                    name="夕方ワイド アイドル一番",
+                    difficulty=8,
+                    recommended_stats={"Vo": 150, "Vi": 150},
+                ),
+            ],
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "audition"
+        assert decision.target_audition_name == "夕方ワイド アイドル一番"
+
+    def test_decision_target_audition_name_none_for_non_audition(self) -> None:
+        # G2: lesson 決定では target_audition_name=None
+        engine = StrategyEngine()
+        state = _state(
+            season=1,
+            lessons=_lessons(("ラジオの収録", 2)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "lesson"
+        assert decision.target_audition_name is None
+
     def test_legacy_audition_available_flag_still_works(self) -> None:
         # available_auditions=[] でも audition_available=True なら旧挙動
         engine = StrategyEngine()

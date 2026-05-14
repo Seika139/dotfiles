@@ -117,6 +117,14 @@
         0.745
       ],
       "fans_width_ratio": 0.55
+    },
+    "auditions": {
+      "center_card_name": {
+        "x": 0.33,
+        "y": 0.64,
+        "w": 0.33,
+        "h": 0.07
+      }
     }
   },
   "points": {

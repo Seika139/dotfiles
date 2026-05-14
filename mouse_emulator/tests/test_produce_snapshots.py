@@ -54,6 +54,7 @@ class TestRegionsSnapshot:
             "stats",
             "status",
             "lessons",
+            "auditions",
         }
         assert set(golden["points"].keys()) == {
             "home",

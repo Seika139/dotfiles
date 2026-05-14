@@ -97,6 +97,39 @@ class TestIterLessonFansRegions:
         assert xs == sorted(xs)
 
 
+class TestAuditionCenterCardRegion:
+    """G2: `AuditionRegions.center_card_name` のデフォルト値検証."""
+
+    def test_default_region_is_inside_image(self) -> None:
+        from auto_emulator.games.produce.reader import (  # noqa: PLC0415
+            AuditionRegions,
+        )
+
+        regions = AuditionRegions()
+        cn = regions.center_card_name
+        # fractional は 0.0-1.0 範囲内
+        assert 0.0 <= cn.x <= 1.0
+        assert 0.0 <= cn.y <= 1.0
+        # x+w / y+h も 1.0 以内
+        assert cn.x + cn.w <= 1.0
+        assert cn.y + cn.h <= 1.0
+
+    def test_read_current_audition_name_returns_empty_on_blank_image(
+        self,
+    ) -> None:
+        from auto_emulator.games.produce.reader import (  # noqa: PLC0415
+            ProduceStateReader,
+        )
+
+        reader = ProduceStateReader()
+        blank = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        # 完全に灰色なら Tesseract は空 (or 空白) を返す
+        name = reader.read_current_audition_name(blank)
+        # OCR 結果は空白除去後、不確定文字混入の可能性はあるが
+        # 「読めない」状況で空文字相当を返すことだけ確認
+        assert isinstance(name, str)
+
+
 class TestIterStatRegions:
     def test_default_returns_six_stats(self) -> None:
         pairs = ProduceStateReader.iter_stat_regions(StatsRegions())

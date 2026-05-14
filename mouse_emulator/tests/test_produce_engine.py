@@ -126,6 +126,96 @@ class TestAuditionExecution:
         assert len(pointer.drags) == 0
 
 
+class TestAuditionSwipeEarlyBreak:
+    """G2: `target_audition_name` を元にした swipe ループの早期終了."""
+
+    @staticmethod
+    def _build(
+        decision: TurnDecision,
+        reader_name: str,
+    ) -> tuple[ProduceEngine, FakePointer]:
+        from auto_emulator.games.produce.reader import (  # noqa: PLC0415
+            ProduceStateReader,
+        )
+
+        class _FakeReader(ProduceStateReader):
+            def read_current_audition_name(
+                self,
+                image: Image.Image,  # noqa: ARG002
+            ) -> str:
+                return reader_name
+
+        pointer = FakePointer()
+        capture = FakeCapture(Image.new("RGB", (3024, 1610)))
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            reader=_FakeReader(),
+            strategy=FakeStrategy(decision),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        return engine, pointer
+
+    def test_breaks_early_when_target_matches_immediately(self) -> None:
+        # reader が常に "夕方ワイド アイドル一番" を返す
+        decision = TurnDecision(
+            action_kind="audition",
+            target_slot=3,  # 通常なら 3 回 swipe する設定
+            target_audition_name="夕方ワイド",
+            rationale="t",
+        )
+        engine, pointer = self._build(decision, "夕方ワイド アイドル一番")
+        engine.step()
+        # target_slot=3 でも 1 回目 check で一致 → swipe 0 回
+        assert len(pointer.drags) == 0
+        # audition_tab + confirm_button の 2 click のみ
+        assert len(pointer.clicks) == 2
+
+    def test_falls_back_to_fixed_swipes_when_ocr_empty(self) -> None:
+        # OCR 失敗 (空文字) → 従来通り target_slot 回 swipe
+        decision = TurnDecision(
+            action_kind="audition",
+            target_slot=2,
+            target_audition_name="夕方ワイド",
+            rationale="t",
+        )
+        engine, pointer = self._build(decision, "")
+        engine.step()
+        # OCR 失敗で判定スキップ → 固定 2 回 swipe
+        assert len(pointer.drags) == 2
+
+    def test_no_target_name_uses_fixed_swipes(self) -> None:
+        # target_audition_name=None → 従来挙動 (G2 機能を発火させない)
+        decision = TurnDecision(
+            action_kind="audition",
+            target_slot=2,
+            target_audition_name=None,
+            rationale="t",
+        )
+        # reader が "夕方ワイド..." を返しても target_name=None なら判定しない
+        engine, pointer = self._build(decision, "夕方ワイド アイドル一番")
+        engine.step()
+        assert len(pointer.drags) == 2
+
+    def test_partial_match_triggers_break(self) -> None:
+        # target_name が reader の名前に部分一致するだけで break する
+        decision = TurnDecision(
+            action_kind="audition",
+            target_slot=5,
+            target_audition_name="THE LEGEND",
+            rationale="t",
+        )
+        engine, pointer = self._build(
+            decision,
+            "THE LEGEND 〜ファイナル〜",
+        )
+        engine.step()
+        assert len(pointer.drags) == 0
+
+
 class TestDialogAndBattleHelpers:
     def test_enable_battle_auto_clicks_auto_then_speed(self) -> None:
         engine, pointer = _engine(
