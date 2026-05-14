@@ -36,6 +36,22 @@ class ScheduleActionPoints(BaseModel):
     reflection_button: Point = Point(x=0.553, y=0.928, description="下中央: 振り返り")
 
 
+class HomeActionPoints(BaseModel):
+    """ホーム画面の 4 つのカードに対応するクリックポイント。"""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    produce_card: Point = Point(x=0.137, y=0.770, description="左下カード: プロデュース")
+    rest_card: Point = Point(x=0.367, y=0.860, description="中央下カード: 休む")
+    reflection_card: Point = Point(
+        x=0.597,
+        y=0.860,
+        description="中央右下カード: 振り返り",
+    )
+    trend_card: Point = Point(x=0.827, y=0.860, description="右下カード: 流行確認")
+    rest_confirm: Point = Point(x=0.598, y=0.553, description="休む確認ダイアログの OK")
+
+
 class AuditionBattlePoints(BaseModel):
     """オーディション戦闘画面で使う固定クリックポイント。"""
 
@@ -83,6 +99,7 @@ def audition_swipe_path() -> tuple[FractionalRegion, FractionalRegion]:
 
 
 # 階層的にまとめた既定アクションポイント。Engine 実装はこれを参照する。
+HOME_POINTS = HomeActionPoints()
 SCHEDULE_POINTS = ScheduleActionPoints()
 AUDITION_BATTLE_POINTS = AuditionBattlePoints()
 DIALOG_POINTS = DialogPoints()
