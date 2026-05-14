@@ -4,6 +4,11 @@ Phase 1: state_reader を提供しゲーム画面から構造化された GameSt
 Phase 2+ で decision エンジンと action マクロを追加予定。
 """
 
+from auto_emulator.games.produce.decision import (
+    ActionKind,
+    StrategyEngine,
+    TurnDecision,
+)
 from auto_emulator.games.produce.reader import (
     HeaderRegions,
     LessonRegions,
@@ -20,6 +25,7 @@ from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
 
 __all__ = [
     "SEASON_STRATEGY",
+    "ActionKind",
     "FractionalRegion",
     "GameState",
     "HeaderRegions",
@@ -29,4 +35,6 @@ __all__ = [
     "SeasonPlan",
     "StatsRegions",
     "StatusRegions",
+    "StrategyEngine",
+    "TurnDecision",
 ]
