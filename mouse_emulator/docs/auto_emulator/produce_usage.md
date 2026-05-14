@@ -58,7 +58,8 @@ mise run produce-auto -- \
 | オプション | 用途 |
 | --- | --- |
 | `--templates-dir <path>` | DigitMatcher の digit PNG ディレクトリ (default: `tests/fixtures/produce/digits`) |
-| `--log-file <path>` | ターン毎の状態を JSONL で永続化 |
+| `--log-file <path>` | ターン毎の状態を JSONL で永続化 (省略時は D5 で自動命名 `~/.cache/auto-emulator/produce/produce-YYYYMMDD-HHMM.jsonl`) |
+| `--no-log` | JSONL ログを完全に無効化 (D5 自動命名も抑止) |
 | `--max-turns <N>` | 自走上限 (default 200) |
 | `--pause-key <combo>` | 一時停止/再開ホットキー (例: `ctrl+p`) |
 | `--no-calibrate` | キャリブレーションをスキップ (現状は preset 未対応なので必ず手動キャリブが走る) |
@@ -93,7 +94,21 @@ mise run produce-auto -- \
 | ターン上限 | `stop_reason="max_turns"` |
 | 自動検出: 詰まり | `stop_reason="stuck:home" / "stuck:schedule" / "stuck:ocr" / "stuck:no_progress"` |
 
-終了時には `停止理由: complete` のような最終メッセージが echo される。
+終了時には `停止理由: complete` の後に、D6 の **run サマリ**が
+表示される (Ctrl+C 中断時も同じサマリが出る):
+
+```text
+=== Produce Run Summary ===
+total turns: 42
+stop reason: complete
+season: 1 -> 4
+fans_to_target: 500000 -> 0 (delta=+500000)
+decisions:
+  lesson: 28
+  audition: 8
+  rest: 4
+  reflection: 2
+```
 
 ## 自走中に出る Engine ログの読み方
 
@@ -113,20 +128,49 @@ mise run produce-auto -- \
 
 ## JSONL ログの活用
 
+### D7: `produce-analyze` で過去ログを後追い集計
+
+`produce-run` 中に書かれた JSONL は、後から
+`produce-analyze` サブコマンドで同じサマリを出力できる:
+
+```bash
+.venv/bin/python -m auto_emulator produce-analyze \
+    ~/.cache/auto-emulator/produce/produce-20260515-0930.jsonl
+```
+
+出力例:
+
+```text
+source: /Users/.../produce-20260515-0930.jsonl
+=== Produce Run Summary ===
+total turns: 42
+stop reason: complete
+season: 1 -> 4
+fans_to_target: 500000 -> 0 (delta=+500000)
+decisions:
+  lesson: 28
+  audition: 8
+  rest: 4
+  reflection: 2
+```
+
+### jq での生ログ操作
+
+サマリでカバーされない粒度を見たい場合は jq で直接操作する:
+
 ```bash
 # 最終行の停止理由を確認
-tail -1 /tmp/produce-XXX.jsonl | jq .stop_reason
+tail -1 ~/.cache/auto-emulator/produce/produce-XXX.jsonl \
+    | jq .stop_reason
 
 # 各ターンのファン推移
-jq '{turn: .turn_number, fans: .fans_to_target}' /tmp/produce-XXX.jsonl
-
-# decision の種類ごとの集計
-jq -r .decision_action_kind /tmp/produce-XXX.jsonl | sort | uniq -c
+jq '{turn: .turn_number, fans: .fans_to_target}' \
+    ~/.cache/auto-emulator/produce/produce-XXX.jsonl
 ```
 
 ログは追記モードで書かれるので、複数回の実行を 1 ファイルにまとめる
 こともできる (ただし整合性のために実行毎にファイル名を分けるのを
-推奨)。
+推奨。D5 の自動命名は分単位なので普通は被らない)。
 
 ## トラブルシューティング
 
