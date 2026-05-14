@@ -123,24 +123,33 @@ class TestAuditionExecution:
         assert len(pointer.drags) == 0
 
 
-class TestUnimplementedActions:
-    def test_rest_logs_but_does_not_click(self) -> None:
-        messages: list[str] = []
-        pointer = FakePointer()
-        engine = ProduceEngine(
-            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
-            strategy=FakeStrategy(
-                TurnDecision(action_kind="rest", rationale="t"),
-            ),
-            capture=FakeCapture(Image.new("RGB", (3024, 1610))),
-            pointer=pointer,
-            click_settle=0.0,
-            loop_interval=0.0,
-            logger=messages.append,
+class TestHomeScreenActions:
+    def test_rest_clicks_card_then_confirm(self) -> None:
+        engine, pointer = _engine(
+            TurnDecision(action_kind="rest", rationale="trouble high"),
+        )
+        engine.step()
+        # 休むカード + 確認 OK の 2 クリック
+        assert len(pointer.clicks) == 2
+        rest_card_x, _ = pointer.clicks[0]
+        assert 0.30 < rest_card_x < 0.42  # rest_card デフォルト 0.367
+
+    def test_reflection_clicks_card(self) -> None:
+        engine, pointer = _engine(
+            TurnDecision(action_kind="reflection", rationale="skill"),
+        )
+        engine.step()
+        # 振り返りカード のみ (スキルパネルは Phase 5c)
+        assert len(pointer.clicks) == 1
+        reflection_x, _ = pointer.clicks[0]
+        assert 0.55 < reflection_x < 0.65  # reflection_card デフォルト 0.597
+
+    def test_noop_does_not_click(self) -> None:
+        engine, pointer = _engine(
+            TurnDecision(action_kind="noop", rationale="no plan"),
         )
         engine.step()
         assert len(pointer.clicks) == 0
-        assert any("not yet implemented" in msg for msg in messages)
 
 
 class TestRunLoop:
