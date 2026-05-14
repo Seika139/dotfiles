@@ -14,6 +14,11 @@ from auto_emulator.games.produce.decision import (
     choose_dialog_option,
     is_wing_audition,
 )
+from auto_emulator.games.produce.digit_matcher import (
+    DigitMatcher,
+    DigitTemplate,
+    extract_template,
+)
 from auto_emulator.games.produce.reader import (
     HeaderRegions,
     LessonRegions,
@@ -36,6 +41,8 @@ __all__ = [
     "ActionKind",
     "AuditionOption",
     "DialogChoiceRule",
+    "DigitMatcher",
+    "DigitTemplate",
     "FractionalRegion",
     "GameState",
     "HeaderRegions",
@@ -48,5 +55,6 @@ __all__ = [
     "StrategyEngine",
     "TurnDecision",
     "choose_dialog_option",
+    "extract_template",
     "is_wing_audition",
 ]
