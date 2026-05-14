@@ -16,10 +16,13 @@ from PIL import Image
 from auto_emulator.games.produce import (
     DigitMatcher,
     DigitTemplate,
+    ProduceStateReader,
     extract_template,
+    load_digit_templates,
 )
 
 FIXTURE = Path(__file__).parent / "fixtures" / "produce" / "schedule_s2_w8_fans6225.png"
+TEMPLATE_DIR = Path(__file__).parent / "fixtures" / "produce" / "digits"
 
 
 def _load_pink_templates() -> tuple[DigitTemplate, DigitTemplate, DigitTemplate]:
@@ -102,3 +105,37 @@ class TestDigitMatcher:
         matcher = DigitMatcher([big_tmpl])
         small = Image.new("L", (50, 50))
         assert matcher.read_number(small) is None
+
+
+class TestLoadDigitTemplates:
+    def test_loads_all_pngs_from_fixture_dir(self) -> None:
+        templates = load_digit_templates(TEMPLATE_DIR)
+        digits = {t.digit for t in templates}
+        # 現状フィクスチャに含まれる digit (2, 5, 6, 8)
+        assert digits == {2, 5, 6, 8}
+
+    def test_parses_style_from_filename(self) -> None:
+        templates = load_digit_templates(TEMPLATE_DIR)
+        styles_per_digit: dict[int, set[str]] = {}
+        for t in templates:
+            styles_per_digit.setdefault(t.digit, set()).add(t.style)
+        # "2" は pink と yellow_small の 2 種
+        assert styles_per_digit[2] == {"pink", "yellow_small"}
+        assert styles_per_digit[8] == {"yellow_large"}
+
+    def test_returns_empty_for_nonexistent_dir(self) -> None:
+        templates = load_digit_templates(TEMPLATE_DIR / "nonexistent")
+        assert templates == []
+
+
+class TestEndToEndReaderWithMatcher:
+    def test_header_fields_all_correct_with_matcher(self) -> None:
+        templates = load_digit_templates(TEMPLATE_DIR)
+        matcher = DigitMatcher(templates)
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(FIXTURE) as img:
+            state = reader.read(img)
+        # DigitMatcher 統合で 3 つの値すべて期待通り
+        assert state.season == 2
+        assert state.week_remaining == 8
+        assert state.fans_to_target == 6225
