@@ -123,6 +123,38 @@ class TestAuditionExecution:
         assert len(pointer.drags) == 0
 
 
+class TestDialogAndBattleHelpers:
+    def test_enable_battle_auto_clicks_auto_then_speed(self) -> None:
+        engine, pointer = _engine(
+            TurnDecision(action_kind="noop", rationale="setup"),
+        )
+        engine.enable_battle_auto()
+        assert len(pointer.clicks) == 2
+        # AUTO トグル (0.782) → 倍速トグル (0.861)
+        assert pointer.clicks[0][0] < pointer.clicks[1][0]
+
+    def test_tap_dialog_yellow_choice(self) -> None:
+        engine, pointer = _engine(
+            TurnDecision(action_kind="noop", rationale="setup"),
+        )
+        engine.tap_dialog_yellow_choice()
+        assert len(pointer.clicks) == 1
+        x, _ = pointer.clicks[0]
+        # 黄色は右側
+        assert x > 0.7
+
+    def test_enable_dialog_fast_forward(self) -> None:
+        engine, pointer = _engine(
+            TurnDecision(action_kind="noop", rationale="setup"),
+        )
+        engine.enable_dialog_fast_forward()
+        assert len(pointer.clicks) == 1
+        x, y = pointer.clicks[0]
+        # 右下に位置するはず
+        assert x > 0.7
+        assert y > 0.85
+
+
 class TestHomeScreenActions:
     def test_rest_clicks_card_then_confirm(self) -> None:
         engine, pointer = _engine(
