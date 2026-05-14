@@ -347,6 +347,65 @@ class TestConsumeUntilHome:
         assert len(pointer.clicks) == 4
 
 
+class TestModalDismiss:
+    @staticmethod
+    def _br_image(color: tuple[int, int, int]) -> Image.Image:
+        img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        block = Image.new("RGB", (212, 80), color=color)
+        img.paste(block, (2449, 1465))
+        return img
+
+    HOME_COLOR = (163, 214, 136)
+    UNKNOWN_COLOR = (180, 195, 220)
+
+    def _build(self, capture: FakeCapture) -> tuple[ProduceEngine, FakePointer]:
+        pointer = FakePointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        return engine, pointer
+
+    def test_try_dismiss_modal_stops_on_first_success(self) -> None:
+        home = self._br_image(self.HOME_COLOR)
+        # 最初の dismiss 候補で home に遷移するシナリオ
+        capture = FakeCapture(image=home, queue=[home])
+        engine, pointer = self._build(capture)
+        # detect_screen は queue 消費後 default (home) を返すので最初の candidate で成功
+        assert engine.try_dismiss_modal(settle=0.0) is True
+        assert len(pointer.clicks) == 1  # 1 候補で打ち止め
+
+    def test_try_dismiss_modal_returns_false_when_all_fail(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        capture = FakeCapture(unknown)
+        engine, pointer = self._build(capture)
+        assert engine.try_dismiss_modal(settle=0.0) is False
+        # 4 候補すべて試す
+        assert len(pointer.clicks) == 4
+
+    def test_consume_until_home_invokes_dismiss_when_streak_exceeded(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        home = self._br_image(self.HOME_COLOR)
+        # unknown を 5 回観測 -> dismiss 発動 -> 候補 1 目で home 遷移
+        capture = FakeCapture(
+            image=home,
+            queue=[unknown, unknown, unknown, unknown, unknown, home],
+        )
+        engine, pointer = self._build(capture)
+        result = engine.consume_until_home(
+            poll_interval=0.0,
+            unknown_threshold=5,
+        )
+        assert result is True
+        # advance タップ x 4 (streak 1-4) + dismiss 候補 1 個 = 5
+        # streak=5 で dismiss 発動して success ならその後はループ先頭の home 検出
+        assert len(pointer.clicks) == 5
+
+
 class TestRunFullProduce:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
