@@ -66,6 +66,38 @@ class AuditionBattlePoints(BaseModel):
     pause_button: Point = Point(x=0.940, y=0.062, description="右上: 一時停止")
 
 
+class ModalDismissPoints(BaseModel):
+    """想定外モーダル (お知らせ / イベント告知 / 通信エラー等) の閉じる候補。
+
+    優先度順に並べる: 早期に試した候補がヒットしやすい位置。
+    実機での出現頻度が分かったら `tools/calibrate_produce.py` で
+    座標を確認しつつ並び替える。
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    close_top_right: Point = Point(
+        x=0.965,
+        y=0.050,
+        description="右上の × アイコン (お知らせ/イベント告知の典型)",
+    )
+    ok_center: Point = Point(
+        x=0.500,
+        y=0.680,
+        description="中央下の OK ボタン (確認モーダル)",
+    )
+    cancel_left_bottom: Point = Point(
+        x=0.155,
+        y=0.825,
+        description="左下の戻る/キャンセル",
+    )
+    retry_center: Point = Point(
+        x=0.500,
+        y=0.560,
+        description="通信エラー時のリトライ位置",
+    )
+
+
 class DialogPoints(BaseModel):
     """会話パートで使うポイント。"""
 
@@ -107,3 +139,20 @@ HOME_POINTS = HomeActionPoints()
 SCHEDULE_POINTS = ScheduleActionPoints()
 AUDITION_BATTLE_POINTS = AuditionBattlePoints()
 DIALOG_POINTS = DialogPoints()
+MODAL_DISMISS_POINTS = ModalDismissPoints()
+
+
+def modal_dismiss_sequence(points: ModalDismissPoints) -> tuple[Point, ...]:
+    """モーダル閉じるボタンの試行順序を返す。
+
+    優先度: 右上× → 中央 OK → リトライ → 左下キャンセル。
+
+    Returns:
+        試行順に並んだ候補ポイントのタプル。
+    """
+    return (
+        points.close_top_right,
+        points.ok_center,
+        points.retry_center,
+        points.cancel_left_bottom,
+    )
