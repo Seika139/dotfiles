@@ -225,6 +225,62 @@ class ProduceEngine:
         """
         self._tap(self._points.dialog.choice_yellow)
 
+    def run_full_produce(
+        self,
+        *,
+        max_turns: int = 200,
+        schedule_timeout: float = 12.0,
+        consume_max_taps: int = 30,
+        consume_poll_interval: float = 0.5,
+        stop_monitor: TerminationMonitor | None = None,
+    ) -> str:
+        """ホーム検出 → step → 結果消化 を繰り返し、True End or 上限で停止する。
+
+        Args:
+            max_turns: 上限ターン数。
+            schedule_timeout: プロデュースカード後にスケジュール画面が
+                出現するまでの最大待ち時間 (秒)。
+            consume_max_taps: 中間画面消化の最大タップ回数。
+            consume_poll_interval: 中間画面消化時のポーリング間隔 (秒)。
+            stop_monitor: 外部停止/一時停止を伝えるモニタ。
+
+        Returns:
+            停止理由:
+                "complete": ファン目標到達 (fans_to_target=0 を観測)
+                "max_turns": ターン上限到達
+                "stuck:home": 中間画面消化に失敗
+                "stuck:schedule": プロデュースカード後にスケジュール未到達
+                "stopped": stop_monitor からの停止要求
+        """
+        for _ in range(max_turns):
+            if stop_monitor and stop_monitor.stop_requested():
+                return "stopped"
+            if not self.consume_until_home(
+                max_taps=consume_max_taps,
+                poll_interval=consume_poll_interval,
+            ):
+                return "stuck:home"
+            _, state = self.capture_state()
+            if state.fans_to_target is not None and state.fans_to_target <= 0:
+                return "complete"
+            decision = self._strategy.decide(state)
+            self._log(
+                f"[produce] turn season={state.season} week={state.week_remaining} "
+                f"fans_left={state.fans_to_target} -> {decision.action_kind} "
+                f"slot={decision.target_slot} ({decision.rationale})",
+            )
+            if decision.action_kind in {"lesson", "audition"}:
+                self._tap(self._points.home.produce_card)
+                reached = self.wait_for_screen(
+                    {"schedule_lesson", "schedule_audition"},
+                    timeout=schedule_timeout,
+                )
+                if reached is None:
+                    return "stuck:schedule"
+            self.execute_decision(decision)
+            time.sleep(self._loop_interval)
+        return "max_turns"
+
     def consume_until_home(
         self,
         *,
