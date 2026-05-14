@@ -21,13 +21,16 @@ from auto_emulator.games.produce.actions import (
     AUDITION_BATTLE_POINTS,
     DIALOG_POINTS,
     HOME_POINTS,
+    MODAL_DISMISS_POINTS,
     SCHEDULE_POINTS,
     AuditionBattlePoints,
     DialogPoints,
     HomeActionPoints,
+    ModalDismissPoints,
     Point,
     ScheduleActionPoints,
     audition_swipe_path,
+    modal_dismiss_sequence,
 )
 from auto_emulator.games.produce.decision import StrategyEngine, TurnDecision
 from auto_emulator.games.produce.reader import ProduceStateReader
@@ -45,6 +48,7 @@ class ProduceActionPoints:
     schedule: ScheduleActionPoints = SCHEDULE_POINTS
     audition_battle: AuditionBattlePoints = AUDITION_BATTLE_POINTS
     dialog: DialogPoints = DIALOG_POINTS
+    modal_dismiss: ModalDismissPoints = MODAL_DISMISS_POINTS
 
 
 class ProduceEngine:
@@ -286,29 +290,64 @@ class ProduceEngine:
         *,
         max_taps: int = 30,
         poll_interval: float = 0.5,
+        unknown_threshold: int = 5,
     ) -> bool:
         """不明な中間画面 (結果表示・会話など) を中央タップで送ってホームへ戻す。
 
-        ホーム or スケジュール画面に到達したら停止する。スケジュール画面は
-        新しいターンが始まった合図なので、呼び出し側 (run_full_produce) が
-        次の `step` を発行する想定で `False` を返す。
+        ホーム or スケジュール画面に到達したら停止する。`unknown` が連続
+        `unknown_threshold` 回出現したら想定外モーダルとみなして
+        `try_dismiss_modal` で閉じる候補を順に試す。
 
         Args:
             max_taps: 中央タップを試みる最大回数。
             poll_interval: 各タップ後に画面遷移を待つ秒数。
+            unknown_threshold: この連続未識別回数を超えたらモーダル除去を発動。
 
         Returns:
             ホーム画面に到達したら True、スケジュール画面に到達 or 上限
             到達なら False。
         """
+        unknown_streak = 0
         for _ in range(max_taps):
             kind = self.detect_screen()
             if kind == "home":
                 return True
             if kind in {"schedule_lesson", "schedule_audition"}:
                 return False
+            unknown_streak += 1
+            if unknown_streak >= unknown_threshold:
+                self._log(
+                    f"[produce] unknown screen streak={unknown_streak}; "
+                    "attempting modal dismiss",
+                )
+                if self.try_dismiss_modal(settle=poll_interval):
+                    unknown_streak = 0
+                    continue
             self._tap(self._points.dialog.advance_safe)
             time.sleep(poll_interval)
+        return False
+
+    def try_dismiss_modal(self, *, settle: float = 0.5) -> bool:
+        """想定外モーダルを閉じる候補を順に試し、画面遷移したら True を返す。
+
+        各候補をタップ → `settle` 秒待機 → 画面種別を再判定し、`unknown`
+        以外になったら遷移成功とみなす。
+
+        Args:
+            settle: 各候補タップ後に画面遷移を待つ秒数。
+
+        Returns:
+            いずれかの候補で `unknown` 以外の画面に遷移できたら True、
+            全候補を試してもダメなら False。
+        """
+        for candidate in modal_dismiss_sequence(self._points.modal_dismiss):
+            self._log(f"[produce] dismiss try: {candidate.description}")
+            self._tap(candidate)
+            time.sleep(settle)
+            kind = self.detect_screen()
+            if kind != "unknown":
+                self._log(f"[produce] dismiss success -> {kind}")
+                return True
         return False
 
     def enable_battle_auto(self) -> None:
