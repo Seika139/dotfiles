@@ -8,6 +8,10 @@
   - `overview.md` … ツールの全体像とワークフローの概要
   - `configuration.md` … YAML/JSON 設定ファイルの書き方、検出器・条件・アクションの詳細
   - `cli.md` … `mise run auto-*` で利用可能なコマンドラインオプション、ログ設定、一時停止キーなど
+  - `dodge.md` … 障害物回避エンジンの仕様
+  - `produce_usage.md` … シャニマス プロデュース自走 (`produce-auto`) の使い方
+  - `produce_calibration.md` … プロデュース自走の座標調整・キャリブレーション手順
+  - `produce_rules.md` … 観測ルール集 (M1-M16)、戦略ロジックの根拠
 - `mouse_emulator/`
   - `overview.md` … キーボード操作でマウスをエミュレートする仕組みの概要
   - `profiles.md` … プロファイル JSON のフィールド解説、キャリブレーションのプリセット化、ログ・一時停止設定
