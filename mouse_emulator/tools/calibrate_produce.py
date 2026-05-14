@@ -1,15 +1,16 @@
-"""プロデュース画面のリージョン/アクション座標を画像にオーバーレイする。
+r"""プロデュース画面のキャリブツール (`overlay` / `extract` / `dump-regions`)。
 
-スクリーンショット PNG を入力し、`reader.py` で定義した全リージョン
-(ヘッダー / レッスンカード / ステ / 体力 / トラブル / テンション) と
-`actions.py` の全クリックポイント (ホーム / スケジュール / 戦闘 / 会話) を
-矩形 + マーカー + ラベルで描き込んだ PNG を出力する。
+サブコマンド:
+
+- `overlay`  : スクショに全リージョン矩形 + クリックポイントを描き込む。
+- `extract`  : スクショの指定領域を crop して PNG として保存
+                 (digit テンプレート補充用)。
+- `dump-regions` : 現コード定義の全 fractional リージョンを JSON 出力。
 
 使い方:
-    .venv/bin/python tools/calibrate_produce.py \
-        tests/fixtures/produce/schedule_s2_w8_fans6225.png \
+    .venv/bin/python tools/calibrate_produce.py overlay \\
+        tests/fixtures/produce/schedule_s2_w8_fans6225.png \\
         --out /tmp/calibrated.png
-    open /tmp/calibrated.png  # 目視で位置ズレを確認
 
 ズレていたら `reader.HeaderRegions` などのデフォルト値を編集し、
 再度ツールを走らせて反復する。Tesseract 不要。
@@ -144,36 +145,20 @@ def render(
     return output
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="プロデュース画面のリージョン/アクション座標を描画",
-    )
-    parser.add_argument("input", type=Path, help="入力スクリーンショット PNG")
-    parser.add_argument(
-        "--out",
-        type=Path,
-        default=None,
-        help="出力 PNG パス (省略時は input と同階層に _calibrated.png)",
-    )
-    parser.add_argument(
-        "--no-regions",
-        action="store_true",
-        help="リージョン矩形を描かない",
-    )
-    parser.add_argument(
-        "--no-points",
-        action="store_true",
-        help="アクション座標マーカーを描かない",
-    )
-    args = parser.parse_args(argv)
+def cmd_overlay(args: argparse.Namespace) -> int:
+    """`overlay` サブコマンド: スクショに矩形 + マーカーを描画。
 
-    if not args.input.exists():
-        sys.stderr.write(f"file not found: {args.input}\n")
+    Returns:
+        終了コード (0 成功, 2 入力ファイル不在)。
+    """
+    input_path: Path = args.input
+    if not input_path.exists():
+        sys.stderr.write(f"file not found: {input_path}\n")
         return 2
-    output_path = args.out or args.input.with_name(
-        f"{args.input.stem}_calibrated.png",
+    output_path: Path = args.out or input_path.with_name(
+        f"{input_path.stem}_calibrated.png",
     )
-    with Image.open(args.input) as img:
+    with Image.open(input_path) as img:
         rendered = render(
             img,
             [] if args.no_regions else collect_regions(),
@@ -182,6 +167,41 @@ def main(argv: list[str] | None = None) -> int:
     rendered.save(output_path)
     sys.stdout.write(f"calibrated overlay saved: {output_path}\n")
     return 0
+
+
+def _build_overlay_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "overlay",
+        help="スクショに全リージョン/アクション座標を描き込む",
+    )
+    p.add_argument("input", type=Path, help="入力スクリーンショット PNG")
+    p.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="出力 PNG パス (省略時は input と同階層に _calibrated.png)",
+    )
+    p.add_argument(
+        "--no-regions",
+        action="store_true",
+        help="リージョン矩形を描かない",
+    )
+    p.add_argument(
+        "--no-points",
+        action="store_true",
+        help="アクション座標マーカーを描かない",
+    )
+    p.set_defaults(func=cmd_overlay)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="プロデュース画面のキャリブツール (overlay/extract/dump-regions)",
+    )
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    _build_overlay_parser(sub)
+    args = parser.parse_args(argv)
+    return int(args.func(args))
 
 
 if __name__ == "__main__":
