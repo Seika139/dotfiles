@@ -294,6 +294,8 @@ def collect_region_dump() -> dict[str, Any]:
                 "name_band": list(lessons.name_band),
                 "level_band": list(lessons.level_band),
                 "level_width_ratio": lessons.level_width_ratio,
+                "fans_band": list(lessons.fans_band),
+                "fans_width_ratio": lessons.fans_width_ratio,
             },
         },
         "points": {

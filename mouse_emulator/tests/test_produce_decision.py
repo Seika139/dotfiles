@@ -35,6 +35,20 @@ def _lessons(*names_with_levels: tuple[str, int]) -> list[LessonOption]:
     ]
 
 
+def _lessons_with_fans(
+    *items: tuple[str, int, int | None],
+) -> list[LessonOption]:
+    """G3 テスト用に preview_fans 込みでレッスンを作る.
+
+    Returns:
+        slot 順の `LessonOption` リスト。
+    """
+    return [
+        LessonOption(slot=i, name=name, level=lv, preview_fans=fans)
+        for i, (name, lv, fans) in enumerate(items)
+    ]
+
+
 class TestRestRule:
     def test_rests_when_trouble_high_and_hp_low(self) -> None:
         engine = StrategyEngine()
@@ -372,3 +386,87 @@ class TestReflectionRule:
         )
         decision = engine.decide(state)
         assert decision.action_kind == "reflection"
+
+
+class TestLessonFansEfficiency:
+    """G3: `prefer_fans_efficiency` による fans tiebreak."""
+
+    def _build_engine(self, *, prefer_fans: bool) -> StrategyEngine:
+        plan = SeasonPlan(
+            primary_lesson_preference=("ラジオの収録",),
+            target_auditions=(),
+            skill_phase=False,
+            fan_target=1000,
+            prefer_fans_efficiency=prefer_fans,
+        )
+        return StrategyEngine(strategy_table={1: plan})
+
+    def test_picks_highest_fans_when_flag_enabled(self) -> None:
+        engine = self._build_engine(prefer_fans=True)
+        state = _state(
+            lessons=_lessons_with_fans(
+                ("ラジオの収録 A", 1, 100),
+                ("ラジオの収録 B", 1, 300),
+                ("ラジオの収録 C", 1, 200),
+            ),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "lesson"
+        # slot 1 (preview_fans=300) が選ばれる
+        assert decision.target_slot == 1
+
+    def test_keeps_first_match_when_flag_disabled(self) -> None:
+        engine = self._build_engine(prefer_fans=False)
+        state = _state(
+            lessons=_lessons_with_fans(
+                ("ラジオの収録 A", 1, 100),
+                ("ラジオの収録 B", 1, 300),
+            ),
+        )
+        decision = engine.decide(state)
+        # 従来挙動: 先頭マッチ (slot 0) を返す
+        assert decision.target_slot == 0
+
+    def test_falls_back_when_all_fans_none(self) -> None:
+        # preview_fans が全部 None なら順序最先 (slot 0) に落ちる
+        engine = self._build_engine(prefer_fans=True)
+        state = _state(
+            lessons=_lessons_with_fans(
+                ("ラジオの収録 A", 1, None),
+                ("ラジオの収録 B", 1, None),
+            ),
+        )
+        decision = engine.decide(state)
+        assert decision.target_slot == 0
+
+    def test_ignores_none_when_some_have_fans(self) -> None:
+        # None と数値混在: 数値ある中の最大を選ぶ (None は比較対象外)
+        engine = self._build_engine(prefer_fans=True)
+        state = _state(
+            lessons=_lessons_with_fans(
+                ("ラジオの収録 A", 1, None),
+                ("ラジオの収録 B", 1, 50),
+                ("ラジオの収録 C", 1, 200),
+            ),
+        )
+        decision = engine.decide(state)
+        assert decision.target_slot == 2
+
+    def test_does_not_cross_preference_priority(self) -> None:
+        # 「ラジオの収録」が先頭優先で、低 fans でも雑誌より優先される
+        plan = SeasonPlan(
+            primary_lesson_preference=("ラジオの収録", "雑誌の撮影"),
+            target_auditions=(),
+            skill_phase=False,
+            fan_target=1000,
+            prefer_fans_efficiency=True,
+        )
+        engine = StrategyEngine(strategy_table={1: plan})
+        state = _state(
+            lessons=_lessons_with_fans(
+                ("ラジオの収録 A", 1, 50),
+                ("雑誌の撮影 B", 1, 500),  # fans 高くても優先順位下なのでスキップ
+            ),
+        )
+        decision = engine.decide(state)
+        assert decision.target_slot == 0  # ラジオが先

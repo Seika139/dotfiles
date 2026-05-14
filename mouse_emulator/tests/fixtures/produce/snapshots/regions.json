@@ -111,7 +111,12 @@
         0.755,
         0.815
       ],
-      "level_width_ratio": 0.55
+      "level_width_ratio": 0.55,
+      "fans_band": [
+        0.69,
+        0.745
+      ],
+      "fans_width_ratio": 0.55
     }
   },
   "points": {

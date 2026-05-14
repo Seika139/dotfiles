@@ -77,6 +77,26 @@ class TestIterLessonRegions:
         assert name0.w == pytest.approx(0.20)
 
 
+class TestIterLessonFansRegions:
+    """G3: `iter_lesson_fans_regions` のジオメトリ検証."""
+
+    def test_default_returns_six_regions(self) -> None:
+        fans = ProduceStateReader.iter_lesson_fans_regions(LessonRegions())
+        assert len(fans) == 6
+
+    def test_fans_band_is_above_name_band(self) -> None:
+        regions = LessonRegions()
+        fans = ProduceStateReader.iter_lesson_fans_regions(regions)
+        for fans_region in fans:
+            # fans プレビュー (上部) は name バンド (下部) より上にある
+            assert fans_region.y + fans_region.h <= regions.name_band[0]
+
+    def test_fans_regions_left_to_right(self) -> None:
+        fans = ProduceStateReader.iter_lesson_fans_regions(LessonRegions())
+        xs = [r.x for r in fans]
+        assert xs == sorted(xs)
+
+
 class TestIterStatRegions:
     def test_default_returns_six_stats(self) -> None:
         pairs = ProduceStateReader.iter_stat_regions(StatsRegions())
