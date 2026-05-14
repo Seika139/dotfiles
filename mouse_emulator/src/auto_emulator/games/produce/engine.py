@@ -168,6 +168,27 @@ class ProduceEngine:
         self._tap(self._points.home.reflection_card)
         # スキル取得・パッシブ ON はサブシーンで人手 or テンプレ判定が必要
 
+    def enable_dialog_fast_forward(self) -> None:
+        """会話パートで早送り x4 トグルを ON にする (M2 / M14)。
+
+        既に ON の場合に押すと OFF になるため、呼び出し側は状態を把握すること。
+        """
+        self._tap(self._points.dialog.fast_forward_toggle)
+
+    def tap_dialog_yellow_choice(self) -> None:
+        """3 択ダイアログで黄色の選択肢をタップする (M11/M16)。
+
+        `sample2.yml` 既存ルールに合わせる。文脈非依存の default 戦略で、
+        テンション低下を許容する。
+        """
+        self._tap(self._points.dialog.choice_yellow)
+
+    def enable_battle_auto(self) -> None:
+        """オーディション戦闘で AUTO ON + 倍速 ON を順に押す (M3)。"""
+        self._tap(self._points.audition_battle.auto_toggle)
+        self._sleep_settle()
+        self._tap(self._points.audition_battle.speed_toggle)
+
     def _tap(self, point: Point) -> None:
         self._pointer.click_relative(self._region, (point.x, point.y))
 
