@@ -19,14 +19,18 @@ mise run resolve
 
 ## ディレクトリ概要
 
-| パス                             | 説明                                                                                     |
-| -------------------------------- | ---------------------------------------------------------------------------------------- |
-| `src/mouse_emulator`             | 手動エミュレータ CLI (`register`, `emulate`) 本体。                                      |
-| `src/auto_emulator`              | 自動化シナリオエンジン。テンプレート検出器や OCR などを含む。                            |
-| `src/mouse_core`                 | キャリブレーションやポインタ制御などの共通モジュール。                                   |
-| `profiles/mouse_emulator/*.json` | 手動エミュレータ用プロファイル。                                                         |
-| `profiles/auto_emulator/*.yml`   | 自動化シナリオ設定ファイル。`sample2.yml` が最新サンプル。                               |
-| `docs/`                          | 仕様ドキュメント (`mouse_emulator/profiles.md`, `auto_emulator/configuration.md` など)。 |
+| パス                              | 説明                                                                                     |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `src/mouse_emulator`              | 手動エミュレータ CLI (`register`, `emulate`) 本体。                                      |
+| `src/auto_emulator`               | 自動化シナリオエンジン。テンプレート検出器や OCR などを含む。                            |
+| `src/auto_emulator/games/produce` | シャニマス プロデュース自走 (state reader / engine / digit matcher)。                    |
+| `src/auto_emulator/games/dodge`   | 障害物回避エンジン。                                                                     |
+| `src/mouse_core`                  | キャリブレーションやポインタ制御などの共通モジュール。                                   |
+| `profiles/mouse_emulator/*.json`  | 手動エミュレータ用プロファイル。                                                         |
+| `profiles/auto_emulator/*.yml`    | 旧経路のサンプル (現在は produce 自動化なら `produce-auto` を推奨)。                     |
+| `tests/fixtures/produce/`         | プロデュース自走の golden 画像 / 数字テンプレート。                                      |
+| `tools/calibrate_produce.py`      | produce 画面のキャリブツール (`overlay` / `extract` / `dump-regions`)。                  |
+| `docs/`                           | 仕様ドキュメント (`mouse_emulator/profiles.md`, `auto_emulator/configuration.md` など)。 |
 
 ## 主な mise タスク
 
@@ -35,8 +39,9 @@ mise run resolve
 | `mise run resolve`                             | `.venv` を生成し依存を同期。最初に実行する。                                                   |
 | `mise run register --prof <name>`              | 新規プロファイルを作成 (キャリブレーション + キー登録)。                                       |
 | `mise run emulate --prof <path-or-name>`       | 指定プロファイルでマウス操作を再生。`--pause-key`、`--log-file` 等で一時的に設定を上書き可能。 |
-| `mise run auto-run --config <config.yml>`      | `auto_emulator` を起動しテンプレート/OCR ベースの自動シナリオを実行。                          |
+| `mise run auto-run --config <config.yml>`      | `auto_emulator` を起動しテンプレート/OCR ベースの自動シナリオを実行 (旧経路)。                 |
 | `mise run auto-validate --config <config.yml>` | 自動化設定ファイルの検証。                                                                     |
+| `mise run produce-auto`                        | シャニマス プロデュース自走 (`produce-run` のラッパー)。`-- --no-log` 等で引数を渡せる。       |
 | `mise run check` / `mise run format`           | `ruff`, `mypy`, `pytest` を用いた品質確認。 (キャッシュ書き込み権限に注意)                     |
 
 ## プロファイル (mouse_emulator)
@@ -51,7 +56,21 @@ mise run resolve
 - 設定は YAML/JSON で `docs/auto_emulator/configuration.md` に詳述。トップレベル項目、`watch` / `conditions` / `actions` の必須・デフォルトを表形式でまとめ済み。
 - `template` 検出器は `auto_shrink` (既定 `true`) で監視領域を超えるテンプレートも自動縮小。`relative_size.width/height` で比率指定が可能。
 - `actions` 配列は YAML に記述した順に実行され、途中で例外が発生するとそのステップは失敗扱いになり後続へ進みません。
-- `profiles/auto_emulator/sample2.yml` が最新サンプル。テンプレート画像は `profiles/auto_emulator/images/` でメンテナンスしてください。
+- `profiles/auto_emulator/sample2.yml` は旧経路 (機械的クリックループ) のサンプル。シャニマスを自動化する場合は **下記の `produce-auto` を使う**のが推奨。
+
+## プロデュース自走 (produce-auto)
+
+シャニマス W.I.N.G. ルートを `auto_emulator.games.produce` で自動進行するエンジン。状態 OCR + 戦略決定 + 画面遷移検証を持ち、旧 `sample2.yml` のメカニカルクリックループから完全置換を目指す。
+
+- 起動: `mise run produce-auto` (内部で `python -m auto_emulator produce-run`)
+- ログ: 既定で `~/.cache/auto-emulator/produce/produce-YYYYMMDD-HHMM.jsonl` に JSONL ターンログを保存。`--no-log` で完全無効化、`--log-file <path>` で明示指定。
+- 終了時の出力: 停止理由 + `RunSummary` (総ターン / decision 分布 / fans delta)。Ctrl+C 中断時も同じサマリが出る。
+- 後追い集計: `python -m auto_emulator produce-analyze <jsonl>` で既存ログを再集計。
+- キャリブツール: `python tools/calibrate_produce.py overlay/extract/dump-regions`。
+- 関連 docs:
+  - `docs/auto_emulator/produce_usage.md` … セットアップ → 実行 → ログ活用 → トラブルシューティング
+  - `docs/auto_emulator/produce_calibration.md` … リージョン/digit テンプレ調整 HOWTO
+  - `docs/auto_emulator/produce_rules.md` … 観測ルール集 M1-M16 (戦略テーブルの根拠)
 
 ## 実装上の注意
 
@@ -59,6 +78,7 @@ mise run resolve
 - テンプレート検出ではキャプチャ配列サイズに合わせてリサイズするよう `_prepare_template` を実装済み。`relative_size` を調整することで高解像度でも安全に動作します。
 - `ruff format` 利用に合わせて `COM812` は lint 無効化済み。警告が出ても無視して構いません。
 - 便利なテストセット: `pytest tests/test_detectors.py tests/test_emulate_calibration.py tests/test_termination.py`。自動化シナリオは実機でのスポット確認を推奨します。
+- プロデュース自走系: `pytest tests/test_produce_*.py tests/test_cli_produce_run.py tests/test_calibrate_produce_cli.py` を回せば reader / decision / engine / digit_matcher / turn_log / CLI / キャリブツールが一括検証されます。
 
 ## よくあるトラブルと対処
 
