@@ -75,7 +75,8 @@
 - [ ] Phase 3: 実機 dry-run (ブラウザ起動 + ファン到達まで 1 周)
 - [ ] E1.5: yml の archive 化 (実機 dry-run で完全置換が確認できたら)
 - [ ] G1: `item_tab` 座標の実機キャリブ (推定値 (0.050, 0.490))
-- [ ] G2: `audition_swipe` を「すでに目的カードが見えていればスキップ」する智化
-- [ ] G3: `LessonOption.preview_fans` の OCR 実装 (M8)
+- [x] G2: `audition_swipe` を「すでに目的カードが見えていればスキップ」する智化
+- [x] G3: `LessonOption.preview_fans` の OCR 実装 (M8)
+- [ ] G2/G3 の実機 fixture でキャリブ + 非 None ケースの E2E テスト
 - [ ] 数字テンプレ "4" を新フィクスチャから補充
 - [ ] Phase 5c: スキルパネル内部 (振り返り時のスキル取得 / パッシブ ON)
