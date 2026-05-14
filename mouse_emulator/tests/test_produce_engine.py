@@ -460,6 +460,7 @@ class TestRunFullProduce:
             max_turns=3,
             schedule_timeout=0.02,
             consume_poll_interval=0.0,
+            require_fields=(),  # OCR 経路をスキップして遷移失敗のみ検証
         )
         assert result == "stuck:schedule"
 
@@ -473,6 +474,7 @@ class TestRunFullProduce:
         result = engine.run_full_produce(
             max_turns=3,
             consume_poll_interval=0.0,
+            require_fields=(),
         )
         assert result == "max_turns"
         # 各ターン: rest card + confirm OK の 2 クリック x 3 = 6
