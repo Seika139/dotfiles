@@ -26,18 +26,25 @@ from auto_emulator.games.produce.state import (
 class HeaderRegions:
     """画面上部のヘッダー領域。
 
-    `schedule_s2_w8_fans6225.png` を元に初期キャリブレーション済み。
-    新しい解像度で外れる場合は `tools/calibrate_produce.py` で再生成する。
+    `schedule_s2_w8_fans6225.png` (3024x1610, 1512x805 CSS) を元に
+    キャリブレーション済み (#6 で実 OCR 検証)。新しい解像度で外れる
+    場合は `tools/calibrate_produce.py` で再生成する。
+
+    注意: シャニマスの装飾フォントは vanilla Tesseract では誤認しやすく
+    ("2"→"4", "8"→"8" 安定, "6,225"→"9965" など)、座標が正しくても
+    数値が常に正しいとは限らない。長期的には数字テンプレートマッチ
+    (cv2.matchTemplate でゴールデン digits を 0-9 ぶん用意) への置換を
+    想定する。
     """
 
     season_digit: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.185, y=0.015, w=0.04, h=0.06),
+        default_factory=lambda: FractionalRegion(x=0.334, y=0.009, w=0.022, h=0.038),
     )
     week_remaining: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.250, y=0.015, w=0.05, h=0.06),
+        default_factory=lambda: FractionalRegion(x=0.393, y=0.019, w=0.043, h=0.075),
     )
     fans_to_target: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.405, y=0.010, w=0.130, h=0.075),
+        default_factory=lambda: FractionalRegion(x=0.609, y=0.040, w=0.080, h=0.047),
     )
 
 
@@ -190,14 +197,23 @@ class ProduceStateReader:
         *,
         digits_only: bool,
     ) -> str:
+        # 装飾フォント対策: 3 倍アップスケール + 二値化で Tesseract の認識率を上げる。
+        # それでもシャニマス UI の "2" / "6,225" 等は誤認するため、上位の決定
+        # ロジックは OCR の値を「指標」として扱い、厳密一致は期待しない。
         crop = self._crop(image, region)
+        big = crop.resize((crop.width * 3, crop.height * 3), Image.LANCZOS)
+        binarized = big.point(lambda v: 0 if v < 160 else 255)
         config_parts = ["--psm 7"]
         if digits_only:
             # cspell:ignore tessedit
             config_parts.append("-c tessedit_char_whitelist=0123456789,")
         config = " ".join(config_parts)
         try:
-            text = pytesseract.image_to_string(crop, lang="eng", config=config)
+            text = pytesseract.image_to_string(
+                binarized,
+                lang="eng",
+                config=config,
+            )
         except (pytesseract.TesseractError, pytesseract.TesseractNotFoundError):
             return ""
         return str(text).strip()
