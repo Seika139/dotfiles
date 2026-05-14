@@ -19,9 +19,11 @@ r"""プロデュース画面のキャリブツール (`overlay` / `extract` / `d
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from PIL import Image, ImageDraw
 
@@ -29,6 +31,8 @@ from auto_emulator.games.produce.actions import (
     AUDITION_BATTLE_POINTS,
     DIALOG_POINTS,
     HOME_POINTS,
+    ITEM_POINTS,
+    MODAL_DISMISS_POINTS,
     SCHEDULE_POINTS,
     Point,
 )
@@ -236,6 +240,154 @@ def _build_extract_parser(sub: argparse._SubParsersAction) -> None:
     p.set_defaults(func=cmd_extract)
 
 
+def _region_to_dict(r: FractionalRegion) -> dict[str, float]:
+    return {"x": r.x, "y": r.y, "w": r.w, "h": r.h}
+
+
+def _point_to_dict(p: Point) -> dict[str, float | str]:
+    return {"x": p.x, "y": p.y, "description": p.description}
+
+
+def collect_region_dump() -> dict[str, Any]:
+    """全 fractional リージョン定義をネストした dict として返す。
+
+    Returns:
+        `{"regions": {...}, "lessons": {...}, "points": {...}}` 構造。
+        JSON 化を想定し、`FractionalRegion` / `Point` は plain dict に展開。
+    """
+    header = HeaderRegions()
+    stats = StatsRegions()
+    status = StatusRegions()
+    lessons = LessonRegions()
+    stat_labels = ("Vo", "Da", "Vi", "Me", "SP", "Fans")
+    return {
+        "regions": {
+            "header": {
+                "season_digit": _region_to_dict(header.season_digit),
+                "week_remaining": _region_to_dict(header.week_remaining),
+                "fans_to_target": _region_to_dict(header.fans_to_target),
+            },
+            "stats": {
+                "stat_centers_x": list(stats.stat_centers_x),
+                "stat_width": stats.stat_width,
+                "stat_band": list(stats.stat_band),
+                "by_label": {
+                    label: _region_to_dict(region)
+                    for label, region in zip(
+                        stat_labels,
+                        (
+                            r
+                            for _, r in ProduceStateReader.iter_stat_regions(stats)
+                        ),
+                        strict=False,
+                    )
+                },
+            },
+            "status": {
+                "hp_bar": _region_to_dict(status.hp_bar),
+                "trouble_pct": _region_to_dict(status.trouble_pct),
+                "tension_lv": _region_to_dict(status.tension_lv),
+            },
+            "lessons": {
+                "card_centers_x": list(lessons.card_centers_x),
+                "card_width": lessons.card_width,
+                "name_band": list(lessons.name_band),
+                "level_band": list(lessons.level_band),
+                "level_width_ratio": lessons.level_width_ratio,
+            },
+        },
+        "points": {
+            "home": {
+                "produce_card": _point_to_dict(HOME_POINTS.produce_card),
+                "rest_card": _point_to_dict(HOME_POINTS.rest_card),
+                "reflection_card": _point_to_dict(HOME_POINTS.reflection_card),
+                "trend_card": _point_to_dict(HOME_POINTS.trend_card),
+                "rest_confirm": _point_to_dict(HOME_POINTS.rest_confirm),
+                "item_tab": _point_to_dict(HOME_POINTS.item_tab),
+            },
+            "schedule": {
+                "lesson_tab": _point_to_dict(SCHEDULE_POINTS.lesson_tab),
+                "audition_tab": _point_to_dict(SCHEDULE_POINTS.audition_tab),
+                "confirm_button": _point_to_dict(SCHEDULE_POINTS.confirm_button),
+                "back_button": _point_to_dict(SCHEDULE_POINTS.back_button),
+                "reflection_button": _point_to_dict(
+                    SCHEDULE_POINTS.reflection_button,
+                ),
+            },
+            "audition_battle": {
+                "auto_toggle": _point_to_dict(AUDITION_BATTLE_POINTS.auto_toggle),
+                "speed_toggle": _point_to_dict(
+                    AUDITION_BATTLE_POINTS.speed_toggle,
+                ),
+                "pause_button": _point_to_dict(
+                    AUDITION_BATTLE_POINTS.pause_button,
+                ),
+            },
+            "dialog": {
+                "fast_forward_toggle": _point_to_dict(
+                    DIALOG_POINTS.fast_forward_toggle,
+                ),
+                "choice_pink": _point_to_dict(DIALOG_POINTS.choice_pink),
+                "choice_green": _point_to_dict(DIALOG_POINTS.choice_green),
+                "choice_yellow": _point_to_dict(DIALOG_POINTS.choice_yellow),
+                "checkmark_choice": _point_to_dict(
+                    DIALOG_POINTS.checkmark_choice,
+                ),
+                "advance_safe": _point_to_dict(DIALOG_POINTS.advance_safe),
+            },
+            "modal_dismiss": {
+                "close_top_right": _point_to_dict(
+                    MODAL_DISMISS_POINTS.close_top_right,
+                ),
+                "ok_center": _point_to_dict(MODAL_DISMISS_POINTS.ok_center),
+                "retry_center": _point_to_dict(
+                    MODAL_DISMISS_POINTS.retry_center,
+                ),
+                "cancel_left_bottom": _point_to_dict(
+                    MODAL_DISMISS_POINTS.cancel_left_bottom,
+                ),
+            },
+            "item": {
+                "first_slot": _point_to_dict(ITEM_POINTS.first_slot),
+                "use_button": _point_to_dict(ITEM_POINTS.use_button),
+                "close_button": _point_to_dict(ITEM_POINTS.close_button),
+                "back_button": _point_to_dict(ITEM_POINTS.back_button),
+            },
+        },
+    }
+
+
+def cmd_dump_regions(args: argparse.Namespace) -> int:
+    """`dump-regions` サブコマンド: 全座標定義を JSON 出力。
+
+    Returns:
+        終了コード (0 成功)。
+    """
+    data = collect_region_dump()
+    payload = json.dumps(data, indent=2, ensure_ascii=False)
+    if args.out is None:
+        sys.stdout.write(payload + "\n")
+    else:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(payload + "\n", encoding="utf-8")
+        sys.stdout.write(f"regions dumped: {args.out}\n")
+    return 0
+
+
+def _build_dump_regions_parser(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser(
+        "dump-regions",
+        help="現コード定義の全 fractional リージョン/ポイントを JSON 出力",
+    )
+    p.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="出力 JSON パス (省略時は標準出力)",
+    )
+    p.set_defaults(func=cmd_dump_regions)
+
+
 def cmd_overlay(args: argparse.Namespace) -> int:
     """`overlay` サブコマンド: スクショに矩形 + マーカーを描画。
 
@@ -292,6 +444,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="cmd", required=True)
     _build_overlay_parser(sub)
     _build_extract_parser(sub)
+    _build_dump_regions_parser(sub)
     args = parser.parse_args(argv)
     return int(args.func(args))
 
