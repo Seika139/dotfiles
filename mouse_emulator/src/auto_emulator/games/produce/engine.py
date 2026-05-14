@@ -277,6 +277,7 @@ class ProduceEngine:
         ocr_retry_attempts: int = 3,
         ocr_retry_interval: float = 0.3,
         require_fields: tuple[str, ...] = ("season",),
+        no_progress_threshold: int = 3,
         stop_monitor: TerminationMonitor | None = None,
     ) -> str:
         """ホーム検出 → step → 結果消化 を繰り返し、True End or 上限で停止する。
@@ -290,6 +291,8 @@ class ProduceEngine:
             ocr_retry_attempts: 状態 OCR のリトライ回数。
             ocr_retry_interval: OCR リトライの間で待つ秒数。
             require_fields: 状態に必須のフィールド名 (B1)。
+            no_progress_threshold: 同じ (season, week, fans) が連続出現したら
+                クリック空振りとみなして停止する閾値 (B2)。0 以下で無効化。
             stop_monitor: 外部停止/一時停止を伝えるモニタ。
 
         Returns:
@@ -299,8 +302,11 @@ class ProduceEngine:
                 "stuck:home": 中間画面消化に失敗
                 "stuck:schedule": プロデュースカード後にスケジュール未到達
                 "stuck:ocr": 状態 OCR が連続失敗
+                "stuck:no_progress": ターン進行が連続観測されない
                 "stopped": stop_monitor からの停止要求
         """
+        last_signature: tuple[int | None, int | None, int | None] | None = None
+        no_progress_streak = 0
         for _ in range(max_turns):
             if stop_monitor and stop_monitor.stop_requested():
                 return "stopped"
@@ -316,6 +322,19 @@ class ProduceEngine:
             )
             if state is None:
                 return "stuck:ocr"
+            signature = (state.season, state.week_remaining, state.fans_to_target)
+            if no_progress_threshold > 0 and last_signature is not None:
+                if signature == last_signature:
+                    no_progress_streak += 1
+                    if no_progress_streak >= no_progress_threshold:
+                        self._log(
+                            f"[produce] no progress for {no_progress_streak} "
+                            f"consecutive turns; signature={signature}",
+                        )
+                        return "stuck:no_progress"
+                else:
+                    no_progress_streak = 0
+            last_signature = signature
             if state.fans_to_target is not None and state.fans_to_target <= 0:
                 return "complete"
             decision = self._strategy.decide(state)
