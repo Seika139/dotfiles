@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -405,10 +406,25 @@ def run_dodge(
 
 
 DEFAULT_DIGIT_TEMPLATES = Path("tests/fixtures/produce/digits")
+DEFAULT_PRODUCE_LOG_DIR = Path.home() / ".cache" / "auto-emulator" / "produce"
+
+
+def _default_produce_log_path(now: datetime | None = None) -> Path:
+    """D5: 日付付きの既定 JSONL ログパスを返す.
+
+    Args:
+        now: 現在時刻 (テスト時のみ注入)。省略時はローカル時刻を使う。
+
+    Returns:
+        `~/.cache/auto-emulator/produce/produce-YYYYMMDD-HHMM.jsonl`
+        相当のパス。
+    """
+    stamp = (now or datetime.now().astimezone()).strftime("%Y%m%d-%H%M")
+    return DEFAULT_PRODUCE_LOG_DIR / f"produce-{stamp}.jsonl"
 
 
 @app.command("produce-run")
-def run_produce(
+def run_produce(  # noqa: PLR0913
     *,
     calibrate: bool | None = CALIBRATE_OPTION,
     templates_dir: str = typer.Option(
@@ -419,7 +435,15 @@ def run_produce(
     log_file: str | None = typer.Option(
         None,
         "--log-file",
-        help="ターン別 JSONL ログ出力先 (未指定なら無効)",
+        help=(
+            "ターン別 JSONL ログ出力先 (省略時は "
+            "~/.cache/auto-emulator/produce/produce-YYYYMMDD-HHMM.jsonl に自動命名)"
+        ),
+    ),
+    no_log: bool = typer.Option(
+        False,
+        "--no-log",
+        help="JSONL ログを完全に無効化する (D5 自動命名も抑止)",
     ),
     max_turns: int = typer.Option(
         200,
@@ -429,7 +453,7 @@ def run_produce(
     ),
     pause_key: str | None = PAUSE_KEY_OPTION,
 ) -> None:
-    """シャニマス プロデュースモードを自走する (E1.4).
+    """シャニマス プロデュースモードを自走する (E1.4 + D5/D6).
 
     Raises:
         BadParameter: pause-key の値が不正な場合。
@@ -439,6 +463,7 @@ def run_produce(
         DigitMatcher,
         JsonlTurnLogger,
         ProduceStateReader,
+        RunSummary,
         StrategyEngine,
         load_digit_templates,
     )
@@ -476,9 +501,21 @@ def run_produce(
     matcher = DigitMatcher(templates)
     reader = ProduceStateReader(digit_matcher=matcher)
     strategy = StrategyEngine()
-    turn_logger = (
-        JsonlTurnLogger(Path(log_file)) if log_file is not None else None
-    )
+
+    log_path: Path | None
+    if no_log:
+        log_path = None
+    elif log_file is not None:
+        log_path = Path(log_file).expanduser()
+    else:
+        log_path = _default_produce_log_path()
+    turn_logger = JsonlTurnLogger(log_path) if log_path is not None else None
+    if log_path is not None:
+        typer.echo(f"ログファイル: {log_path}")
+    else:
+        typer.echo("ログファイル: なし (--no-log)")
+
+    summary = RunSummary()
 
     if pause_combo is not None:
         combo_label = "+".join(pause_combo)
@@ -491,6 +528,7 @@ def run_produce(
         capture=capture_service,
         pointer=PointerController(),
         turn_logger=turn_logger,
+        summary=summary,
         logger=typer.echo,
     )
     try:
@@ -504,9 +542,37 @@ def run_produce(
                 stop_monitor=monitor,
             )
         typer.echo(f"停止理由: {stop_reason}")
+        typer.echo("")
+        typer.echo(summary.format_report())
     except KeyboardInterrupt:
         typer.echo("ユーザー操作により中断しました")
+        typer.echo("")
+        typer.echo(summary.format_report())
         raise typer.Exit(code=0) from None
+
+
+@app.command("produce-analyze")
+def analyze_produce_log(
+    log_path: str = typer.Argument(..., help="JSONL ログファイルのパス"),
+) -> None:
+    """D7: 既存の `produce-run` JSONL ログを集計表示する.
+
+    Raises:
+        Exit: ファイル不在または JSON 解析失敗時。
+    """
+    from auto_emulator.games.produce import RunSummary  # noqa: PLC0415
+
+    path = Path(log_path).expanduser()
+    if not path.is_file():
+        typer.echo(f"エラー: ログファイルが見つかりません: {path}")
+        raise typer.Exit(code=1)
+    try:
+        summary = RunSummary.from_jsonl(path)
+    except (ValueError, OSError) as exc:
+        typer.echo(f"エラー: ログ解析に失敗しました: {exc}")
+        raise typer.Exit(code=1) from None
+    typer.echo(f"source: {path}")
+    typer.echo(summary.format_report())
 
 
 def main() -> None:
