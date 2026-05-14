@@ -404,6 +404,111 @@ def run_dodge(
         raise typer.Exit(code=0) from None
 
 
+DEFAULT_DIGIT_TEMPLATES = Path("tests/fixtures/produce/digits")
+
+
+@app.command("produce-run")
+def run_produce(
+    *,
+    calibrate: bool | None = CALIBRATE_OPTION,
+    templates_dir: str = typer.Option(
+        str(DEFAULT_DIGIT_TEMPLATES),
+        "--templates-dir",
+        help="DigitMatcher テンプレ PNG が入ったディレクトリ",
+    ),
+    log_file: str | None = typer.Option(
+        None,
+        "--log-file",
+        help="ターン別 JSONL ログ出力先 (未指定なら無効)",
+    ),
+    max_turns: int = typer.Option(
+        200,
+        "--max-turns",
+        min=1,
+        help="自走ループの最大ターン数",
+    ),
+    pause_key: str | None = PAUSE_KEY_OPTION,
+) -> None:
+    """シャニマス プロデュースモードを自走する (E1.4).
+
+    Raises:
+        BadParameter: pause-key の値が不正な場合。
+        Exit: テンプレディレクトリ未存在または Ctrl+C 中断時。
+    """
+    from auto_emulator.games.produce import (  # noqa: PLC0415
+        DigitMatcher,
+        JsonlTurnLogger,
+        ProduceStateReader,
+        StrategyEngine,
+        load_digit_templates,
+    )
+    from auto_emulator.games.produce.engine import (  # noqa: PLC0415
+        ProduceEngine,
+    )
+
+    try:
+        pause_combo = _normalize_pause_combo(pause_key)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--pause-key") from exc
+
+    templates_path = Path(templates_dir)
+    if not templates_path.is_dir():
+        typer.echo(f"エラー: テンプレディレクトリが見つかりません: {templates_path}")
+        raise typer.Exit(code=1)
+    templates = load_digit_templates(templates_path)
+    if not templates:
+        typer.echo(f"エラー: テンプレが 1 件もロードできませんでした: {templates_path}")
+        raise typer.Exit(code=1)
+    typer.echo(f"DigitMatcher: {len(templates)} テンプレートをロード")
+
+    capture_service = MSSScreenCaptureService()
+    printer = ColorPrinter(Colors.GREEN)
+    if calibrate is None or calibrate:
+        typer.echo("キャリブレーションを開始します (画面領域を選択)。")
+        region = run_calibration(printer)
+    else:
+        typer.echo(
+            "--no-calibrate が指定されましたが produce-run には preset が"
+            " ありません。手動キャリブレーションを実行します。",
+        )
+        region = run_calibration(printer)
+
+    matcher = DigitMatcher(templates)
+    reader = ProduceStateReader(digit_matcher=matcher)
+    strategy = StrategyEngine()
+    turn_logger = (
+        JsonlTurnLogger(Path(log_file)) if log_file is not None else None
+    )
+
+    if pause_combo is not None:
+        combo_label = "+".join(pause_combo)
+        typer.echo(f"一時停止キー: {combo_label} (同じキーで再開)")
+
+    engine = ProduceEngine(
+        region=region,
+        reader=reader,
+        strategy=strategy,
+        capture=capture_service,
+        pointer=PointerController(),
+        turn_logger=turn_logger,
+        logger=typer.echo,
+    )
+    try:
+        with TerminationMonitor(
+            pause_combo=pause_combo,
+            on_pause=(lambda: typer.echo(PAUSE_NOTICE)) if pause_combo else None,
+            on_resume=(lambda: typer.echo(RESUME_NOTICE)) if pause_combo else None,
+        ) as monitor:
+            stop_reason = engine.run_full_produce(
+                max_turns=max_turns,
+                stop_monitor=monitor,
+            )
+        typer.echo(f"停止理由: {stop_reason}")
+    except KeyboardInterrupt:
+        typer.echo("ユーザー操作により中断しました")
+        raise typer.Exit(code=0) from None
+
+
 def main() -> None:
     app()
 
