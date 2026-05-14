@@ -540,10 +540,26 @@ class TestRunFullProduce:
             max_turns=3,
             consume_poll_interval=0.0,
             require_fields=(),
+            no_progress_threshold=0,  # B2 を無効化
         )
         assert result == "max_turns"
         # 各ターン: rest card + confirm OK の 2 クリック x 3 = 6
         assert len(pointer.clicks) == 6
+
+    def test_stuck_no_progress_when_signature_repeats(self) -> None:
+        # フェイク画像なので signature は (None, None, None) で毎ターン一致
+        home = self._br_image(self.HOME_COLOR)
+        engine, _ = self._build(
+            FakeCapture(home),
+            TurnDecision(action_kind="rest", rationale="t"),
+        )
+        result = engine.run_full_produce(
+            max_turns=10,
+            consume_poll_interval=0.0,
+            require_fields=(),
+            no_progress_threshold=2,  # 2 ターン同一で発火
+        )
+        assert result == "stuck:no_progress"
 
     def test_lessons_attached_to_state(self) -> None:
         # この test は OCR 失敗を許容するが、lessons リストが必ず付くことを検証
