@@ -1,0 +1,271 @@
+{
+  "regions": {
+    "header": {
+      "season_digit": {
+        "x": 0.334,
+        "y": 0.009,
+        "w": 0.022,
+        "h": 0.038
+      },
+      "week_remaining": {
+        "x": 0.393,
+        "y": 0.019,
+        "w": 0.043,
+        "h": 0.075
+      },
+      "fans_to_target": {
+        "x": 0.605,
+        "y": 0.04,
+        "w": 0.1,
+        "h": 0.052
+      }
+    },
+    "stats": {
+      "stat_centers_x": [
+        0.399,
+        0.49,
+        0.583,
+        0.671,
+        0.744,
+        0.87
+      ],
+      "stat_width": 0.05,
+      "stat_band": [
+        0.546,
+        0.585
+      ],
+      "by_label": {
+        "Vo": {
+          "x": 0.374,
+          "y": 0.546,
+          "w": 0.05,
+          "h": 0.038999999999999924
+        },
+        "Da": {
+          "x": 0.46499999999999997,
+          "y": 0.546,
+          "w": 0.05,
+          "h": 0.038999999999999924
+        },
+        "Vi": {
+          "x": 0.5579999999999999,
+          "y": 0.546,
+          "w": 0.05,
+          "h": 0.038999999999999924
+        },
+        "Me": {
+          "x": 0.646,
+          "y": 0.546,
+          "w": 0.05,
+          "h": 0.038999999999999924
+        },
+        "SP": {
+          "x": 0.719,
+          "y": 0.546,
+          "w": 0.05,
+          "h": 0.038999999999999924
+        },
+        "Fans": {
+          "x": 0.845,
+          "y": 0.546,
+          "w": 0.05,
+          "h": 0.038999999999999924
+        }
+      }
+    },
+    "status": {
+      "hp_bar": {
+        "x": 0.795,
+        "y": 0.018,
+        "w": 0.14,
+        "h": 0.022
+      },
+      "trouble_pct": {
+        "x": 0.866,
+        "y": 0.255,
+        "w": 0.05,
+        "h": 0.063
+      },
+      "tension_lv": {
+        "x": 0.878,
+        "y": 0.066,
+        "w": 0.014,
+        "h": 0.028
+      }
+    },
+    "lessons": {
+      "card_centers_x": [
+        0.22,
+        0.353,
+        0.487,
+        0.62,
+        0.753,
+        0.887
+      ],
+      "card_width": 0.13,
+      "name_band": [
+        0.86,
+        0.928
+      ],
+      "level_band": [
+        0.755,
+        0.815
+      ],
+      "level_width_ratio": 0.55
+    }
+  },
+  "points": {
+    "home": {
+      "produce_card": {
+        "x": 0.137,
+        "y": 0.77,
+        "description": "左下カード: プロデュース"
+      },
+      "rest_card": {
+        "x": 0.367,
+        "y": 0.86,
+        "description": "中央下カード: 休む"
+      },
+      "reflection_card": {
+        "x": 0.597,
+        "y": 0.86,
+        "description": "中央右下カード: 振り返り"
+      },
+      "trend_card": {
+        "x": 0.827,
+        "y": 0.86,
+        "description": "右下カード: 流行確認"
+      },
+      "rest_confirm": {
+        "x": 0.598,
+        "y": 0.553,
+        "description": "休む確認ダイアログの OK"
+      },
+      "item_tab": {
+        "x": 0.05,
+        "y": 0.49,
+        "description": "左サイドバー: アイテム (バッグアイコン)"
+      }
+    },
+    "schedule": {
+      "lesson_tab": {
+        "x": 0.06,
+        "y": 0.18,
+        "description": "左タブ: レッスン&お仕事"
+      },
+      "audition_tab": {
+        "x": 0.06,
+        "y": 0.35,
+        "description": "左タブ: オーディション"
+      },
+      "confirm_button": {
+        "x": 0.847,
+        "y": 0.928,
+        "description": "右下: 決定"
+      },
+      "back_button": {
+        "x": 0.038,
+        "y": 0.928,
+        "description": "左下: 戻る"
+      },
+      "reflection_button": {
+        "x": 0.553,
+        "y": 0.928,
+        "description": "下中央: 振り返り"
+      }
+    },
+    "audition_battle": {
+      "auto_toggle": {
+        "x": 0.782,
+        "y": 0.062,
+        "description": "右上: AUTO ON/OFF"
+      },
+      "speed_toggle": {
+        "x": 0.861,
+        "y": 0.062,
+        "description": "右上: 倍速 ON/OFF"
+      },
+      "pause_button": {
+        "x": 0.94,
+        "y": 0.062,
+        "description": "右上: 一時停止"
+      }
+    },
+    "dialog": {
+      "fast_forward_toggle": {
+        "x": 0.833,
+        "y": 0.944,
+        "description": "右下: 早送り x4 ON/OFF"
+      },
+      "choice_pink": {
+        "x": 0.183,
+        "y": 0.218,
+        "description": "3 択ダイアログの左 (ピンク)"
+      },
+      "choice_green": {
+        "x": 0.463,
+        "y": 0.108,
+        "description": "3 択ダイアログの中央 (緑、いいよ等)"
+      },
+      "choice_yellow": {
+        "x": 0.747,
+        "y": 0.248,
+        "description": "3 択ダイアログの右 (黄色、M11/M16 のデフォルト)"
+      },
+      "checkmark_choice": {
+        "x": 0.5,
+        "y": 0.33,
+        "description": "3 択が表示されず単一カードにチェックマーク (✓) が付いているときのフォールバック確定タップ位置 (旧 sample2.yml の option_check 相当)"
+      },
+      "advance_safe": {
+        "x": 0.463,
+        "y": 0.497,
+        "description": "ダイアログ進行: 中央付近の安全な空きスペース"
+      }
+    },
+    "modal_dismiss": {
+      "close_top_right": {
+        "x": 0.965,
+        "y": 0.05,
+        "description": "右上の close アイコン (お知らせ/イベント告知の典型)"
+      },
+      "ok_center": {
+        "x": 0.5,
+        "y": 0.68,
+        "description": "中央下の OK ボタン (確認モーダル)"
+      },
+      "retry_center": {
+        "x": 0.5,
+        "y": 0.56,
+        "description": "通信エラー時のリトライ位置"
+      },
+      "cancel_left_bottom": {
+        "x": 0.155,
+        "y": 0.825,
+        "description": "左下の戻る/キャンセル"
+      }
+    },
+    "item": {
+      "first_slot": {
+        "x": 0.3,
+        "y": 0.4,
+        "description": "アイテム一覧の左上 (最初のスロット)"
+      },
+      "use_button": {
+        "x": 0.5,
+        "y": 0.85,
+        "description": "使用確認モーダル中央の使用ボタン"
+      },
+      "close_button": {
+        "x": 0.5,
+        "y": 0.7,
+        "description": "使用後の閉じる/OK ボタン"
+      },
+      "back_button": {
+        "x": 0.038,
+        "y": 0.928,
+        "description": "アイテム画面から戻る (左下)"
+      }
+    }
+  }
+}
