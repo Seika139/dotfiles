@@ -111,17 +111,22 @@ class TestLoadDigitTemplates:
     def test_loads_all_pngs_from_fixture_dir(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR)
         digits = {t.digit for t in templates}
-        # 現状フィクスチャに含まれる digit (2, 5, 6, 8)
-        assert digits == {2, 5, 6, 8}
+        # 現状フィクスチャに含まれる digit (header: 2/5/6/8 + stats: 0-3,5-9)
+        # "4" は出現していないので含まない
+        assert 4 not in digits
+        assert {0, 1, 2, 3, 5, 6, 7, 8, 9}.issubset(digits)
 
     def test_parses_style_from_filename(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR)
         styles_per_digit: dict[int, set[str]] = {}
         for t in templates:
             styles_per_digit.setdefault(t.digit, set()).add(t.style)
-        # "2" は pink と yellow_small の 2 種
-        assert styles_per_digit[2] == {"pink", "yellow_small"}
-        assert styles_per_digit[8] == {"yellow_large"}
+        # "2" は pink / yellow_small / stats の 3 種
+        assert styles_per_digit[2] == {"pink", "yellow_small", "stats"}
+        # "8" は yellow_large + stats
+        assert styles_per_digit[8] == {"yellow_large", "stats"}
+        # "0" は stats のみ
+        assert styles_per_digit[0] == {"stats"}
 
     def test_returns_empty_for_nonexistent_dir(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR / "nonexistent")
@@ -152,3 +157,19 @@ class TestEndToEndReaderWithMatcher:
         # HP は色解析で動くので必ず正常範囲
         assert state.hp_pct is not None
         assert 0.0 < state.hp_pct < 1.0
+
+    def test_stats_all_six_correct_with_stats_templates(self) -> None:
+        # #27 で stats スタイル digit を追加、stats も完全読み取り可能に
+        templates = load_digit_templates(TEMPLATE_DIR)
+        matcher = DigitMatcher(templates)
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(FIXTURE) as img:
+            state = reader.read(img)
+        assert state.stats == {
+            "Vo": 226,
+            "Da": 128,
+            "Vi": 96,
+            "Me": 178,
+            "SP": 30,
+            "Fans": 3775,
+        }
