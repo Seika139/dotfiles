@@ -16,14 +16,17 @@ from auto_emulator.games.produce.state import (
     GameState,
     LessonOption,
 )
+from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
 
 __all__ = [
+    "SEASON_STRATEGY",
     "FractionalRegion",
     "GameState",
     "HeaderRegions",
     "LessonOption",
     "LessonRegions",
     "ProduceStateReader",
+    "SeasonPlan",
     "StatsRegions",
     "StatusRegions",
 ]
