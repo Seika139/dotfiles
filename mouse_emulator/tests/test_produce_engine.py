@@ -370,6 +370,86 @@ class TestModalDismiss:
         )
         return engine, pointer
 
+    def test_tap_dialog_checkmark_fallback(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        capture = FakeCapture(unknown)
+        engine, pointer = self._build(capture)
+        engine.tap_dialog_checkmark_fallback()
+        # 単発のタップで checkmark_choice 座標 (0.500, 0.330) に発火
+        assert len(pointer.clicks) == 1
+        x, y = pointer.clicks[0]
+        assert 0.45 < x < 0.55
+        assert 0.30 < y < 0.36
+
+    def test_consume_until_home_tries_checkmark_before_dismiss(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        home = self._br_image(self.HOME_COLOR)
+        # streak=5 で recovery 発動 -> checkmark タップ -> home 遷移
+        capture = FakeCapture(
+            image=home,
+            queue=[unknown, unknown, unknown, unknown, unknown, home],
+        )
+        engine, pointer = self._build(capture)
+        result = engine.consume_until_home(
+            poll_interval=0.0,
+            unknown_threshold=5,
+        )
+        assert result is True
+        # advance タップ x 4 (streak 1-4) + checkmark タップ 1 = 5
+        assert len(pointer.clicks) == 5
+        # 5 回目のクリックは checkmark_choice (中央上寄り)
+        last_x, last_y = pointer.clicks[-1]
+        assert 0.45 < last_x < 0.55
+        assert 0.30 < last_y < 0.36
+
+    def test_consume_until_home_falls_back_to_dismiss_when_checkmark_fails(
+        self,
+    ) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        home = self._br_image(self.HOME_COLOR)
+        # streak=5 -> checkmark タップしても unknown -> modal_dismiss 候補で home
+        capture = FakeCapture(
+            image=home,
+            queue=[
+                unknown,
+                unknown,
+                unknown,
+                unknown,
+                unknown,
+                unknown,  # checkmark タップ後の検出も unknown
+                home,  # modal_dismiss 1 候補目で home
+            ],
+        )
+        engine, pointer = self._build(capture)
+        result = engine.consume_until_home(
+            poll_interval=0.0,
+            unknown_threshold=5,
+        )
+        assert result is True
+        # advance x4 + checkmark 1 + modal_dismiss 1 候補 = 6
+        assert len(pointer.clicks) == 6
+
+    def test_consume_until_home_checkmark_can_be_disabled(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        home = self._br_image(self.HOME_COLOR)
+        # checkmark_fallback=False -> 即 modal_dismiss が発動
+        capture = FakeCapture(
+            image=home,
+            queue=[unknown, unknown, unknown, unknown, unknown, home],
+        )
+        engine, pointer = self._build(capture)
+        result = engine.consume_until_home(
+            poll_interval=0.0,
+            unknown_threshold=5,
+            checkmark_fallback=False,
+        )
+        assert result is True
+        # advance x4 + modal_dismiss 1 = 5 (checkmark タップは入らない)
+        assert len(pointer.clicks) == 5
+        # 5 回目のクリックは modal_dismiss の close_top_right (x≈0.965)
+        last_x, _ = pointer.clicks[-1]
+        assert last_x > 0.9
+
     def test_try_dismiss_modal_stops_on_first_success(self) -> None:
         home = self._br_image(self.HOME_COLOR)
         # 最初の dismiss 候補で home に遷移するシナリオ
