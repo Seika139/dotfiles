@@ -20,6 +20,7 @@ from auto_emulator.games.produce.reader import (
     StatusRegions,
 )
 from auto_emulator.games.produce.state import (
+    AuditionOption,
     FractionalRegion,
     GameState,
     LessonOption,
@@ -30,6 +31,7 @@ __all__ = [
     "DEFAULT_DIALOG_RULES",
     "SEASON_STRATEGY",
     "ActionKind",
+    "AuditionOption",
     "DialogChoiceRule",
     "FractionalRegion",
     "GameState",

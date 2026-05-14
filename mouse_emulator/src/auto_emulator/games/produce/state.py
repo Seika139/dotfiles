@@ -63,6 +63,28 @@ class LessonOption(BaseModel):
     )
 
 
+class AuditionOption(BaseModel):
+    """オーディションタブ内のスワイプ可能なカード 1 枚分の情報。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    slot: int = Field(
+        ge=0,
+        description="スワイプ順 (0 が最初に表示されるカード)",
+    )
+    name: str = Field(description="オーディション名 (例: 夕方ワイド アイドル一番)")
+    difficulty: int = Field(ge=1, le=20, description="難易度")
+    recommended_stats: dict[str, int] = Field(
+        default_factory=dict,
+        description="推奨能力値 (キー: Vo/Da/Vi 等)",
+    )
+    expected_fans: int | None = Field(
+        default=None,
+        ge=0,
+        description="ファン獲得見込み (--- なら None)",
+    )
+
+
 class GameState(BaseModel):
     """1 ターンの観測状態。後段の決定エンジンが入力に取る。"""
 
@@ -82,6 +104,10 @@ class GameState(BaseModel):
     audition_available: bool = Field(
         default=False,
         description="ホーム画面で「期間限定特別オーディション出演中」ラベルが見える",
+    )
+    available_auditions: list[AuditionOption] = Field(
+        default_factory=list,
+        description="オーディションタブで観測されたカード一覧 (左→右)",
     )
     lessons: list[LessonOption] = Field(default_factory=list)
     raw: dict[str, str] = Field(

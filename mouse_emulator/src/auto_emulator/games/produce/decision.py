@@ -86,6 +86,33 @@ def choose_dialog_option(
 ActionKind = Literal["lesson", "rest", "audition", "reflection", "item", "noop"]
 
 
+def _stat_fulfillment_ratio(
+    current: dict[str, int],
+    recommended: dict[str, int],
+) -> float:
+    """全推奨ステに対する充足率の最低値を返す。
+
+    Args:
+        current: 現在のステータス辞書。
+        recommended: 推奨能力値辞書。
+
+    Returns:
+        各推奨ステの (current / recommended) の最小値。
+        recommended が空なら 1.0 (条件なしとみなして許可)。
+    """
+    if not recommended:
+        return 1.0
+    ratios: list[float] = []
+    for stat_name, required in recommended.items():
+        if required <= 0:
+            continue
+        have = current.get(stat_name, 0)
+        ratios.append(have / required)
+    if not ratios:
+        return 1.0
+    return min(ratios)
+
+
 class TurnDecision(BaseModel):
     """1 ターンに実行すべき行動。"""
 
@@ -141,12 +168,15 @@ class StrategyEngine:
                 ),
             )
 
-        if state.audition_available and plan.target_auditions:
+        audition_pick = self._pick_audition(state, plan)
+        if audition_pick is not None:
+            slot, name, ratio = audition_pick
             return TurnDecision(
                 action_kind="audition",
-                target_slot=0,
+                target_slot=slot,
                 rationale=(
-                    f"season {season} target audition: {plan.target_auditions[0]}"
+                    f"season {season} audition '{name}' at slot {slot} "
+                    f"(stat ratio {ratio:.0%})"
                 ),
             )
 
@@ -209,6 +239,36 @@ class StrategyEngine:
                     f"({ratio:.0%} >= {plan.reflect_stat_proximity:.0%})"
                 )
         return None
+
+    @staticmethod
+    def _pick_audition(
+        state: GameState,
+        plan: SeasonPlan,
+    ) -> tuple[int, str, float] | None:
+        """戦略テーブルに合致するオーディションを推奨能力値で評価して選ぶ。
+
+        Returns:
+            (slot, name, stat_ratio) もしくは選ばないなら None。
+            ratio はステ充足率 (1.0 = 推奨値ぴったり、>1.0 = 余裕あり)。
+        """
+        if not plan.target_auditions:
+            return None
+        # 名前ベースのレガシー: available_auditions が空でも audition_available
+        # フラグだけで進める旧挙動を保つ (slot=0 / ratio=1.0 仮置き)。
+        if not state.available_auditions:
+            if state.audition_available:
+                return 0, plan.target_auditions[0], 1.0
+            return None
+        best: tuple[int, str, float] | None = None
+        for option in state.available_auditions:
+            if not any(target in option.name for target in plan.target_auditions):
+                continue
+            ratio = _stat_fulfillment_ratio(state.stats or {}, option.recommended_stats)
+            if ratio < plan.audition_min_stat_ratio:
+                continue
+            if best is None or ratio > best[2]:
+                best = (option.slot, option.name, ratio)
+        return best
 
     @staticmethod
     def _pick_lesson_slot(

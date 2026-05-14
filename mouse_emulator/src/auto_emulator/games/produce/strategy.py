@@ -47,6 +47,15 @@ class SeasonPlan(BaseModel):
         le=1.0,
         description="シーズン上限のこの比率以上に到達したステがあれば振り返り発動",
     )
+    audition_min_stat_ratio: float = Field(
+        default=0.6,
+        gt=0.0,
+        le=2.0,
+        description=(
+            "推奨能力値に対する充足率の最低ライン。"
+            "全ステがこの比率未満ならオーディションを skip"
+        ),
+    )
 
 
 # シーズンごとのステ上限 (Vo/Da/Vi)。実機計測値の概数で初期値とする。
