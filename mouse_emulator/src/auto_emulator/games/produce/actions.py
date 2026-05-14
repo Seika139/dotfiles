@@ -159,6 +159,14 @@ class DialogPoints(BaseModel):
         y=0.248,
         description="3 択ダイアログの右 (黄色、M11/M16 のデフォルト)",
     )
+    checkmark_choice: Point = Point(
+        x=0.500,
+        y=0.330,
+        description=(
+            "3 択が表示されず単一カードにチェックマーク (✓) が付いているときの"
+            "フォールバック確定タップ位置 (旧 sample2.yml の option_check 相当)"
+        ),
+    )
     advance_safe: Point = Point(
         x=0.463,
         y=0.497,

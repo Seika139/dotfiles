@@ -300,6 +300,16 @@ class ProduceEngine:
         """3 択ダイアログで桃色 (左) の選択肢をタップする。"""
         self._tap(self._points.dialog.choice_pink)
 
+    def tap_dialog_checkmark_fallback(self) -> None:
+        """3 択が表示されず単一カードに ✓ が付いているときの確定タップ.
+
+        旧 `sample2.yml` の "3つの選択肢が検知できなかった時のためのチェック
+        マーク検出" ステップ相当。色判定ベースの `tap_dialog_*_choice` で
+        進まないシーン (例: 強制シナリオで 1 択しか出ないケース) で使う
+        フォールバック。座標は `DialogPoints.checkmark_choice` を参照する。
+        """
+        self._tap(self._points.dialog.checkmark_choice)
+
     def tap_dialog_choice_by_index(self, index: int) -> None:
         """0=桃(左) / 1=緑(中央) / 2=黄(右) でインデックス指定タップ.
 
@@ -445,17 +455,21 @@ class ProduceEngine:
         max_taps: int = 30,
         poll_interval: float = 0.5,
         unknown_threshold: int = 5,
+        checkmark_fallback: bool = True,
     ) -> bool:
         """不明な中間画面 (結果表示・会話など) を中央タップで送ってホームへ戻す。
 
         ホーム or スケジュール画面に到達したら停止する。`unknown` が連続
-        `unknown_threshold` 回出現したら想定外モーダルとみなして
+        `unknown_threshold` 回出現したら、まず checkmark 確定タップ
+        (`tap_dialog_checkmark_fallback`) を試み、それでも遷移しなければ
         `try_dismiss_modal` で閉じる候補を順に試す。
 
         Args:
             max_taps: 中央タップを試みる最大回数。
             poll_interval: 各タップ後に画面遷移を待つ秒数。
-            unknown_threshold: この連続未識別回数を超えたらモーダル除去を発動。
+            unknown_threshold: この連続未識別回数を超えたらリカバリ発動。
+            checkmark_fallback: True なら modal_dismiss の前に checkmark
+                fallback を 1 回試す (E1.3, 旧 sample2.yml 互換)。
 
         Returns:
             ホーム画面に到達したら True、スケジュール画面に到達 or 上限
@@ -472,13 +486,36 @@ class ProduceEngine:
             if unknown_streak >= unknown_threshold:
                 self._log(
                     f"[produce] unknown screen streak={unknown_streak}; "
-                    "attempting modal dismiss",
+                    "attempting dialog/modal recovery",
                 )
+                if checkmark_fallback and self._try_checkmark_recovery(
+                    settle=poll_interval,
+                ):
+                    unknown_streak = 0
+                    continue
                 if self.try_dismiss_modal(settle=poll_interval):
                     unknown_streak = 0
                     continue
             self._tap(self._points.dialog.advance_safe)
             time.sleep(poll_interval)
+        return False
+
+    def _try_checkmark_recovery(self, *, settle: float) -> bool:
+        """Checkmark fallback をタップし、画面遷移したら True を返す内部 helper.
+
+        Args:
+            settle: タップ後に画面遷移を待つ秒数。
+
+        Returns:
+            `unknown` 以外の画面に遷移したら True、そうでなければ False。
+        """
+        self._log("[produce] try checkmark fallback")
+        self.tap_dialog_checkmark_fallback()
+        time.sleep(settle)
+        kind = self.detect_screen()
+        if kind != "unknown":
+            self._log(f"[produce] checkmark fallback success -> {kind}")
+            return True
         return False
 
     def try_dismiss_modal(self, *, settle: float = 0.5) -> bool:
