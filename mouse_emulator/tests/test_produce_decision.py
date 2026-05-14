@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from auto_emulator.games.produce import (
     GameState,
     LessonOption,
@@ -174,6 +172,63 @@ class TestReflectionRule:
         decision = engine.decide(state)
         assert decision.action_kind != "reflection"
 
-    @pytest.mark.skip(reason="Phase 4: 上限近接判定実装後にテスト追加")
     def test_reflects_when_stat_cap_near(self) -> None:
-        pass
+        # S2 cap Vo=300 -> 260 (87%) で 0.85 閾値を超える
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            week_remaining=5,
+            stats={"Vo": 260, "Da": 100, "Vi": 100, "Me": 100, "SP": 30, "Fans": 5000},
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "reflection"
+        assert "Vo" in decision.rationale
+
+    def test_does_not_reflect_when_stats_below_proximity(self) -> None:
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            week_remaining=5,
+            stats={"Vo": 100, "Da": 100, "Vi": 100, "Me": 100, "SP": 30, "Fans": 5000},
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind != "reflection"
+
+    def test_does_not_reflect_when_weeks_remaining_low(self) -> None:
+        # week_remaining=1 -> 振り返りせず加速
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            week_remaining=1,
+            stats={"Vo": 290, "Da": 100, "Vi": 100, "Me": 100, "SP": 30, "Fans": 5000},
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind != "reflection"
+
+    def test_does_not_reflect_when_stats_unknown(self) -> None:
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            week_remaining=5,
+            stats=None,
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind != "reflection"
+
+    def test_custom_stat_caps_override(self) -> None:
+        # Vo=100 でも cap=100 にすれば 100% 達成 -> 振り返り発動
+        engine = StrategyEngine(
+            stat_caps={2: {"Vo": 100}},
+        )
+        state = _state(
+            season=2,
+            week_remaining=5,
+            stats={"Vo": 100, "Da": 100, "Vi": 100, "Me": 100, "SP": 30, "Fans": 5000},
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "reflection"
