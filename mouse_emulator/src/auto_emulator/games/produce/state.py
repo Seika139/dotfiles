@@ -12,6 +12,8 @@ ScreenKind = Literal[
     "schedule_audition",
     "reflection",
     "audition_battle",
+    "wing_semifinal",
+    "wing_final",
     "dialog",
     "unknown",
 ]

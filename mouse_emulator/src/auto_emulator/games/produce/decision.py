@@ -85,6 +85,28 @@ def choose_dialog_option(
 
 ActionKind = Literal["lesson", "rest", "audition", "reflection", "item", "noop"]
 
+# WING 準決勝/決勝で出現することが多い特別オーディション名のキーワード。
+# 名前に含まれていれば「WING 系」と判定する。
+WING_AUDITION_KEYWORDS: tuple[str, ...] = (
+    "THE LEGEND",
+    "LEGEND",
+    "オールアイドル感謝",
+    "感謝FESTIVAL",
+    "WING",
+)
+
+
+def is_wing_audition(name: str) -> bool:
+    """オーディション名が WING 準決勝/決勝相当かを判定する。
+
+    Args:
+        name: OCR 等で取得したオーディション名。
+
+    Returns:
+        WING フローのオーディションなら True。
+    """
+    return any(keyword in name for keyword in WING_AUDITION_KEYWORDS)
+
 
 def _stat_fulfillment_ratio(
     current: dict[str, int],
@@ -247,27 +269,37 @@ class StrategyEngine:
     ) -> tuple[int, str, float] | None:
         """戦略テーブルに合致するオーディションを推奨能力値で評価して選ぶ。
 
+        WING 系オーディション (`is_wing_audition`) は同じ ratio でも優先する。
+        S4 で THE LEGEND / オールアイドル感謝 を取りこぼさないため。
+
         Returns:
             (slot, name, stat_ratio) もしくは選ばないなら None。
             ratio はステ充足率 (1.0 = 推奨値ぴったり、>1.0 = 余裕あり)。
         """
         if not plan.target_auditions:
             return None
-        # 名前ベースのレガシー: available_auditions が空でも audition_available
-        # フラグだけで進める旧挙動を保つ (slot=0 / ratio=1.0 仮置き)。
         if not state.available_auditions:
             if state.audition_available:
                 return 0, plan.target_auditions[0], 1.0
             return None
         best: tuple[int, str, float] | None = None
+        best_is_wing = False
         for option in state.available_auditions:
             if not any(target in option.name for target in plan.target_auditions):
                 continue
             ratio = _stat_fulfillment_ratio(state.stats or {}, option.recommended_stats)
             if ratio < plan.audition_min_stat_ratio:
                 continue
-            if best is None or ratio > best[2]:
-                best = (option.slot, option.name, ratio)
+            this_is_wing = is_wing_audition(option.name)
+            candidate = (option.slot, option.name, ratio)
+            if best is None:
+                best, best_is_wing = candidate, this_is_wing
+                continue
+            # WING vs 非 WING は WING 優先、同種なら ratio 比較
+            if this_is_wing and not best_is_wing:
+                best, best_is_wing = candidate, True
+            elif this_is_wing == best_is_wing and ratio > best[2]:
+                best = candidate
         return best
 
     @staticmethod
