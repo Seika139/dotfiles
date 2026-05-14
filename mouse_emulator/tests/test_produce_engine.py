@@ -347,7 +347,78 @@ class TestConsumeUntilHome:
         assert len(pointer.clicks) == 4
 
 
-class TestCaptureStateMergesLessons:
+class TestRunFullProduce:
+    @staticmethod
+    def _br_image(color: tuple[int, int, int]) -> Image.Image:
+        img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        block = Image.new("RGB", (212, 80), color=color)
+        img.paste(block, (2449, 1465))
+        return img
+
+    HOME_COLOR = (163, 214, 136)
+    SCHEDULE_COLOR = (220, 149, 191)
+    UNKNOWN_COLOR = (180, 195, 220)
+
+    def _build(
+        self,
+        capture: FakeCapture,
+        decision: TurnDecision,
+    ) -> tuple[ProduceEngine, FakePointer]:
+        pointer = FakePointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            strategy=FakeStrategy(decision),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        return engine, pointer
+
+    def test_stuck_home_when_no_screen_detected(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=self.UNKNOWN_COLOR)
+        engine, _ = self._build(
+            FakeCapture(unknown),
+            TurnDecision(action_kind="rest", rationale="t"),
+        )
+        # consume_until_home が max_taps を使い切って False を返す
+        result = engine.run_full_produce(
+            max_turns=2,
+            consume_max_taps=3,
+            consume_poll_interval=0.0,
+        )
+        assert result == "stuck:home"
+
+    def test_stuck_schedule_when_produce_card_no_op(self) -> None:
+        # 常にホーム画面を返す -> プロデュースカード押してもスケジュールに行かない
+        home = self._br_image(self.HOME_COLOR)
+        engine, _ = self._build(
+            FakeCapture(home),
+            TurnDecision(action_kind="lesson", target_slot=0, rationale="t"),
+        )
+        result = engine.run_full_produce(
+            max_turns=3,
+            schedule_timeout=0.02,
+            consume_poll_interval=0.0,
+        )
+        assert result == "stuck:schedule"
+
+    def test_max_turns_with_rest_decision(self) -> None:
+        # rest はホーム画面から実行されるためスケジュール遷移を要さない
+        home = self._br_image(self.HOME_COLOR)
+        engine, pointer = self._build(
+            FakeCapture(home),
+            TurnDecision(action_kind="rest", rationale="trouble"),
+        )
+        result = engine.run_full_produce(
+            max_turns=3,
+            consume_poll_interval=0.0,
+        )
+        assert result == "max_turns"
+        # 各ターン: rest card + confirm OK の 2 クリック x 3 = 6
+        assert len(pointer.clicks) == 6
+
     def test_lessons_attached_to_state(self) -> None:
         # この test は OCR 失敗を許容するが、lessons リストが必ず付くことを検証
         engine, _ = _engine(
