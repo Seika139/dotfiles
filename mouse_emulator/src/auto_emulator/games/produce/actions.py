@@ -41,7 +41,11 @@ class HomeActionPoints(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    produce_card: Point = Point(x=0.137, y=0.770, description="左下カード: プロデュース")
+    produce_card: Point = Point(
+        x=0.137,
+        y=0.770,
+        description="左下カード: プロデュース",
+    )
     rest_card: Point = Point(x=0.367, y=0.860, description="中央下カード: 休む")
     reflection_card: Point = Point(
         x=0.597,
