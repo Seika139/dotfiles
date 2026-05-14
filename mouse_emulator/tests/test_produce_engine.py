@@ -288,6 +288,65 @@ class TestScreenDetectionIntegration:
         assert result == "home"
 
 
+class TestConsumeUntilHome:
+    @staticmethod
+    def _br_color_image(color: tuple[int, int, int]) -> Image.Image:
+        img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        block = Image.new("RGB", (212, 80), color=color)
+        img.paste(block, (2449, 1465))
+        return img
+
+    def _build(
+        self,
+        capture: FakeCapture,
+    ) -> tuple[ProduceEngine, FakePointer]:
+        pointer = FakePointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=capture,
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        return engine, pointer
+
+    def test_returns_true_immediately_when_home(self) -> None:
+        home = self._br_color_image((163, 214, 136))
+        capture = FakeCapture(home)
+        engine, pointer = self._build(capture)
+        assert engine.consume_until_home(poll_interval=0.0) is True
+        assert pointer.clicks == []
+
+    def test_taps_dialog_advance_until_home(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=(180, 195, 220))
+        home = self._br_color_image((163, 214, 136))
+        capture = FakeCapture(
+            image=home,
+            queue=[unknown, unknown, home],
+        )
+        engine, pointer = self._build(capture)
+        assert engine.consume_until_home(poll_interval=0.0) is True
+        # 2 回 unknown を見て advance タップ、3 回目で home 検出
+        assert len(pointer.clicks) == 2
+
+    def test_returns_false_when_schedule_appears(self) -> None:
+        schedule = self._br_color_image((220, 149, 191))
+        capture = FakeCapture(schedule)
+        engine, pointer = self._build(capture)
+        assert engine.consume_until_home(poll_interval=0.0) is False
+        assert pointer.clicks == []
+
+    def test_returns_false_on_max_taps(self) -> None:
+        unknown = Image.new("RGB", (3024, 1610), color=(180, 195, 220))
+        capture = FakeCapture(unknown)
+        engine, pointer = self._build(capture)
+        assert (
+            engine.consume_until_home(max_taps=4, poll_interval=0.0) is False
+        )
+        assert len(pointer.clicks) == 4
+
+
 class TestCaptureStateMergesLessons:
     def test_lessons_attached_to_state(self) -> None:
         # この test は OCR 失敗を許容するが、lessons リストが必ず付くことを検証
