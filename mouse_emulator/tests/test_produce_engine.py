@@ -406,6 +406,71 @@ class TestModalDismiss:
         assert len(pointer.clicks) == 5
 
 
+class TestReadStateWithRetry:
+    @staticmethod
+    def _br_image(color: tuple[int, int, int]) -> Image.Image:
+        img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        block = Image.new("RGB", (212, 80), color=color)
+        img.paste(block, (2449, 1465))
+        return img
+
+    HOME_COLOR = (163, 214, 136)
+
+    def _engine(self) -> ProduceEngine:
+        return ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            capture=FakeCapture(self._br_image(self.HOME_COLOR)),
+            pointer=FakePointer(),
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+
+    def test_returns_state_when_no_fields_required(self) -> None:
+        engine = self._engine()
+        # フェイク画像なので season は None だが require_fields が空なら通る
+        state = engine.read_state_with_retry(
+            require_fields=(),
+            max_attempts=1,
+            poll_interval=0.0,
+        )
+        assert state is not None
+
+    def test_returns_none_when_required_field_missing(self) -> None:
+        engine = self._engine()
+        # season は OCR 不可なので必ず None -> リトライしても揃わない
+        state = engine.read_state_with_retry(
+            require_fields=("season",),
+            max_attempts=2,
+            poll_interval=0.0,
+        )
+        assert state is None
+
+    def test_run_full_produce_returns_stuck_ocr_when_required_field_missing(
+        self,
+    ) -> None:
+        home = self._br_image(self.HOME_COLOR)
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            strategy=FakeStrategy(
+                TurnDecision(action_kind="rest", rationale="t"),
+            ),
+            capture=FakeCapture(home),
+            pointer=FakePointer(),
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        result = engine.run_full_produce(
+            max_turns=3,
+            consume_poll_interval=0.0,
+            ocr_retry_attempts=2,
+            ocr_retry_interval=0.0,
+            require_fields=("season",),
+        )
+        assert result == "stuck:ocr"
+
+
 class TestRunFullProduce:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
