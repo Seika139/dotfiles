@@ -36,12 +36,18 @@
 
 ## 主要ツール: `tools/calibrate_produce.py`
 
-スクリーンショットに **全リージョン矩形 + 全アクションマーカー**を
-重ね描きした PNG を生成する。
+3 つのサブコマンドを持つ統合キャリブ CLI:
+
+| サブコマンド | 用途 |
+| --- | --- |
+| `overlay` | スクショに全リージョン矩形 + アクションマーカーを描画 (目視確認) |
+| `extract` | スクショの指定領域を crop して PNG 保存 (digit テンプレ補充用) |
+| `dump-regions` | 現コード定義の全 fractional 座標を JSON 出力 (プロファイル化前段) |
+
+### `overlay`: 矩形 + マーカー重ね描き
 
 ```bash
-# 既存フィクスチャに対して
-.venv/bin/python tools/calibrate_produce.py \
+.venv/bin/python tools/calibrate_produce.py overlay \
     tests/fixtures/produce/schedule_s2_w8_fans6225.png \
     --out /tmp/calibrated.png
 open /tmp/calibrated.png
@@ -55,8 +61,65 @@ open /tmp/calibrated.png
 | `--no-regions` | リージョン矩形を描かない (マーカーだけ表示) |
 | `--no-points` | アクションマーカーを描かない (矩形だけ表示) |
 
-線太さは画像幅から自動算出されるので、大小いずれの解像度でも
-視認可能。
+線太さは画像幅から自動算出されるので、大小いずれの解像度でも視認可能。
+
+### `extract`: スクショから領域を crop
+
+数字テンプレ (`tests/fixtures/produce/digits/{digit}_{style}.png`) を
+補充するときの定番フロー。fractional でも pixel でも指定できる。
+
+```bash
+# fractional 指定 (overlay と同じ座標体系)
+.venv/bin/python tools/calibrate_produce.py extract \
+    /path/to/screenshot.png \
+    --out tests/fixtures/produce/digits/4_pink.png \
+    --frac 0.605,0.040,0.020,0.052
+
+# pixel 指定 (実機 PNG 上の絶対座標)
+.venv/bin/python tools/calibrate_produce.py extract \
+    /path/to/screenshot.png \
+    --out tests/fixtures/produce/digits/4_pink.png \
+    --px 1900,80,60,80
+```
+
+`--frac` と `--px` は排他。指定が `x,y,w,h` 4 値でない or 数値解釈不能なら
+exit code 3 で停止する。
+
+### `dump-regions`: 現座標を JSON 出力
+
+`HeaderRegions` / `StatsRegions` / `StatusRegions` / `LessonRegions` と、
+すべてのアクション座標 (`HomeActionPoints` 等) を 1 つの JSON にまとめる。
+将来のプロファイル化 (`--no-calibrate` 対応や複数解像度プリセット) の
+前段、または座標変更の差分レビュー用。
+
+```bash
+# ファイル出力
+.venv/bin/python tools/calibrate_produce.py dump-regions --out /tmp/regions.json
+
+# 標準出力 (--out 省略)
+.venv/bin/python tools/calibrate_produce.py dump-regions | jq .points.dialog
+```
+
+出力構造:
+
+```json
+{
+  "regions": {
+    "header": {"season_digit": {"x": ..., "y": ..., "w": ..., "h": ...}, ...},
+    "stats": {"stat_centers_x": [...], "by_label": {"Vo": {...}, "Da": {...}}},
+    "status": {...},
+    "lessons": {...}
+  },
+  "points": {
+    "home": {"produce_card": {"x": ..., "y": ..., "description": "..."}, ...},
+    "schedule": {...},
+    "audition_battle": {...},
+    "dialog": {...},
+    "modal_dismiss": {...},
+    "item": {...}
+  }
+}
+```
 
 ## 新解像度での調整フロー
 
@@ -74,7 +137,7 @@ open /tmp/calibrated.png
 ### ステップ 2: 現リージョンを重ねて確認
 
 ```bash
-.venv/bin/python tools/calibrate_produce.py \
+.venv/bin/python tools/calibrate_produce.py overlay \
     /path/to/new_screen.png \
     --out /tmp/new_cal.png
 ```
@@ -108,7 +171,9 @@ fans_to_target: FractionalRegion = field(
 確認:
 
 ```bash
-.venv/bin/python -m pytest tests/test_produce_state_reader.py tests/test_produce_digit_matcher.py -q
+.venv/bin/python -m pytest \
+    tests/test_produce_state_reader.py \
+    tests/test_produce_digit_matcher.py -q
 ```
 
 完全一致が要件 (D4 anchor) なので、座標を変えると壊れる場合は
@@ -122,16 +187,15 @@ fans_to_target: FractionalRegion = field(
 ### 手順
 
 1. **対象 digit を含む画面のスクショ**を撮る (例: ファン数が "4" を含む)
-2. その画面の "4" を含む数値を `calibrate_produce.py` で位置確認
-3. 「4」の周囲を Pillow で切り出す:
+2. `overlay` で位置確認 → 該当 digit の pixel/fractional 座標を見繕う
+3. `extract` サブコマンドで切り出す (Pillow 手書き不要):
 
-   ```python
-   from PIL import Image
-   img = Image.open("/path/to/screenshot.png")
-   # 例: PNG 座標で "4" digit が (1100, 880, 1130, 940) 付近
-   img.crop((1100, 880, 1130, 940)).save(
-       "tests/fixtures/produce/digits/4_stats.png"
-   )
+   ```bash
+   # 例: PNG 座標で "4" digit が (1100, 880) から 30x60 px の領域
+   .venv/bin/python tools/calibrate_produce.py extract \
+       /path/to/screenshot.png \
+       --out tests/fixtures/produce/digits/4_stats.png \
+       --px 1100,880,30,60
    ```
 
 4. テストを走らせて新テンプレートが認識されることを確認:
