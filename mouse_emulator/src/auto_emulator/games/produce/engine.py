@@ -37,7 +37,11 @@ from auto_emulator.games.produce.actions import (
 from auto_emulator.games.produce.decision import StrategyEngine, TurnDecision
 from auto_emulator.games.produce.reader import ProduceStateReader
 from auto_emulator.games.produce.state import GameState, ScreenKind
-from auto_emulator.games.produce.turn_log import JsonlTurnLogger, TurnLogEntry
+from auto_emulator.games.produce.turn_log import (
+    JsonlTurnLogger,
+    RunSummary,
+    TurnLogEntry,
+)
 from auto_emulator.runtime.termination import TerminationMonitor
 from auto_emulator.services.capture import MSSScreenCaptureService, ScreenCaptureService
 from mouse_core import PointerController, Region
@@ -69,6 +73,7 @@ class ProduceEngine:
         action_points: ProduceActionPoints | None = None,
         logger: Callable[[str], None] | None = None,
         turn_logger: JsonlTurnLogger | None = None,
+        summary: RunSummary | None = None,
         click_settle: float = 0.4,
         loop_interval: float = 1.5,
     ) -> None:
@@ -80,8 +85,14 @@ class ProduceEngine:
         self._points = action_points or ProduceActionPoints()
         self._log = logger or (lambda msg: print(msg, flush=True))
         self._turn_logger = turn_logger
+        self._summary = summary
         self._click_settle = click_settle
         self._loop_interval = loop_interval
+
+    @property
+    def summary(self) -> RunSummary | None:
+        """Engine に紐付いた `RunSummary` (D6) を返す。未指定なら None。"""
+        return self._summary
 
     def detect_screen(self) -> ScreenKind:
         """現在の画面種別を 1 ショットで判定する。
@@ -436,8 +447,6 @@ class ProduceEngine:
         decision: TurnDecision | None,
         stop_reason: str | None,
     ) -> None:
-        if self._turn_logger is None:
-            return
         if state is None or decision is None:
             # 最初のターンで stuck したケース等。dummy エントリは書かない
             return
@@ -447,7 +456,10 @@ class ProduceEngine:
             decision,
             stop_reason=stop_reason,
         )
-        self._turn_logger.log(entry)
+        if self._turn_logger is not None:
+            self._turn_logger.log(entry)
+        if self._summary is not None:
+            self._summary.record(entry)
 
     def consume_until_home(
         self,

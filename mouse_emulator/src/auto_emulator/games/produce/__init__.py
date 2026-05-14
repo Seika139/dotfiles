@@ -34,7 +34,11 @@ from auto_emulator.games.produce.state import (
     LessonOption,
 )
 from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
-from auto_emulator.games.produce.turn_log import JsonlTurnLogger, TurnLogEntry
+from auto_emulator.games.produce.turn_log import (
+    JsonlTurnLogger,
+    RunSummary,
+    TurnLogEntry,
+)
 
 __all__ = [
     "DEFAULT_DIALOG_RULES",
@@ -52,6 +56,7 @@ __all__ = [
     "LessonOption",
     "LessonRegions",
     "ProduceStateReader",
+    "RunSummary",
     "SeasonPlan",
     "StatsRegions",
     "StatusRegions",

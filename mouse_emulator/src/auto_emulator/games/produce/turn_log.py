@@ -7,6 +7,9 @@
 
 from __future__ import annotations
 
+import json
+from collections import Counter
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -90,3 +93,96 @@ class JsonlTurnLogger:
         """1 エントリを 1 行として追記する。"""
         with self._path.open("a", encoding="utf-8") as f:
             f.write(entry.model_dump_json() + "\n")
+
+
+@dataclass
+class RunSummary:
+    """In-memory run 集計: ターン数 / decision 分布 / fans 推移などを追跡。
+
+    `ProduceEngine.run_full_produce` 実行中に `record()` で 1 ターン
+    ずつフィードし、終了時に `format_report()` で人間可読サマリを得る。
+    既存 JSONL ファイルから集計するには `from_jsonl()` を使う。
+    """
+
+    total_turns: int = 0
+    decision_counts: Counter[str] = field(default_factory=Counter)
+    stop_reason: str | None = None
+    first_fans_left: int | None = None
+    last_fans_left: int | None = None
+    first_season: int | None = None
+    last_season: int | None = None
+
+    def record(self, entry: TurnLogEntry) -> None:
+        """1 エントリ分の集計を反映する。"""
+        self.decision_counts[entry.decision_action_kind] += 1
+        self.total_turns += 1
+        if entry.fans_to_target is not None:
+            if self.first_fans_left is None:
+                self.first_fans_left = entry.fans_to_target
+            self.last_fans_left = entry.fans_to_target
+        if entry.season is not None:
+            if self.first_season is None:
+                self.first_season = entry.season
+            self.last_season = entry.season
+        if entry.stop_reason is not None:
+            self.stop_reason = entry.stop_reason
+
+    def fans_gained(self) -> int | None:
+        """初観測〜最終観測のファン獲得数 (目標までの残数の減少)。
+
+        Returns:
+            `first_fans_left - last_fans_left`、観測が無ければ None。
+        """
+        if self.first_fans_left is None or self.last_fans_left is None:
+            return None
+        return self.first_fans_left - self.last_fans_left
+
+    def format_report(self) -> str:
+        """人間可読のサマリ文字列を返す (CLI 表示用)。
+
+        Returns:
+            複数行のサマリ文字列。
+        """
+        lines = ["=== Produce Run Summary ==="]
+        lines.append(f"total turns: {self.total_turns}")
+        if self.stop_reason is not None:
+            lines.append(f"stop reason: {self.stop_reason}")
+        if self.first_season is not None or self.last_season is not None:
+            lines.append(
+                f"season: {self.first_season} -> {self.last_season}",
+            )
+        gained = self.fans_gained()
+        if gained is not None:
+            lines.append(
+                f"fans_to_target: {self.first_fans_left} -> "
+                f"{self.last_fans_left} (delta={gained:+d})",
+            )
+        if self.decision_counts:
+            lines.append("decisions:")
+            for kind, count in sorted(
+                self.decision_counts.items(),
+                key=lambda kv: (-kv[1], kv[0]),
+            ):
+                lines.append(f"  {kind}: {count}")
+        return "\n".join(lines)
+
+    @classmethod
+    def from_jsonl(cls, path: Path) -> RunSummary:
+        """JSONL ファイルを読んで集計を組み立てる (D7 analyze 用)。
+
+        Args:
+            path: JSONL ログファイル。
+
+        Returns:
+            集計済み `RunSummary`。
+        """
+        summary = cls()
+        with path.open(encoding="utf-8") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line:
+                    continue
+                data = json.loads(line)
+                entry = TurnLogEntry.model_validate(data)
+                summary.record(entry)
+        return summary
