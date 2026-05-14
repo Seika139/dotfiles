@@ -173,3 +173,46 @@ class TestEndToEndReaderWithMatcher:
             "SP": 30,
             "Fans": 3775,
         }
+
+    def test_all_fields_complete_match_with_full_pipeline(self) -> None:
+        """D4: フル設定での全 7 フィールド回帰防止 anchor.
+
+        `schedule_s2_w8_fans6225.png` から DigitMatcher + Tesseract +
+        HP 色解析 すべてのパスで厳密一致を要求する。失敗したら
+        座標 or 前処理 or テンプレートのいずれかが壊れた合図。
+        """
+        templates = load_digit_templates(TEMPLATE_DIR)
+        matcher = DigitMatcher(templates)
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(FIXTURE) as img:
+            state = reader.read(img)
+        assert state.season == 2
+        assert state.week_remaining == 8
+        assert state.fans_to_target == 6225
+        assert state.trouble_pct == 8
+        assert state.tension_lv == 1
+        assert state.stats == {
+            "Vo": 226,
+            "Da": 128,
+            "Vi": 96,
+            "Me": 178,
+            "SP": 30,
+            "Fans": 3775,
+        }
+        assert state.hp_pct is not None
+        assert 0.40 < state.hp_pct < 0.55  # 観測値 0.478
+
+    def test_tesseract_only_fallback_reads_at_least_week(self) -> None:
+        """D4: DigitMatcher 不在でも Tesseract fallback で week_remaining は読める.
+
+        装飾フォントの "8" は前処理 (アップスケール + 二値化) で
+        Tesseract が認識できる。他の数字は誤認しがちなので None で
+        ないことだけ確認する。
+        """
+        reader = ProduceStateReader()  # digit_matcher なし
+        with Image.open(FIXTURE) as img:
+            state = reader.read(img)
+        assert state.week_remaining == 8
+        # season/fans は装飾フォントで誤認するが None ではない
+        assert state.season is not None
+        assert state.fans_to_target is not None
