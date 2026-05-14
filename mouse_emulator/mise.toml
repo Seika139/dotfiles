@@ -154,6 +154,15 @@ run = '''
 uv run python -m auto_emulator dodge {{option(name='config', default='profiles/auto_emulator/dodge_sample.yml')}}
 '''
 
+[tasks.produce-auto]
+description = "シャニマス プロデュース自走ループを起動します (E1: yml なし Engine 一本化)"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+run = '''
+uv run python -m auto_emulator produce-run {{arg(name='extra', default='')}}
+'''
+
 [tasks.probe]
 description = "キャリブレーション後に相対座標をプローブします"
 shell = "bash -c"
