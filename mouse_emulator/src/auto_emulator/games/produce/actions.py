@@ -79,7 +79,7 @@ class ModalDismissPoints(BaseModel):
     close_top_right: Point = Point(
         x=0.965,
         y=0.050,
-        description="右上の × アイコン (お知らせ/イベント告知の典型)",
+        description="右上の close アイコン (お知らせ/イベント告知の典型)",
     )
     ok_center: Point = Point(
         x=0.500,
@@ -145,7 +145,7 @@ MODAL_DISMISS_POINTS = ModalDismissPoints()
 def modal_dismiss_sequence(points: ModalDismissPoints) -> tuple[Point, ...]:
     """モーダル閉じるボタンの試行順序を返す。
 
-    優先度: 右上× → 中央 OK → リトライ → 左下キャンセル。
+    優先度: 右上 close -> 中央 OK -> リトライ -> 左下キャンセル。
 
     Returns:
         試行順に並んだ候補ポイントのタプル。
