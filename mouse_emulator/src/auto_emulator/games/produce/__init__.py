@@ -34,6 +34,7 @@ from auto_emulator.games.produce.state import (
     LessonOption,
 )
 from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
+from auto_emulator.games.produce.turn_log import JsonlTurnLogger, TurnLogEntry
 
 __all__ = [
     "DEFAULT_DIALOG_RULES",
@@ -47,6 +48,7 @@ __all__ = [
     "FractionalRegion",
     "GameState",
     "HeaderRegions",
+    "JsonlTurnLogger",
     "LessonOption",
     "LessonRegions",
     "ProduceStateReader",
@@ -55,6 +57,7 @@ __all__ = [
     "StatusRegions",
     "StrategyEngine",
     "TurnDecision",
+    "TurnLogEntry",
     "choose_dialog_option",
     "extract_template",
     "is_wing_audition",

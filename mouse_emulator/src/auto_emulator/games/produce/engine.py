@@ -35,6 +35,7 @@ from auto_emulator.games.produce.actions import (
 from auto_emulator.games.produce.decision import StrategyEngine, TurnDecision
 from auto_emulator.games.produce.reader import ProduceStateReader
 from auto_emulator.games.produce.state import GameState, ScreenKind
+from auto_emulator.games.produce.turn_log import JsonlTurnLogger, TurnLogEntry
 from auto_emulator.runtime.termination import TerminationMonitor
 from auto_emulator.services.capture import MSSScreenCaptureService, ScreenCaptureService
 from mouse_core import PointerController, Region
@@ -64,6 +65,7 @@ class ProduceEngine:
         pointer: PointerController | None = None,
         action_points: ProduceActionPoints | None = None,
         logger: Callable[[str], None] | None = None,
+        turn_logger: JsonlTurnLogger | None = None,
         click_settle: float = 0.4,
         loop_interval: float = 1.5,
     ) -> None:
@@ -74,6 +76,7 @@ class ProduceEngine:
         self._pointer = pointer or PointerController()
         self._points = action_points or ProduceActionPoints()
         self._log = logger or (lambda msg: print(msg, flush=True))
+        self._turn_logger = turn_logger
         self._click_settle = click_settle
         self._loop_interval = loop_interval
 
@@ -307,13 +310,18 @@ class ProduceEngine:
         """
         last_signature: tuple[int | None, int | None, int | None] | None = None
         no_progress_streak = 0
+        turn_index = 0
+        last_state: GameState | None = None
+        last_decision: TurnDecision | None = None
         for _ in range(max_turns):
             if stop_monitor and stop_monitor.stop_requested():
+                self._log_turn(turn_index, last_state, last_decision, "stopped")
                 return "stopped"
             if not self.consume_until_home(
                 max_taps=consume_max_taps,
                 poll_interval=consume_poll_interval,
             ):
+                self._log_turn(turn_index, last_state, last_decision, "stuck:home")
                 return "stuck:home"
             state = self.read_state_with_retry(
                 require_fields=require_fields,
@@ -321,6 +329,7 @@ class ProduceEngine:
                 poll_interval=ocr_retry_interval,
             )
             if state is None:
+                self._log_turn(turn_index, last_state, last_decision, "stuck:ocr")
                 return "stuck:ocr"
             signature = (state.season, state.week_remaining, state.fans_to_target)
             if no_progress_threshold > 0 and last_signature is not None:
@@ -331,13 +340,21 @@ class ProduceEngine:
                             f"[produce] no progress for {no_progress_streak} "
                             f"consecutive turns; signature={signature}",
                         )
+                        self._log_turn(
+                            turn_index, state, last_decision, "stuck:no_progress",
+                        )
                         return "stuck:no_progress"
                 else:
                     no_progress_streak = 0
             last_signature = signature
             if state.fans_to_target is not None and state.fans_to_target <= 0:
+                self._log_turn(turn_index, state, last_decision, "complete")
                 return "complete"
             decision = self._strategy.decide(state)
+            last_state = state
+            last_decision = decision
+            self._log_turn(turn_index, state, decision, stop_reason=None)
+            turn_index += 1
             self._log(
                 f"[produce] turn season={state.season} week={state.week_remaining} "
                 f"fans_left={state.fans_to_target} -> {decision.action_kind} "
@@ -350,10 +367,34 @@ class ProduceEngine:
                     timeout=schedule_timeout,
                 )
                 if reached is None:
+                    self._log_turn(
+                        turn_index, state, decision, "stuck:schedule",
+                    )
                     return "stuck:schedule"
             self.execute_decision(decision)
             time.sleep(self._loop_interval)
+        self._log_turn(turn_index, last_state, last_decision, "max_turns")
         return "max_turns"
+
+    def _log_turn(
+        self,
+        turn_index: int,
+        state: GameState | None,
+        decision: TurnDecision | None,
+        stop_reason: str | None,
+    ) -> None:
+        if self._turn_logger is None:
+            return
+        if state is None or decision is None:
+            # 最初のターンで stuck したケース等。dummy エントリは書かない
+            return
+        entry = TurnLogEntry.from_state_and_decision(
+            turn_index,
+            state,
+            decision,
+            stop_reason=stop_reason,
+        )
+        self._turn_logger.log(entry)
 
     def consume_until_home(
         self,
