@@ -11,6 +11,7 @@ from auto_emulator.games.produce import (
     LessonOption,
     SeasonPlan,
     StrategyEngine,
+    is_wing_audition,
 )
 
 
@@ -215,6 +216,66 @@ class TestAuditionRule:
         decision = engine.decide(state)
         assert decision.action_kind == "audition"
         assert decision.target_slot == 0
+
+
+class TestWingAudition:
+    def test_is_wing_audition_recognizes_legend(self) -> None:
+        assert is_wing_audition("THE LEGEND") is True
+        assert is_wing_audition("THE LEGEND FINALE") is True
+
+    def test_is_wing_audition_recognizes_appreciation(self) -> None:
+        assert is_wing_audition("オールアイドル感謝FESTIVAL") is True
+
+    def test_is_wing_audition_rejects_regular(self) -> None:
+        assert is_wing_audition("夕方ワイド アイドル一番") is False
+        assert is_wing_audition("BE@T") is False
+
+    def test_wing_audition_prioritized_over_regular(self) -> None:
+        # S4 戦略で WING (THE LEGEND) と非 WING (オールアイドル感謝も WING 扱い
+        # なので別キーワードで非 WING 候補を作る) - target_auditions に両方含める
+        plan = SeasonPlan(
+            primary_lesson_preference=("ボーカルレッスン",),
+            target_auditions=("THE LEGEND", "夕方ワイド"),
+            fan_target=500000,
+            audition_min_stat_ratio=0.5,
+        )
+        engine = StrategyEngine(strategy_table={4: plan})
+        state = GameState.model_validate(
+            {
+                "season": 4,
+                "week_remaining": 5,
+                "fans_to_target": 100000,
+                "hp_pct": 1.0,
+                "trouble_pct": 0,
+                "stats": {
+                    "Vo": 500,
+                    "Da": 500,
+                    "Vi": 500,
+                    "Me": 100,
+                    "SP": 30,
+                    "Fans": 400000,
+                },
+                "available_auditions": [
+                    AuditionOption(
+                        slot=0,
+                        name="夕方ワイド A",  # 非 WING、ratio 高い
+                        difficulty=8,
+                        recommended_stats={"Vo": 200},
+                    ),
+                    AuditionOption(
+                        slot=3,
+                        name="THE LEGEND",  # WING、ratio 普通
+                        difficulty=20,
+                        recommended_stats={"Vo": 400, "Da": 400, "Vi": 400},
+                    ),
+                ],
+            },
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "audition"
+        # WING 優先で slot=3 が選ばれる
+        assert decision.target_slot == 3
+        assert "THE LEGEND" in decision.rationale
 
 
 class TestSeasonFallback:
