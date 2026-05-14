@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from auto_emulator.games.produce import (
+    AuditionOption,
     GameState,
     LessonOption,
     SeasonPlan,
@@ -136,6 +137,84 @@ class TestAuditionRule:
         )
         decision = engine.decide(state)
         assert decision.action_kind == "lesson"
+
+    def test_audition_picked_when_stats_sufficient(self) -> None:
+        # S2 「夕方ワイド」推奨 Vi=150 / Vo=150 で stats が 200 -> ratio 1.33 > 0.6
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            stats={"Vo": 200, "Da": 200, "Vi": 200, "Me": 100, "SP": 30, "Fans": 5000},
+            available_auditions=[
+                AuditionOption(
+                    slot=2,
+                    name="夕方ワイド アイドル一番",
+                    difficulty=8,
+                    recommended_stats={"Vo": 150, "Vi": 150},
+                ),
+            ],
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "audition"
+        assert decision.target_slot == 2
+
+    def test_audition_skipped_when_stats_insufficient(self) -> None:
+        # ratio = 50/150 = 0.33 < 0.6 -> skip
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            stats={"Vo": 50, "Da": 50, "Vi": 50, "Me": 50, "SP": 30, "Fans": 5000},
+            available_auditions=[
+                AuditionOption(
+                    slot=0,
+                    name="夕方ワイド アイドル一番",
+                    difficulty=8,
+                    recommended_stats={"Vo": 150, "Vi": 150},
+                ),
+            ],
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "lesson"
+
+    def test_audition_picks_highest_stat_ratio(self) -> None:
+        # 2 候補: A=ratio 1.0, B=ratio 2.0 -> B を選ぶ
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            stats={"Vo": 300, "Da": 300, "Vi": 300, "Me": 100, "SP": 30, "Fans": 5000},
+            available_auditions=[
+                AuditionOption(
+                    slot=0,
+                    name="夕方ワイド A",
+                    difficulty=10,
+                    recommended_stats={"Vo": 300},
+                ),
+                AuditionOption(
+                    slot=2,
+                    name="夕方ワイド B",
+                    difficulty=5,
+                    recommended_stats={"Vo": 150},
+                ),
+            ],
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "audition"
+        assert decision.target_slot == 2  # ratio 2.0 のほう
+
+    def test_legacy_audition_available_flag_still_works(self) -> None:
+        # available_auditions=[] でも audition_available=True なら旧挙動
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            audition_available=True,
+            available_auditions=[],
+            lessons=_lessons(("ボーカルレッスン", 3)),
+        )
+        decision = engine.decide(state)
+        assert decision.action_kind == "audition"
+        assert decision.target_slot == 0
 
 
 class TestSeasonFallback:
