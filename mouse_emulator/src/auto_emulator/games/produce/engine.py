@@ -237,9 +237,10 @@ class ProduceEngine:
         if kind == "audition":
             self._tap(self._points.schedule.audition_tab)
             self._sleep_settle()
-            for _ in range(decision.target_slot):
-                self._swipe_audition_next()
-                self._sleep_settle()
+            self._swipe_to_target_audition(
+                target_name=decision.target_audition_name,
+                max_swipes=decision.target_slot,
+            )
             self._tap(self._points.schedule.confirm_button)
             return
         if kind == "rest":
@@ -576,6 +577,51 @@ class ProduceEngine:
         start_center = (start.x + start.w / 2, start.y + start.h / 2)
         end_center = (end.x + end.w / 2, end.y + end.h / 2)
         self._pointer.drag_relative(self._region, start_center, end_center)
+
+    def _swipe_to_target_audition(
+        self,
+        *,
+        target_name: str | None,
+        max_swipes: int,
+    ) -> None:
+        """G2: 目的のオーディションカードに到達するまで swipe する.
+
+        各 swipe の前に reader で現在中央のカード名を観測し、`target_name`
+        が前方一致したら early break する。観測が空文字 (OCR 失敗) のときは
+        判定をスキップし、従来通り `max_swipes` 回固定 swipe で消化する。
+
+        Args:
+            target_name: 目的カード名。`None` なら判定せず `max_swipes` 回
+                固定 swipe する従来挙動。
+            max_swipes: 最大スワイプ回数 (= `target_slot`)。
+        """
+        for _ in range(max_swipes):
+            if target_name and self._audition_matches_target(target_name):
+                self._log(
+                    f"[produce] target audition '{target_name}' already at "
+                    "center; skipping further swipes",
+                )
+                return
+            self._swipe_audition_next()
+            self._sleep_settle()
+        # 最後の swipe 後にもう 1 回 check してログを残す (確定 tap 前情報)
+        if target_name and self._audition_matches_target(target_name):
+            self._log(
+                f"[produce] target audition '{target_name}' confirmed at center",
+            )
+
+    def _audition_matches_target(self, target_name: str) -> bool:
+        """現在中央のオーディションカード名が `target_name` を含むか判定する.
+
+        Returns:
+            OCR で読めた名前に `target_name` (前方一致 or 部分一致) が含まれる
+            なら True。OCR が空文字なら False (= 判定できないので swipe 継続)。
+        """
+        frame = self._capture.capture(region=self._region)
+        current = self._reader.read_current_audition_name(frame)
+        if not current:
+            return False
+        return target_name in current
 
     def _sleep_settle(self) -> None:
         time.sleep(self._click_settle)

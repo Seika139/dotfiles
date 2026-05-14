@@ -147,6 +147,14 @@ class TurnDecision(BaseModel):
         description="lesson カード番号 / audition カード番号。それ以外は 0",
     )
     rationale: str = Field(description="決定理由 (ログ用)")
+    target_audition_name: str | None = Field(
+        default=None,
+        description=(
+            "G2: audition 実行時の目的カード名。Engine が swipe ループで "
+            "OCR と前方一致 → 一致したら early break する。`None` なら "
+            "従来通り `target_slot` 回固定 swipe にフォールバック"
+        ),
+    )
 
 
 class StrategyEngine:
@@ -196,6 +204,7 @@ class StrategyEngine:
             return TurnDecision(
                 action_kind="audition",
                 target_slot=slot,
+                target_audition_name=name,
                 rationale=(
                     f"season {season} audition '{name}' at slot {slot} "
                     f"(stat ratio {ratio:.0%})"

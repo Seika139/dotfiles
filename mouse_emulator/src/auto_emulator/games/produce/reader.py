@@ -71,6 +71,22 @@ class LessonRegions:
 
 
 @dataclass(frozen=True)
+class AuditionRegions:
+    """オーディションタブで中央に見えているカード名の領域 (G2).
+
+    スワイプで切り替えるカードのうち、画面中央 (≒ slot 0 で確定タップが
+    効く位置) のオーディション名を読み取る。`target_audition_name` と
+    前方一致したら swipe を打ち切るのに使う。
+
+    実機 fixture 未取得のため値は推定。`calibrate_produce overlay` で確認。
+    """
+
+    center_card_name: FractionalRegion = field(
+        default_factory=lambda: FractionalRegion(x=0.330, y=0.640, w=0.330, h=0.070),
+    )
+
+
+@dataclass(frozen=True)
 class StatsRegions:
     """6 ステ表示行 (Vo/Da/Vi/Me/SP/Fans) の座標。
 
@@ -128,6 +144,7 @@ class ProduceStateReader:
         lessons: LessonRegions | None = None,
         stats: StatsRegions | None = None,
         status: StatusRegions | None = None,
+        auditions: AuditionRegions | None = None,
         digit_matcher: DigitMatcher | None = None,
         tesseract_cmd: str | None = None,
     ) -> None:
@@ -135,6 +152,7 @@ class ProduceStateReader:
         self._lessons = lessons or LessonRegions()
         self._stats = stats or StatsRegions()
         self._status = status or StatusRegions()
+        self._auditions = auditions or AuditionRegions()
         self._digit_matcher = digit_matcher
         if tesseract_cmd is not None:
             pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
@@ -150,6 +168,21 @@ class ProduceStateReader:
     @property
     def status_regions(self) -> StatusRegions:
         return self._status
+
+    @property
+    def audition_regions(self) -> AuditionRegions:
+        return self._auditions
+
+    def read_current_audition_name(self, image: Image.Image) -> str:
+        """G2: スワイプ中に画面中央のオーディションカード名を OCR で読み取る.
+
+        OCR が失敗した場合は空文字を返す (engine 側は fallback で固定 swipe
+        を続ける)。
+
+        Returns:
+            OCR で抽出した日本語混じり名 (空白除去後)、失敗時は ""。
+        """
+        return self._ocr_japanese(image, self._auditions.center_card_name)
 
     def read(self, image: Image.Image) -> GameState:
         screen = self._detect_screen_kind(image)

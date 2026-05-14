@@ -37,6 +37,7 @@ from auto_emulator.games.produce.actions import (
     Point,
 )
 from auto_emulator.games.produce.reader import (
+    AuditionRegions,
     HeaderRegions,
     LessonRegions,
     ProduceStateReader,
@@ -259,6 +260,7 @@ def collect_region_dump() -> dict[str, Any]:
     stats = StatsRegions()
     status = StatusRegions()
     lessons = LessonRegions()
+    auditions = AuditionRegions()
     stat_labels = ("Vo", "Da", "Vi", "Me", "SP", "Fans")
     return {
         "regions": {
@@ -296,6 +298,9 @@ def collect_region_dump() -> dict[str, Any]:
                 "level_width_ratio": lessons.level_width_ratio,
                 "fans_band": list(lessons.fans_band),
                 "fans_width_ratio": lessons.fans_width_ratio,
+            },
+            "auditions": {
+                "center_card_name": _region_to_dict(auditions.center_card_name),
             },
         },
         "points": {
