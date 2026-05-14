@@ -471,6 +471,68 @@ class TestReadStateWithRetry:
         assert result == "stuck:ocr"
 
 
+class TestItemAndChoiceColor:
+    @staticmethod
+    def _br_image(color: tuple[int, int, int]) -> Image.Image:
+        img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
+        block = Image.new("RGB", (212, 80), color=color)
+        img.paste(block, (2449, 1465))
+        return img
+
+    HOME_COLOR = (163, 214, 136)
+
+    def _build(self) -> tuple[ProduceEngine, FakePointer]:
+        pointer = FakePointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            strategy=FakeStrategy(
+                TurnDecision(action_kind="noop", rationale="setup"),
+            ),
+            capture=FakeCapture(self._br_image(self.HOME_COLOR)),
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        return engine, pointer
+
+    def test_execute_item_emits_four_clicks(self) -> None:
+        engine, pointer = self._build()
+        engine.execute_decision(
+            TurnDecision(action_kind="item", rationale="hp low"),
+        )
+        # アイテムタブ + first_slot + use + close = 4 クリック
+        assert len(pointer.clicks) == 4
+        # 最初のクリックは home.item_tab (x≈0.050)
+        assert pointer.clicks[0][0] < 0.10
+        # 最後のクリックは close_button (x≈0.500)
+        assert 0.45 < pointer.clicks[3][0] < 0.55
+
+    def test_tap_dialog_pink_choice(self) -> None:
+        engine, pointer = self._build()
+        engine.tap_dialog_pink_choice()
+        assert len(pointer.clicks) == 1
+        assert pointer.clicks[0][0] < 0.30  # 左寄り
+
+    def test_tap_dialog_green_choice(self) -> None:
+        engine, pointer = self._build()
+        engine.tap_dialog_green_choice()
+        assert len(pointer.clicks) == 1
+        # 緑色の選択肢は中央付近 (x 約 0.46)
+        assert 0.35 < pointer.clicks[0][0] < 0.55
+
+    def test_tap_dialog_choice_by_index_maps_color(self) -> None:
+        engine, pointer = self._build()
+        engine.tap_dialog_choice_by_index(0)
+        engine.tap_dialog_choice_by_index(1)
+        engine.tap_dialog_choice_by_index(2)
+        engine.tap_dialog_choice_by_index(99)  # クランプで yellow
+        # 0=桃 / 1=緑 / 2=黄 / 99→黄 と並ぶ
+        xs = [c[0] for c in pointer.clicks]
+        assert xs[0] < xs[1] < xs[2]  # 左→中央→右
+        assert xs[3] == xs[2]  # クランプで yellow と同じ
+
+
 class TestRunFullProduce:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
