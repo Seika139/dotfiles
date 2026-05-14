@@ -20,9 +20,11 @@ from PIL import Image
 from auto_emulator.games.produce.actions import (
     AUDITION_BATTLE_POINTS,
     DIALOG_POINTS,
+    HOME_POINTS,
     SCHEDULE_POINTS,
     AuditionBattlePoints,
     DialogPoints,
+    HomeActionPoints,
     Point,
     ScheduleActionPoints,
     audition_swipe_path,
@@ -37,8 +39,9 @@ from mouse_core import PointerController, Region
 
 @dataclass(frozen=True)
 class ProduceActionPoints:
-    """Engine が参照する 3 つのポイントセット。差し替えで挙動を変えられる。"""
+    """Engine が参照する画面別ポイントセット。差し替えで挙動を変えられる。"""
 
+    home: HomeActionPoints = HOME_POINTS
     schedule: ScheduleActionPoints = SCHEDULE_POINTS
     audition_battle: AuditionBattlePoints = AUDITION_BATTLE_POINTS
     dialog: DialogPoints = DIALOG_POINTS
@@ -138,10 +141,32 @@ class ProduceEngine:
                 self._sleep_settle()
             self._tap(self._points.schedule.confirm_button)
             return
-        if kind in {"rest", "reflection", "item", "noop"}:
-            self._log(f"[produce] {kind} action not yet implemented (Phase 5b+)")
+        if kind == "rest":
+            self._execute_rest()
+            return
+        if kind == "reflection":
+            self._execute_reflection()
+            return
+        if kind in {"item", "noop"}:
+            self._log(f"[produce] {kind} action not yet implemented")
             return
         self._log(f"[produce] unknown action_kind={kind!r}; skipping")
+
+    def _execute_rest(self) -> None:
+        """ホーム画面想定: 休むカード → 確認ダイアログ OK。
+
+        スケジュール画面から呼ばれた場合は事前に back ボタンを押して
+        ホームへ戻る必要があるが、Phase 5b では呼び出し側が screen 状態を
+        管理する想定とし、ここでは home 起点の操作のみ発行する。
+        """
+        self._tap(self._points.home.rest_card)
+        self._sleep_settle()
+        self._tap(self._points.home.rest_confirm)
+
+    def _execute_reflection(self) -> None:
+        """ホーム画面想定: 振り返りカードを押す。スキルパネル操作は Phase 5c。"""
+        self._tap(self._points.home.reflection_card)
+        # スキル取得・パッシブ ON はサブシーンで人手 or テンプレ判定が必要
 
     def _tap(self, point: Point) -> None:
         self._pointer.click_relative(self._region, (point.x, point.y))
