@@ -307,10 +307,29 @@ class StrategyEngine:
         state: GameState,
         plan: SeasonPlan,
     ) -> tuple[int, str] | None:
+        """優先キーワードの 1 個目から順に、該当するレッスンを探して返す.
+
+        G3: `plan.prefer_fans_efficiency=True` のときは、同じ優先キーワードに
+        マッチする候補が複数ある場合のみ、`preview_fans` が最大のものを返す
+        (None は比較対象外)。`preview_fans` が全部 None なら順序最先のものを
+        返す。優先順位を跨いだ比較はしない (M10 の S1 ラジオ最優先のような
+        意図的な序列を壊さないため)。
+
+        Returns:
+            (slot, name) もしくは見つからなければ None。
+        """
         if not state.lessons:
             return None
         for preferred in plan.primary_lesson_preference:
-            for lesson in state.lessons:
-                if preferred in lesson.name:
-                    return lesson.slot, lesson.name
+            matches = [
+                lesson for lesson in state.lessons if preferred in lesson.name
+            ]
+            if not matches:
+                continue
+            if plan.prefer_fans_efficiency:
+                with_fans = [m for m in matches if m.preview_fans is not None]
+                if with_fans:
+                    best = max(with_fans, key=lambda m: m.preview_fans or 0)
+                    return best.slot, best.name
+            return matches[0].slot, matches[0].name
         return None

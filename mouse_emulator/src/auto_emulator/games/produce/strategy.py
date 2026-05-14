@@ -56,6 +56,13 @@ class SeasonPlan(BaseModel):
             "全ステがこの比率未満ならオーディションを skip"
         ),
     )
+    prefer_fans_efficiency: bool = Field(
+        default=False,
+        description=(
+            "G3: 同じ優先順位のレッスンが複数あったときに preview_fans が"
+            "高いものを優先する。preview_fans が None のカードは比較対象外"
+        ),
+    )
 
 
 # シーズンごとのステ上限 (Vo/Da/Vi)。実機計測値の概数で初期値とする。
@@ -75,6 +82,8 @@ SEASON_STRATEGY: dict[int, SeasonPlan] = {
         target_auditions=(),
         skill_phase=False,
         fan_target=1000,
+        # M10: S1 はファン稼ぎ最重視。同優先順位なら fans 効率高を選ぶ
+        prefer_fans_efficiency=True,
     ),
     2: SeasonPlan(
         primary_lesson_preference=(

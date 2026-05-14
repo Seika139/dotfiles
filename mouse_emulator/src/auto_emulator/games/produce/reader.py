@@ -63,6 +63,11 @@ class LessonRegions:
     name_band: tuple[float, float] = (0.860, 0.928)
     level_band: tuple[float, float] = (0.755, 0.815)
     level_width_ratio: float = 0.55
+    # G3: ファン獲得見込み (`+277` 等) のプレビュー帯。レッスンカード右上に
+    # 表示される 3 値のうち最右が fans。`+` を含むので OCR は数字のみ抽出する。
+    # 実機 fixture 未取得のため値は推定。calibrate_produce で要確認。
+    fans_band: tuple[float, float] = (0.690, 0.745)
+    fans_width_ratio: float = 0.55
 
 
 @dataclass(frozen=True)
@@ -338,28 +343,55 @@ class ProduceStateReader:
     def lessons_from_schedule(self, image: Image.Image) -> list[LessonOption]:
         """スケジュール画面下部のレッスン/お仕事カード 6 枚を抽出する。
 
-        各カード単位で name (日本語 OCR) と level (数字 OCR) を読み取る。
-        preview_fans は動的タップ前提のため Phase 3 まで `None` のまま。
+        各カード単位で name (日本語 OCR) と level (数字 OCR) を読み取り、
+        G3 でファン獲得プレビュー (`+277` の数字部分) も同時に読み取る。
+        テンプレート/OCR が失敗したカードは `preview_fans=None` のまま。
 
         Returns:
             slot 0 (左端) から slot 5 (右端) 順の `LessonOption` リスト。
             OCR が失敗したカードは name="", level=1 のプレースホルダで返す。
         """
         options: list[LessonOption] = []
+        fans_regions = self.iter_lesson_fans_regions(self._lessons)
         for slot, (name_region, level_region) in enumerate(
             self.iter_lesson_regions(self._lessons),
         ):
             name = self._ocr_japanese(image, name_region)
             level = self._ocr_int(image, level_region) or 1
+            # G3: preview_fans は読めない (テンプレ不足/OCR 失敗) なら None
+            # に倒し、Strategy 側はその場合 fans 効率比較を skip する設計。
+            raw_fans = self._ocr_int(image, fans_regions[slot])
+            preview_fans = raw_fans if raw_fans is not None and raw_fans >= 0 else None
             options.append(
                 LessonOption(
                     slot=slot,
                     name=name,
                     level=max(1, min(5, level)),
-                    preview_fans=None,
+                    preview_fans=preview_fans,
                 ),
             )
         return options
+
+    @staticmethod
+    def iter_lesson_fans_regions(
+        regions: LessonRegions,
+    ) -> list[FractionalRegion]:
+        """各カードの fans プレビュー領域 (G3) を slot 順で返す.
+
+        Returns:
+            slot 0..N-1 順の `FractionalRegion` リスト。
+        """
+        fans_top, fans_bottom = regions.fans_band
+        fans_half_w = (regions.card_width * regions.fans_width_ratio) / 2
+        return [
+            FractionalRegion(
+                x=cx - fans_half_w,
+                y=fans_top,
+                w=fans_half_w * 2,
+                h=fans_bottom - fans_top,
+            )
+            for cx in regions.card_centers_x
+        ]
 
     @staticmethod
     def iter_lesson_regions(
