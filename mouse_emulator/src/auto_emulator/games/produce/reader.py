@@ -70,18 +70,20 @@ class StatsRegions:
     """6 ステ表示行 (Vo/Da/Vi/Me/SP/Fans) の座標。
 
     スケジュール画面下部、プレビュー (+31 等) 直下に並ぶ 6 数値。
+    `schedule_s2_w8_fans6225.png` でキャリブ済み (#25)。
+    Fans 数値は他のステより少し右寄り (アイコンのため)。
     """
 
     stat_centers_x: tuple[float, ...] = (
-        0.155,
-        0.265,
-        0.375,
-        0.485,
-        0.595,
-        0.730,
+        0.132,
+        0.226,
+        0.332,
+        0.431,
+        0.543,
+        0.875,
     )
     stat_width: float = 0.08
-    stat_band: tuple[float, float] = (0.660, 0.710)
+    stat_band: tuple[float, float] = (0.555, 0.595)
     labels: tuple[str, ...] = ("Vo", "Da", "Vi", "Me", "SP", "Fans")
 
 
@@ -96,10 +98,10 @@ class StatusRegions:
         default_factory=lambda: FractionalRegion(x=0.795, y=0.018, w=0.140, h=0.022),
     )
     trouble_pct: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.910, y=0.150, w=0.075, h=0.080),
+        default_factory=lambda: FractionalRegion(x=0.866, y=0.255, w=0.050, h=0.063),
     )
     tension_lv: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.853, y=0.055, w=0.040, h=0.040),
+        default_factory=lambda: FractionalRegion(x=0.878, y=0.066, w=0.014, h=0.028),
     )
 
 
