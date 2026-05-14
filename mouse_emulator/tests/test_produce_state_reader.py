@@ -112,6 +112,30 @@ class TestHpBarColorAnalysis:
         assert pct < 0.05
 
 
+class TestScreenKindDetection:
+    def test_home_fixture(self) -> None:
+        with Image.open(FIXTURE_DIR / "home_s2_w8.png") as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "home"
+
+    def test_schedule_lesson_fixture(self) -> None:
+        with Image.open(SCHEDULE_FIXTURE) as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "schedule_lesson"
+
+    def test_audition_battle_fixture(self) -> None:
+        with Image.open(FIXTURE_DIR / "audition_turn1.png") as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "audition_battle"
+
+    def test_tiny_image_returns_unknown(self) -> None:
+        with Image.new("RGB", (5, 5)) as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "unknown"
+
+    def test_uniform_neutral_blue_returns_unknown(self) -> None:
+        # 中性的な青グレー: schedule (R 高) / home (G>R) / audition (全部 <140)
+        # のいずれの signature にも該当しない
+        with Image.new("RGB", (3024, 1610), color=(180, 195, 220)) as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "unknown"
+
+
 class TestProduceStateReader:
     def test_lessons_without_tesseract_returns_six_placeholders(self) -> None:
         # tesseract 未導入でも構造的な戻り値は壊さない (placeholder で埋める)
