@@ -23,7 +23,11 @@ FIXTURE = Path(__file__).parent / "fixtures" / "produce" / "schedule_s2_w8_fans6
 
 
 def _load_pink_templates() -> tuple[DigitTemplate, DigitTemplate, DigitTemplate]:
-    """フィクスチャの "6,225" から digit 6 / 2 / 5 をピンクスタイルで抽出。"""
+    """フィクスチャの "6,225" から digit 6 / 2 / 5 をピンクスタイルで抽出。
+
+    Returns:
+        (six, two, five) のテンプレートタプル。
+    """
     img = Image.open(FIXTURE)
     six = extract_template(img, (1875, 70, 1932, 128), 6, "pink")
     two = extract_template(img, (1948, 70, 2005, 128), 2, "pink")
