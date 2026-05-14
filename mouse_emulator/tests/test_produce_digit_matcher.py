@@ -139,3 +139,16 @@ class TestEndToEndReaderWithMatcher:
         assert state.season == 2
         assert state.week_remaining == 8
         assert state.fans_to_target == 6225
+
+    def test_trouble_and_tension_with_calibrated_regions(self) -> None:
+        # #25 で trouble / tension のリージョンを正しく合わせた
+        templates = load_digit_templates(TEMPLATE_DIR)
+        matcher = DigitMatcher(templates)
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(FIXTURE) as img:
+            state = reader.read(img)
+        assert state.trouble_pct == 8
+        assert state.tension_lv == 1
+        # HP は色解析で動くので必ず正常範囲
+        assert state.hp_pct is not None
+        assert 0.0 < state.hp_pct < 1.0
