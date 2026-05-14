@@ -31,7 +31,7 @@ from auto_emulator.games.produce.actions import (
 )
 from auto_emulator.games.produce.decision import StrategyEngine, TurnDecision
 from auto_emulator.games.produce.reader import ProduceStateReader
-from auto_emulator.games.produce.state import GameState
+from auto_emulator.games.produce.state import GameState, ScreenKind
 from auto_emulator.runtime.termination import TerminationMonitor
 from auto_emulator.services.capture import MSSScreenCaptureService, ScreenCaptureService
 from mouse_core import PointerController, Region
@@ -72,6 +72,48 @@ class ProduceEngine:
         self._log = logger or (lambda msg: print(msg, flush=True))
         self._click_settle = click_settle
         self._loop_interval = loop_interval
+
+    def detect_screen(self) -> ScreenKind:
+        """現在の画面種別を 1 ショットで判定する。
+
+        Returns:
+            画面種別 (識別不能なら `"unknown"`)。
+        """
+        frame = self._capture.capture(region=self._region)
+        return ProduceStateReader.detect_screen_kind(frame)
+
+    def wait_for_screen(
+        self,
+        target: ScreenKind | set[ScreenKind],
+        *,
+        timeout: float = 10.0,
+        poll_interval: float = 0.5,
+    ) -> ScreenKind | None:
+        """指定画面のいずれかが現れるまで定期キャプチャで待つ。
+
+        Args:
+            target: 待ち受ける画面種別。単一でも集合でも可。
+            timeout: 全体タイムアウト (秒)。
+            poll_interval: 1 ポーリング間隔 (秒)。
+
+        Returns:
+            最初に観測された画面種別。timeout 超過時は `None`。
+        """
+        targets: set[ScreenKind] = (
+            {target} if isinstance(target, str) else set(target)
+        )
+        deadline = time.monotonic() + timeout
+        while True:
+            kind = self.detect_screen()
+            if kind in targets:
+                return kind
+            if time.monotonic() >= deadline:
+                self._log(
+                    f"[produce] wait_for_screen timeout: wanted={targets} "
+                    f"last_seen={kind!r}",
+                )
+                return None
+            time.sleep(poll_interval)
 
     def capture_state(self) -> tuple[Image.Image, GameState]:
         """画面をキャプチャし、レッスン情報まで含めた `GameState` を返す。
