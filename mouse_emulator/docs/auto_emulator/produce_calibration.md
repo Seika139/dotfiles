@@ -15,9 +15,25 @@
 - `stuck:ocr` / `stuck:no_progress` が頻発するとき
 - 新しい数字スタイル (例えば S5 以降の新フォント) が出てきたとき
 
+## キャリブの基準は canvas 領域 (重要)
+
+シャニマスは `<canvas width=1135 height=640>` (アスペクト ≈ 1.773) で
+描画され、ブラウザやディスプレイによって canvas の **外側に余白**が
+付く。そのため全 fractional 座標は **canvas 領域そのもの**を基準に
+する。ディスプレイ全体や 16:9 を基準にすると破綻する。
+
+- `produce-run` のキャリブ手順 (左上→右下クリック) は **canvas の角
+  ぴったり**を指すこと。余白を含めると全座標がズレる。
+- スクショを撮るときも canvas 描画部分だけを切り出す
+  (`screencapture -i` で canvas の角を囲う)。
+- リファレンス: `tests/fixtures/produce/real_schedule_canvas.png`
+  (実機 canvas 領域キャプチャ)。デフォルト座標はこれを基準に Phase 3 で
+  調整済み。旧 fixture (`schedule_s2_w8_fans6225.png`, 3024x1610) は
+  canvas 外の余白を含むため座標基準には使わない。
+
 ## 座標の階層
 
-すべての座標は **画像サイズに対する fractional (0.0-1.0)** で持つ。
+すべての座標は **canvas 領域に対する fractional (0.0-1.0)** で持つ。
 解像度が変わっても比率指定なので追従するが、UI レイアウト自体が
 変われば調整が必要。
 
