@@ -531,7 +531,7 @@ class ProduceStateReader:
             value = self._ocr_int_with_commas(
                 image,
                 region,
-                styles=("stats",),
+                styles=("stats_c", "stats"),
                 matcher_threshold=0.80,
             )
             if value is not None:
