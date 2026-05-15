@@ -61,7 +61,13 @@ class LessonOption(BaseModel):
     preview_fans: int | None = Field(
         default=None,
         ge=0,
-        description="プレビュー +N (ファン獲得見込み)。--- なら None",
+        description=(
+            "ファン獲得見込み。注意: 実機 UI ではプレビューは選択中カード "
+            "1 枚分のみ固定位置に出るため、単一フレームでは per-card 値を "
+            "取れない。常に None。全カード比較は multi-frame 選択巡回が "
+            "必要 (将来拡張)。選択中カードの値は "
+            "`GameState.selected_lesson_preview_fans` 参照"
+        ),
     )
 
 
@@ -112,6 +118,14 @@ class GameState(BaseModel):
         description="オーディションタブで観測されたカード一覧 (左→右)",
     )
     lessons: list[LessonOption] = Field(default_factory=list)
+    selected_lesson_preview_fans: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "現在選択中のレッスンの「+N」ファン獲得見込み (固定位置の "
+            "プレビュー、緑ピル右端の値)。読めなければ None"
+        ),
+    )
     raw: dict[str, str] = Field(
         default_factory=dict,
         description="OCR 生テキスト (デバッグ用)。リーダーが任意で詰める",

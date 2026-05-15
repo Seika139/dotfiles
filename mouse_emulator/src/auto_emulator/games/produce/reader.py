@@ -72,11 +72,14 @@ class LessonRegions:
     name_band: tuple[float, float] = (0.715, 0.778)
     level_band: tuple[float, float] = (0.625, 0.672)
     level_width_ratio: float = 0.55
-    # G3: 「+27/+6/+277」プレビュー帯。注意: 実機ではこれは選択中カード
-    # 1 枚分の 3 値が固定位置に出る (per-card ではない)。M8/G3 の読み取り
-    # モデル見直しが別途必要 (task)。帯 y は実機で確認した値。
-    fans_band: tuple[float, float] = (0.460, 0.520)
-    fans_width_ratio: float = 0.55
+    # #40: 「+27/+6/+277」プレビューは選択中レッスン 1 枚分が stat 列に
+    # 揃った固定位置に出る (per-card ではない)。最右の緑ピル "+277" が
+    # ファン獲得見込み。単一フレームでは選択中カードの値しか取れない。
+    selected_fans_preview: FractionalRegion = field(
+        default_factory=lambda: FractionalRegion(
+            x=0.845, y=0.482, w=0.065, h=0.050,
+        ),
+    )
 
 
 @dataclass(frozen=True)
@@ -399,55 +402,45 @@ class ProduceStateReader:
     def lessons_from_schedule(self, image: Image.Image) -> list[LessonOption]:
         """スケジュール画面下部のレッスン/お仕事カード 6 枚を抽出する。
 
-        各カード単位で name (日本語 OCR) と level (数字 OCR) を読み取り、
-        G3 でファン獲得プレビュー (`+277` の数字部分) も同時に読み取る。
-        テンプレート/OCR が失敗したカードは `preview_fans=None` のまま。
+        各カード単位で name (日本語 OCR) と level (数字 OCR) を読み取る。
+        `preview_fans` は #40 の知見により常に None: 実機 UI ではファン
+        プレビューは選択中カード 1 枚分しか固定位置に出ず、6 カードぶんを
+        単一フレームで取れない。選択中カードの値は `read()` が
+        `GameState.selected_lesson_preview_fans` に詰める。
 
         Returns:
             slot 0 (左端) から slot 5 (右端) 順の `LessonOption` リスト。
             OCR が失敗したカードは name="", level=1 のプレースホルダで返す。
         """
         options: list[LessonOption] = []
-        fans_regions = self.iter_lesson_fans_regions(self._lessons)
         for slot, (name_region, level_region) in enumerate(
             self.iter_lesson_regions(self._lessons),
         ):
             name = self._ocr_japanese(image, name_region)
             level = self._ocr_int(image, level_region) or 1
-            # G3: preview_fans は読めない (テンプレ不足/OCR 失敗) なら None
-            # に倒し、Strategy 側はその場合 fans 効率比較を skip する設計。
-            raw_fans = self._ocr_int(image, fans_regions[slot])
-            preview_fans = raw_fans if raw_fans is not None and raw_fans >= 0 else None
             options.append(
                 LessonOption(
                     slot=slot,
                     name=name,
                     level=max(1, min(5, level)),
-                    preview_fans=preview_fans,
+                    preview_fans=None,
                 ),
             )
         return options
 
-    @staticmethod
-    def iter_lesson_fans_regions(
-        regions: LessonRegions,
-    ) -> list[FractionalRegion]:
-        """各カードの fans プレビュー領域 (G3) を slot 順で返す.
+    def read_selected_lesson_preview_fans(
+        self,
+        image: Image.Image,
+    ) -> int | None:
+        """選択中レッスンの「+N」ファン獲得見込み (固定位置) を読む.
+
+        緑ピル内の白文字数字。専用 digit テンプレ未整備なので Tesseract
+        フォールバック頼みで、読めなければ None (graceful degradation)。
 
         Returns:
-            slot 0..N-1 順の `FractionalRegion` リスト。
+            プレビューのファン数、読めなければ None。
         """
-        fans_top, fans_bottom = regions.fans_band
-        fans_half_w = (regions.card_width * regions.fans_width_ratio) / 2
-        return [
-            FractionalRegion(
-                x=cx - fans_half_w,
-                y=fans_top,
-                w=fans_half_w * 2,
-                h=fans_bottom - fans_top,
-            )
-            for cx in regions.card_centers_x
-        ]
+        return self._ocr_int(image, self._lessons.selected_fans_preview)
 
     @staticmethod
     def iter_lesson_regions(

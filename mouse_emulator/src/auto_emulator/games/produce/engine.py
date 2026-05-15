@@ -145,7 +145,13 @@ class ProduceEngine:
         frame = self._capture.capture(region=self._region)
         state = self._reader.read(frame)
         lessons = self._reader.lessons_from_schedule(frame)
-        return frame, state.model_copy(update={"lessons": lessons})
+        preview_fans = self._reader.read_selected_lesson_preview_fans(frame)
+        return frame, state.model_copy(
+            update={
+                "lessons": lessons,
+                "selected_lesson_preview_fans": preview_fans,
+            },
+        )
 
     def read_state_with_retry(
         self,

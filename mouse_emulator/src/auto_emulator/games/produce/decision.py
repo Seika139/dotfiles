@@ -318,11 +318,13 @@ class StrategyEngine:
     ) -> tuple[int, str] | None:
         """優先キーワードの 1 個目から順に、該当するレッスンを探して返す.
 
-        G3: `plan.prefer_fans_efficiency=True` のときは、同じ優先キーワードに
-        マッチする候補が複数ある場合のみ、`preview_fans` が最大のものを返す
-        (None は比較対象外)。`preview_fans` が全部 None なら順序最先のものを
-        返す。優先順位を跨いだ比較はしない (M10 の S1 ラジオ最優先のような
-        意図的な序列を壊さないため)。
+        `plan.prefer_fans_efficiency=True` なら同じ優先キーワード内で
+        `preview_fans` 最大を選ぶが、#40 の知見により実機 UI では
+        per-card の `preview_fans` は単一フレームで取れず常に None。
+        そのため現状この分岐は常に「順序最先」にフォールバックする
+        (graceful degradation)。将来 multi-frame 選択巡回で per-card
+        fans を埋められれば自動的にこの分岐が活きる。優先順位を跨いだ
+        比較はしない (M10 の S1 ラジオ最優先のような序列を壊さないため)。
 
         Returns:
             (slot, name) もしくは見つからなければ None。
