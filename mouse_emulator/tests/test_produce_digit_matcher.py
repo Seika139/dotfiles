@@ -175,16 +175,55 @@ class TestLoadDigitTemplates:
         styles_per_digit: dict[int, set[str]] = {}
         for t in templates:
             styles_per_digit.setdefault(t.digit, set()).add(t.style)
-        # "2" は pink / yellow_small / stats の 3 種
-        assert styles_per_digit[2] == {"pink", "yellow_small", "stats"}
-        # "8" は yellow_large + stats
+        # "2" は旧 fixture 由来 (pink/yellow_small/stats) + Phase 3 の
+        # canvas 由来 season_c
+        assert styles_per_digit[2] == {
+            "pink",
+            "yellow_small",
+            "stats",
+            "season_c",
+        }
+        # "8" は yellow_large + stats (canvas テンプレ未抽出)
         assert styles_per_digit[8] == {"yellow_large", "stats"}
         # "0" は stats のみ
         assert styles_per_digit[0] == {"stats"}
+        # Phase 3 で追加した canvas style
+        assert "week_c" in styles_per_digit[7]
+        assert "tension_c" in styles_per_digit[1]
 
     def test_returns_empty_for_nonexistent_dir(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR / "nonexistent")
         assert templates == []
+
+
+CANVAS_FIXTURE = (
+    Path(__file__).parent / "fixtures" / "produce" / "real_schedule_canvas.png"
+)
+
+
+class TestCanvasReaderWithMatcher:
+    """Phase 3: 実機 canvas キャプチャ + canvas テンプレで header/status を読む.
+
+    `real_schedule_canvas.png` は season=2 / week=7 / tension=1 /
+    trouble=8 / ファン CLEAR (None) の実機状態。デフォルト座標 (canvas
+    基準) + canvas digit テンプレ (`*_c`) で正しく抽出できることを固定する。
+    """
+
+    def test_header_and_status_read_correctly(self) -> None:
+        templates = load_digit_templates(TEMPLATE_DIR)
+        matcher = DigitMatcher(templates)
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(CANVAS_FIXTURE) as img:
+            state = reader.read(img)
+        assert state.screen == "schedule_lesson"
+        assert state.season == 2
+        assert state.week_remaining == 7
+        assert state.tension_lv == 1
+        assert state.trouble_pct == 8
+        assert state.hp_pct is not None
+        assert 0.0 < state.hp_pct < 1.0
+        # ファン人数は "CLEAR!" 表示 (目標達成済み) なので数字なし → None
+        assert state.fans_to_target is None
 
 
 class TestEndToEndReaderWithMatcher:
