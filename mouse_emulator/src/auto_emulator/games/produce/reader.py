@@ -332,10 +332,15 @@ class ProduceStateReader:
     def detect_screen_kind(image: Image.Image) -> ScreenKind:
         """画面種別を右下コーナーの色 signature で識別する。
 
-        右下 (fractional 0.81-0.88 / 0.91-0.96) の平均 RGB:
+        右下 (fractional 0.85-0.91 / 0.90-0.95) の平均 RGB:
             schedule_lesson: マゼンタ系 (R>200, G<170, B>150) — 決定ボタン
             home:            グリーン系 (G>R+10 かつ G>B)    — 流行確認カード
             audition_battle: ダークグレー (RGB すべて 140 未満) — ステージ背景
+
+        サンプル領域は実機 16:9 ゲーム描画キャプチャ
+        (`tests/fixtures/produce/real_*.png`) で決定ボタンの純マゼンタを
+        捉える位置に調整済み (Phase 3)。fixture (3024x1610) は横長で
+        アスペクト比が違うため旧座標 (0.81-0.88/0.91-0.96) からズレていた。
 
         `schedule_audition` / `dialog` / `result` は signature 未整理のため
         現状 unknown を返す。新しい画面を識別したいときは
@@ -349,7 +354,7 @@ class ProduceStateReader:
         if h < 10 or w < 10:
             return "unknown"
 
-        br = arr[int(h * 0.91) : int(h * 0.96), int(w * 0.81) : int(w * 0.88)]
+        br = arr[int(h * 0.90) : int(h * 0.95), int(w * 0.85) : int(w * 0.91)]
         if br.size == 0:
             return "unknown"
         r = float(br[:, :, 0].mean())
