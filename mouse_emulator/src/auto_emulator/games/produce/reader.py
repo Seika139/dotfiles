@@ -208,12 +208,12 @@ class ProduceStateReader:
         season = self._ocr_int(
             image,
             self._header.season_digit,
-            styles=("season_c", "yellow_small", "pink"),
+            styles=("season_cl", "season_c", "yellow_small", "pink"),
         )
         week = self._ocr_int(
             image,
             self._header.week_remaining,
-            styles=("week_c", "yellow_large"),
+            styles=("week_cl", "week_c", "yellow_large"),
         )
         fans = self._ocr_int_with_commas(
             image,
@@ -354,9 +354,14 @@ class ProduceStateReader:
         """画面種別を右下コーナーの色 signature で識別する。
 
         右下 (fractional 0.85-0.91 / 0.90-0.95) の平均 RGB:
-            schedule_lesson: マゼンタ系 (R>200, G<170, B>150) — 決定ボタン
+            schedule_lesson: マゼンタ系 (R>175, G<170, B>150) — 決定ボタン
             home:            グリーン系 (G>R+10 かつ G>B)    — 流行確認カード
             audition_battle: ダークグレー (RGB すべて 140 未満) — ステージ背景
+
+        R 閾値は 200→175 に緩和。ライブ MSS キャプチャは macOS の
+        screencapture より色が暗く (決定ボタン r≈188 vs 手動 r≈227)、
+        r>200 だと screen=unknown になっていた。175 でも home/audition と
+        は誤判定しないことを実機 + 全 fixture で確認済み。
 
         サンプル領域は実機 canvas 領域キャプチャ
         (`tests/fixtures/produce/real_*.png`) で決定ボタンの純マゼンタを
@@ -382,7 +387,7 @@ class ProduceStateReader:
         g = float(br[:, :, 1].mean())
         b = float(br[:, :, 2].mean())
 
-        if r > 200.0 and g < 170.0 and b > 150.0:
+        if r > 175.0 and g < 170.0 and b > 150.0:
             return "schedule_lesson"
         if g > r + 10.0 and g > b:
             return "home"
