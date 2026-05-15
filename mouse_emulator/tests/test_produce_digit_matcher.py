@@ -73,7 +73,6 @@ def _legacy_reader(matcher: DigitMatcher | None = None) -> ProduceStateReader:
             card_width=0.130,
             name_band=(0.860, 0.928),
             level_band=(0.755, 0.815),
-            fans_band=(0.690, 0.745),
         ),
         digit_matcher=matcher,
     )

@@ -77,24 +77,33 @@ class TestIterLessonRegions:
         assert name0.w == pytest.approx(0.20)
 
 
-class TestIterLessonFansRegions:
-    """G3: `iter_lesson_fans_regions` のジオメトリ検証."""
+class TestSelectedFansPreview:
+    """#40: 選択中レッスンの単一 fans プレビュー領域とその読取."""
 
-    def test_default_returns_six_regions(self) -> None:
-        fans = ProduceStateReader.iter_lesson_fans_regions(LessonRegions())
-        assert len(fans) == 6
-
-    def test_fans_band_is_above_name_band(self) -> None:
+    def test_region_inside_image_and_above_cards(self) -> None:
         regions = LessonRegions()
-        fans = ProduceStateReader.iter_lesson_fans_regions(regions)
-        for fans_region in fans:
-            # fans プレビュー (上部) は name バンド (下部) より上にある
-            assert fans_region.y + fans_region.h <= regions.name_band[0]
+        r = regions.selected_fans_preview
+        assert 0.0 <= r.x <= 1.0
+        assert 0.0 <= r.y <= 1.0
+        assert r.x + r.w <= 1.0
+        assert r.y + r.h <= 1.0
+        # プレビュー帯はカード name バンドより上 (y 小) にある
+        assert r.y + r.h <= regions.name_band[0]
 
-    def test_fans_regions_left_to_right(self) -> None:
-        fans = ProduceStateReader.iter_lesson_fans_regions(LessonRegions())
-        xs = [r.x for r in fans]
-        assert xs == sorted(xs)
+    def test_lessons_have_no_per_card_fans(self) -> None:
+        # #40: per-card preview_fans は単一フレームで取れず常に None
+        reader = ProduceStateReader()
+        with Image.open(FIXTURE_DIR / "real_schedule_canvas.png") as img:
+            lessons = reader.lessons_from_schedule(img)
+        assert all(opt.preview_fans is None for opt in lessons)
+
+    @requires_tesseract
+    def test_reads_selected_preview_on_canvas(self) -> None:
+        # 実機 canvas の選択中カードは「+277」。Tesseract で読める
+        reader = ProduceStateReader()
+        with Image.open(FIXTURE_DIR / "real_schedule_canvas.png") as img:
+            value = reader.read_selected_lesson_preview_fans(img)
+        assert value == 277
 
 
 class TestAuditionCenterCardRegion:
