@@ -1,8 +1,15 @@
 """プロデュース画面の単一フレームから `GameState` を組み立てる。
 
-リージョン座標は 1512x805 CSS (DPR=2 で 3024x1610 PNG) の実機計測値を
-fractional に正規化したもの。解像度が変わっても比率指定なので追従できる。
-calibrate ヘルパでズレを再調整可能。
+リージョン座標は **ゲーム canvas 領域** に対する fractional 値。
+シャニマスは `<canvas width=1135 height=640>` (アスペクト ≈ 1.773) で
+描画され、ブラウザ/ディスプレイによって canvas の外側に余白が付く。
+そのためキャリブの基準はディスプレイ全体でも 16:9 でもなく **canvas
+そのもの**。Phase 3 で実機 canvas 領域キャプチャ
+(`tests/fixtures/produce/real_schedule_canvas.png`) を基準に再調整した。
+
+重要: `produce-run` のキャリブ手順 (左上→右下クリック) は canvas の角
+ぴったりを指す必要がある。余白を含めると全 fractional 座標がズレる。
+ズレたら `tools/calibrate_produce.py overlay` で確認しながら再調整する。
 """
 
 from __future__ import annotations
@@ -27,25 +34,24 @@ from auto_emulator.games.produce.state import (
 class HeaderRegions:
     """画面上部のヘッダー領域。
 
-    `schedule_s2_w8_fans6225.png` (3024x1610, 1512x805 CSS) を元に
-    キャリブレーション済み (#6 で実 OCR 検証)。新しい解像度で外れる
-    場合は `tools/calibrate_produce.py` で再生成する。
+    Phase 3 で実機 canvas 領域キャプチャ (`real_schedule_canvas.png`,
+    2858x1608 ≈ canvas アスペクト 1.773) を基準に再キャリブ。旧 fixture
+    (3024x1610, アスペクト 1.878) は canvas 外の余白を含み座標がズレる。
 
-    注意: シャニマスの装飾フォントは vanilla Tesseract では誤認しやすく
-    ("2"→"4", "8"→"8" 安定, "6,225"→"9965" など)、座標が正しくても
-    数値が常に正しいとは限らない。長期的には数字テンプレートマッチ
-    (cv2.matchTemplate でゴールデン digits を 0-9 ぶん用意) への置換を
-    想定する。
+    注意: シャニマスの装飾フォントは vanilla Tesseract では誤認しやすく、
+    座標が正しくても数値が常に正しいとは限らない。数字は DigitMatcher
+    (cv2.matchTemplate) で補う設計。`fans_to_target` は "CLEAR!" 表示時は
+    数字が無いため None になる (目標達成済みの正常系)。
     """
 
     season_digit: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.334, y=0.009, w=0.022, h=0.038),
+        default_factory=lambda: FractionalRegion(x=0.314, y=0.020, w=0.020, h=0.048),
     )
     week_remaining: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.393, y=0.019, w=0.043, h=0.075),
+        default_factory=lambda: FractionalRegion(x=0.350, y=0.008, w=0.066, h=0.080),
     )
     fans_to_target: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.605, y=0.040, w=0.100, h=0.052),
+        default_factory=lambda: FractionalRegion(x=0.620, y=0.028, w=0.085, h=0.045),
     )
 
 
@@ -58,15 +64,18 @@ class LessonRegions:
     書く必要はない。
     """
 
-    card_centers_x: tuple[float, ...] = (0.220, 0.353, 0.487, 0.620, 0.753, 0.887)
-    card_width: float = 0.130
-    name_band: tuple[float, float] = (0.860, 0.928)
-    level_band: tuple[float, float] = (0.755, 0.815)
+    # Phase 3: 実機 canvas (`real_schedule_canvas.png`) を基準に再キャリブ。
+    # card_centers_x の長さがカード数を決める。name/level 領域は card_width
+    # とバンドから動的算出する。
+    card_centers_x: tuple[float, ...] = (0.25, 0.39, 0.52, 0.65, 0.78, 0.91)
+    card_width: float = 0.125
+    name_band: tuple[float, float] = (0.715, 0.778)
+    level_band: tuple[float, float] = (0.625, 0.672)
     level_width_ratio: float = 0.55
-    # G3: ファン獲得見込み (`+277` 等) のプレビュー帯。レッスンカード右上に
-    # 表示される 3 値のうち最右が fans。`+` を含むので OCR は数字のみ抽出する。
-    # 実機 fixture 未取得のため値は推定。calibrate_produce で要確認。
-    fans_band: tuple[float, float] = (0.690, 0.745)
+    # G3: 「+27/+6/+277」プレビュー帯。注意: 実機ではこれは選択中カード
+    # 1 枚分の 3 値が固定位置に出る (per-card ではない)。M8/G3 の読み取り
+    # モデル見直しが別途必要 (task)。帯 y は実機で確認した値。
+    fans_band: tuple[float, float] = (0.460, 0.520)
     fans_width_ratio: float = 0.55
 
 
@@ -90,21 +99,22 @@ class AuditionRegions:
 class StatsRegions:
     """6 ステ表示行 (Vo/Da/Vi/Me/SP/Fans) の座標。
 
-    スケジュール画面下部、プレビュー (+31 等) 直下に並ぶ 6 数値。
-    `schedule_s2_w8_fans6225.png` でキャリブ済み (#25)。
-    Fans 数値は他のステより少し右寄り (アイコンのため)。
+    スケジュール画面下部、プレビュー (+27 等) 直下に並ぶ 6 数値。
+    Phase 3 で実機 canvas (`real_schedule_canvas.png`) を基準に再キャリブ。
+    各ステは `[ステアイコン] [ランク E] / [数値]` の繰り返しで、数値だけを
+    狙う。Fans は他より右、桁数が多い (例 13,775) ため width を共有。
     """
 
     stat_centers_x: tuple[float, ...] = (
-        0.399,
-        0.490,
-        0.583,
-        0.671,
-        0.744,
-        0.870,
+        0.397,
+        0.485,
+        0.580,
+        0.675,
+        0.760,
+        0.886,
     )
-    stat_width: float = 0.05
-    stat_band: tuple[float, float] = (0.546, 0.585)
+    stat_width: float = 0.055
+    stat_band: tuple[float, float] = (0.552, 0.590)
     labels: tuple[str, ...] = ("Vo", "Da", "Vi", "Me", "SP", "Fans")
 
 
@@ -112,17 +122,19 @@ class StatsRegions:
 class StatusRegions:
     """体力バー / トラブル率 / テンション。
 
+    Phase 3 で実機 canvas (`real_schedule_canvas.png`) を基準に再キャリブ。
     `hp_bar` は OCR ではなくカラーピクセル比率で測る前提のため width が広め。
+    `tension_lv` は「♡ Lv.N」の N (NEXT バッジの手前) を狙う。
     """
 
     hp_bar: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(x=0.795, y=0.018, w=0.140, h=0.022),
     )
     trouble_pct: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.866, y=0.255, w=0.050, h=0.063),
+        default_factory=lambda: FractionalRegion(x=0.860, y=0.250, w=0.055, h=0.070),
     )
     tension_lv: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.878, y=0.066, w=0.014, h=0.028),
+        default_factory=lambda: FractionalRegion(x=0.896, y=0.074, w=0.013, h=0.034),
     )
 
 
@@ -337,7 +349,7 @@ class ProduceStateReader:
             home:            グリーン系 (G>R+10 かつ G>B)    — 流行確認カード
             audition_battle: ダークグレー (RGB すべて 140 未満) — ステージ背景
 
-        サンプル領域は実機 16:9 ゲーム描画キャプチャ
+        サンプル領域は実機 canvas 領域キャプチャ
         (`tests/fixtures/produce/real_*.png`) で決定ボタンの純マゼンタを
         捉える位置に調整済み (Phase 3)。fixture (3024x1610) は横長で
         アスペクト比が違うため旧座標 (0.81-0.88/0.91-0.96) からズレていた。
