@@ -171,25 +171,23 @@ class TestLoadDigitTemplates:
         assert {0, 1, 2, 3, 5, 6, 7, 8, 9}.issubset(digits)
 
     def test_parses_style_from_filename(self) -> None:
+        # 完全一致だとテンプレ追加の度に壊れるので不変条件で検証する。
         templates = load_digit_templates(TEMPLATE_DIR)
         styles_per_digit: dict[int, set[str]] = {}
         for t in templates:
             styles_per_digit.setdefault(t.digit, set()).add(t.style)
-        # "2" は旧 fixture 由来 (pink/yellow_small/stats) + Phase 3 の
-        # canvas 由来 season_c
-        assert styles_per_digit[2] == {
-            "pink",
-            "yellow_small",
-            "stats",
-            "season_c",
-        }
-        # "8" は yellow_large + stats (canvas テンプレ未抽出)
-        assert styles_per_digit[8] == {"yellow_large", "stats"}
-        # "0" は stats のみ
-        assert styles_per_digit[0] == {"stats"}
-        # Phase 3 で追加した canvas style
+        # 旧 fixture 由来 style はそのまま残っている (legacy 回帰の前提)
+        assert "pink" in styles_per_digit[2]
+        assert "yellow_small" in styles_per_digit[2]
+        assert "stats" in styles_per_digit[2]
+        assert "yellow_large" in styles_per_digit[8]
+        assert "stats" in styles_per_digit[0]
+        # Phase 3 で追加した canvas style (`*_c`) が正しくパースされる
+        assert "season_c" in styles_per_digit[2]
         assert "week_c" in styles_per_digit[7]
         assert "tension_c" in styles_per_digit[1]
+        assert "stats_c" in styles_per_digit[0]
+        assert "stats_c" in styles_per_digit[8]
 
     def test_returns_empty_for_nonexistent_dir(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR / "nonexistent")
@@ -224,6 +222,27 @@ class TestCanvasReaderWithMatcher:
         assert 0.0 < state.hp_pct < 1.0
         # ファン人数は "CLEAR!" 表示 (目標達成済み) なので数字なし → None
         assert state.fans_to_target is None
+
+    def test_training_stats_read_correctly(self) -> None:
+        """戦略が使う 5 ステ (Vo/Da/Vi/Me/SP) は canvas で正読できる.
+
+        オーディション stat-ratio gating と振り返り cap proximity が
+        参照するのはこの 5 つ。stats 行の Fans (累計ファン 13,775) は
+        情報的で戦略非依存、かつ桁数が多く `_c` テンプレでは安定読み取り
+        できない既知の制約があるため、ここでは検証しない (主ファン指標は
+        ヘッダー由来の `fans_to_target`)。
+        """
+        templates = load_digit_templates(TEMPLATE_DIR)
+        matcher = DigitMatcher(templates)
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(CANVAS_FIXTURE) as img:
+            state = reader.read(img)
+        assert state.stats is not None
+        assert state.stats["Vo"] == 236
+        assert state.stats["Da"] == 133
+        assert state.stats["Vi"] == 101
+        assert state.stats["Me"] == 178
+        assert state.stats["SP"] == 30
 
 
 class TestEndToEndReaderWithMatcher:
