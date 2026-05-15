@@ -18,6 +18,10 @@
 - Tesseract 5.x + 日本語データ (`brew install tesseract tesseract-lang`)
 - シャニマス (https://shinycolors.enza.fun/) にログイン済みの
   ブラウザを起動できる状態
+- **Dock を自動非表示にする** (`システム設定 → デスクトップとDock →
+  「Dockを自動的に表示/非表示」をオン`、または Dock を左右へ移動)。
+  Dock が画面下部に常駐すると、ゲーム canvas 下端の「決定」ボタンが
+  Dock の裏に隠れてクリックできない。実機ドライランで確認した必須要件。
 
 ## 初回セットアップ
 
