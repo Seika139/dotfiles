@@ -4,9 +4,10 @@
 `dodge.DodgeEngine` と同じく `Region` ベースの fractional 座標で
 画面解像度に依存しない設計とし、シナリオ層はここを呼び出すだけ。
 
-Phase 5a: スケジュール選択画面でのレッスン選択と決定までを実装。
-        オーディションスワイプ・休む・振り返りは stub (ログのみ)。
-        ホーム画面遷移とダイアログ処理は YAML 側 (sample2.yml) に任せる。
+`run_full_produce` は home / schedule_lesson のどちらを起点にしても
+自走できる。home 起点なら produce_card で schedule へ遷移し、schedule
+起点ならそのターンの遷移をスキップして直接レッスン/オーディションを
+実行する (E1 で yml ベース経路を廃止し Engine 一本化)。
 """
 
 from __future__ import annotations
@@ -388,12 +389,16 @@ class ProduceEngine:
             if stop_monitor and stop_monitor.stop_requested():
                 self._log_turn(turn_index, last_state, last_decision, "stopped")
                 return "stopped"
-            if not self.consume_until_home(
+            ready = self._reach_ready_screen(
                 max_taps=consume_max_taps,
                 poll_interval=consume_poll_interval,
-            ):
-                self._log_turn(turn_index, last_state, last_decision, "stuck:home")
+            )
+            if ready is None:
+                self._log_turn(
+                    turn_index, last_state, last_decision, "stuck:home",
+                )
                 return "stuck:home"
+            on_schedule = ready == "schedule"
             state = self.read_state_with_retry(
                 require_fields=require_fields,
                 max_attempts=ocr_retry_attempts,
@@ -431,7 +436,9 @@ class ProduceEngine:
                 f"fans_left={state.fans_to_target} -> {decision.action_kind} "
                 f"slot={decision.target_slot} ({decision.rationale})",
             )
-            if decision.action_kind in {"lesson", "audition"}:
+            if decision.action_kind in {"lesson", "audition"} and not on_schedule:
+                # home 起点のときだけ produce_card で schedule へ遷移する。
+                # 既に schedule にいる (schedule 起点) ならタップ不要。
                 self._tap(self._points.home.produce_card)
                 reached = self.wait_for_screen(
                     {"schedule_lesson", "schedule_audition"},
@@ -446,6 +453,34 @@ class ProduceEngine:
             time.sleep(self._loop_interval)
         self._log_turn(turn_index, last_state, last_decision, "max_turns")
         return "max_turns"
+
+    def _reach_ready_screen(
+        self,
+        *,
+        max_taps: int,
+        poll_interval: float,
+    ) -> str | None:
+        """ターン開始可能な画面 (home / schedule) まで中間画面を消化する.
+
+        `consume_until_home` の False は「schedule 到達」と「max_taps
+        使い切り (詰まり)」を区別できないので、ここで画面種別を見て
+        曖昧性を解消する。schedule 起点も有効な開始状態として扱う。
+
+        Args:
+            max_taps: 中間画面消化の最大タップ回数。
+            poll_interval: ポーリング間隔 (秒)。
+
+        Returns:
+            "home" / "schedule" のいずれか。詰まりなら None。
+        """
+        if self.consume_until_home(
+            max_taps=max_taps,
+            poll_interval=poll_interval,
+        ):
+            return "home"
+        if self.detect_screen() in {"schedule_lesson", "schedule_audition"}:
+            return "schedule"
+        return None
 
     def _log_turn(
         self,
