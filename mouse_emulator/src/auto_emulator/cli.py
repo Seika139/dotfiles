@@ -423,8 +423,24 @@ def _default_produce_log_path(now: datetime | None = None) -> Path:
     return DEFAULT_PRODUCE_LOG_DIR / f"produce-{stamp}.jsonl"
 
 
+def _save_debug_frame(
+    capture_service: ScreenCaptureService,
+    region: Region,
+    out_path: str,
+) -> None:
+    """キャリブ済み領域を 1 枚キャプチャして PNG 保存する (実地ズレ確認用)。"""
+    frame = capture_service.capture(region=region)
+    out = Path(out_path).expanduser()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    frame.save(out)
+    typer.echo(
+        f"デバッグフレーム保存: {out} (size={frame.size}) "
+        "— overlay/inspect でズレを確認してください",
+    )
+
+
 @app.command("produce-run")
-def run_produce(  # noqa: PLR0913
+def run_produce(  # noqa: PLR0913, PLR0912
     *,
     calibrate: bool | None = CALIBRATE_OPTION,
     templates_dir: str = typer.Option(
@@ -450,6 +466,14 @@ def run_produce(  # noqa: PLR0913
         "--max-turns",
         min=1,
         help="自走ループの最大ターン数",
+    ),
+    debug_frame: str | None = typer.Option(
+        None,
+        "--debug-frame",
+        help=(
+            "キャリブ直後にエンジンが見るフレームを 1 枚 PNG 保存して終了 "
+            "(実地キャリブのズレ確認用)。保存後ループは回さない"
+        ),
     ),
     pause_key: str | None = PAUSE_KEY_OPTION,
 ) -> None:
@@ -497,6 +521,10 @@ def run_produce(  # noqa: PLR0913
             " ありません。手動キャリブレーションを実行します。",
         )
         region = run_calibration(printer)
+
+    if debug_frame is not None:
+        _save_debug_frame(capture_service, region, debug_frame)
+        return
 
     matcher = DigitMatcher(templates)
     reader = ProduceStateReader(digit_matcher=matcher)
