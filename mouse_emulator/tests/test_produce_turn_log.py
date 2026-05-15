@@ -97,8 +97,8 @@ class _FakeStrategy:
 class _FakeCapture:
     def __init__(self, color: tuple[int, int, int]) -> None:
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         self.image = img
 
     def capture(self, region: Region) -> Image.Image:  # noqa: ARG002

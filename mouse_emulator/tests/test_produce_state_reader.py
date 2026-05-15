@@ -178,14 +178,14 @@ class TestScreenKindDetection:
         with Image.open(FIXTURE_DIR / "audition_turn1.png") as img:
             assert ProduceStateReader.detect_screen_kind(img) == "audition_battle"
 
-    def test_real_16x9_schedule_fixture(self) -> None:
-        # Phase 3: 実機 16:9 キャプチャでも schedule_lesson を検出する回帰
-        with Image.open(FIXTURE_DIR / "real_schedule_16x9.png") as img:
+    def test_real_canvas_schedule_fixture(self) -> None:
+        # Phase 3: 実機 canvas キャプチャでも schedule_lesson を検出する回帰
+        with Image.open(FIXTURE_DIR / "real_schedule_canvas.png") as img:
             assert ProduceStateReader.detect_screen_kind(img) == "schedule_lesson"
 
-    def test_real_16x9_home_fixture(self) -> None:
-        # Phase 3: 実機 16:9 キャプチャでも home を検出する回帰
-        with Image.open(FIXTURE_DIR / "real_home_16x9.png") as img:
+    def test_real_canvas_home_fixture(self) -> None:
+        # Phase 3: 実機 canvas キャプチャでも home を検出する回帰
+        with Image.open(FIXTURE_DIR / "real_home_canvas.png") as img:
             assert ProduceStateReader.detect_screen_kind(img) == "home"
 
     def test_tiny_image_returns_unknown(self) -> None:
@@ -213,42 +213,40 @@ class TestProduceStateReader:
             assert opt.level == 1  # OCR 失敗時のデフォルト
             assert opt.preview_fans is None
 
-    @requires_tesseract
-    def test_reads_schedule_fixture_week_remaining(self) -> None:
-        """週数 (大型黄色 "8") は vanilla Tesseract で安定して読める。
+    def test_real_canvas_schedule_robust_signals(self) -> None:
+        """Phase 3: デフォルト座標は実機 canvas 領域基準。
 
-        他のフィールド (season "2", fans "6,225") は装飾フォントで
-        誤認されやすいので別テストで「読めるが値は best effort」のみ
-        確認する。
+        装飾フォントの数字 (season/week/tension) は vanilla Tesseract
+        では読めず DigitMatcher テンプレ前提なので、ここではフォント
+        非依存で頑健なシグナル (screen 検出 / 色ベースの HP バー / トラブル
+        率) のみを契約として固定する。digit 値の精度は
+        `test_produce_digit_matcher.py` 側で担保する。
         """
-        assert SCHEDULE_FIXTURE.exists(), (
-            f"golden 画像が見つかりません: {SCHEDULE_FIXTURE}"
-        )
+        fixture = FIXTURE_DIR / "real_schedule_canvas.png"
+        assert fixture.exists(), f"canvas リファレンスが見つかりません: {fixture}"
         reader = ProduceStateReader()
-        with Image.open(SCHEDULE_FIXTURE) as img:
+        with Image.open(fixture) as img:
             state = reader.read(img)
-        assert state.week_remaining == 8, (
-            f"raw week text: {state.raw.get('header_week_text')!r}"
-        )
-
-    @requires_tesseract
-    def test_other_header_fields_are_readable_but_not_strict(self) -> None:
-        """OCR が誤認しても None でなければ「リージョンは正しい場所を指す」と見做す。
-
-        装飾フォントで season "2"→"4" / fans "6,225"→"9965" 等の誤認が
-        起きるため厳密一致は期待しない。長期的には数字テンプレートマッチ
-        への置換で値の正確性を上げる。
-        """
-        reader = ProduceStateReader()
-        with Image.open(SCHEDULE_FIXTURE) as img:
-            state = reader.read(img)
-        # season は OCR で "4" など読まれるが、必ず int が返ってくる
-        assert state.season is not None
-        # fans も同様。実値 6225 とは異なる可能性が高い
-        assert state.fans_to_target is not None
-        # HP バー解析は色情報なので装飾フォントの影響を受けず安定
+        # screen 検出は右下色 signature でフォント非依存
+        assert state.screen == "schedule_lesson"
+        # HP バーは色比率なので装飾フォントの影響を受けない
         assert state.hp_pct is not None
         assert 0.0 < state.hp_pct < 1.0
+        # トラブル率は太字数字で Tesseract でも比較的安定 (実機値 8%)
+        assert state.trouble_pct == 8
+
+    def test_old_wide_fixture_still_loads_without_crash(self) -> None:
+        """旧 3024x1610 fixture は canvas 比率と非互換だが read() が例外を出さない。
+
+        旧 fixture はもう座標基準ではない (canvas が基準)。値は保証しないが、
+        異なるアスペクト比の画像でもクラッシュせず GameState を返すことを
+        確認する (頑健性の回帰)。
+        """
+        assert SCHEDULE_FIXTURE.exists()
+        reader = ProduceStateReader()
+        with Image.open(SCHEDULE_FIXTURE) as img:
+            state = reader.read(img)
+        assert isinstance(state, GameState)
 
     @requires_tesseract
     def test_raw_text_always_populated(self) -> None:

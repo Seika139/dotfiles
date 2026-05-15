@@ -16,13 +16,67 @@ from PIL import Image
 from auto_emulator.games.produce import (
     DigitMatcher,
     DigitTemplate,
+    FractionalRegion,
     ProduceStateReader,
     extract_template,
     load_digit_templates,
 )
+from auto_emulator.games.produce.reader import (
+    HeaderRegions,
+    LessonRegions,
+    StatsRegions,
+    StatusRegions,
+)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "produce" / "schedule_s2_w8_fans6225.png"
 TEMPLATE_DIR = Path(__file__).parent / "fixtures" / "produce" / "digits"
+
+
+def _fr(x: float, y: float, w: float, h: float) -> FractionalRegion:
+    """`FractionalRegion` を生成する短縮ヘルパ.
+
+    Returns:
+        指定座標の `FractionalRegion`。
+    """
+    return FractionalRegion(x=x, y=y, w=w, h=h)
+
+
+def _legacy_reader(matcher: DigitMatcher | None = None) -> ProduceStateReader:
+    """旧 fixture (`schedule_s2_w8_fans6225.png`, 3024x1610) 専用の reader.
+
+    Phase 3 でデフォルト座標は canvas 基準に移行したが、旧 fixture は
+    canvas 外の余白を含む別アスペクト比なので、その回帰 anchor を保つ
+    ために当時の (legacy) 座標を明示構築する。新しい実機検証は
+    `real_schedule_canvas.png` + canvas digit テンプレ側で担保する。
+
+    Returns:
+        legacy 座標を注入した `ProduceStateReader`。
+    """
+    return ProduceStateReader(
+        header=HeaderRegions(
+            season_digit=_fr(0.334, 0.009, 0.022, 0.038),
+            week_remaining=_fr(0.393, 0.019, 0.043, 0.075),
+            fans_to_target=_fr(0.605, 0.040, 0.100, 0.052),
+        ),
+        stats=StatsRegions(
+            stat_centers_x=(0.399, 0.490, 0.583, 0.671, 0.744, 0.870),
+            stat_width=0.05,
+            stat_band=(0.546, 0.585),
+        ),
+        status=StatusRegions(
+            hp_bar=_fr(0.795, 0.018, 0.140, 0.022),
+            trouble_pct=_fr(0.866, 0.255, 0.050, 0.063),
+            tension_lv=_fr(0.878, 0.066, 0.014, 0.028),
+        ),
+        lessons=LessonRegions(
+            card_centers_x=(0.220, 0.353, 0.487, 0.620, 0.753, 0.887),
+            card_width=0.130,
+            name_band=(0.860, 0.928),
+            level_band=(0.755, 0.815),
+            fans_band=(0.690, 0.745),
+        ),
+        digit_matcher=matcher,
+    )
 
 
 def _load_pink_templates() -> tuple[DigitTemplate, DigitTemplate, DigitTemplate]:
@@ -137,7 +191,7 @@ class TestEndToEndReaderWithMatcher:
     def test_header_fields_all_correct_with_matcher(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR)
         matcher = DigitMatcher(templates)
-        reader = ProduceStateReader(digit_matcher=matcher)
+        reader = _legacy_reader(matcher)
         with Image.open(FIXTURE) as img:
             state = reader.read(img)
         # DigitMatcher 統合で 3 つの値すべて期待通り
@@ -149,7 +203,7 @@ class TestEndToEndReaderWithMatcher:
         # #25 で trouble / tension のリージョンを正しく合わせた
         templates = load_digit_templates(TEMPLATE_DIR)
         matcher = DigitMatcher(templates)
-        reader = ProduceStateReader(digit_matcher=matcher)
+        reader = _legacy_reader(matcher)
         with Image.open(FIXTURE) as img:
             state = reader.read(img)
         assert state.trouble_pct == 8
@@ -162,7 +216,7 @@ class TestEndToEndReaderWithMatcher:
         # #27 で stats スタイル digit を追加、stats も完全読み取り可能に
         templates = load_digit_templates(TEMPLATE_DIR)
         matcher = DigitMatcher(templates)
-        reader = ProduceStateReader(digit_matcher=matcher)
+        reader = _legacy_reader(matcher)
         with Image.open(FIXTURE) as img:
             state = reader.read(img)
         assert state.stats == {
@@ -183,7 +237,7 @@ class TestEndToEndReaderWithMatcher:
         """
         templates = load_digit_templates(TEMPLATE_DIR)
         matcher = DigitMatcher(templates)
-        reader = ProduceStateReader(digit_matcher=matcher)
+        reader = _legacy_reader(matcher)
         with Image.open(FIXTURE) as img:
             state = reader.read(img)
         assert state.season == 2
@@ -209,7 +263,7 @@ class TestEndToEndReaderWithMatcher:
         Tesseract が認識できる。他の数字は誤認しがちなので None で
         ないことだけ確認する。
         """
-        reader = ProduceStateReader()  # digit_matcher なし
+        reader = _legacy_reader()  # digit_matcher なし
         with Image.open(FIXTURE) as img:
             state = reader.read(img)
         assert state.week_remaining == 8

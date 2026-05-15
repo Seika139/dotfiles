@@ -89,8 +89,8 @@ class TestLessonExecution:
         # 2 クリック: カード本体 + 決定ボタン
         assert len(pointer.clicks) == 2
         card_click_x, _ = pointer.clicks[0]
-        # slot 2 は LessonRegions のデフォルトで x ~ 0.487
-        assert 0.45 < card_click_x < 0.52
+        # slot 2 は LessonRegions の 16:9 デフォルトで x ~ 0.52
+        assert 0.49 < card_click_x < 0.55
         # 決定ボタンは右下
         confirm_x, confirm_y = pointer.clicks[1]
         assert confirm_x > 0.7
@@ -104,8 +104,8 @@ class TestLessonExecution:
         )
         engine.step()
         card_click_x, _ = pointer.clicks[0]
-        # フォールバックで slot 0 -> x ~ 0.22
-        assert 0.18 < card_click_x < 0.26
+        # フォールバックで slot 0 -> 16:9 デフォルトで x ~ 0.25
+        assert 0.21 < card_click_x < 0.29
 
 
 class TestAuditionExecution:
@@ -298,8 +298,8 @@ class TestScreenDetectionIntegration:
         """
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
         # 検出が見る領域 (fractional 0.81-0.88 / 0.91-0.96) を塗りつぶす
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         return img
 
     def test_detect_screen_uses_capture(self) -> None:
@@ -382,8 +382,8 @@ class TestConsumeUntilHome:
     @staticmethod
     def _br_color_image(color: tuple[int, int, int]) -> Image.Image:
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         return img
 
     def _build(
@@ -441,8 +441,8 @@ class TestModalDismiss:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         return img
 
     HOME_COLOR = (163, 214, 136)
@@ -580,8 +580,8 @@ class TestReadStateWithRetry:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         return img
 
     HOME_COLOR = (163, 214, 136)
@@ -645,8 +645,8 @@ class TestItemAndChoiceColor:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         return img
 
     HOME_COLOR = (163, 214, 136)
@@ -707,8 +707,8 @@ class TestRunFullProduce:
     @staticmethod
     def _br_image(color: tuple[int, int, int]) -> Image.Image:
         img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-        block = Image.new("RGB", (212, 80), color=color)
-        img.paste(block, (2449, 1465))
+        block = Image.new("RGB", (260, 120), color=color)
+        img.paste(block, (2550, 1430))
         return img
 
     HOME_COLOR = (163, 214, 136)
