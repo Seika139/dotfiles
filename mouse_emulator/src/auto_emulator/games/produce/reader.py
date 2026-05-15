@@ -133,8 +133,13 @@ class StatusRegions:
     hp_bar: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(x=0.795, y=0.018, w=0.140, h=0.022),
     )
+    # トラブル率はピンクの星形バッジ内に**白文字**で出る大型数字。
+    # Phase 3 で実機 canvas (`real_schedule_canvas.png`) の "8" を基準に
+    # バッジ装飾 (白い星形の縁) を避け数字だけを囲うよう再キャリブ。
     trouble_pct: FractionalRegion = field(
-        default_factory=lambda: FractionalRegion(x=0.860, y=0.250, w=0.055, h=0.070),
+        default_factory=lambda: FractionalRegion(
+            x=0.8947, y=0.2593, w=0.0255, h=0.0498,
+        ),
     )
     tension_lv: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(x=0.896, y=0.074, w=0.013, h=0.034),
@@ -215,10 +220,13 @@ class ProduceStateReader:
             self._header.week_remaining,
             styles=("week_cl", "week_c", "yellow_large"),
         )
+        # 0.68: マルチスケール化で "CLEAR!" 装飾が低スコアの幻桁を生む
+        # ため、達成済み (数字なし→None) と実数 (例 6225) を分ける閾値。
         fans = self._ocr_int_with_commas(
             image,
             self._header.fans_to_target,
             styles=("pink",),
+            matcher_threshold=0.68,
         )
 
         if season is not None and 1 <= season <= 4:
@@ -557,15 +565,29 @@ class ProduceStateReader:
         return max(0.0, min(1.0, ratio))
 
     def read_trouble_pct(self, image: Image.Image) -> int | None:
-        """トラブル率バッジを OCR で読み取る。
+        """トラブル率バッジ (ピンク星形内の白文字) を読み取る。
+
+        白文字onピンクは Tesseract も dark-on-light テンプレも素では
+        当たらないため、明度しきい値で「濃い字on明るい背景」へ二値化
+        してから DigitMatcher にかける。フォントはゲーム共通なので
+        stats 系テンプレ + マルチスケール照合で解像度非依存に当たる。
 
         Returns:
             0-100 のパーセント値。読めない場合は None。
         """
-        value = self._ocr_int(
-            image,
-            self._status.trouble_pct,
-            styles=("yellow_large", "pink"),
+        if self._digit_matcher is None:
+            return None
+        box = self._status.trouble_pct.to_pixels(image.width, image.height)
+        gray = np.asarray(image.crop(box).convert("L"))
+        if gray.size == 0:
+            return None
+        binarized = Image.fromarray(
+            np.where(gray > 195, 0, 255).astype(np.uint8),
+        )
+        value = self._digit_matcher.read_number(
+            binarized,
+            styles=("stats_cl", "stats"),
+            threshold=0.65,
         )
         if value is None:
             return None

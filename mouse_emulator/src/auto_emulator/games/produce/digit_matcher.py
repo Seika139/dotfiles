@@ -46,6 +46,29 @@ class DigitTemplate:
 
 _TEMPLATE_FILENAME_RE = re.compile(r"^([0-9])(?:_(.+))?\.png$", re.IGNORECASE)
 
+# matchTemplate はスケール不変でないため、テンプレを 1 サイズで持つと
+# ライブ(1x)と手動 fixture(2x) のように解像度が違うキャプチャで
+# 同じテンプレが効かない。各テンプレを以下の倍率で縮小/拡大しながら
+# 照合し、最良スコアを採用することで解像度差を吸収する (multi-scale
+# template matching)。1.0 を含むので既存 fixture (等倍) も従来通り当たる。
+_MATCH_SCALES: tuple[float, ...] = (0.45, 0.55, 0.65, 0.8, 1.0, 1.25)
+
+
+def _scale_pattern(pattern: np.ndarray, scale: float) -> np.ndarray | None:
+    """テンプレを等比リサイズする。
+
+    Returns:
+        リサイズ後の 2D 配列。2px 未満に潰れる倍率なら None。
+    """
+    if scale == 1.0:
+        return pattern
+    h, w = pattern.shape[:2]
+    new_h, new_w = round(h * scale), round(w * scale)
+    if new_h < 2 or new_w < 2:
+        return None
+    interp = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_CUBIC
+    return cv2.resize(pattern, (new_w, new_h), interpolation=interp)
+
 
 def load_digit_templates(directory: Path) -> list[DigitTemplate]:
     """ディレクトリ内の `{digit}_{style}.png` を全てロードする。
@@ -149,22 +172,59 @@ class DigitMatcher:
             threshold if threshold is not None else self._threshold
         )
         arr = np.asarray(image.convert("L"), dtype=np.uint8)
-        candidates: list[tuple[int, int, float, int]] = []
         templates = (
             self._templates
             if styles is None
             else [t for t in self._templates if t.style in styles]
         )
-        for tmpl in templates:
-            if tmpl.pattern.shape[0] > arr.shape[0]:
+        # 1 枚の領域画像は単一の真のスケールしか持たない。スケールを
+        # 跨いで候補を混ぜると別スケールの誤マッチが幻の桁を生むため、
+        # スケール毎に独立して桁列を組み、平均スコア最良のスケールを
+        # 丸ごと採用する (手動 fixture は 1.0、ライブは縮小側が最良)。
+        best: list[tuple[int, int, float, int]] = []
+        best_score = -1.0
+        for scale in _MATCH_SCALES:
+            candidates: list[tuple[int, int, float, int]] = []
+            for tmpl in templates:
+                pattern = _scale_pattern(tmpl.pattern, scale)
+                if pattern is None:
+                    continue
+                if pattern.shape[0] > arr.shape[0]:
+                    continue
+                if pattern.shape[1] > arr.shape[1]:
+                    continue
+                result = cv2.matchTemplate(
+                    arr, pattern, cv2.TM_CCOEFF_NORMED,
+                )
+                locations = np.where(result >= effective_threshold)
+                for y, x in zip(*locations, strict=False):
+                    candidates.append(
+                        (
+                            int(x),
+                            tmpl.digit,
+                            float(result[y, x]),
+                            pattern.shape[1],
+                        ),
+                    )
+            accepted = self._suppress_overlaps(candidates)
+            if not accepted:
                 continue
-            if tmpl.pattern.shape[1] > arr.shape[1]:
-                continue
-            result = cv2.matchTemplate(arr, tmpl.pattern, cv2.TM_CCOEFF_NORMED)
-            locations = np.where(result >= effective_threshold)
-            for y, x in zip(*locations, strict=False):
-                score = float(result[y, x])
-                candidates.append((int(x), tmpl.digit, score, tmpl.pattern.shape[1]))
+            mean_score = sum(c[2] for c in accepted) / len(accepted)
+            if mean_score > best_score:
+                best_score = mean_score
+                best = accepted
+        best.sort(key=itemgetter(0))
+        return [(x, d, s) for x, d, s, _ in best]
+
+    def _suppress_overlaps(
+        self,
+        candidates: list[tuple[int, int, float, int]],
+    ) -> list[tuple[int, int, float, int]]:
+        """同一スケール内の重なり候補を NMS で 1 つに統合する。
+
+        Returns:
+            重なりを除いた `(x, digit, score, width)` のリスト。
+        """
         candidates.sort(key=lambda c: -c[2])
         accepted: list[tuple[int, int, float, int]] = []
         for cand in candidates:
@@ -176,8 +236,7 @@ class DigitMatcher:
                     break
             if keep:
                 accepted.append(cand)
-        accepted.sort(key=itemgetter(0))
-        return [(x, d, s) for x, d, s, _ in accepted]
+        return accepted
 
     def read_number(
         self,
