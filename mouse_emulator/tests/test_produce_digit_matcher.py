@@ -65,7 +65,9 @@ def _legacy_reader(matcher: DigitMatcher | None = None) -> ProduceStateReader:
         ),
         status=StatusRegions(
             hp_bar=_fr(0.795, 0.018, 0.140, 0.022),
-            trouble_pct=_fr(0.866, 0.255, 0.050, 0.063),
+            # 白文字onピンクは二値化 + テンプレ照合になったため "8 %"
+            # まで含む旧ルーズ枠では誤読する。数字だけを囲うタイト枠。
+            trouble_pct=_fr(0.867, 0.255, 0.024, 0.058),
             tension_lv=_fr(0.878, 0.066, 0.014, 0.028),
         ),
         lessons=LessonRegions(

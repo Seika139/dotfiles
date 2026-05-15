@@ -241,8 +241,10 @@ class TestProduceStateReader:
         # HP バーは色比率なので装飾フォントの影響を受けない
         assert state.hp_pct is not None
         assert 0.0 < state.hp_pct < 1.0
-        # トラブル率は太字数字で Tesseract でも比較的安定 (実機値 8%)
-        assert state.trouble_pct == 8
+        # トラブル率 (白文字onピンク) は二値化 + DigitMatcher テンプレ
+        # 前提で、matcher 無しのこの構成では読めない。digit 精度は
+        # `test_produce_digit_matcher.py` 側で canvas==8 を担保する。
+        assert state.trouble_pct is None
 
     def test_old_wide_fixture_still_loads_without_crash(self) -> None:
         """旧 3024x1610 fixture は canvas 比率と非互換だが read() が例外を出さない。
