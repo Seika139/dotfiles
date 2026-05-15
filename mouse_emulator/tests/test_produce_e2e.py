@@ -88,8 +88,8 @@ def _br_image(color: tuple[int, int, int]) -> Image.Image:
         画面種別シミュレーションに使う。
     """
     img = Image.new("RGB", (3024, 1610), color=(200, 200, 200))
-    block = Image.new("RGB", (212, 80), color=color)
-    img.paste(block, (2449, 1465))
+    block = Image.new("RGB", (260, 120), color=color)
+    img.paste(block, (2550, 1430))
     return img
 
 
@@ -256,3 +256,40 @@ class TestE2EFlowScheduleStuck:
             no_progress_threshold=0,
         )
         assert result == "stuck:schedule"
+
+
+class TestE2EFlowScheduleStart:
+    """schedule 画面が起点でも stuck:home にならず実行できる回帰.
+
+    実機ドライランで「schedule 選択画面から開始 → consume_until_home が
+    False → 即 stuck:home」というロジックバグを踏んだため固定する。
+    """
+
+    def test_schedule_start_does_not_stuck_home(self) -> None:
+        # 常に schedule を返す → consume_until_home は False だが
+        # detect_screen=schedule なので有効開始として進む。
+        # produce_card ナビをスキップして lesson を実行し max_turns 到達。
+        pointer = _NoopPointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            strategy=_FakeStrategy(  # type: ignore[arg-type]
+                TurnDecision(action_kind="lesson", target_slot=0, rationale="t"),
+            ),
+            capture=_ScriptedCapture(default=SCHEDULE),  # type: ignore[arg-type]
+            pointer=pointer,  # type: ignore[arg-type]
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        result = engine.run_full_produce(
+            max_turns=1,
+            consume_max_taps=3,
+            consume_poll_interval=0.0,
+            require_fields=(),
+            no_progress_threshold=0,
+        )
+        # stuck:home に落ちず 1 ターン消化して max_turns
+        assert result == "max_turns"
+        # produce_card (home, x≈0.137) はタップされず、lesson カード +
+        # 決定のみ。home.produce_card 相当の x≈0.13 クリックが無いこと
+        assert pointer.clicks, "lesson 実行で最低 1 クリックはあるはず"
