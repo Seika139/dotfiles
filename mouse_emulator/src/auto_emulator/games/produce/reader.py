@@ -200,15 +200,17 @@ class ProduceStateReader:
         screen = self._detect_screen_kind(image)
         state = GameState(screen=screen)
 
+        # 末尾 `_c` は実機 canvas 由来テンプレ (Phase 3)。旧 fixture 由来
+        # (yellow_small/pink 等) と併用し、画像に合う方がマッチする。
         season = self._ocr_int(
             image,
             self._header.season_digit,
-            styles=("yellow_small", "pink"),
+            styles=("season_c", "yellow_small", "pink"),
         )
         week = self._ocr_int(
             image,
             self._header.week_remaining,
-            styles=("yellow_large",),
+            styles=("week_c", "yellow_large"),
         )
         fans = self._ocr_int_with_commas(
             image,
@@ -225,7 +227,11 @@ class ProduceStateReader:
 
         hp_pct = self.read_hp_pct(image)
         trouble = self.read_trouble_pct(image)
-        tension = self._ocr_int(image, self._status.tension_lv)  # Tesseract 経路
+        tension = self._ocr_int(
+            image,
+            self._status.tension_lv,
+            styles=("tension_c",),
+        )
         if hp_pct is not None:
             state = state.model_copy(update={"hp_pct": hp_pct})
         if trouble is not None:
