@@ -178,6 +178,16 @@ class TestScreenKindDetection:
         with Image.open(FIXTURE_DIR / "audition_turn1.png") as img:
             assert ProduceStateReader.detect_screen_kind(img) == "audition_battle"
 
+    def test_real_16x9_schedule_fixture(self) -> None:
+        # Phase 3: 実機 16:9 キャプチャでも schedule_lesson を検出する回帰
+        with Image.open(FIXTURE_DIR / "real_schedule_16x9.png") as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "schedule_lesson"
+
+    def test_real_16x9_home_fixture(self) -> None:
+        # Phase 3: 実機 16:9 キャプチャでも home を検出する回帰
+        with Image.open(FIXTURE_DIR / "real_home_16x9.png") as img:
+            assert ProduceStateReader.detect_screen_kind(img) == "home"
+
     def test_tiny_image_returns_unknown(self) -> None:
         with Image.new("RGB", (5, 5)) as img:
             assert ProduceStateReader.detect_screen_kind(img) == "unknown"
