@@ -39,13 +39,13 @@ AWS コマンドを直接実行する前に、Bedrock 用 env を退避する:
 ```bash
 unset AWS_PROFILE AWS_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_SECURITY_TOKEN
 # その上で SSO プロファイルを指定
-aws --profile <業務 SSO プロファイル名> ...
+aws --profile <SSO プロファイル名> ...
 ```
 
 または `AWS_PROFILE` を直接書き換えて実行する:
 
 ```bash
-AWS_PROFILE=<業務 SSO プロファイル名> aws ...
+AWS_PROFILE=<SSO プロファイル名> aws ...
 ```
 
 ### mise タスクは安全
