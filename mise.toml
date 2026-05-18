@@ -16,3 +16,7 @@ run = [
   "test -d mise/tasks && chmod +x mise/tasks/*.sh",
   "bash mise/tasks/initialize.sh",
 ]
+
+[tasks.upgrade]
+description = "mise tools の依存関係を最新にする"
+run = ["mise upgrade", "mise lock"]
