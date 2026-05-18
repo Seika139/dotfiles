@@ -1,7 +1,6 @@
 #!/bin/bash
 
 #MISE description="必要な環境変数が設定されているか確認する"
-#MISE shell="bash -c"
 #MISE quiet=true
 #MISE hide=true
 
