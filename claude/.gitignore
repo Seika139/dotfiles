@@ -1,7 +1,9 @@
 mise.local.toml
-mise.lock # pcごとに値が変わるので git 管理から外す
 **/settings.local.json
 create-issue-config.json
+
+# pcごとに値が変わるので git 管理から外す
+mise.lock
 
 # skill-creator (run_eval.py) が作る一時コピーを無視する。
 # 本体: foo/, 一時コピー: foo-skill-<hash>/ や foo-skill-<hash>.md
