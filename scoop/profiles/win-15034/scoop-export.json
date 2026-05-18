@@ -4,8 +4,8 @@
       "Info": "",
       "Name": "7zip",
       "Source": "main",
-      "Updated": "2026-01-21T11:09:28.7715136+09:00",
-      "Version": "25.01"
+      "Updated": "2026-05-01T11:38:19.4618515+09:00",
+      "Version": "26.01"
     },
     {
       "Info": "",
@@ -25,8 +25,8 @@
       "Info": "",
       "Name": "busybox",
       "Source": "main",
-      "Updated": "2025-10-20T10:48:53.8525547+09:00",
-      "Version": "5857-g3681e397f"
+      "Updated": "2026-05-14T16:13:20.671058+09:00",
+      "Version": "6075-g169694ebd"
     },
     {
       "Info": "",
@@ -53,22 +53,22 @@
       "Info": "",
       "Name": "fd",
       "Source": "main",
-      "Updated": "2026-01-23T11:13:22.6144944+09:00",
-      "Version": "10.3.0"
+      "Updated": "2026-03-17T10:52:13.3744977+09:00",
+      "Version": "10.4.2"
     },
     {
       "Info": "",
       "Name": "fzf",
       "Source": "main",
-      "Updated": "2026-01-07T15:54:49.5357991+09:00",
-      "Version": "0.67.0"
+      "Updated": "2026-05-01T11:38:20.6376582+09:00",
+      "Version": "0.72.0"
     },
     {
       "Info": "",
       "Name": "gh",
       "Source": "main",
-      "Updated": "2026-01-22T10:59:14.3243862+09:00",
-      "Version": "2.86.0"
+      "Updated": "2026-05-01T11:38:21.9382169+09:00",
+      "Version": "2.92.0"
     },
     {
       "Info": "",
@@ -88,15 +88,15 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2026-02-05T11:34:56.7443785+09:00",
-      "Version": "2026.2.3"
+      "Updated": "2026-03-31T11:12:28.256396+09:00",
+      "Version": "2026.3.17"
     },
     {
       "Info": "",
       "Name": "procs",
       "Source": "main",
-      "Updated": "2026-01-23T11:18:41.0390555+09:00",
-      "Version": "0.14.10"
+      "Updated": "2026-03-02T10:55:59.6055379+09:00",
+      "Version": "0.14.11"
     },
     {
       "Info": "",
@@ -107,17 +107,17 @@
     },
     {
       "Info": "",
-      "Name": "uv",
+      "Name": "shellcheck",
       "Source": "main",
-      "Updated": "2026-02-12T14:48:33.5064229+09:00",
-      "Version": "0.10.2"
+      "Updated": "2026-03-31T15:01:12.877539+09:00",
+      "Version": "0.11.0"
     },
     {
       "Info": "",
-      "Name": "vscode",
-      "Source": "extras",
-      "Updated": "2026-01-29T18:10:03.8206971+09:00",
-      "Version": "1.108.2"
+      "Name": "uv",
+      "Source": "main",
+      "Updated": "2026-05-14T16:13:23.4092453+09:00",
+      "Version": "0.11.14"
     },
     {
       "Info": "",
@@ -136,16 +136,16 @@
   ],
   "buckets": [
     {
-      "Manifests": 1435,
+      "Manifests": 1533,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2026-02-12T14:00:32+09:00"
+      "Updated": "2026-05-14T14:35:46+09:00"
     },
     {
-      "Manifests": 2261,
+      "Manifests": 2306,
       "Name": "extras",
       "Source": "https://github.com/ScoopInstaller/Extras",
-      "Updated": "2026-02-12T13:59:40+09:00"
+      "Updated": "2026-05-14T14:36:11+09:00"
     }
   ]
 }

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#MISE description="現在有効な VSCode 設定ファイルのパスを特定する関数を提供します。"
-#MISE shell="bash -c"
+#MISE description="必要な環境変数が設定されているか確認する"
 #MISE quiet=true
 #MISE hide=true
 
@@ -58,13 +57,13 @@ fi
 # 必要な環境変数が設定されていない場合は追記する
 if [ -z "${DEFAULT_CLAUDE_PROFILE:-}" ]; then
   sed "s/^DEFAULT_CLAUDE_PROFILE.*/DEFAULT_CLAUDE_PROFILE = \"${default_claude_profile}\"/" \
-    "${local_toml}" > "${local_toml}.tmp" \
-    && mv "${local_toml}.tmp" "${local_toml}"
+    "${local_toml}" >"${local_toml}.tmp" &&
+    mv "${local_toml}.tmp" "${local_toml}"
 fi
 if [ -z "${WSL_CLAUDE_PROFILE:-}" ]; then
   sed "s/^WSL_CLAUDE_PROFILE.*/WSL_CLAUDE_PROFILE = \"${wsl_claude_profile}\"/" \
-    "${local_toml}" > "${local_toml}.tmp" \
-    && mv "${local_toml}.tmp" "${local_toml}"
+    "${local_toml}" >"${local_toml}.tmp" &&
+    mv "${local_toml}.tmp" "${local_toml}"
 fi
 
 # 最終的に必要な環境変数が設定されていない場合はエラーとする

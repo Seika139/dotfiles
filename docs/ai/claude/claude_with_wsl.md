@@ -10,8 +10,8 @@ Windows 上に Claude がインストールされていると Ubuntu 上で clau
 これは Windows 側（Volta の shim）を WSL(Ubuntu) から直接実行していて、先頭行が cmd ... になっているため WSL では cmd が見つからずエラーになっているから。
 
 ```plain
-ken@CG15034:~/programs/cyg-sercuit/framework$ claude
-/mnt/c/Users/S13316/AppData/Local/Volta/bin/claude: line 1: cmd: command not found
+user-name@xxxx:~/programs/framework$ claude
+/mnt/c/Users/user-name/AppData/Local/Volta/bin/claude: line 1: cmd: command not found
 ```
 
 修正の方針は以下のどちらか

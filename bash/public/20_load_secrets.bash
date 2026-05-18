@@ -46,8 +46,6 @@ check_required_env_vars() {
 if [[ -z "${BDOT_SECRETS_REQUIRED_VARS+x}" ]]; then
   BDOT_SECRETS_REQUIRED_VARS=(
     "OPENAI_API_KEY"
-    "AWS_ACCESS_KEY_ID"
-    "AWS_SECRET_ACCESS_KEY"
   )
 fi
 

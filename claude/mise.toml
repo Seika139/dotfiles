@@ -18,15 +18,19 @@ IS_WSL = '''
 {%- endif -%}
 '''
 
-[tasks.check_env]
-description = "環境変数がちゃんと設定されているか確認する"
+[tasks.grant-permissions]
+description = "mise/ 内のスクリプトに実行権限を付与して mise コマンドで実行可能にする"
 quiet = true
 hide = true
+run = ["find ./mise -type f -name \"*.sh\" -exec chmod +x {} +"]
+
+
+[tasks.init]
+description = "初期化"
+quiet = true
 shell = "bash -c"
-run = '''
-chmod +x "{{config_root}}/mise/scripts/check_env.sh"
-bash "{{config_root}}/mise/scripts/check_env.sh"
-'''
+depends = ["grant-permissions"]
+run = ["mise install"]
 
 [tasks.check]
 description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
@@ -34,13 +38,17 @@ depends = ["check_env"]
 hide = true
 quiet = true
 shell = "bash -c"
+usage = '''
+flag "--prof <prof>" help="profile name"
+'''
 run = """
 if [ "$IS_WSL" = "true" ]; then
   DEFAULT_PROFILE="${WSL_CLAUDE_PROFILE:-}"
 else
   DEFAULT_PROFILE="${DEFAULT_CLAUDE_PROFILE:-}"
 fi
-PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
+PROFILE="${usage_prof:-}"
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
 if [ -z "$PROFILE" ]; then
   printf "❌ Error: DEFAULT_CLAUDE_PROFILE is not set in environment variables\n" >&2
@@ -68,12 +76,20 @@ description = "新しいプロファイルを作成 (Usage: mise run create_prof
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
+usage = 'arg "[prof]" help="new profile name (defaults to DEFAULT_CLAUDE_PROFILE / WSL_CLAUDE_PROFILE)"'
 run = """
-PROFILE={{arg(name="prof")}}
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_CLAUDE_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_CLAUDE_PROFILE:-}"
+fi
+PROFILE="${usage_prof:-}"
+PROFILE="${PROFILE:-$DEFAULT_PROFILE}"
 if [ -z "$PROFILE" ]; then
   {
     printf "❌ Error: profile name is required.\n"
     printf "   Usage: mise run create_profile <profile-name>\n"
+    printf "   Or set DEFAULT_CLAUDE_PROFILE / WSL_CLAUDE_PROFILE environment variable.\n"
   } >&2
   exit 1
 fi
@@ -123,15 +139,11 @@ cat > "$PROFILE_PATH/settings.json" << 'EOF'
 EOF
 
 cat > "$PROFILE_PATH/settings.local.json" << 'EOF'
-{
-  "permissions": {
-    "allow": [],
-    "deny": [],
-    "ask": [],
-    "defaultMode": "acceptEdits"
-  }
-}
+{}
 EOF
+# settings.local.json は dotfiles 内部の秘匿ストア。
+# 公開リポジトリにコミットしたくないキー (非公開情報 / 絶対パス等) のみを置く。
+# 詳細は claude/docs/settings-sync.md を参照。
 
 cat > "$PROFILE_PATH/CLAUDE.md" << 'EOF'
 # Claude Instructions for this Profile
@@ -171,94 +183,35 @@ printf "%s\n" "   - $PROFILE_PATH/skills/"
 """
 
 [tasks.recover]
-description = "~/.claude/settings.json が上書きされていたら変更をリポジトリに反映し symlink を復元する"
+description = "~/.claude/settings.json (実ファイル) を split して dotfiles に取り込み、~/.claude/settings.json を再生成する"
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
+usage = 'flag "--prof <prof>" help="profile name" default=""'
 run = '''
 chmod +x "{{config_root}}/mise/scripts/recover-settings.sh"
-bash "{{config_root}}/mise/scripts/recover-settings.sh" {{option(name="prof", default="")}}
+bash "{{config_root}}/mise/scripts/recover-settings.sh" "${usage_prof:-}"
 '''
 
 [tasks.link]
-description = "指定プロファイルの設定ファイルをシンボリックリンクする"
+description = "指定プロファイルの設定を ~/.claude/ に同期する (settings.json はマージ書き出し / 他は symlink)"
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
+usage = 'flag "--prof <prof>" help="profile name" default=""'
 run = '''
 chmod +x "{{config_root}}/mise/scripts/link.sh"
-bash "{{config_root}}/mise/scripts/link.sh" {{option(name="prof", default="")}}
+bash "{{config_root}}/mise/scripts/link.sh" "${usage_prof:-}"
 '''
 
-[tasks.status]
-description = "現在のプロファイル設定と~/.claudeの状態を確認"
-depends = ["check_env"]
-shell = "bash -c"
-quiet = true
-run = """
-if [ "$IS_WSL" = "true" ]; then
-  DEFAULT_PROFILE="${WSL_CLAUDE_PROFILE:-}"
-else
-  DEFAULT_PROFILE="${DEFAULT_CLAUDE_PROFILE:-}"
-fi
-PROFILE=$([ -n "{{option(name="prof")}}" ] && echo "{{option(name="prof")}}" || echo "$DEFAULT_PROFILE")
-
-PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
-
-printf "%s\n" "🦄 Environment Check"
-printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
-printf "IS_WSL               =\\033[36m %s\\033[0m\n" "$IS_WSL"
-printf "config_root          =\\033[36m %s\\033[0m\n" "{{ config_root }}"
-printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
-
-if [ ! -d "$PROFILE_PATH" ]; then
-  printf "❌ Profile directory does not exist:\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
-  exit 1
-fi
-
-printf "\n📂 Original files and directories:\n"
-for file in settings.json settings.local.json CLAUDE.md commands skills custom-config rules; do
-  source="$PROFILE_PATH/$file"
-  if [ -f "$source" ] || [ -d "$source" ]; then
-    printf "%s\n" "   ✅ $source"
-  else
-    printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
-  fi
-done
-
-printf "\n🔗 Symlinks in\\033[36m %s/.claude:\\033[0m\n" "$HOME"
-for file in settings.json settings.local.json CLAUDE.md commands skills custom-config rules; do
-  target="${HOME}/.claude/$file"
-  source="$PROFILE_PATH/$file"
-
-  if [ -L "$target" ]; then
-    link_target=$(readlink "$target")
-    # パスの正規化とマッチング（Windows, WSL対応）
-    if [ "$link_target" = "$source" ] || [[ "$link_target" == */"${source##*/}" ]] || [[ "$link_target" == *"\\${source##*/}" ]]; then
-      printf "%s\n" "   ✅ $source -> $link_target"
-    else
-      printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
-    fi
-  elif [ -f "$target" ]; then
-    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない). Use the following command ↓"
-    printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
-  else
-    printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
-  fi
-done
-
-printf "%s\n" "\n💡 Commands:"
-printf "%s\n" "   リンク作成/更新: mise run link --prof \"$PROFILE\""
-printf "%s\n" "   プロファイル変更: mise run switch [--prof <profile-name>]"
-"""
-
 [tasks.switch]
-description = "プロファイルを切り替えてシンボリックリンクを更新 (Usage: mise run switch [--prof <profile-name>])"
+description = "プロファイルを切り替えて ~/.claude/ を再同期する (Usage: mise run switch [--prof <profile-name>])"
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
+usage = 'flag "--prof <prof>" help="profile name"'
 run = """
-NEW_PROFILE="{{option(name="prof")}}"
+NEW_PROFILE="${usage_prof:-}"
 if [ -z "$NEW_PROFILE" ]; then
   PROFILES_PATH="{{config_root}}/$PROFILES_DIR"
   if [ ! -d "$PROFILES_PATH" ] || [ -z "$(ls -A "$PROFILES_PATH" 2>/dev/null)" ]; then
