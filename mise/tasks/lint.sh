@@ -27,4 +27,4 @@ print_blue "linting toml with taplo"$'\n'
 taplo fmt --check --diff
 
 print_blue "textlint"$'\n'
-pnpm textlint --config .textlintrc.yml .
+node node_modules/textlint/bin/textlint.js --config .textlintrc.yml .
