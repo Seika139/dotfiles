@@ -26,5 +26,5 @@ shfmt -w mise/tasks/**
 print_blue "formatting toml with taplo"$'\n'
 taplo fmt
 
-print_blue "pnpm textlint --fix"$'\n'
-pnpm textlint --fix --config .textlintrc.yml .
+print_blue "textlint --fix"$'\n'
+node node_modules/textlint/bin/textlint.js --fix --config .textlintrc.yml .
