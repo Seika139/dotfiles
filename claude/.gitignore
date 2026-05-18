@@ -1,4 +1,5 @@
 mise.local.toml
+mise.lock # pcごとに値が変わるので git 管理から外す
 **/settings.local.json
 create-issue-config.json
 
