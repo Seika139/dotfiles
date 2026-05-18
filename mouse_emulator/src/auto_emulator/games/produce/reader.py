@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import pytesseract  # type: ignore[import-untyped]
-from PIL import Image
+from PIL import Image, ImageOps
 
 from auto_emulator.games.produce.digit_matcher import DigitMatcher
 from auto_emulator.games.produce.state import (
@@ -174,11 +174,12 @@ class StatusRegions:
     # トラブル率はピンクの星形バッジ内に**白文字**で出る大型数字。
     # Phase 3 で実機 canvas (`real_schedule_canvas.png`) の "8" を基準に
     # バッジ装飾 (白い星形の縁) を避け数字だけを囲うよう再キャリブ。
-    # 2 桁 (例 54%) 対応にバッジ数字を広めに囲う。単桁 "8" も中央に
-    # 入る。旧 (0.8947,0.0255幅) は単桁専用で 2 桁を両端クリップした。
+    # OCR(psm8) 用に数字を広めに囲う。テンプレ照合と違い Tesseract は
+    # 広めクロップ内の数字を拾えるので、人力キャリブの多少のズレに強い。
+    # 実機 8 枚 (1x/2x, 値 0/1/8/18/54/86) で検証済みの座標。
     trouble_pct: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(
-            x=0.879, y=0.258, w=0.050, h=0.053,
+            x=0.867, y=0.244, w=0.075, h=0.082,
         ),
     )
     tension_lv: FractionalRegion = field(
@@ -761,33 +762,48 @@ class ProduceStateReader:
         return max(0.0, min(1.0, ratio))
 
     def read_trouble_pct(self, image: Image.Image) -> int | None:
-        """トラブル率バッジ (ピンク星形内の白文字) を読み取る。
+        """トラブル率バッジ (ピンク星形内の白文字) を OCR で読み取る。
 
-        白文字onピンクは Tesseract も dark-on-light テンプレも素では
-        当たらない。明度しきい値で「濃い字on明るい背景」へ二値化し、
-        **同じ二値化で抽出した専用 `trouble` スタイル**テンプレと照合する
-        (二値化同士なので形状が一致し決定的)。stats 系テンプレに相乗り
-        すると stats テンプレ更新で壊れるため疎結合化した。未収集の桁
-        (現状 "8" のみ) は None になるので、新トラブル値を観測したら
-        `{digit}_trouble.png` を追加していく増分方式。
+        トラブルバッジは太字の白文字onピンクでクリーンなため、生クロップ
+        + Tesseract `--psm 8` + 数字ホワイトリストで実機 8 枚 (1x/2x,
+        値 0/1/8/18/54/86) を完全正読できることを実証済み。テンプレ
+        収集 (digit ごとの PNG) が不要で任意値・解像度非依存。崩れ対策に
+        [原画 / 4x拡大グレー / 二値化] の 3 変種を試し、0-100 の妥当値を
+        優先採用する。バッジ非表示 (トラブル無し) の画面では数字が出ず
+        None を返す (誤検出は実機 3 画面で確認済みゼロ)。
 
         Returns:
-            0-100 のパーセント値。読めない場合は None。
+            0-100 のパーセント値。読めない/バッジ無しは None。
         """
-        if self._digit_matcher is None:
-            return None
         box = self._status.trouble_pct.to_pixels(image.width, image.height)
-        gray = np.asarray(image.crop(box).convert("L"))
-        if gray.size == 0:
+        crop = image.crop(box)
+        if crop.width == 0 or crop.height == 0:
             return None
-        binarized = Image.fromarray(
-            np.where(gray > 195, 0, 255).astype(np.uint8),
-        )
-        value = self._digit_matcher.read_number(
-            binarized,
-            styles=("trouble",),
-            threshold=0.6,
-        )
-        if value is None:
+        candidates: list[int] = []
+        for variant in self._ocr_variants(crop):
+            text = pytesseract.image_to_string(
+                variant,
+                config="--psm 8 -c tessedit_char_whitelist=0123456789%",
+            )
+            match = _INT_RE.search(text)
+            if match is None:
+                continue
+            value = int(match.group(1))
+            if 0 <= value <= 100:
+                return value
+            candidates.append(value)
+        if not candidates:
             return None
-        return max(0, min(100, value))
+        return max(0, min(100, candidates[0]))
+
+    @staticmethod
+    def _ocr_variants(crop: Image.Image) -> list[Image.Image]:
+        """OCR 崩れ対策の 3 変種 (原画 / 4x拡大グレー / 二値化) を返す。
+
+        Returns:
+            Tesseract に順に通す画像のリスト。
+        """
+        gray = ImageOps.grayscale(crop)
+        enlarged = gray.resize((gray.width * 4, gray.height * 4))
+        binarized = enlarged.point(lambda x: 255 if x > 180 else 0)
+        return [crop, enlarged, binarized]
