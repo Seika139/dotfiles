@@ -33,13 +33,16 @@ class SeasonPlan(BaseModel):
         default=5,
         ge=0,
         le=100,
-        description="この%以上のトラブル率で休息候補に上げる",
+        description="この%以上のトラブル率なら休む (休息はトラブル率のみで判定)",
     )
     rest_hp_threshold: float = Field(
         default=0.5,
         gt=0.0,
         le=1.0,
-        description="この HP 比率を下回り、かつトラブル率が閾値超なら休む",
+        description=(
+            "この HP 比率を下回ったら体力回復コマンドの選択優先度を上げる"
+            " 閾値 (休息判定には使わない)"
+        ),
     )
     reflect_stat_proximity: float = Field(
         default=0.85,

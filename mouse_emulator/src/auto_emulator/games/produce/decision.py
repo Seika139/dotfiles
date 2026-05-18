@@ -192,9 +192,8 @@ class StrategyEngine:
             return TurnDecision(
                 action_kind="rest",
                 rationale=(
-                    f"trouble={state.trouble_pct}% hp={state.hp_pct or 0.0:.0%} "
-                    f"(thresholds {plan.rest_trouble_threshold}% / "
-                    f"{plan.rest_hp_threshold:.0%})"
+                    f"trouble={state.trouble_pct}% "
+                    f">= {plan.rest_trouble_threshold}% threshold"
                 ),
             )
 
@@ -234,14 +233,17 @@ class StrategyEngine:
 
     @staticmethod
     def _should_rest(state: GameState, plan: SeasonPlan) -> bool:
-        trouble = state.trouble_pct or 0
-        if trouble < plan.rest_trouble_threshold:
-            return False
-        hp = state.hp_pct
-        if hp is None:
-            # 体力が読めない場合は安全側 (休まない)。リーダー側で要対応
-            return False
-        return hp < plan.rest_hp_threshold
+        """休息可否はトラブル率のみで判定する。
+
+        編成キャラ/アイテム効果で体力とトラブル率は相関しない (体力低でも
+        トラブル低、その逆もある) ため、HP を休息のゲートにしない。HP は
+        別経路 (体力回復コマンドの選択優先度) で使う。トラブル率が読めない
+        (None→0) ターンは休まない (OCR 化済みで通常読める)。
+
+        Returns:
+            トラブル率が閾値以上なら True。
+        """
+        return (state.trouble_pct or 0) >= plan.rest_trouble_threshold
 
     def _should_reflect(self, state: GameState, plan: SeasonPlan) -> str | None:
         """振り返り発動可否を判定。
