@@ -174,9 +174,11 @@ class StatusRegions:
     # トラブル率はピンクの星形バッジ内に**白文字**で出る大型数字。
     # Phase 3 で実機 canvas (`real_schedule_canvas.png`) の "8" を基準に
     # バッジ装飾 (白い星形の縁) を避け数字だけを囲うよう再キャリブ。
+    # 2 桁 (例 54%) 対応にバッジ数字を広めに囲う。単桁 "8" も中央に
+    # 入る。旧 (0.8947,0.0255幅) は単桁専用で 2 桁を両端クリップした。
     trouble_pct: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(
-            x=0.8947, y=0.2593, w=0.0255, h=0.0498,
+            x=0.879, y=0.258, w=0.050, h=0.053,
         ),
     )
     tension_lv: FractionalRegion = field(
