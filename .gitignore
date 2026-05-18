@@ -35,3 +35,10 @@ __pycache__/
 
 # pcごとに値が変わるので git 管理から外す
 mise.lock
+
+# 一時ファイル
+**/tmp/*
+!**/tmp/.gitkeep
+
+# Cursor 関連のファイルを除外
+.cursor/
