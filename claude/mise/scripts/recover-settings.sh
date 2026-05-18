@@ -86,6 +86,12 @@ fi
 LOCAL_KEYS='["awsAuthRefresh", "otelHeadersHelper"]'
 LOCAL_ENV_KEYS='["AWS_PROFILE", "AWS_REGION", "CREDENTIAL_PROCESS_PATH", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_RESOURCE_ATTRIBUTES", "SLACK_WEBHOOK_URL"]'
 
+# extraKnownMarketplaces / enabledPlugins は marketplace 単位のホワイトリストで分類:
+#   - PORTABLE_MARKETPLACES に含まれる marketplace (= 公開 OK) -> settings.json
+#   - それ以外 (= 社内 marketplace 等)                          -> settings.local.json
+# enabledPlugins のキー "<plugin>@<marketplace>" は @ の右側で判定する。
+PORTABLE_MARKETPLACES='["claude-plugins-official", "openai-codex"]'
+
 # ---------------------------------------------------------------------------
 # jq で分離
 # ---------------------------------------------------------------------------
@@ -94,22 +100,64 @@ SOURCE=$(cat "$TARGET")
 LOCAL_JSON=$(echo "$SOURCE" | jq \
   --argjson local_keys "$LOCAL_KEYS" \
   --argjson local_env_keys "$LOCAL_ENV_KEYS" \
+  --argjson portable_marketplaces "$PORTABLE_MARKETPLACES" \
   '
-  (to_entries | map(select(.key as $k | $local_keys | index($k))) | from_entries) as $top_local |
+  # トップレベルで丸ごと LOCAL 行きのキー (extraKnownMarketplaces / enabledPlugins は除外して別処理)
+  (to_entries | map(select(
+    (.key as $k | $local_keys | index($k))
+    and (.key | IN("extraKnownMarketplaces", "enabledPlugins") | not)
+  )) | from_entries) as $top_local |
+  # env 内のローカルキー
   (if has("env") then
     {env: (.env | to_entries | map(select(.key as $k | $local_env_keys | index($k))) | from_entries)}
   else {} end) as $env_local |
-  $top_local + $env_local
+  # extraKnownMarketplaces のうち PORTABLE_MARKETPLACES に含まれない marketplace
+  (if has("extraKnownMarketplaces") then
+    (.extraKnownMarketplaces | to_entries
+      | map(select(.key as $m | $portable_marketplaces | index($m) | not))
+      | from_entries) as $local_mks |
+    if ($local_mks | length) > 0 then {extraKnownMarketplaces: $local_mks} else {} end
+  else {} end) as $mks_local |
+  # enabledPlugins のうち @<marketplace> が PORTABLE_MARKETPLACES に含まれないキー
+  (if has("enabledPlugins") then
+    (.enabledPlugins | to_entries
+      | map(select(.key | split("@") | last as $m | $portable_marketplaces | index($m) | not))
+      | from_entries) as $local_plugins |
+    if ($local_plugins | length) > 0 then {enabledPlugins: $local_plugins} else {} end
+  else {} end) as $plugins_local |
+  $top_local + $env_local + $mks_local + $plugins_local
   ')
 
 PORTABLE_JSON=$(echo "$SOURCE" | jq \
   --argjson local_keys "$LOCAL_KEYS" \
   --argjson local_env_keys "$LOCAL_ENV_KEYS" \
+  --argjson portable_marketplaces "$PORTABLE_MARKETPLACES" \
   '
-  to_entries | map(select(.key as $k | $local_keys | index($k) | not)) | from_entries |
-  if has("env") then
+  # トップレベルで丸ごと LOCAL 行きのキーを除外 (extraKnownMarketplaces / enabledPlugins は別処理で残す)
+  to_entries | map(select(
+    (.key as $k | $local_keys | index($k) | not)
+    or (.key | IN("extraKnownMarketplaces", "enabledPlugins"))
+  )) | from_entries |
+  # env 内のローカルキーを除外
+  (if has("env") then
     .env |= (to_entries | map(select(.key as $k | $local_env_keys | index($k) | not)) | from_entries)
-  else . end
+  else . end) |
+  # extraKnownMarketplaces はホワイトリストにあるものだけ残す。残りなしなら削除
+  (if has("extraKnownMarketplaces") then
+    (.extraKnownMarketplaces | to_entries
+      | map(select(.key as $m | $portable_marketplaces | index($m)))
+      | from_entries) as $portable_mks |
+    if ($portable_mks | length) > 0 then .extraKnownMarketplaces = $portable_mks
+    else del(.extraKnownMarketplaces) end
+  else . end) |
+  # enabledPlugins も同様
+  (if has("enabledPlugins") then
+    (.enabledPlugins | to_entries
+      | map(select(.key | split("@") | last as $m | $portable_marketplaces | index($m)))
+      | from_entries) as $portable_plugins |
+    if ($portable_plugins | length) > 0 then .enabledPlugins = $portable_plugins
+    else del(.enabledPlugins) end
+  else . end)
   ')
 
 # ---------------------------------------------------------------------------
