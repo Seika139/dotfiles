@@ -58,10 +58,10 @@ CCWB の認証ヘルパー (`credential-process --force-init` 等) は `~/.claud
 
 `recover` 時の split / `link` 時の merge は、以下の分類に従う。
 
-| 分類                | 行き先                         | キー                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `awsAuthRefresh`, `otelHeadersHelper`, `attribution`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `hooks`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_ENABLE_TELEMETRY`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS` |
-| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | env: `AWS_PROFILE`, `AWS_REGION`, `CREDENTIAL_PROCESS_PATH`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_RESOURCE_ATTRIBUTES`, `SLACK_WEBHOOK_URL`                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 分類                | 行き先                         | キー                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `hooks`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_ENABLE_TELEMETRY`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS` |
+| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | トップレベル: `awsAuthRefresh`, `otelHeadersHelper`<br>env: `AWS_PROFILE`, `AWS_REGION`, `CREDENTIAL_PROCESS_PATH`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_RESOURCE_ATTRIBUTES`, `SLACK_WEBHOOK_URL`                                                                                                                                                                                                                                                                                                                  |
 
 #### 分類の判定基準
 
@@ -72,11 +72,16 @@ CCWB の認証ヘルパー (`credential-process --force-init` 等) は `~/.claud
   - Webhook シークレット
 - それ以外は **PORTABLE**
 
-#### 認証必須項目はすべて PORTABLE
+#### 絶対パスを含むキーは LOCAL
 
-`awsAuthRefresh` / `otelHeadersHelper` / `env.CREDENTIAL_PROCESS_PATH` 等の認証フェーズで必要なキーは、**設計上は秘匿でないので PORTABLE 側**に置く。絶対パスにユーザー名が含まれるが、dotfiles 全体で既に多数登場しており新規リスクではない。
+`awsAuthRefresh` / `otelHeadersHelper` / `env.CREDENTIAL_PROCESS_PATH` は値に絶対パス (`/Users/<username>/...` 等) を含む。Claude Code の認証フェーズで必要なキーだが、`~/.claude/settings.json` (実ファイル) には `link` 時に LOCAL 側からマージされるため、認証は問題なく通る。
 
-ただし `CREDENTIAL_PROCESS_PATH` のみ「絶対パスに認証ヘルパー位置を含む」性質と「マシンごとに値が変わる」性質から LOCAL に置く判断もある。**現運用では LOCAL に置いている**（実害なく、マシン固有値の追跡がしやすいため）。
+LOCAL に置く理由:
+
+- ユーザー名がパスに含まれるため、別マシン (異なる username) に dotfiles を持ち越すと壊れる。git にコミットすると persona が露出するリスクもある。
+- 認証ヘルパーのインストール先 (`~/claude-code-with-bedrock/...`) はマシンごとに変わりうる。
+
+CCWB のドキュメント上「上書き禁止」のキーだが、`recover` で取り込んだ値をそのまま `link` で書き戻す本設計では値を改変しないため、CCWB の意図には反しない。
 
 #### CCWB 手順書の「上書き禁止」リストとの関係
 
