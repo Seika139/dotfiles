@@ -166,9 +166,9 @@ class TestLoadDigitTemplates:
     def test_loads_all_pngs_from_fixture_dir(self) -> None:
         templates = load_digit_templates(TEMPLATE_DIR)
         digits = {t.digit for t in templates}
-        # 現状フィクスチャに含まれる digit (header: 2/5/6/8 + stats: 0-3,5-9)
-        # "4" は出現していないので含まない
-        assert 4 not in digits
+        # テンプレ増分追加で digit 集合は広がるため、不変条件で検証する:
+        # 全 digit は 0-9 の範囲内で、収集済みコア (header/stats 由来) を含む。
+        assert digits.issubset(set(range(10)))
         assert {0, 1, 2, 3, 5, 6, 7, 8, 9}.issubset(digits)
 
     def test_parses_style_from_filename(self) -> None:

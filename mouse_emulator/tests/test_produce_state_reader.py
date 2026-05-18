@@ -318,3 +318,25 @@ class TestDetectSelectedLessonSlot:
         reader = ProduceStateReader()
         blank = Image.new("RGB", (1423, 800), color=(180, 180, 180))
         assert reader.detect_selected_lesson_slot(blank) is None
+
+
+class TestTroubleTwoDigit:
+    """2 桁トラブル率 (例 54%) の読取回帰。
+
+    `schedule_trouble54.png` は実機スクショ (トラブル率 54%)。trouble
+    領域を 2 桁対応に広げ、`trouble` スタイルに 5/4 を追加した回帰。
+    単桁 "8" (canvas) も同じ広い枠で読めることを併せて固定する。
+    """
+
+    def test_reads_54_and_single_8(self) -> None:
+        from auto_emulator.games.produce import (  # noqa: PLC0415
+            DigitMatcher,
+            load_digit_templates,
+        )
+
+        matcher = DigitMatcher(load_digit_templates(FIXTURE_DIR / "digits"))
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(FIXTURE_DIR / "schedule_trouble54.png") as img:
+            assert reader.read_trouble_pct(img) == 54
+        with Image.open(FIXTURE_DIR / "real_schedule_canvas.png") as img:
+            assert reader.read_trouble_pct(img) == 8
