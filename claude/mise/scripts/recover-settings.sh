@@ -83,7 +83,7 @@ fi
 #   - 非公開情報 / Webhook シークレット
 #   - マシン固有の絶対パス
 # それ以外は PORTABLE (settings.json、git 管理)
-LOCAL_KEYS='[]'
+LOCAL_KEYS='["awsAuthRefresh", "otelHeadersHelper"]'
 LOCAL_ENV_KEYS='["AWS_PROFILE", "AWS_REGION", "CREDENTIAL_PROCESS_PATH", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_RESOURCE_ATTRIBUTES", "SLACK_WEBHOOK_URL"]'
 
 # ---------------------------------------------------------------------------
