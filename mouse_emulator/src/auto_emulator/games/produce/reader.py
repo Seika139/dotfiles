@@ -568,9 +568,12 @@ class ProduceStateReader:
         """トラブル率バッジ (ピンク星形内の白文字) を読み取る。
 
         白文字onピンクは Tesseract も dark-on-light テンプレも素では
-        当たらないため、明度しきい値で「濃い字on明るい背景」へ二値化
-        してから DigitMatcher にかける。フォントはゲーム共通なので
-        stats 系テンプレ + マルチスケール照合で解像度非依存に当たる。
+        当たらない。明度しきい値で「濃い字on明るい背景」へ二値化し、
+        **同じ二値化で抽出した専用 `trouble` スタイル**テンプレと照合する
+        (二値化同士なので形状が一致し決定的)。stats 系テンプレに相乗り
+        すると stats テンプレ更新で壊れるため疎結合化した。未収集の桁
+        (現状 "8" のみ) は None になるので、新トラブル値を観測したら
+        `{digit}_trouble.png` を追加していく増分方式。
 
         Returns:
             0-100 のパーセント値。読めない場合は None。
@@ -586,8 +589,8 @@ class ProduceStateReader:
         )
         value = self._digit_matcher.read_number(
             binarized,
-            styles=("stats_cl", "stats"),
-            threshold=0.65,
+            styles=("trouble",),
+            threshold=0.6,
         )
         if value is None:
             return None
