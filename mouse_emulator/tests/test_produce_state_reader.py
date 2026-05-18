@@ -241,10 +241,9 @@ class TestProduceStateReader:
         # HP バーは色比率なので装飾フォントの影響を受けない
         assert state.hp_pct is not None
         assert 0.0 < state.hp_pct < 1.0
-        # トラブル率 (白文字onピンク) は二値化 + DigitMatcher テンプレ
-        # 前提で、matcher 無しのこの構成では読めない。digit 精度は
-        # `test_produce_digit_matcher.py` 側で canvas==8 を担保する。
-        assert state.trouble_pct is None
+        # トラブル率は OCR(psm8) ベースになり matcher 不要で読める。
+        # canvas リファレンスの実機値は 8%。
+        assert state.trouble_pct == 8
 
     def test_old_wide_fixture_still_loads_without_crash(self) -> None:
         """旧 3024x1610 fixture は canvas 比率と非互換だが read() が例外を出さない。
@@ -321,22 +320,21 @@ class TestDetectSelectedLessonSlot:
 
 
 class TestTroubleTwoDigit:
-    """2 桁トラブル率 (例 54%) の読取回帰。
+    """トラブル率 OCR 読取の回帰 (1-2 桁, matcher 不要)。
 
-    `schedule_trouble54.png` は実機スクショ (トラブル率 54%)。trouble
-    領域を 2 桁対応に広げ、`trouble` スタイルに 5/4 を追加した回帰。
-    単桁 "8" (canvas) も同じ広い枠で読めることを併せて固定する。
+    `schedule_trouble54.png` は実機スクショ (54%)。OCR(psm8) ベース
+    なので digit_matcher なしで 2 桁 54 と単桁 8 (canvas) を読めること、
+    バッジ非表示画面では None になることを固定する。
     """
 
-    def test_reads_54_and_single_8(self) -> None:
-        from auto_emulator.games.produce import (  # noqa: PLC0415
-            DigitMatcher,
-            load_digit_templates,
-        )
-
-        matcher = DigitMatcher(load_digit_templates(FIXTURE_DIR / "digits"))
-        reader = ProduceStateReader(digit_matcher=matcher)
+    def test_reads_54_and_single_8_without_matcher(self) -> None:
+        reader = ProduceStateReader()  # OCR なので matcher 不要
         with Image.open(FIXTURE_DIR / "schedule_trouble54.png") as img:
             assert reader.read_trouble_pct(img) == 54
         with Image.open(FIXTURE_DIR / "real_schedule_canvas.png") as img:
             assert reader.read_trouble_pct(img) == 8
+
+    def test_no_badge_returns_none(self) -> None:
+        reader = ProduceStateReader()
+        with Image.open(FIXTURE_DIR / "real_home_canvas.png") as img:
+            assert reader.read_trouble_pct(img) is None
