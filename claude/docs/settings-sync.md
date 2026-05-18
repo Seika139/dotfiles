@@ -83,6 +83,26 @@ LOCAL に置く理由:
 
 CCWB のドキュメント上「上書き禁止」のキーだが、`recover` で取り込んだ値をそのまま `link` で書き戻す本設計では値を改変しないため、CCWB の意図には反しない。
 
+#### `extraKnownMarketplaces` / `enabledPlugins` は marketplace ホワイトリスト
+
+`extraKnownMarketplaces` (Claude Code の plugin marketplace 一覧) と `enabledPlugins` (有効化中の plugin 一覧) は、**marketplace 単位のホワイトリスト**で分類する。
+
+```bash
+PORTABLE_MARKETPLACES=["claude-plugins-official", "openai-codex"]
+```
+
+- **PORTABLE 行き**: ホワイトリストにある marketplace に紐づくキー
+  - `extraKnownMarketplaces.<name>` で `<name>` がホワイトリスト一致
+  - `enabledPlugins.<plugin>@<name>` で `<name>` がホワイトリスト一致
+- **LOCAL 行き**: それ以外 (社内専用 marketplace 等)
+
+ホワイトリスト方式を採用する理由:
+
+- plugin / marketplace は外部リポジトリから取得するもので、後から社内専用が追加されるリスクが構造的に高い。fail-safe な「明示しないと公開しない」挙動が望ましい。
+- marketplace 名と plugin 名 (`<plugin>@<marketplace>`) で命名が連動しているため、marketplace 単位の判定で両方のキーを整合的に振り分けられる。
+
+ホワイトリストに新しい公開 OK な marketplace を追加するときは、`recover-settings.sh` の `PORTABLE_MARKETPLACES` 変数を編集する。
+
 #### CCWB 手順書の「上書き禁止」リストとの関係
 
 CCWB の手順書は次を「上書きしないでください」と指定している:
