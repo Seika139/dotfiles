@@ -2,7 +2,6 @@
 
 #MISE description="指定プロファイルの設定を ~/.claude/ に同期する (settings.json はマージ書き出し / 他は symlink)"
 #MISE depends=["check_env"]
-#MISE shell="bash -c"
 #MISE quiet=true
 
 # ---------------------------------------------------------------------------
@@ -80,11 +79,16 @@ SETTINGS_TARGET="$CLAUDE_DIR/settings.json"
 if [ ! -f "$REPO_SETTINGS" ]; then
   printf "   ⚠️  Skipping missing file: \033[31m%s\033[0m\n" "$REPO_SETTINGS"
 else
-  # local が存在しなければ空オブジェクトとしてマージ
+  # local が存在しなければ空 JSON ファイルを一時的に用意してマージ
+  # (プロセス置換 <(echo '{}') は変数代入経由だと FD が早期に閉じる罠があるため避ける)
   if [ -f "$REPO_LOCAL" ] && [ -s "$REPO_LOCAL" ]; then
     LOCAL_INPUT="$REPO_LOCAL"
+    CLEANUP_LOCAL_INPUT=""
   else
-    LOCAL_INPUT=<(echo '{}')
+    LOCAL_INPUT="$(mktemp -t claude-link-local.XXXXXX)"
+    printf '{}' >"$LOCAL_INPUT"
+    CLEANUP_LOCAL_INPUT="$LOCAL_INPUT"
+    trap 'rm -f "$CLEANUP_LOCAL_INPUT"' EXIT
   fi
 
   MERGED=$(jq -s '.[0] * .[1]' "$REPO_SETTINGS" "$LOCAL_INPUT")
