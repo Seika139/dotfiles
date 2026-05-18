@@ -78,6 +78,9 @@ class _FakeStrategy:
     def decide(self, state: GameState) -> TurnDecision:  # noqa: ARG002
         return self.fixed
 
+    def choose_lesson(self, state: GameState, previews: list) -> tuple[int, str] | None:  # noqa: ARG002
+        return None
+
 
 def _br_image(color: tuple[int, int, int]) -> Image.Image:
     """右下に signature 色を塗った 3024x1610 画像を返す.

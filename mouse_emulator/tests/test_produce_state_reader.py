@@ -266,3 +266,35 @@ class TestProduceStateReader:
             state = reader.read(img)
         for key in ("header_season_text", "header_week_text", "header_fans_text"):
             assert key in state.raw
+
+
+class TestReadLessonPreview:
+    """選択中レッスンの効果プレビュー (緑ピル) 読取の実機回帰。
+
+    `schedule_preview_vocal.png` はボーカルレッスン選択時の実機ライブ
+    フレーム (1423x800)。Vo+26 / SP+5 / Fans+270 が出ている。
+    """
+
+    def test_reads_vocal_preview_from_live_fixture(self) -> None:
+        from auto_emulator.games.produce import (  # noqa: PLC0415
+            DigitMatcher,
+            load_digit_templates,
+        )
+
+        matcher = DigitMatcher(
+            load_digit_templates(FIXTURE_DIR / "digits"),
+        )
+        reader = ProduceStateReader(digit_matcher=matcher)
+        with Image.open(FIXTURE_DIR / "schedule_preview_vocal.png") as img:
+            preview = reader.read_lesson_preview(img, slot=3)
+        assert preview.slot == 3
+        assert preview.stat_gains == {"Vo": 26, "SP": 5}
+        assert preview.fans_gain == 270
+
+    def test_no_matcher_returns_empty_preview(self) -> None:
+        reader = ProduceStateReader()  # digit_matcher なし
+        with Image.open(FIXTURE_DIR / "schedule_preview_vocal.png") as img:
+            preview = reader.read_lesson_preview(img, slot=0)
+        # 緑ピルは検出できるが二値化テンプレ照合は matcher 必須
+        assert preview.stat_gains == {}
+        assert preview.fans_gain is None

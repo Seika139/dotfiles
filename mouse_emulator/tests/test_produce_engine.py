@@ -61,6 +61,9 @@ class FakeStrategy:
     def decide(self, state: GameState) -> TurnDecision:  # noqa: ARG002
         return self.fixed
 
+    def choose_lesson(self, state: GameState, previews: list) -> tuple[int, str] | None:  # noqa: ARG002
+        return None
+
 
 def _engine(decision: TurnDecision) -> tuple[ProduceEngine, FakePointer]:
     pointer = FakePointer()
@@ -86,13 +89,17 @@ class TestLessonExecution:
         state, decision = engine.step()
         assert decision.action_kind == "lesson"
         assert decision.target_slot == 2
-        # 2 クリック: カード本体 + 決定ボタン
-        assert len(pointer.clicks) == 2
-        card_click_x, _ = pointer.clicks[0]
-        # slot 2 は LessonRegions の 16:9 デフォルトで x ~ 0.52
+        # 8 クリック: プレビュー巡回 6 枚 + 選択カード + 決定ボタン
+        assert len(pointer.clicks) == 8
+        # 先頭 6 クリックは slot 0..5 のカード巡回 (x 昇順)
+        cycle_xs = [c[0] for c in pointer.clicks[:6]]
+        assert cycle_xs == sorted(cycle_xs)
+        # 7 クリック目は選択カード。FakeStrategy.choose_lesson は None を
+        # 返すので decide の slot=2 (x ~ 0.52) にフォールバック
+        card_click_x, _ = pointer.clicks[6]
         assert 0.49 < card_click_x < 0.55
         # 決定ボタンは右下
-        confirm_x, confirm_y = pointer.clicks[1]
+        confirm_x, confirm_y = pointer.clicks[7]
         assert confirm_x > 0.7
         assert confirm_y > 0.8
         # tesseract 不在/フェイク画像でも lessons リストは 6 件のプレースホルダで埋まる
@@ -284,8 +291,8 @@ class TestRunLoop:
         )
         executed = engine.run(max_turns=3)
         assert executed == 3
-        # 1 ターンで 2 クリック (カード + 決定) → 6 クリック
-        assert len(pointer.clicks) == 6
+        # 1 ターンで 8 クリック (プレビュー巡回 6 + 選択 + 決定) → 24
+        assert len(pointer.clicks) == 24
 
 
 class TestScreenDetectionIntegration:
@@ -670,6 +677,7 @@ class TestItemAndChoiceColor:
         engine, pointer = self._build()
         engine.execute_decision(
             TurnDecision(action_kind="item", rationale="hp low"),
+            GameState(),
         )
         # アイテムタブ + first_slot + use + close = 4 クリック
         assert len(pointer.clicks) == 4

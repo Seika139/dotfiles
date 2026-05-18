@@ -9,6 +9,7 @@ from auto_emulator.games.produce import (
     AuditionOption,
     GameState,
     LessonOption,
+    LessonPreview,
     SeasonPlan,
     StrategyEngine,
     is_wing_audition,
@@ -501,3 +502,89 @@ class TestLessonFansEfficiency:
         )
         decision = engine.decide(state)
         assert decision.target_slot == 0  # ラジオが先
+
+
+def _preview(
+    slot: int,
+    *,
+    stats: dict | None = None,
+    fans: int | None = None,
+) -> LessonPreview:
+    """choose_lesson テスト用の LessonPreview を組む.
+
+    Returns:
+        指定 slot/stat_gains/fans_gain の `LessonPreview`。
+    """
+    return LessonPreview(
+        slot=slot,
+        stat_gains=stats or {},
+        fans_gain=fans,
+    )
+
+
+class TestChooseLesson:
+    """`StrategyEngine.choose_lesson` の優先序列 + プレビュー比較。"""
+
+    def test_priority_not_crossed_even_if_lower_pref_better(self) -> None:
+        # S1 は ラジオ > 雑誌。雑誌の fans が高くても序列は跨がない
+        engine = StrategyEngine()
+        state = _state(
+            season=1,
+            lessons=_lessons(("ラジオの収録", 1), ("雑誌の撮影", 1)),
+        )
+        previews = [
+            _preview(0, fans=10),
+            _preview(1, fans=999),
+        ]
+        assert engine.choose_lesson(state, previews) == (0, "ラジオの収録")
+
+    def test_fans_efficiency_picks_max_within_priority(self) -> None:
+        # S1 は prefer_fans_efficiency。同じラジオ内で fans 最大を選ぶ
+        engine = StrategyEngine()
+        state = _state(
+            season=1,
+            lessons=_lessons(
+                ("ラジオの収録 弱", 1),
+                ("雑誌の撮影", 1),
+                ("ラジオの収録 強", 1),
+            ),
+        )
+        previews = [
+            _preview(0, fans=120),
+            _preview(1, fans=900),
+            _preview(2, fans=300),
+        ]
+        assert engine.choose_lesson(state, previews) == (2, "ラジオの収録 強")
+
+    def test_stat_sum_picks_max_when_not_fans_efficiency(self) -> None:
+        # S2 は fans_eff=False。ステ上昇量合計が大きいカードを選ぶ
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            lessons=_lessons(
+                ("ボーカルレッスン 小", 1),
+                ("ボーカルレッスン 大", 1),
+            ),
+        )
+        previews = [
+            _preview(0, stats={"Vo": 20, "SP": 3}),
+            _preview(1, stats={"Vo": 31, "SP": 5}),
+        ]
+        assert engine.choose_lesson(state, previews) == (1, "ボーカルレッスン 大")
+
+    def test_falls_back_to_first_when_no_previews(self) -> None:
+        # プレビュー全滅 (取得失敗) なら序列最先にフォールバック
+        engine = StrategyEngine()
+        state = _state(
+            season=2,
+            lessons=_lessons(
+                ("ボーカルレッスン A", 1),
+                ("ボーカルレッスン B", 1),
+            ),
+        )
+        assert engine.choose_lesson(state, []) == (0, "ボーカルレッスン A")
+
+    def test_returns_none_when_no_preference_match(self) -> None:
+        engine = StrategyEngine()
+        state = _state(season=2, lessons=_lessons(("謎のレッスン", 1)))
+        assert engine.choose_lesson(state, [_preview(0, stats={"Vo": 9})]) is None
