@@ -26,6 +26,7 @@ from auto_emulator.games.produce.state import (
     FractionalRegion,
     GameState,
     LessonOption,
+    LessonPreview,
     ScreenKind,
 )
 
@@ -122,6 +123,38 @@ class StatsRegions:
 
 
 @dataclass(frozen=True)
+class LessonPreviewRegions:
+    """選択中レッスンの効果プレビュー (緑ピル「+N」) の座標。
+
+    ピルは stat 数値行の各列 (Vo/Da/Vi/Me/SP/Fans) の真上に整列して
+    出るため x 中心は `StatsRegions.stat_centers_x` と共有。ピル本体は
+    数値より横長なので width を広げ、`pill_band` は緑ピル上下リングの
+    内側 (数字グリフだけ) を狙う。白文字onグリーンは二値化 + `preview`
+    スタイルテンプレで読む。
+    """
+
+    # ピルは各 stat 列の真上に出るが、列中心から横にズレ幅も桁数で
+    # 可変。列ごとの固定窓だと端桁を切り落とすため、帯全体を 1 本の
+    # ストリップで走査し緑ピル塊を検出 → 塊中心が最も近い列へ割当てる。
+    strip_x: float = 0.30
+    strip_w: float = 0.62
+    pill_band: tuple[float, float] = (0.476, 0.509)
+    column_centers_x: tuple[float, ...] = (
+        0.397,
+        0.485,
+        0.580,
+        0.675,
+        0.760,
+        0.886,
+    )
+    labels: tuple[str, ...] = ("Vo", "Da", "Vi", "Me", "SP", "Fans")
+    # ピル塊と認める最小横幅。画像幅比でこれ未満の緑連結はノイズ扱い
+    min_pill_width: float = 0.020
+    # ピル塊中心を最寄り列へ割当てる際の最大許容距離。画像幅比で表す
+    column_assign_max_dist: float = 0.055
+
+
+@dataclass(frozen=True)
 class StatusRegions:
     """体力バー / トラブル率 / テンション。
 
@@ -165,12 +198,14 @@ class ProduceStateReader:
         stats: StatsRegions | None = None,
         status: StatusRegions | None = None,
         auditions: AuditionRegions | None = None,
+        lesson_preview: LessonPreviewRegions | None = None,
         digit_matcher: DigitMatcher | None = None,
         tesseract_cmd: str | None = None,
     ) -> None:
         self._header = header or HeaderRegions()
         self._lessons = lessons or LessonRegions()
         self._stats = stats or StatsRegions()
+        self._lesson_preview = lesson_preview or LessonPreviewRegions()
         self._status = status or StatusRegions()
         self._auditions = auditions or AuditionRegions()
         self._digit_matcher = digit_matcher
@@ -454,6 +489,118 @@ class ProduceStateReader:
             プレビューのファン数、読めなければ None。
         """
         return self._ocr_int(image, self._lessons.selected_fans_preview)
+
+    def read_lesson_preview(
+        self,
+        image: Image.Image,
+        *,
+        slot: int,
+    ) -> LessonPreview:
+        """選択中レッスンの効果プレビュー (上部緑ピル群) を読む。
+
+        プレビュー帯を 1 本のストリップとして走査し、緑ピル塊を全部
+        検出してそれぞれ「+N」を読み、塊の x 中心が最も近い stat 列に
+        割当てる (列ごとの固定窓だとピルの横ズレ・桁数可変で端桁を
+        切り落とすため)。白文字は二値化し `preview` スタイルテンプレで
+        照合 ("+" 記号はテンプレに無く閾値で自然に無視される)。`slot`
+        は呼び出し側 (engine の選択巡回) が現在選択中のカード位置を渡す。
+
+        Args:
+            image: スケジュール画面フレーム (対象カード選択済み)。
+            slot: いま選択中のカード位置 0-5。
+
+        Returns:
+            `LessonPreview`。読めた列のみ `stat_gains` / `fans_gain` に入る。
+        """
+        regions = self._lesson_preview
+        top, bottom = regions.pill_band
+        strip_box = FractionalRegion(
+            x=regions.strip_x,
+            y=top,
+            w=regions.strip_w,
+            h=bottom - top,
+        ).to_pixels(image.width, image.height)
+        strip = image.crop(strip_box)
+        rgb = np.asarray(strip.convert("RGB")).astype(np.int16)
+        r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+        green = (g > 120) & (g > r + 25) & (g > b + 25)
+        stat_gains: dict[str, int] = {}
+        fans_gain: int | None = None
+        min_run_px = int(regions.min_pill_width * image.width)
+        max_dist_px = regions.column_assign_max_dist * image.width
+        column_px = [c * image.width for c in regions.column_centers_x]
+        for run_start, run_end in self._green_column_runs(
+            green.any(axis=0),
+            min_run_px,
+        ):
+            sub = green[:, run_start : run_end + 1]
+            ys = np.where(sub.any(axis=1))[0]
+            pill = strip.crop(
+                (run_start, int(ys.min()), run_end + 1, int(ys.max()) + 1),
+            )
+            value = self._read_preview_pill(pill)
+            if value is None:
+                continue
+            pill_center_px = strip_box[0] + (run_start + run_end) / 2
+            distances = [abs(pill_center_px - c) for c in column_px]
+            idx = min(range(len(distances)), key=distances.__getitem__)
+            if distances[idx] > max_dist_px:
+                continue
+            label = regions.labels[idx]
+            if label == "Fans":
+                fans_gain = value
+            else:
+                stat_gains[label] = value
+        return LessonPreview(
+            slot=slot,
+            stat_gains=stat_gains,
+            fans_gain=fans_gain,
+        )
+
+    @staticmethod
+    def _green_column_runs(
+        col_has_green: np.ndarray,
+        min_run_px: int,
+    ) -> list[tuple[int, int]]:
+        """緑列マスクから幅 `min_run_px` 以上の連続ランを返す。
+
+        Returns:
+            `(start, end)` 包含インデックスのリスト (左→右)。
+        """
+        runs: list[tuple[int, int]] = []
+        start: int | None = None
+        for i, on in enumerate(col_has_green):
+            if on and start is None:
+                start = i
+            elif not on and start is not None:
+                if i - start >= min_run_px:
+                    runs.append((start, i - 1))
+                start = None
+        if start is not None and len(col_has_green) - start >= min_run_px:
+            runs.append((start, len(col_has_green) - 1))
+        return runs
+
+    def _read_preview_pill(self, crop: Image.Image) -> int | None:
+        """緑ピル 1 個の白文字「+N」を二値化 + preview テンプレで読む。
+
+        Returns:
+            ピルの数値。matcher 不在/不読なら None。
+        """
+        if self._digit_matcher is None:
+            return None
+        gray = np.asarray(crop.convert("L"))
+        if gray.size == 0:
+            return None
+        # 緑ピルは背景が明るい (gray~170) ため 200 だと "2"/"0" の
+        # アンチエイリアス端が落ち "7" だけ残る。180 で全桁を拾う。
+        binarized = Image.fromarray(
+            np.where(gray > 180, 0, 255).astype(np.uint8),
+        )
+        return self._digit_matcher.read_number(
+            binarized,
+            styles=("preview",),
+            threshold=0.60,
+        )
 
     @staticmethod
     def iter_lesson_regions(

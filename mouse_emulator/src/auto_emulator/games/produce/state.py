@@ -71,6 +71,29 @@ class LessonOption(BaseModel):
     )
 
 
+class LessonPreview(BaseModel):
+    """1 枚のレッスンカードを選択した時に上部に出る効果プレビュー。
+
+    実機 UI ではプレビューは選択中カード 1 枚分しか固定位置に出ない
+    ため、6 枚ぶんは `engine.collect_lesson_previews` の multi-frame
+    選択巡回 (各カードをタップして 1 フレームずつ撮る) で集める。
+    緑ピル内の「+N」白文字を `preview` スタイルテンプレで読む。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    slot: int = Field(ge=0, le=5, description="左から 0-5 のカード位置")
+    stat_gains: dict[str, int] = Field(
+        default_factory=dict,
+        description="ステ上昇量 (キー: Vo/Da/Vi/Me/SP)。読めた列のみ",
+    )
+    fans_gain: int | None = Field(
+        default=None,
+        ge=0,
+        description="ファン獲得見込み (緑ピル)。読めなければ None",
+    )
+
+
 class AuditionOption(BaseModel):
     """オーディションタブ内のスワイプ可能なカード 1 枚分の情報。"""
 

@@ -32,6 +32,7 @@ from auto_emulator.games.produce.state import (
     FractionalRegion,
     GameState,
     LessonOption,
+    LessonPreview,
 )
 from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
 from auto_emulator.games.produce.turn_log import (
@@ -54,6 +55,7 @@ __all__ = [
     "HeaderRegions",
     "JsonlTurnLogger",
     "LessonOption",
+    "LessonPreview",
     "LessonRegions",
     "ProduceStateReader",
     "RunSummary",
