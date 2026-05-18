@@ -12,7 +12,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from auto_emulator.games.produce.state import GameState
+from auto_emulator.games.produce.state import GameState, LessonPreview
 from auto_emulator.games.produce.strategy import (
     SEASON_STAT_CAPS,
     SEASON_STRATEGY,
@@ -343,4 +343,49 @@ class StrategyEngine:
                     best = max(with_fans, key=lambda m: m.preview_fans or 0)
                     return best.slot, best.name
             return matches[0].slot, matches[0].name
+        return None
+
+    def choose_lesson(
+        self,
+        state: GameState,
+        previews: list[LessonPreview],
+    ) -> tuple[int, str] | None:
+        """収集済みプレビューを使って実行するレッスンを選ぶ。
+
+        `_pick_lesson_slot` と同じ優先キーワード序列を保つ (優先順位は
+        跨がない)。優先キーワードに該当するカード群の中で、`previews`
+        の実測値を使い「`prefer_fans_efficiency` ならファン獲得最大、
+        そうでなければステ上昇量合計最大」のカードを選ぶ。プレビューが
+        無い (取得失敗) カードはスコア -1 で最劣後し、全滅時は序列最先に
+        フォールバックする (graceful degradation)。
+
+        Args:
+            state: 観測状態 (`lessons` と `season` を使う)。
+            previews: engine の選択巡回で集めた 6 枚分のプレビュー。
+
+        Returns:
+            (slot, name) もしくは候補が無ければ None。
+        """
+        season = state.season or 1
+        plan = self._strategy.get(season)
+        if plan is None or not state.lessons:
+            return None
+        by_slot = {p.slot: p for p in previews}
+
+        def gain_score(slot: int) -> int:
+            preview = by_slot.get(slot)
+            if preview is None:
+                return -1
+            if plan.prefer_fans_efficiency:
+                return preview.fans_gain or 0
+            return sum(preview.stat_gains.values())
+
+        for preferred in plan.primary_lesson_preference:
+            matches = [
+                lesson for lesson in state.lessons if preferred in lesson.name
+            ]
+            if not matches:
+                continue
+            best = max(matches, key=lambda m: gain_score(m.slot))
+            return best.slot, best.name
         return None

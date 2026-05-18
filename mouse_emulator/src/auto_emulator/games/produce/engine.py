@@ -37,7 +37,11 @@ from auto_emulator.games.produce.actions import (
 )
 from auto_emulator.games.produce.decision import StrategyEngine, TurnDecision
 from auto_emulator.games.produce.reader import ProduceStateReader
-from auto_emulator.games.produce.state import GameState, ScreenKind
+from auto_emulator.games.produce.state import (
+    GameState,
+    LessonPreview,
+    ScreenKind,
+)
 from auto_emulator.games.produce.turn_log import (
     JsonlTurnLogger,
     RunSummary,
@@ -205,7 +209,7 @@ class ProduceEngine:
             f"fans_left={state.fans_to_target} -> {decision.action_kind} "
             f"slot={decision.target_slot} ({decision.rationale})",
         )
-        self.execute_decision(decision)
+        self.execute_decision(decision, state)
         return state, decision
 
     def run(
@@ -230,14 +234,28 @@ class ProduceEngine:
             time.sleep(self._loop_interval)
         return executed
 
-    def execute_decision(self, decision: TurnDecision) -> None:
+    def execute_decision(
+        self,
+        decision: TurnDecision,
+        state: GameState,
+    ) -> None:
         """`TurnDecision` をクリック列に変換して発行する。
 
         スケジュール画面想定のクリックのみ実装済み。それ以外はログ出力のみ。
+        lesson は実行前に全 6 カードのプレビューを巡回収集し、戦略が
+        実測値で最良スロットを選び直してから決定する (盲目的に押さない)。
         """
         kind = decision.action_kind
         if kind == "lesson":
-            self._tap_lesson_slot(decision.target_slot)
+            previews = self.collect_lesson_previews()
+            chosen = self._strategy.choose_lesson(state, previews)
+            slot = chosen[0] if chosen is not None else decision.target_slot
+            if chosen is not None:
+                self._log(
+                    f"[produce] lesson chosen by preview: slot={slot} "
+                    f"'{chosen[1]}' (was decide slot={decision.target_slot})",
+                )
+            self._tap_lesson_slot(slot)
             self._sleep_settle()
             self._tap(self._points.schedule.confirm_button)
             return
@@ -449,7 +467,7 @@ class ProduceEngine:
                         turn_index, state, decision, "stuck:schedule",
                     )
                     return "stuck:schedule"
-            self.execute_decision(decision)
+            self.execute_decision(decision, state)
             time.sleep(self._loop_interval)
         self._log_turn(turn_index, last_state, last_decision, "max_turns")
         return "max_turns"
@@ -612,6 +630,31 @@ class ProduceEngine:
         cx = regions.card_centers_x[slot]
         cy = sum(regions.name_band) / 2  # カードの縦中央
         self._pointer.click_relative(self._region, (cx, cy))
+
+    def collect_lesson_previews(self) -> list[LessonPreview]:
+        """6 枚のカードを順にタップして効果プレビューを集める。
+
+        実機 UI ではプレビューは選択中カード 1 枚分しか固定位置に
+        出ないため、各カードを 1 度タップ → settle → 1 フレーム撮影 →
+        `read_lesson_preview` で 1 枚読む、を全カード分繰り返す。決定
+        ボタンは押さない (選択状態を変えるだけ)。
+
+        Returns:
+            slot 0..N-1 順の `LessonPreview` リスト。
+        """
+        regions = self._reader.lesson_regions
+        previews: list[LessonPreview] = []
+        for slot in range(len(regions.card_centers_x)):
+            self._tap_lesson_slot(slot)
+            self._sleep_settle()
+            frame = self._capture.capture(region=self._region)
+            preview = self._reader.read_lesson_preview(frame, slot=slot)
+            previews.append(preview)
+            self._log(
+                f"[produce] preview slot={slot} "
+                f"stats={preview.stat_gains} fans={preview.fans_gain}",
+            )
+        return previews
 
     def _swipe_audition_next(self) -> None:
         start, end = audition_swipe_path()
