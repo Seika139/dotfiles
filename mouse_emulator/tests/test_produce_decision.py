@@ -67,7 +67,9 @@ class TestRestRule:
         decision = engine.decide(state)
         assert decision.action_kind != "rest"
 
-    def test_does_not_rest_when_hp_high(self) -> None:
+    def test_rests_on_high_trouble_even_if_hp_high(self) -> None:
+        # トラブル駆動: HP が高くてもトラブル率が閾値超なら休む
+        # (編成/アイテムで HP とトラブルは相関しないため HP はゲートでない)
         engine = StrategyEngine()
         state = _state(
             trouble_pct=10,
@@ -75,9 +77,10 @@ class TestRestRule:
             lessons=_lessons(("ラジオの収録", 1)),
         )
         decision = engine.decide(state)
-        assert decision.action_kind != "rest"
+        assert decision.action_kind == "rest"
 
-    def test_does_not_rest_when_hp_unknown(self) -> None:
+    def test_rests_on_high_trouble_even_if_hp_unknown(self) -> None:
+        # HP が読めなくてもトラブル率だけで休息を判定できる
         engine = StrategyEngine()
         state = _state(
             trouble_pct=10,
@@ -85,7 +88,17 @@ class TestRestRule:
             lessons=_lessons(("ラジオの収録", 1)),
         )
         decision = engine.decide(state)
-        # 体力が読めない時は安全側 (= rest しない)
+        assert decision.action_kind == "rest"
+
+    def test_does_not_rest_on_low_trouble_even_if_hp_low(self) -> None:
+        # HP が低くてもトラブル率が低ければ休まない (HP は休息ゲートでない)
+        engine = StrategyEngine()
+        state = _state(
+            trouble_pct=2,
+            hp_pct=0.2,
+            lessons=_lessons(("ラジオの収録", 1)),
+        )
+        decision = engine.decide(state)
         assert decision.action_kind != "rest"
 
 
