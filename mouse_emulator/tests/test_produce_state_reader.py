@@ -298,3 +298,23 @@ class TestReadLessonPreview:
         # 緑ピルは検出できるが二値化テンプレ照合は matcher 必須
         assert preview.stat_gains == {}
         assert preview.fans_gain is None
+
+
+class TestDetectSelectedLessonSlot:
+    """選択中レッスンカードの検出 (再タップ=決定の事故回避に使う)。"""
+
+    def test_detects_vocal_selected_in_live_fixture(self) -> None:
+        reader = ProduceStateReader()
+        with Image.open(FIXTURE_DIR / "schedule_preview_vocal.png") as img:
+            assert reader.detect_selected_lesson_slot(img) == 0
+
+    def test_detects_selected_in_canvas_fixture(self) -> None:
+        reader = ProduceStateReader()
+        with Image.open(FIXTURE_DIR / "real_schedule_canvas.png") as img:
+            assert reader.detect_selected_lesson_slot(img) == 0
+
+    def test_returns_none_on_blank_image(self) -> None:
+        # せり出しが無い (彩度ゼロ) なら選択検出は None
+        reader = ProduceStateReader()
+        blank = Image.new("RGB", (1423, 800), color=(180, 180, 180))
+        assert reader.detect_selected_lesson_slot(blank) is None

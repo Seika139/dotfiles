@@ -12,6 +12,7 @@ from PIL import Image
 from auto_emulator.games.produce import (
     GameState,
     LessonOption,
+    LessonPreview,
     TurnDecision,
 )
 from auto_emulator.games.produce.engine import ProduceEngine
@@ -89,17 +90,20 @@ class TestLessonExecution:
         state, decision = engine.step()
         assert decision.action_kind == "lesson"
         assert decision.target_slot == 2
-        # 8 クリック: プレビュー巡回 6 枚 + 選択カード + 決定ボタン
-        assert len(pointer.clicks) == 8
-        # 先頭 6 クリックは slot 0..5 のカード巡回 (x 昇順)
-        cycle_xs = [c[0] for c in pointer.clicks[:6]]
+        # フェイク画像では選択検出が None → slot 0 を選択中と仮定し
+        # タップしない。巡回は slot 1..5 の 5 タップ、その後 chosen
+        # (=decide slot 2、current_selected=5 と異なる) を 1 タップ +
+        # 決定ボタン = 計 7 クリック (選択カード再タップ事故を回避)。
+        assert len(pointer.clicks) == 7
+        # 先頭 5 クリックは slot 1..5 の巡回 (slot 0 は踏まない, x 昇順)
+        cycle_xs = [c[0] for c in pointer.clicks[:5]]
         assert cycle_xs == sorted(cycle_xs)
-        # 7 クリック目は選択カード。FakeStrategy.choose_lesson は None を
-        # 返すので decide の slot=2 (x ~ 0.52) にフォールバック
-        card_click_x, _ = pointer.clicks[6]
+        assert cycle_xs[0] > 0.30  # 先頭は slot1 (~0.39)、slot0(~0.25) ではない
+        # 6 クリック目は chosen=slot 2 (x ~ 0.52) のタップ
+        card_click_x, _ = pointer.clicks[5]
         assert 0.49 < card_click_x < 0.55
         # 決定ボタンは右下
-        confirm_x, confirm_y = pointer.clicks[7]
+        confirm_x, confirm_y = pointer.clicks[6]
         assert confirm_x > 0.7
         assert confirm_y > 0.8
         # tesseract 不在/フェイク画像でも lessons リストは 6 件のプレースホルダで埋まる
@@ -110,9 +114,81 @@ class TestLessonExecution:
             TurnDecision(action_kind="lesson", target_slot=99, rationale="t"),
         )
         engine.step()
-        card_click_x, _ = pointer.clicks[0]
-        # フォールバックで slot 0 -> 16:9 デフォルトで x ~ 0.25
+        # 巡回 5 タップ後の 6 クリック目が chosen タップ。target_slot=99
+        # は無効なので _tap_lesson_slot が slot 0 (x ~ 0.25) にフォールバック
+        card_click_x, _ = pointer.clicks[5]
         assert 0.21 < card_click_x < 0.29
+
+
+class TestLessonPreviewCycleSafety:
+    """巡回が「選択中カードを再タップ = 決定」を踏まないことの回帰。
+
+    実機で選択中カードを再タップするとレッスンが即実行される。巡回中の
+    事故実行を防ぐため、開始時に選択中スロットを検出し、その 1 枚は
+    タップせず現フレームから読む契約を固定する。
+    """
+
+    @staticmethod
+    def _build(selected_slot: int) -> tuple[ProduceEngine, FakePointer]:
+        from auto_emulator.games.produce.reader import (  # noqa: PLC0415
+            ProduceStateReader,
+        )
+
+        class _SelReader(ProduceStateReader):
+            def detect_selected_lesson_slot(
+                self,
+                image: Image.Image,  # noqa: ARG002
+            ) -> int | None:
+                return selected_slot
+
+            def read_lesson_preview(
+                self,
+                image: Image.Image,  # noqa: ARG002
+                *,
+                slot: int,
+            ) -> LessonPreview:
+                return LessonPreview(slot=slot, stat_gains={"Vo": slot})
+
+        pointer = FakePointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            reader=_SelReader(),
+            strategy=FakeStrategy(
+                TurnDecision(
+                    action_kind="lesson",
+                    target_slot=0,
+                    rationale="t",
+                ),
+            ),
+            capture=FakeCapture(Image.new("RGB", (1423, 800))),
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+        )
+        return engine, pointer
+
+    def test_selected_slot_is_not_tapped_during_cycle(self) -> None:
+        engine, pointer = self._build(selected_slot=2)
+        previews, current = engine.collect_lesson_previews()
+        # 6 枚ぶん揃う。slot 2 は選択中なのでタップせず現フレームから
+        assert [p.slot for p in previews] == [0, 1, 2, 3, 4, 5]
+        # 巡回タップは 5 回 (slot 2 を除く)
+        assert len(pointer.clicks) == 5
+        # slot 2 の x (card_centers_x[2]=0.52) はタップされていない
+        slot2_x = engine._reader.lesson_regions.card_centers_x[2]
+        assert all(abs(cx - slot2_x) > 0.01 for cx, _ in pointer.clicks)
+        # 巡回後の選択中スロットは最後にタップした slot 5
+        assert current == 5
+
+    def test_default_assumes_slot0_when_undetected(self) -> None:
+        # 検出 None なら slot 0 を選択中と仮定し slot 0 を踏まない
+        engine, pointer = self._build(selected_slot=None)  # type: ignore[arg-type]
+        _, current = engine.collect_lesson_previews()
+        slot0_x = engine._reader.lesson_regions.card_centers_x[0]
+        assert all(abs(cx - slot0_x) > 0.01 for cx, _ in pointer.clicks)
+        assert len(pointer.clicks) == 5
+        assert current == 5
 
 
 class TestAuditionExecution:
@@ -291,8 +367,8 @@ class TestRunLoop:
         )
         executed = engine.run(max_turns=3)
         assert executed == 3
-        # 1 ターンで 8 クリック (プレビュー巡回 6 + 選択 + 決定) → 24
-        assert len(pointer.clicks) == 24
+        # 1 ターン 7 クリック (巡回 5 + chosen 1 + 決定 1) → 3 ターンで 21
+        assert len(pointer.clicks) == 21
 
 
 class TestScreenDetectionIntegration:
