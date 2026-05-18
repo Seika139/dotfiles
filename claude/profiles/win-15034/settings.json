@@ -3,6 +3,7 @@
     "commit": "",
     "pr": ""
   },
+  "autoUpdatesChannel": "latest",
   "defaultMode": "acceptEdits",
   "enabledPlugins": {
     "codex@openai-codex": true,
