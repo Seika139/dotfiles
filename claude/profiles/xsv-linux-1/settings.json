@@ -1,4 +1,56 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true,
+    "commit-commands@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "repo": "anthropics/claude-plugins-official",
+        "source": "github"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "repo": "openai/codex-plugin-cc",
+        "source": "github"
+      }
+    }
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "~/dotfiles/claude/notify_discord.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "permission_prompt"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "~/dotfiles/claude/notify_discord.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -10,6 +62,7 @@
       "Bash(gh run list)",
       "Bash(gh run view:*)"
     ],
+    "defaultMode": "acceptEdits",
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
@@ -36,64 +89,11 @@
       "Bash(gh api PUT:*)",
       "Bash(gh api PATCH:*)",
       "Bash(gh api DELETE:*)"
-    ],
-    "defaultMode": "acceptEdits"
-  },
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/dotfiles/claude/notify_discord.sh"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "permission_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/dotfiles/claude/notify_discord.sh"
-          }
-        ]
-      }
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/dotfiles/claude/status_line.sh"
-  },
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
-    "explanatory-output-style@claude-plugins-official": true,
-    "codex@openai-codex": true
-  },
-  "extraKnownMarketplaces": {
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    },
-    "openai-codex": {
-      "source": {
-        "source": "github",
-        "repo": "openai/codex-plugin-cc"
-      }
-    }
-  },
   "skipDangerousModePermissionPrompt": true,
-  "attribution": {
-    "commit": "",
-    "pr": ""
+  "statusLine": {
+    "command": "~/dotfiles/claude/status_line.sh",
+    "type": "command"
   }
 }
