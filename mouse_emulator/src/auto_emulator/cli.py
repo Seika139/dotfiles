@@ -9,7 +9,14 @@ from typing import Annotated, Literal
 import typer
 from pynput import mouse
 
-from mouse_core import ColorPrinter, Colors, PointerController, Region, run_calibration
+from mouse_core import (
+    ColorPrinter,
+    Colors,
+    PointerController,
+    Region,
+    refine_region_to_aspect,
+    run_calibration,
+)
 from mouse_core.display import (
     NSScreen,
     ScreenLike,
@@ -521,6 +528,14 @@ def run_produce(  # noqa: PLR0913, PLR0912
             " ありません。手動キャリブレーションを実行します。",
         )
         region = run_calibration(printer)
+
+    # 人力 2 点クリックは端が雑になりやすい。全画面から canvas を見直し
+    # 既知アスペクト (1135/640) にスナップして補正する。低信頼なら手動の
+    # まま使う (誤検出で全読取を壊さない安全側)。
+    full_screen = capture_service.capture(region=None)
+    refine = refine_region_to_aspect(full_screen, region, 1135 / 640)
+    typer.echo(refine.summary())
+    region = refine.refined
 
     if debug_frame is not None:
         _save_debug_frame(capture_service, region, debug_frame)
