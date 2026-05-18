@@ -81,6 +81,11 @@ class LessonRegions:
             x=0.845, y=0.482, w=0.065, h=0.050,
         ),
     )
+    # 選択中カードは色付き本体が上方向にせり出す。各カード中心の縦
+    # ストリップ (この y 帯) でカード上端を測り、最も高いものが選択中。
+    # 選択カード再タップ = 決定なので、巡回はこれを踏まないために使う。
+    selected_scan_band: tuple[float, float] = (0.58, 0.95)
+    selected_scan_half_w: float = 0.025
 
 
 @dataclass(frozen=True)
@@ -601,6 +606,48 @@ class ProduceStateReader:
             styles=("preview",),
             threshold=0.60,
         )
+
+    def detect_selected_lesson_slot(
+        self,
+        image: Image.Image,
+    ) -> int | None:
+        """現在選択中のレッスンカードの slot を返す。
+
+        選択中カードは色付き本体が上方向にせり出す (上端 y が他カードより
+        明確に小さい)。各カード中心の縦ストリップで彩度の高い本体上端を
+        測り、最も高い (top が最小) スロットが他より十分高ければそれを
+        選択中と判定する。選択カードの再タップ = レッスン実行になるため、
+        巡回時にこのスロットを踏まないようにするのが用途。
+
+        Returns:
+            選択中スロット 0..N-1。明確な「せり出し」が無ければ None。
+        """
+        regions = self._lessons
+        top_band, bottom_band = regions.selected_scan_band
+        half_w = regions.selected_scan_half_w
+        tops: list[int] = []
+        for cx in regions.card_centers_x:
+            box = FractionalRegion(
+                x=cx - half_w,
+                y=top_band,
+                w=half_w * 2,
+                h=bottom_band - top_band,
+            ).to_pixels(image.width, image.height)
+            hsv = np.asarray(image.crop(box).convert("HSV"))
+            if hsv.size == 0:
+                tops.append(10_000)
+                continue
+            saturated = (hsv[:, :, 1] > 70).mean(axis=1) > 0.4
+            rows = np.where(saturated)[0]
+            tops.append(int(rows.min()) if rows.size else 10_000)
+        best = min(range(len(tops)), key=tops.__getitem__)
+        rest = sorted(t for i, t in enumerate(tops) if i != best)
+        if not rest:
+            return None
+        # 選択カードは他より明確に (>=12px) 上にせり出している必要がある
+        if tops[best] + 12 <= rest[0]:
+            return best
+        return None
 
     @staticmethod
     def iter_lesson_regions(

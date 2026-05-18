@@ -247,7 +247,7 @@ class ProduceEngine:
         """
         kind = decision.action_kind
         if kind == "lesson":
-            previews = self.collect_lesson_previews()
+            previews, current_selected = self.collect_lesson_previews()
             chosen = self._strategy.choose_lesson(state, previews)
             slot = chosen[0] if chosen is not None else decision.target_slot
             if chosen is not None:
@@ -255,8 +255,12 @@ class ProduceEngine:
                     f"[produce] lesson chosen by preview: slot={slot} "
                     f"'{chosen[1]}' (was decide slot={decision.target_slot})",
                 )
-            self._tap_lesson_slot(slot)
-            self._sleep_settle()
+            # 選択中カードの再タップ = 即実行なので二重決定を避ける:
+            # 目的カードが未選択なら 1 度タップして選択 (実行されない)、
+            # その上で右下「決定」ボタンで確定。既に選択中なら決定だけ。
+            if slot != current_selected:
+                self._tap_lesson_slot(slot)
+                self._sleep_settle()
             self._tap(self._points.schedule.confirm_button)
             return
         if kind == "audition":
@@ -631,30 +635,61 @@ class ProduceEngine:
         cy = sum(regions.name_band) / 2  # カードの縦中央
         self._pointer.click_relative(self._region, (cx, cy))
 
-    def collect_lesson_previews(self) -> list[LessonPreview]:
-        """6 枚のカードを順にタップして効果プレビューを集める。
+    def collect_lesson_previews(self) -> tuple[list[LessonPreview], int]:
+        """全カードの効果プレビューを安全に巡回収集する。
 
-        実機 UI ではプレビューは選択中カード 1 枚分しか固定位置に
-        出ないため、各カードを 1 度タップ → settle → 1 フレーム撮影 →
-        `read_lesson_preview` で 1 枚読む、を全カード分繰り返す。決定
-        ボタンは押さない (選択状態を変えるだけ)。
+        重要 (実機の挙動): **選択中カードを再タップすると決定 = レッスン
+        実行**になる (選択カードには「決定」と表示される)。事故実行を
+        防ぐため:
+
+        1. 開始フレームで選択中スロット `sel` を検出し、その 1 枚は
+           タップせず現フレームから読む (既にプレビュー表示中)。
+        2. 残りのスロットを順にタップして読む。1 枚タップする毎に選択が
+           そのスロットへ移るので、次に踏むスロットは常に「非選択」=
+           事故実行にならない。
+        3. 選択検出が失敗したらゲーム既定の slot 0 を選択中と仮定
+           (左端が既定選択)。
 
         Returns:
-            slot 0..N-1 順の `LessonPreview` リスト。
+            (slot 0..N-1 順の `LessonPreview` リスト, 巡回後に選択中の
+            スロット)。後者は `execute_decision` が二重決定を避けて
+            確定するのに使う。
         """
         regions = self._reader.lesson_regions
-        previews: list[LessonPreview] = []
-        for slot in range(len(regions.card_centers_x)):
-            self._tap_lesson_slot(slot)
+        n = len(regions.card_centers_x)
+        frame0 = self._capture.capture(region=self._region)
+        sel = self._reader.detect_selected_lesson_slot(frame0)
+        if sel is None:
+            self._log(
+                "[produce] selected slot undetected; assuming slot 0 "
+                "(game default) to avoid accidental lesson execution",
+            )
+            sel = 0
+        previews: list[LessonPreview | None] = [None] * n
+        previews[sel] = self._reader.read_lesson_preview(frame0, slot=sel)
+        self._log(
+            f"[produce] preview slot={sel} (selected, no tap) "
+            f"stats={previews[sel].stat_gains} fans={previews[sel].fans_gain}",
+        )
+        current = sel
+        for slot in range(n):
+            if slot == sel:
+                continue
+            self._tap_lesson_slot(slot)  # slot は非選択なので選択が移るだけ
+            current = slot
             self._sleep_settle()
             frame = self._capture.capture(region=self._region)
             preview = self._reader.read_lesson_preview(frame, slot=slot)
-            previews.append(preview)
+            previews[slot] = preview
             self._log(
                 f"[produce] preview slot={slot} "
                 f"stats={preview.stat_gains} fans={preview.fans_gain}",
             )
-        return previews
+        complete = [
+            p if p is not None else LessonPreview(slot=i)
+            for i, p in enumerate(previews)
+        ]
+        return complete, current
 
     def _swipe_audition_next(self) -> None:
         start, end = audition_swipe_path()
