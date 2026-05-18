@@ -49,15 +49,15 @@
       {
         "hooks": [
           {
-            "command": "pwsh.exe -c \"New-BurntToastNotification -Text '🦄 Claude Code', \\\"実行中の claude が停止しました.`n$env:USERNAME@$env:COMPUTERNAME $(Get-Location)\\\"\"",
+            "command": "pwsh.exe -NoProfile -Command 'New-BurntToastNotification -Text \"🦄 Claude Code\", (\"実行中の claude が停止しました.`n\" + $env:USERNAME + \"@\" + $env:COMPUTERNAME)'",
             "type": "command"
           },
           {
-            "command": "sleep 9.7 && mshta vbscript:Execute(\"CreateObject(\"\"SAPI.SpVoice\"\").Speak(\"\"クロードが停止しました\"\"):close\")",
+            "command": "pwsh.exe -NoProfile -Command 'Start-Sleep -Seconds 9.7; Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.Speak(\"クロードが停止しました\")'",
             "type": "command"
           },
           {
-            "command": "pwsh -sta -c \"Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath('UserProfile'); $dir=Join-Path $homePath 'dotfiles\\claude\\ringtones'; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match '^\\.(mp3|wav)' }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Volume = 0.4; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }\"",
+            "command": "pwsh -sta -Command 'Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath(\"UserProfile\"); $dir=Join-Path $homePath \"dotfiles\\claude\\ringtones\"; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match \"^\\.(mp3|wav)\" }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Volume = 0.4; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }'",
             "type": "command"
           },
           {

@@ -20,7 +20,7 @@ input=$(cat)
 
 event=$(echo "$input" | jq -r '.hook_event_name // empty')
 cwd=$(echo "$input" | jq -r '.cwd // empty')
-user_host="${USER}@$(hostname)"
+user_host="${USER:-${USERNAME:-unknown}}@$(hostname)"
 
 case "$event" in
   Stop)
@@ -34,9 +34,16 @@ case "$event" in
     ;;
 esac
 
-payload=$(printf '{"message": "%s"}' "$message" | iconv -t utf-8)
+payload=$(jq -n --arg msg "$message" '{message: $msg}')
 
-curl -s -o /dev/null -X POST \
-  -H "Content-type: application/json; charset=utf-8" \
-  -d "$payload" \
-  "$SLACK_WEBHOOK_URL"
+if [[ "$(uname -o 2>/dev/null)" == "Msys" ]]; then
+  echo "$payload" | curl -s -o /dev/null -X POST \
+    -H "Content-type: application/json; charset=utf-8" \
+    -d @- \
+    "$SLACK_WEBHOOK_URL"
+else
+  curl -s -o /dev/null -X POST \
+    -H "Content-type: application/json; charset=utf-8" \
+    -d "$payload" \
+    "$SLACK_WEBHOOK_URL"
+fi
