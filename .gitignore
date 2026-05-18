@@ -34,4 +34,4 @@ __pycache__/
 /node_modules/
 
 # pcごとに値が変わるので git 管理から外す
-mise.lock 
+mise.lock
