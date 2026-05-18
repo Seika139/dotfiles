@@ -98,10 +98,15 @@ elif [ ! -f "$SETTINGS_TARGET" ]; then
 elif [ ! -f "$REPO_SETTINGS" ]; then
   printf "\033[31m%s\033[0m\n" "   ❌ $REPO_SETTINGS が存在しません。"
 else
+  # local が存在しなければ空 JSON 一時ファイルを使う (プロセス置換は変数経由で FD が閉じる罠があるため)
   if [ -f "$REPO_LOCAL" ] && [ -s "$REPO_LOCAL" ]; then
     LOCAL_INPUT="$REPO_LOCAL"
+    CLEANUP_LOCAL_INPUT=""
   else
-    LOCAL_INPUT=<(echo '{}')
+    LOCAL_INPUT="$(mktemp -t claude-status-local.XXXXXX)"
+    printf '{}' >"$LOCAL_INPUT"
+    CLEANUP_LOCAL_INPUT="$LOCAL_INPUT"
+    trap 'rm -f "$CLEANUP_LOCAL_INPUT"' EXIT
   fi
   ACTUAL=$(jq --sort-keys . "$SETTINGS_TARGET")
   EXPECTED=$(jq -s --sort-keys '.[0] * .[1]' "$REPO_SETTINGS" "$LOCAL_INPUT")
