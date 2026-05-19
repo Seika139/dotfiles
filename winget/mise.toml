@@ -42,8 +42,11 @@ depends = ["check_env"]
 hide = true
 quiet = true
 shell = "bash -c"
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
 if [ -z "$PROFILE" ]; then
   printf "❌ Error: DEFAULT_PROFILE is not set in environment variables\n" >&2
   exit 1
@@ -70,8 +73,11 @@ fi
 description = "現在インストールされているパッケージをプロファイルに書き出す（ただし update など他のコマンドに利用されるわけではない）"
 shell = "bash -c"
 depends = ["check_env", "winget_available"]
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
 run = '''
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
 printf "🦄  Dumping current winget packages to profile: \033[36m$PROFILE\033[0m\n"
 printf "⚠️ 「インストールされているパッケージはどのソースからも利用できません」という警告が出る場合がありますが、無視して構いません。\n"
 mkdir -p "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
@@ -83,8 +89,11 @@ printf "\n✅  Dumped current packages to \033[36m%s\033[36m\n" "{{config_root}}
 description = "プロファイルに登録しているパッケージをアップグレードする"
 shell = "bash -c"
 depends = ["check_env", "winget_available"]
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
 run = """
-PROFILE={{option(name="prof", default=env.DEFAULT_PROFILE)}}
+PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
 mise run check --prof "$PROFILE"
 EXPORT_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.PACKAGE_IDS}}"
 if [ ! -f "$EXPORT_PATH" ]; then
