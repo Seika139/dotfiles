@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="lint を実行する（既定: Markdown のみ、--all/-a: Markdown + ruff + shfmt + taplo）"
+#MISE description="lint（rumdl + markdownlint-cli2 + textlint + shfmt + taplo）"
 #MISE quiet=true
 
 set -euo pipefail
