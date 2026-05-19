@@ -1,24 +1,42 @@
 [tasks.container]
 description = "コンテナに関する操作"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show-all" "show-deletable" "prune"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune"], default="")}}
+selected_option="${usage_selected_option:-}"
 bash "${MISE_CONFIG_ROOT}/mise/scripts/container.sh" "$selected_option"
 """
 
 [tasks.image]
 description = "イメージに関する操作"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show-all" "show-deletable" "prune" "prune-all"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"], default="")}}
+selected_option="${usage_selected_option:-}"
 bash "${MISE_CONFIG_ROOT}/mise/scripts/image.sh" "$selected_option"
 """
 
 [tasks.network]
 description = "ネットワークに関する操作"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show-all" "show-deletable" "prune"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune"], default="")}}
+selected_option="${usage_selected_option:-}"
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
@@ -76,8 +94,14 @@ esac
 [tasks.volume]
 description = "ボリュームに関する操作"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show-all" "show-deletable" "prune" "prune-all"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show-all", "show-deletable", "prune", "prune-all"], default="")}}
+selected_option="${usage_selected_option:-}"
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
@@ -146,8 +170,14 @@ esac
 [tasks.buildx]
 description = "Docker Buildx管理（ビルダー・キャッシュ）"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show-builders" "show-cache" "show-deletable-builders" "prune-builders" "prune-cache" "prune-cache-all"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show-builders", "show-cache", "show-deletable-builders", "prune-builders", "prune-cache", "prune-cache-all"], default="")}}
+selected_option="${usage_selected_option:-}"
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
@@ -227,8 +257,14 @@ esac
 [tasks.context]
 description = "Docker Context管理"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show" "show-deletable" "prune"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show", "show-deletable", "prune"], default="")}}
+selected_option="${usage_selected_option:-}"
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
@@ -288,8 +324,14 @@ esac
 [tasks.system]
 description = "システム全体の管理"
 shell = "bash -c"
+usage = '''
+arg "[selected_option]" {
+  help "操作を選択してください"
+  choices "show" "prune"
+}
+'''
 run = """
-selected_option={{arg(description="操作を選択してください", choices=["show", "prune"], default="")}}
+selected_option="${usage_selected_option:-}"
 
 if [ -z "${selected_option}" ]; then
   selected_option=$(
