@@ -105,6 +105,7 @@
       "Bash(gh api DELETE:*)"
     ]
   },
+  "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "command": "~/dotfiles/claude/status_line.sh",
