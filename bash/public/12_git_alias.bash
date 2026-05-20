@@ -39,7 +39,7 @@ GL_DATE_FORMAT="%Y/%m/%d %H:%M:%S"
 # git log … 飾り付けて表示
 gl() {
   local command
-  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}")
+  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "$@")
   echo_yellow "${command[*]}"
   "${command[@]}"
 }
@@ -47,7 +47,7 @@ gl() {
 # git log … グラフ表示
 glr() {
   local command
-  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--graph")
+  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--graph" "$@")
   echo_yellow "${command[*]}"
   "${command[@]}"
 }
@@ -55,7 +55,7 @@ glr() {
 # git log … 修正ライン数が分かる
 gll() {
   local command
-  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--numstat")
+  command=("git" "log" "--date=format-local:${GL_DATE_FORMAT}" "--pretty=format:${PRETTY_FORMAT}" "--numstat" "$@")
   echo_yellow "${command[*]}"
   "${command[@]}"
 }
