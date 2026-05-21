@@ -1,3 +1,6 @@
+[tools]
+jq = "latest"
+
 [env]
 PROFILES_DIR = "profiles"
 # WSL 環境なら true になる
