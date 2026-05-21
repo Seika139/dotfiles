@@ -16,7 +16,7 @@
   "アクセシビリティ" の両方を許可されていること (`システム設定 →
   プライバシーとセキュリティ`)
 - Tesseract 5.x + 日本語データ (`brew install tesseract tesseract-lang`)
-- シャニマス (https://shinycolors.enza.fun/) にログイン済みの
+- シャニマス (<https://shinycolors.enza.fun/>) にログイン済みの
   ブラウザを起動できる状態
 - **Dock を自動非表示にする** (`システム設定 → デスクトップとDock →
   「Dockを自動的に表示/非表示」をオン`、または Dock を左右へ移動)。
@@ -81,7 +81,7 @@ mise run produce-auto -- \
 
 毎ターン、ターミナルに以下のような行が出る:
 
-```
+```text
 [produce] turn season=2 week=8 fans_left=6225 -> lesson slot=0 (preferred lesson 'ボーカルレッスン' at slot 0)
 ```
 
