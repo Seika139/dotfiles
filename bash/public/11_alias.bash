@@ -55,6 +55,54 @@ fi
 # grep エイリアスが設定されている場合は解除する
 if alias | grep -q 'alias grep='; then unalias grep; fi
 
+# 渡された全ての文字列を「順不同で全て含む」ことを表す正規表現を生成する
+# 例: regex_and "TODO" "FIXME"            -> "TODO.*FIXME|FIXME.*TODO"
+# 例: rg -t md "$(regex_and TODO FIXME)" bash/
+# 引数の全順列を生成するため、引数が多いと長さが階乗的に増える点に注意
+regex_and() {
+  local -r max_args=6
+  if (($# > max_args)); then
+    printf 'regex_and: too many args (%d > %d). Use a pipeline instead: rg pat1 | rg pat2 | ...\n' "$#" "$max_args" >&2
+    return 1
+  fi
+
+  case $# in
+  0) return 0 ;;
+  1)
+    printf '%s' "$1"
+    return 0
+    ;;
+  esac
+
+  local result="" pivot sub i j
+  local -a rest
+
+  for ((i = 1; i <= $#; i++)); do
+    pivot="${!i}"
+    rest=()
+    for ((j = 1; j <= $#; j++)); do
+      ((j != i)) && rest+=("${!j}")
+    done
+    sub=$(regex_and "${rest[@]}")
+    [[ -n $result ]] && result+="|"
+    # 残りが2要素以上なら sub は "x|y" を含むため (?:...) で囲む
+    if ((${#rest[@]} >= 2)); then
+      result+="${pivot}.*(?:${sub})"
+    else
+      result+="${pivot}.*${sub}"
+    fi
+  done
+  printf '%s' "$result"
+}
+
+# 渡された文字列のいずれかにマッチする正規表現を生成する
+# 例: regex_or "TODO" "FIXME" -> "TODO|FIXME"
+regex_or() {
+  (($# == 0)) && return 0
+  local IFS='|'
+  printf '%s' "$*"
+}
+
 # Ubuntu に bat をインストールすると /usr/bin/batcat という名前でインストールされるため、
 # ~/.local/bin/bat としてシンボリックリンクを作成して、bat で使えるようにする。
 if [ -e "/usr/bin/batcat" ] && [ ! -e "$HOME/.local/bin/bat" ]; then
