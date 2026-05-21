@@ -29,7 +29,7 @@ run = ["find ./mise -type f -name \"*.sh\" -exec chmod +x {} +"]
 
 
 [tasks.init]
-description = "初期化"
+description = "dotfiles/claude の mise を初期化"
 quiet = true
 shell = "bash -c"
 depends = ["grant-permissions"]
