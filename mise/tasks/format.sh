@@ -2,6 +2,9 @@
 
 #MISE description="format（rumdl + markdownlint-cli2 + textlint + shfmt + taplo）"
 #MISE quiet=true
+#USAGE flag "-t --textlint" {
+#USAGE   help "textlintも実行する場合はこのフラグを指定してください（時間がかかる場合があります）"
+#USAGE }
 
 set -euo pipefail
 
@@ -24,7 +27,9 @@ print_blue "formatting shell scripts with shfmt"$'\n'
 shfmt -w mise/tasks/**
 
 print_blue "formatting toml with taplo"$'\n'
-taplo fmt
+RUST_LOG=warn taplo fmt
 
-print_blue "textlint --fix"$'\n'
-node node_modules/textlint/bin/textlint.js --fix --config .textlintrc.yml .
+if [ "${usage_textlint:-}" = "true" ]; then
+  print_blue "formatting text files with textlint"$'\n'
+  node node_modules/textlint/bin/textlint.js --fix --config .textlintrc.yml .
+fi
