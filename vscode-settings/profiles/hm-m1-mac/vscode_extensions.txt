@@ -6,11 +6,13 @@ batisteo.vscode-django
 bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
 bufbuild.vscode-buf
+charliermarsh.ruff
 chrmarti.regex
 coderabbit.coderabbit-vscode
 cpylua.language-postcss
 csstools.postcss
 dancheg97.grpc-clicker
+davidanson.vscode-markdownlint
 dbaeumer.vscode-eslint
 discountry.react-redux-react-router-snippets
 docker.docker
@@ -22,6 +24,7 @@ eamodio.gitlens
 editorconfig.editorconfig
 esbenp.prettier-vscode
 evilz.vscode-reveal
+foam.foam-vscode
 formulahendry.auto-close-tag
 formulahendry.auto-rename-tag
 formulahendry.code-runner
@@ -34,6 +37,7 @@ google.gemini-cli-vscode-ide-companion
 google.geminicodeassist
 grapecity.gc-excelviewer
 hashicorp.terraform
+hediet.vscode-drawio
 hollowtree.vue-snippets
 ics.japanese-proofreading
 ionutvmi.path-autocomplete
@@ -58,7 +62,6 @@ ms-dotnettools.csharp
 ms-dotnettools.vscode-dotnet-runtime
 ms-python.black-formatter
 ms-python.debugpy
-ms-python.isort
 ms-python.python
 ms-python.vscode-pylance
 ms-python.vscode-python-envs
@@ -81,6 +84,7 @@ openai.chatgpt
 oxc.oxc-vscode
 peakchen90.open-html-in-browser
 pranaygp.vscode-css-peek
+qwtel.sqlite-viewer
 redhat.vscode-yaml
 rettimo.nextjs-vscode-snippets
 richie5um2.vscode-sort-json

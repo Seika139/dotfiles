@@ -22,12 +22,20 @@
   "git.suggestSmartCommit": false,
   // python
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    }
   },
+  "python.analysis.typeCheckingMode": "standard",
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
+  "python.languageServer": "Default",
+  "python.terminal.activateEnvironment": false,
   "black-formatter.args": ["--line-length=88"],
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
-  "python.terminal.activateEnvironment": false,
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "prettier.endOfLine": "lf",
@@ -448,8 +456,7 @@
   },
   "accessibility.signalOptions.volume": 0,
   "makefile.configureOnOpen": true,
-  "python.analysis.typeCheckingMode": "standard",
-  "window.zoomLevel": -0.8,
+  "window.zoomLevel": -0.85,
   "terminal.integrated.detectLocale": "auto",
   "docker.extension.enableComposeLanguageServer": false,
   "diffEditor.codeLens": true,
@@ -458,10 +465,8 @@
   "[github-actions-workflow]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
   "geminicodeassist.displayInlineContextHint": false,
   "remote.autoForwardPortsSource": "hybrid",
-  "python.languageServer": "Default",
   "color-picker-universal.avoidDuplicate": true,
   // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
   "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
