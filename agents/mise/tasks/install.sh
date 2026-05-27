@@ -9,13 +9,15 @@
 # 違っていれば user 初回実行時に失敗が出るので、その時点で `apm install -g <pkg>` の
 # ループ実装に切り替える。
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
 if [ "$IS_WSL" = "true" ]; then
   DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
 else
   DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
 fi
 PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
-PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
+PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 
 if ! command -v apm &>/dev/null; then
   {

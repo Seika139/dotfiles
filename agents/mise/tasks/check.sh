@@ -7,6 +7,8 @@
 
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
 if [ "$IS_WSL" = "true" ]; then
   DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
 else
@@ -19,14 +21,14 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
-PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
+PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   {
     printf "%s\n" "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
     printf "%s\n" "   Available profiles:"
-    if [ -d "{{config_root}}/$PROFILES_DIR" ]; then
-      ls -1 "{{config_root}}/$PROFILES_DIR" | sed 's/^/   - /'
+    if [ -d "${ROOT_DIR}/$PROFILES_DIR" ]; then
+      ls -1 "${ROOT_DIR}/$PROFILES_DIR" | sed 's/^/   - /'
     else
       printf "%s\n" "   (No profiles directory found)"
     fi
