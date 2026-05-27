@@ -1,0 +1,167 @@
+#!/bin/bash
+
+#MISE description="link.sh で作られた legacy symlink を Trash 退避して APM 配備の邪魔をしないようにする (新規 PC で mise run install 前に 1 回実行)"
+#MISE quiet=true
+
+# ---------------------------------------------------------------------------
+# 新規 PC で dotfiles の claude/codex/gemini link.sh を回したことがある場合、
+# ~/.claude/{commands,skills}, ~/.codex/skills/<n>, ~/.gemini/commands といった
+# 場所に dotfiles を指す symlink が残っている。これらは APM 配備物 (real dir)
+# と衝突したり、symlink を通じて書き込みが dotfiles 内に透過したりするため、
+# `mise run install` 前に Trash 退避するのが安全。
+#
+# 安全策: Trash 経由 (= macOS Finder ゴミ箱) なので reversible。冪等。
+# ---------------------------------------------------------------------------
+
+set -eu
+
+TS=$(date +%Y%m%d_%H%M%S)
+TRASH_DIR=~/.Trash/apm-migrate-$TS
+mkdir -p "$TRASH_DIR"
+
+echo "=== Trash dir: $TRASH_DIR ==="
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 1: ~/.claude/commands (link.sh が作る symlink → dotfiles)
+# ---------------------------------------------------------------------------
+echo "--- Step 1: ~/.claude/commands ---"
+if [ -L ~/.claude/commands ]; then
+  target=$(readlink ~/.claude/commands)
+  case "$target" in
+  */dotfiles/*)
+    mv ~/.claude/commands "$TRASH_DIR/claude-commands"
+    echo "  💾 moved (was symlink → $target)"
+    ;;
+  *)
+    echo "  ⏭️   skipped: symlink points elsewhere ($target)"
+    ;;
+  esac
+elif [ -e ~/.claude/commands ]; then
+  echo "  ⏭️   skipped: exists but not a symlink (real file/dir — APM may have already created it)"
+else
+  echo "  ✅ already gone"
+fi
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 2: ~/.gemini/commands (link.sh が作る symlink → dotfiles)
+# ---------------------------------------------------------------------------
+echo "--- Step 2: ~/.gemini/commands ---"
+if [ -L ~/.gemini/commands ]; then
+  target=$(readlink ~/.gemini/commands)
+  case "$target" in
+  */dotfiles/*)
+    mv ~/.gemini/commands "$TRASH_DIR/gemini-commands"
+    echo "  💾 moved (was symlink → $target)"
+    ;;
+  *)
+    echo "  ⏭️   skipped: symlink points elsewhere ($target)"
+    ;;
+  esac
+elif [ -e ~/.gemini/commands ]; then
+  echo "  ⏭️   skipped: exists but not a symlink (real file/dir)"
+else
+  echo "  ✅ already gone"
+fi
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 3: ~/.codex/skills/ 配下の dotfiles を指す per-skill symlink
+#         (link.sh の旧バージョンが per-skill symlink を作っていた)
+# ---------------------------------------------------------------------------
+echo "--- Step 3: ~/.codex/skills/ per-skill symlinks → dotfiles ---"
+if [ -d ~/.codex/skills ]; then
+  mkdir -p "$TRASH_DIR/codex-skills"
+  moved=0
+  skipped=0
+  for entry in ~/.codex/skills/* ~/.codex/skills/.[!.]*; do
+    [ -e "$entry" ] || continue
+    if [ -L "$entry" ]; then
+      target=$(readlink "$entry")
+      case "$target" in
+      */dotfiles/*)
+        mv "$entry" "$TRASH_DIR/codex-skills/"
+        moved=$((moved + 1))
+        ;;
+      *)
+        skipped=$((skipped + 1))
+        ;;
+      esac
+    fi
+  done
+  echo "  💾 moved: $moved, ⏭️   skipped (non-dotfiles or real dirs): $skipped"
+  rmdir "$TRASH_DIR/codex-skills" 2>/dev/null && echo "  (empty trash subdir cleaned)" || true
+else
+  echo "  ✅ ~/.codex/skills/ does not exist"
+fi
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 4: ~/.claude/skills (link.sh が作る dir-level symlink → dotfiles)
+# ---------------------------------------------------------------------------
+echo "--- Step 4: ~/.claude/skills ---"
+if [ -L ~/.claude/skills ]; then
+  target=$(readlink ~/.claude/skills)
+  case "$target" in
+  */dotfiles/*)
+    mv ~/.claude/skills "$TRASH_DIR/claude-skills"
+    echo "  💾 moved (was symlink → $target)"
+    ;;
+  *)
+    echo "  ⏭️   skipped: symlink points elsewhere ($target)"
+    ;;
+  esac
+elif [ -e ~/.claude/skills ]; then
+  echo "  ⏭️   skipped: exists but not a symlink (real file/dir — APM may have already created it)"
+else
+  echo "  ✅ already gone"
+fi
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 5: ~/.agents/skills/ の全削除 (Codex 2 重発火回避)
+#
+# Codex CLI は ~/.codex/skills/ と ~/.agents/skills/ 両方を読むため、両方に
+# skill が居ると 1 skill が 2 重発火する。install.sh/update.sh に
+# --exclude agent-skills を追加して今後は cross-tool 共有先に配備しない方針。
+# 既存配備物は今後 update されないので Trash 退避してクリーンな状態にする。
+# Claude/Gemini/Cursor/Copilot は ~/.agents/skills/ を読まないので影響なし。
+# ---------------------------------------------------------------------------
+echo "--- Step 5: ~/.agents/skills/ 全削除 (Codex 2 重発火回避) ---"
+if [ -d ~/.agents/skills ]; then
+  mkdir -p "$TRASH_DIR/agents-skills-all"
+  moved=0
+  for entry in ~/.agents/skills/* ~/.agents/skills/.[!.]*; do
+    [ -e "$entry" ] || continue
+    mv "$entry" "$TRASH_DIR/agents-skills-all/"
+    moved=$((moved + 1))
+  done
+  echo "  💾 moved: $moved 件"
+  rmdir "$TRASH_DIR/agents-skills-all" 2>/dev/null && echo "  (empty trash subdir cleaned)" || true
+else
+  echo "  ✅ ~/.agents/skills/ does not exist"
+fi
+echo ""
+
+# ---------------------------------------------------------------------------
+# 検証: 残っているものを表示
+# ---------------------------------------------------------------------------
+echo "=== AFTER ==="
+echo "--- ~/.claude/ ---"
+ls -la ~/.claude/ | grep -E '(commands|skills)' || echo "  (no commands/skills entries)"
+echo ""
+echo "--- ~/.gemini/ ---"
+ls -la ~/.gemini/ | grep -E '(commands|skills)' || echo "  (no commands/skills entries)"
+echo ""
+echo "--- ~/.codex/skills/ remaining ---"
+ls -la ~/.codex/skills/ 2>/dev/null || echo "  (~/.codex/skills/ removed)"
+echo ""
+echo "--- ~/.agents/skills/ remaining ---"
+ls -1 ~/.agents/skills/ 2>/dev/null || echo "  (~/.agents/skills/ does not exist)"
+echo ""
+echo "--- Trash contents ---"
+ls -la "$TRASH_DIR/"
+
+echo ""
+echo "✅ Migration complete. Next: 'mise run install' で APM 配備を開始してください。"
