@@ -83,12 +83,17 @@ fi
 # パスにも配備する。デフォルト (`.agents/skills/` 共有のみ) では Codex/Gemini CLI が
 # 読みに行かないため、現状 Claude 以外で skill が機能しない。CLI 側が cross-tool
 # 仕様に追いつくまでの互換策。
+# --exclude agent-skills: cross-tool 共有先 ~/.agents/skills/ への配備を抑制。
+# Codex CLI は ~/.codex/skills/ と ~/.agents/skills/ の **両方を読む** ため、
+# 両方に配備すると 1 skill が 2 重発火する。per-tool path (~/.codex/skills/) のみで
+# Codex は機能するので cross-tool 配備は冗長 + 有害。
+# Claude/Gemini/Cursor/Copilot は cross-tool 共有先を読まないので影響なし。
 if [ -f "$TARGET_LOCK" ]; then
-  printf "%s\n" "   📦 Running: apm install -g --frozen --legacy-skill-paths"
-  apm install -g --frozen --legacy-skill-paths
+  printf "%s\n" "   📦 Running: apm install -g --frozen --legacy-skill-paths --exclude agent-skills"
+  apm install -g --frozen --legacy-skill-paths --exclude agent-skills
 else
-  printf "%s\n" "   📦 Running: apm install -g --legacy-skill-paths (no lock yet)"
-  apm install -g --legacy-skill-paths
+  printf "%s\n" "   📦 Running: apm install -g --legacy-skill-paths --exclude agent-skills (no lock yet)"
+  apm install -g --legacy-skill-paths --exclude agent-skills
 fi
 
 # ---------------------------------------------------------------------------
