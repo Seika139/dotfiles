@@ -65,9 +65,18 @@ if [ -f "$TARGET_LOCK" ]; then
   printf "%s\n" "   🗑️  既存 ~/.apm/apm.lock.yaml を削除 (新 lock を生成)"
 fi
 
-# Step 3: apm install -g --refresh で最新 ref を再解決 + deploy
-printf "%s\n" "   📦 Running: apm install -g --refresh --legacy-skill-paths"
-apm install -g --refresh --legacy-skill-paths
+# Step 3: apm install -g --refresh --force で最新 ref を再解決 + 既存ファイルも上書き deploy
+#
+# --force の意義: lock を消して --refresh すると APM の「所有権記録」がリセットされ、
+# 既存ファイル (前回 deploy したもの) を「自分が書いたものでない」と判断して上書き拒否
+# する (12 PS × 3 location = 36 files skipped が発生)。update は明示的 refresh なので
+# 上書きが正しい挙動。--force で「locally-authored files on collision」を上書き許可。
+#
+# 注意: --force は同時に「deploy despite critical security findings」も意味する。
+# 自前 catalog (Caromaf/agent-package-basic) なので security findings は self-induced と
+# 判断して許容。サードパーティ catalog を入れる際は要検討。
+printf "%s\n" "   📦 Running: apm install -g --refresh --legacy-skill-paths --force"
+apm install -g --refresh --legacy-skill-paths --force
 
 # Step 4: 新規生成 lock を profile/ にコピーバック
 SOURCE_LOCK="$PROFILE_PATH/apm.lock.yaml"

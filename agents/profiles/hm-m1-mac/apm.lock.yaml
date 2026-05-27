@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-05-27T19:02:43.149895+00:00'
+generated_at: '2026-05-27T19:05:19.845672+00:00'
 apm_version: 0.13.0
 dependencies:
 - repo_url: Caromaf/agent-package-basic
@@ -24,11 +24,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/close-issue.md
   - .claude/skills/close-issue
   - .codex/skills/close-issue
   - .copilot/skills/close-issue
+  - .cursor/commands/close-issue.md
   - .cursor/skills/close-issue
+  - .gemini/commands/close-issue.toml
   - .gemini/skills/close-issue
+  deployed_file_hashes:
+    .claude/commands/close-issue.md: sha256:32e71bb75c173bd82a196ed51d8608a70cfc4fd81d74146094c68acc2ea26449
+    .cursor/commands/close-issue.md: sha256:32e71bb75c173bd82a196ed51d8608a70cfc4fd81d74146094c68acc2ea26449
+    .gemini/commands/close-issue.toml: sha256:b97bc2e43c136cb0cbc96c38e9b9cf851a5e528ea7de36793fe560f5857821cf
   content_hash: sha256:dc95167c8728b4dde0231fc9454cf441a5822671743d5d74f0159462e5f40ec4
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -52,11 +59,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/create-issue.md
   - .claude/skills/create-issue
   - .codex/skills/create-issue
   - .copilot/skills/create-issue
+  - .cursor/commands/create-issue.md
   - .cursor/skills/create-issue
+  - .gemini/commands/create-issue.toml
   - .gemini/skills/create-issue
+  deployed_file_hashes:
+    .claude/commands/create-issue.md: sha256:9ee287ffd8bd38ee611ebf22383938a4b36bbf1146aa7c7d7342f64145e6c35e
+    .cursor/commands/create-issue.md: sha256:9ee287ffd8bd38ee611ebf22383938a4b36bbf1146aa7c7d7342f64145e6c35e
+    .gemini/commands/create-issue.toml: sha256:9848bad10ee952564229e859767b53ec4a88fde6f4a6392b7181639067391928
   content_hash: sha256:3e6c12001eef6bd9aedf141ec61adf5bc2c28bfbc91b8ffa0af5ce741ac17a67
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -66,11 +80,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/discover.md
   - .claude/skills/discover
   - .codex/skills/discover
   - .copilot/skills/discover
+  - .cursor/commands/discover.md
   - .cursor/skills/discover
+  - .gemini/commands/discover.toml
   - .gemini/skills/discover
+  deployed_file_hashes:
+    .claude/commands/discover.md: sha256:ba9061720cad04c891495588fb5bd224bbd3fbde5d0b5fd56a1fe9f01dc4c26a
+    .cursor/commands/discover.md: sha256:ba9061720cad04c891495588fb5bd224bbd3fbde5d0b5fd56a1fe9f01dc4c26a
+    .gemini/commands/discover.toml: sha256:61c5f5b75ec293df79152e7d5e3a731f131651e5415b81446086ad7a8d2e2e19
   content_hash: sha256:8aeb2ec60df14cb1cde9e0e85232efd2052f33d72d16c2be6256b44048c06e4a
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -150,11 +171,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/release-execute.md
   - .claude/skills/release-execute
   - .codex/skills/release-execute
   - .copilot/skills/release-execute
+  - .cursor/commands/release-execute.md
   - .cursor/skills/release-execute
+  - .gemini/commands/release-execute.toml
   - .gemini/skills/release-execute
+  deployed_file_hashes:
+    .claude/commands/release-execute.md: sha256:1e517a9713faccc38406272c8dc350fa728129427dfab73ca6f20326468b0f5e
+    .cursor/commands/release-execute.md: sha256:1e517a9713faccc38406272c8dc350fa728129427dfab73ca6f20326468b0f5e
+    .gemini/commands/release-execute.toml: sha256:8c5fbb59c31a298354131b53e0f77eb3668933ba6b57d1c2c0408de6b453df90
   content_hash: sha256:259d3c424b0c470e026d3bbca28f33643257d71257659d11fcd40e04e769079b
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -164,11 +192,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/release-prepare.md
   - .claude/skills/release-prepare
   - .codex/skills/release-prepare
   - .copilot/skills/release-prepare
+  - .cursor/commands/release-prepare.md
   - .cursor/skills/release-prepare
+  - .gemini/commands/release-prepare.toml
   - .gemini/skills/release-prepare
+  deployed_file_hashes:
+    .claude/commands/release-prepare.md: sha256:95c39554fe7bb17acc1d7d1b14a38b42399583d5e0e804879e960c7c018d1bb2
+    .cursor/commands/release-prepare.md: sha256:95c39554fe7bb17acc1d7d1b14a38b42399583d5e0e804879e960c7c018d1bb2
+    .gemini/commands/release-prepare.toml: sha256:4da210b53f784496b343de720dfe0daf187447f84e16f56c5c9a8d088690c566
   content_hash: sha256:3f4e578c28bebb8e16dcfc266c785983f8d71e0a1540f42fe5667892599dd727
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -178,11 +213,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/respond-pr.md
   - .claude/skills/respond-pr
   - .codex/skills/respond-pr
   - .copilot/skills/respond-pr
+  - .cursor/commands/respond-pr.md
   - .cursor/skills/respond-pr
+  - .gemini/commands/respond-pr.toml
   - .gemini/skills/respond-pr
+  deployed_file_hashes:
+    .claude/commands/respond-pr.md: sha256:e613ab6541099f0aa1d3c75c941025490cea0b1da79ae0ae09caef63bc79a300
+    .cursor/commands/respond-pr.md: sha256:e613ab6541099f0aa1d3c75c941025490cea0b1da79ae0ae09caef63bc79a300
+    .gemini/commands/respond-pr.toml: sha256:90f2d673bef4ff35efe8a109ee6b813ebabef4d2cac24f74e3d8635821d3da38
   content_hash: sha256:47c80717228a8e550e4e1a9c4229d5ad0cbb0cd4592e9198250fe508b571250a
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -192,11 +234,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/review-design-doc.md
   - .claude/skills/review-design-doc
   - .codex/skills/review-design-doc
   - .copilot/skills/review-design-doc
+  - .cursor/commands/review-design-doc.md
   - .cursor/skills/review-design-doc
+  - .gemini/commands/review-design-doc.toml
   - .gemini/skills/review-design-doc
+  deployed_file_hashes:
+    .claude/commands/review-design-doc.md: sha256:694c205408a44e1712477d8d3cae63961084658b40de1bbfba033fc00a657db6
+    .cursor/commands/review-design-doc.md: sha256:694c205408a44e1712477d8d3cae63961084658b40de1bbfba033fc00a657db6
+    .gemini/commands/review-design-doc.toml: sha256:9ef8ddcdcb8ad367822f29aa43423ef430077281f1e6aa36d981ed557738a049
   content_hash: sha256:91f82a43a9553b5e45d39fe9b890970d459f465d1b9441df7fdd8cde590389f2
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -206,11 +255,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/review-pr.md
   - .claude/skills/review-pr
   - .codex/skills/review-pr
   - .copilot/skills/review-pr
+  - .cursor/commands/review-pr.md
   - .cursor/skills/review-pr
+  - .gemini/commands/review-pr.toml
   - .gemini/skills/review-pr
+  deployed_file_hashes:
+    .claude/commands/review-pr.md: sha256:7c89be25a8fa8c80fd8f65d94e29159e65b7f65ed0e846334f92d5268f5f91db
+    .cursor/commands/review-pr.md: sha256:7c89be25a8fa8c80fd8f65d94e29159e65b7f65ed0e846334f92d5268f5f91db
+    .gemini/commands/review-pr.toml: sha256:9b9a24f2056cf6afbbc23596ab5546fb8a08ed34fc680073806955983b6ab6e4
   content_hash: sha256:616a5ee29c57804455a42abcd95b5a40d155592603fa5a2df448cf03ca7126da
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -220,11 +276,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/scaffold.md
   - .claude/skills/scaffold
   - .codex/skills/scaffold
   - .copilot/skills/scaffold
+  - .cursor/commands/scaffold.md
   - .cursor/skills/scaffold
+  - .gemini/commands/scaffold.toml
   - .gemini/skills/scaffold
+  deployed_file_hashes:
+    .claude/commands/scaffold.md: sha256:b25b390d0e28d3f75b879197115062414c673b0190ca5ef47979a7aaf72ff47f
+    .cursor/commands/scaffold.md: sha256:b25b390d0e28d3f75b879197115062414c673b0190ca5ef47979a7aaf72ff47f
+    .gemini/commands/scaffold.toml: sha256:bdd5bcf49436e5dd0f8a434ea7e6fa732d8fd830acd67b179a9f5c7243812a67
   content_hash: sha256:2c09d9a14b524816fc5aaad1e7e877a62de46f3b382ecf9f21c91e5c49ef6fa1
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -234,11 +297,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/solve-issue.md
   - .claude/skills/solve-issue
   - .codex/skills/solve-issue
   - .copilot/skills/solve-issue
+  - .cursor/commands/solve-issue.md
   - .cursor/skills/solve-issue
+  - .gemini/commands/solve-issue.toml
   - .gemini/skills/solve-issue
+  deployed_file_hashes:
+    .claude/commands/solve-issue.md: sha256:4f5dc76bd6ee111f80651de78f757ac47592175a276b77acf4f2cdab65673847
+    .cursor/commands/solve-issue.md: sha256:4f5dc76bd6ee111f80651de78f757ac47592175a276b77acf4f2cdab65673847
+    .gemini/commands/solve-issue.toml: sha256:3c3a1044a02347f4a9b885032894bf35299b9bbcc2eca59197ff319b2ffbe0e8
   content_hash: sha256:ddbfe57752e01e6254c7d4d1320cf262e00c69210c9081c7bb3c6ccab341ccb9
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -262,11 +332,18 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/ux-review.md
   - .claude/skills/ux-review
   - .codex/skills/ux-review
   - .copilot/skills/ux-review
+  - .cursor/commands/ux-review.md
   - .cursor/skills/ux-review
+  - .gemini/commands/ux-review.toml
   - .gemini/skills/ux-review
+  deployed_file_hashes:
+    .claude/commands/ux-review.md: sha256:55a34876e08f8c8dc2cb7c4eaabea3862b7d7b8649b76a0292dc704906c91768
+    .cursor/commands/ux-review.md: sha256:55a34876e08f8c8dc2cb7c4eaabea3862b7d7b8649b76a0292dc704906c91768
+    .gemini/commands/ux-review.toml: sha256:fa63b99f2cd9ed9e9d51e5970971baf1154dc8bcd6b19a18b3c3b5cc1ac4367f
   content_hash: sha256:538e89ebaf2b6ba2298568819db6a7cbbe457190375b4bb65e2daacdb7eac113
 - repo_url: Caromaf/agent-package-basic
   host: github.com
@@ -290,9 +367,16 @@ dependencies:
   is_virtual: true
   package_type: apm_package
   deployed_files:
+  - .claude/commands/worktree.md
   - .claude/skills/worktree
   - .codex/skills/worktree
   - .copilot/skills/worktree
+  - .cursor/commands/worktree.md
   - .cursor/skills/worktree
+  - .gemini/commands/worktree.toml
   - .gemini/skills/worktree
+  deployed_file_hashes:
+    .claude/commands/worktree.md: sha256:77208df243a4c7794034648b015bcaadb6b5280572a131fc845c3eed73b42795
+    .cursor/commands/worktree.md: sha256:77208df243a4c7794034648b015bcaadb6b5280572a131fc845c3eed73b42795
+    .gemini/commands/worktree.toml: sha256:2e4f0f3e4bda0b98d2fc48e6b01e7b4b0e38da1de5030ee20a9fb571c2ae0dcf
   content_hash: sha256:e0592452b298fe1a06d9371aa4be342d24b0a385ab62ac529016047837761cb0
