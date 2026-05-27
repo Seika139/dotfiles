@@ -78,15 +78,13 @@ PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR}/$PROFILE"
 CODEX_HOME="${HOME}/.codex"
 mkdir -p "$CODEX_HOME"
 
-main_targets=(AGENTS.md prompts custom-config)
+# prompts / skills は APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
+# `mise run install`@agents/ で ~/.codex/skills/ に直接配備される
+# (codex は user-scope で prompts 非対応 — agents/ 側で codex 用 prompts は配備されない)。
+main_targets=(AGENTS.md custom-config)
 render_config="${MISE_CONFIG_ROOT}/mise/scripts/render_config.py"
-sync_prompt_skills="${MISE_CONFIG_ROOT}/mise/scripts/sync_prompt_skills.py"
 
 printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
-
-if [ -d "$PROFILE_PATH/prompts" ] && [ -f "$sync_prompt_skills" ]; then
-  python3 "$sync_prompt_skills" --profile-path "$PROFILE_PATH"
-fi
 
 config_target="${CODEX_HOME}/config.toml"
 if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ] || [ -f "$PROFILE_PATH/config.local.toml" ]; then
@@ -151,44 +149,23 @@ for file in "${main_targets[@]}"; do
   fi
 done
 
-skills_source="${PROFILE_PATH}/skills"
+# skills 配備は APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
+# ~/.codex/skills/ への配備は `mise run install`@agents/ が直接行う。
+# 古い per-skill symlink (`dotfiles/codex/profiles/*/skills/<n>` を指すもの) が残っていれば
+# 安全のため掃除する (clean migration from 旧モデル -> APM モデル)。
 skills_target="${CODEX_HOME}/skills"
-mkdir -p "$skills_target"
-
-for target in "$skills_target"/* "$skills_target"/.[!.]* "$skills_target"/..?*; do
-  [ -e "$target" ] || continue
-  [ -L "$target" ] || continue
-  link_target="$(readlink "$target")"
-  case "$link_target" in
-  "$MISE_CONFIG_ROOT"/"$PROFILES_DIR"/*/skills/*)
-    printf "%s\n" "   Removing existing profile skill symlink: $target"
-    rm "$target"
-    ;;
-  esac
-done
-
-if [ -d "$skills_source" ]; then
-  for source in "$skills_source"/*; do
-    [ -d "$source" ] || continue
-    [ -f "$source/SKILL.md" ] || continue
-
-    skill_name="$(basename "$source")"
-    target="${skills_target}/${skill_name}"
-
-    if [ -L "$target" ]; then
-      printf "\\033[36m  "
-      ln -sfnv "$source" "$target"
-      printf "\\033[0m"
-    elif [ -e "$target" ]; then
-      printf "   ⚠️  Skipping skill because target already exists: \\033[31m%s\\033[0m\n" "$target"
-    else
-      printf "\\033[36m  "
-      ln -sfnv "$source" "$target"
-      printf "\\033[0m"
-    fi
+if [ -d "$skills_target" ]; then
+  for target in "$skills_target"/* "$skills_target"/.[!.]* "$skills_target"/..?*; do
+    [ -e "$target" ] || continue
+    [ -L "$target" ] || continue
+    link_target="$(readlink "$target")"
+    case "$link_target" in
+    "$MISE_CONFIG_ROOT"/"$PROFILES_DIR"/*/skills/*)
+      printf "%s\n" "   🗑️  Removing legacy profile skill symlink: $target"
+      rm "$target"
+      ;;
+    esac
   done
-else
-  printf "   ⚠️  Skipping missing skills directory: \\033[31m%s\\033[0m\n" "$skills_source"
 fi
 
 printf "%s\n" "✅ Linked Codex settings from profile '$PROFILE'"
