@@ -1,13 +1,24 @@
 #!/bin/bash
 
-#MISE description="指定プロファイルの apm.yml に従い APM packages を user scope (~/.claude/skills, ~/.codex/skills 等) に install する"
+#MISE description="指定プロファイルの apm.yml を ~/.apm/apm.yml にシンクし、APM packages を user scope (~/.claude/skills, ~/.codex/skills 等) に install する"
 #MISE depends=["check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 
-# 前提 (未検証): `apm install -g` は cwd の apm.yml を読んで `-g` 配備する。
-# 違っていれば user 初回実行時に失敗が出るので、その時点で `apm install -g <pkg>` の
-# ループ実装に切り替える。
+# ---------------------------------------------------------------------------
+# 設計: profile/apm.yml は intent (dotfiles 管理)、~/.apm/apm.yml は live manifest。
+# install.sh の責務:
+#   1. profile/apm.yml + profile/apm.lock.yaml を ~/.apm/ にシンク
+#   2. apm install -g [--frozen] (-g は ~/.apm を直接見る)
+#   3. 初回 install で新規生成された lock を profile/ にコピーバック (commit 対象)
+#
+# 検証済の事実 (apm 0.13):
+#   - `apm install -g` (引数無し) は cwd ではなく ~/.apm/apm.yml を読む
+#   - ~/.apm/apm.yml が無いと "Run 'apm install -g <org/repo>' to auto-create + install"
+#     と表示され非ゼロ終了
+# ---------------------------------------------------------------------------
+
+set -eu
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -18,6 +29,7 @@ else
 fi
 PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
+APM_HOME="${HOME}/.apm"
 
 if ! command -v apm &>/dev/null; then
   {
@@ -29,15 +41,70 @@ if ! command -v apm &>/dev/null; then
 fi
 
 printf "%s\n" "🦄 Installing APM packages from profile: $PROFILE"
-printf "   profile path: \\033[36m%s\\033[0m\n" "$PROFILE_PATH"
+printf "   profile path: \033[36m%s\033[0m\n" "$PROFILE_PATH"
+printf "   apm home    : \033[36m%s\033[0m\n" "$APM_HOME"
 
-cd "$PROFILE_PATH"
+mkdir -p "$APM_HOME"
 
-if [ -f "apm.lock.yaml" ]; then
-  apm install -g --frozen
+# ---------------------------------------------------------------------------
+# Step 1: profile/apm.yml -> ~/.apm/apm.yml シンク
+# ---------------------------------------------------------------------------
+TARGET_YML="$APM_HOME/apm.yml"
+SOURCE_YML="$PROFILE_PATH/apm.yml"
+
+if [ -f "$TARGET_YML" ] && ! diff -q "$SOURCE_YML" "$TARGET_YML" >/dev/null 2>&1; then
+  backup="${TARGET_YML}.backup.$(date +%Y%m%d_%H%M%S)"
+  cp "$TARGET_YML" "$backup"
+  printf "%s\n" "   💾 既存 ~/.apm/apm.yml をバックアップ: $backup"
+fi
+cp "$SOURCE_YML" "$TARGET_YML"
+printf "%s\n" "   📝 Synced profile apm.yml -> $TARGET_YML"
+
+# ---------------------------------------------------------------------------
+# Step 2: profile/apm.lock.yaml -> ~/.apm/apm.lock.yaml シンク (あれば)
+# ---------------------------------------------------------------------------
+TARGET_LOCK="$APM_HOME/apm.lock.yaml"
+SOURCE_LOCK="$PROFILE_PATH/apm.lock.yaml"
+
+if [ -f "$SOURCE_LOCK" ]; then
+  if [ -f "$TARGET_LOCK" ] && ! diff -q "$SOURCE_LOCK" "$TARGET_LOCK" >/dev/null 2>&1; then
+    backup="${TARGET_LOCK}.backup.$(date +%Y%m%d_%H%M%S)"
+    cp "$TARGET_LOCK" "$backup"
+    printf "%s\n" "   💾 既存 ~/.apm/apm.lock.yaml をバックアップ: $backup"
+  fi
+  cp "$SOURCE_LOCK" "$TARGET_LOCK"
+  printf "%s\n" "   🔒 Synced profile lock -> $TARGET_LOCK"
+fi
+
+# ---------------------------------------------------------------------------
+# Step 3: apm install -g 実行 (-g は ~/.apm を直接見るので cd 不要)
+# ---------------------------------------------------------------------------
+# --legacy-skill-paths: skill を `~/.codex/skills/`, `~/.gemini/skills/` 等の per-tool
+# パスにも配備する。デフォルト (`.agents/skills/` 共有のみ) では Codex/Gemini CLI が
+# 読みに行かないため、現状 Claude 以外で skill が機能しない。CLI 側が cross-tool
+# 仕様に追いつくまでの互換策。
+if [ -f "$TARGET_LOCK" ]; then
+  printf "%s\n" "   📦 Running: apm install -g --frozen --legacy-skill-paths"
+  apm install -g --frozen --legacy-skill-paths
 else
-  printf "%s\n" "ℹ️  apm.lock.yaml が無いため初回 install を実行 (lock を生成します)"
-  apm install -g
+  printf "%s\n" "   📦 Running: apm install -g --legacy-skill-paths (no lock yet)"
+  apm install -g --legacy-skill-paths
+fi
+
+# ---------------------------------------------------------------------------
+# Step 4: ~/.apm/apm.lock.yaml が新規生成 / 更新された場合は profile 側へコピーバック
+#         (これを commit することで他 PC でも再現可能になる)
+# ---------------------------------------------------------------------------
+if [ -f "$TARGET_LOCK" ]; then
+  if [ ! -f "$SOURCE_LOCK" ]; then
+    cp "$TARGET_LOCK" "$SOURCE_LOCK"
+    printf "%s\n" "   ✅ Generated lock copied back to: $SOURCE_LOCK"
+    printf "%s\n" "      (git add してコミットすると他 PC で --frozen install できます)"
+  elif ! diff -q "$SOURCE_LOCK" "$TARGET_LOCK" >/dev/null 2>&1; then
+    cp "$TARGET_LOCK" "$SOURCE_LOCK"
+    printf "%s\n" "   ✅ Updated lock copied back to: $SOURCE_LOCK"
+    printf "%s\n" "      (再現性のため diff を確認のうえコミットしてください)"
+  fi
 fi
 
 printf "%s\n" "✅ Installed APM packages from profile '$PROFILE' to user scope"
