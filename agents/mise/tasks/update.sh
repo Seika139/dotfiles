@@ -75,10 +75,9 @@ fi
 # 注意: --force は同時に「deploy despite critical security findings」も意味する。
 # 自前 catalog (Caromaf/agent-package-basic) なので security findings は self-induced と
 # 判断して許容。サードパーティ catalog を入れる際は要検討。
-# --exclude agent-skills: Codex CLI が cross-tool 共有先 (~/.agents/skills/) と
-# per-tool (~/.codex/skills/) 両方を読み 2 重発火する問題を回避 (install.sh と同じ理由)。
-printf "%s\n" "   📦 Running: apm install -g --refresh --legacy-skill-paths --force --exclude agent-skills"
-apm install -g --refresh --legacy-skill-paths --force --exclude agent-skills
+# default flag 採用 (install.sh と同じ理由、§3 物理制約表参照)
+printf "%s\n" "   📦 Running: apm install -g --refresh --force"
+apm install -g --refresh --force
 
 # Step 4: 新規生成 lock を profile/ にコピーバック
 SOURCE_LOCK="$PROFILE_PATH/apm.lock.yaml"
