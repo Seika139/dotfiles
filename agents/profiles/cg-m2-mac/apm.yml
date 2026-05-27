@@ -2,6 +2,12 @@ name: cg-m2-mac-profile
 version: 0.1.0
 description: profile for cg-m2-mac
 author: Seika139
+targets:
+  - claude
+  - codex
+  - gemini
+  - copilot
+  - cursor
 includes: auto
 dependencies:
   apm:

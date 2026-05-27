@@ -2,6 +2,12 @@ name: wsl-ubuntu-profile
 version: 0.1.0
 description: profile for wsl-ubuntu
 author: Seika139
+targets:
+  - claude
+  - codex
+  - gemini
+  - copilot
+  - cursor
 includes: auto
 dependencies:
   apm:

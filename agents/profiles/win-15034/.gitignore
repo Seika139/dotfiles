@@ -1,2 +1,11 @@
-# APM dependencies
+# APM dependencies + project-local mode deploy artifacts
+# (`apm update` を profile dir で走らせると以下 dir が生成されるので保険として無視)
 apm_modules/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.github/
+.opencode/
+.windsurf/

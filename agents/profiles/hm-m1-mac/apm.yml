@@ -2,6 +2,14 @@ name: hm-m1-mac-profile
 version: 0.1.0
 description: profile for hm-m1-mac
 author: Seika139
+# Explicit targets (auto-detect can vary per-PC, this guarantees deterministic deploy).
+# 'apm update' also requires targets to be declared when run outside a harness-equipped dir.
+targets:
+  - claude
+  - codex
+  - gemini
+  - copilot
+  - cursor
 includes: auto
 dependencies:
   apm:

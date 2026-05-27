@@ -2,6 +2,12 @@ name: xsv-linux-1-profile
 version: 0.1.0
 description: profile for xsv-linux-1
 author: Seika139
+targets:
+  - claude
+  - codex
+  - gemini
+  - copilot
+  - cursor
 includes: auto
 dependencies:
   apm:
