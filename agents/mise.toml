@@ -1,0 +1,258 @@
+[env]
+PROFILES_DIR = "profiles"
+# WSL 環境なら true になる
+# Tera 側の外部プロセス呼び出しはバージョン間で挙動が不安定なため read_file + containing で判定する
+# Tera の is テストは変数にしか使えないため set で一旦変数に入れる
+# {%- -%} で空白・改行を除去して "true" / "false" のみが値になるようにする
+IS_WSL = '''
+{%- set proc = "/proc/version" -%}
+{%- if os() == "linux" and proc is file -%}
+  {%- set content = read_file(path="/proc/version") -%}
+  {%- if content is containing("microsoft") -%}
+    true
+  {%- else -%}
+    false
+  {%- endif -%}
+{%- else -%}
+  false
+{%- endif -%}
+'''
+
+[tasks.check_env]
+description = "環境変数がちゃんと設定されているか確認する"
+quiet = true
+hide = true
+shell = "bash -c"
+run = """
+set -eu
+
+if [ ! -e "{{config_root}}/mise.local.toml" ]; then
+  {
+    printf "%s\n" '[env]'
+    printf "%s\n" 'DEFAULT_AGENTS_PROFILE=""'
+    printf "%s\n" 'WSL_AGENTS_PROFILE=""'
+  } > "{{config_root}}/mise.local.toml"
+  printf "%s\n" "🚨 '{{config_root}}/mise.local.toml' に環境変数を設定する必要があります。"
+  printf "%s\n" "🚨 必要な環境変数をデフォルトでセットしました。"
+  printf "%s\n" "🚨 DEFAULT_AGENTS_PROFILE と WSL_AGENTS_PROFILE に適切なプロファイル名を設定してください。"
+  exit 1
+fi
+if [ -z "${DEFAULT_AGENTS_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'DEFAULT_AGENTS_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。"
+  exit 1
+fi
+if [ -z "${WSL_AGENTS_PROFILE:-}" ]; then
+  printf "%s\n" "🚨 'WSL_AGENTS_PROFILE' を '{{config_root}}/mise.local.toml' に設定してください。（wsl を利用しない場合でも何らかの値を入れてください）"
+  exit 1
+fi
+"""
+
+[tasks.check]
+description = "指定プロファイルが存在するかを確認し、なければエラーを返す"
+depends = ["check_env"]
+hide = true
+quiet = true
+shell = "bash -c"
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
+run = """
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
+fi
+PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
+printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
+if [ -z "$PROFILE" ]; then
+  printf "❌ Error: DEFAULT_AGENTS_PROFILE is not set in environment variables\n" >&2
+  exit 1
+fi
+
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  {
+    printf "❌ Error: Profile directory '$PROFILE_PATH' does not exist\n"
+    printf "   Available profiles:\n"
+    if [ -d "{{config_root}}/$PROFILES_DIR" ]; then
+      ls -1 "{{config_root}}/$PROFILES_DIR" | sed 's/^/   - /'
+    else
+      printf "   (No profiles directory found)\n"
+    fi
+  } >&2
+  exit 1
+fi
+
+if [ ! -f "$PROFILE_PATH/apm.yml" ]; then
+  printf "❌ Error: '$PROFILE_PATH/apm.yml' が見つかりません\n" >&2
+  exit 1
+fi
+"""
+
+[tasks.install]
+description = "指定プロファイルの apm.yml に従い APM packages を user scope (~/.claude/skills, ~/.codex/skills 等) に install する"
+depends = ["check"]
+shell = "bash -c"
+quiet = true
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
+# 前提 (未検証): `apm install -g` は cwd の apm.yml を読んで `-g` 配備する。
+# 違っていれば user 初回実行時に失敗が出るので、その時点で `apm install -g <pkg>` の
+# ループ実装に切り替える。
+run = """
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
+fi
+PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
+
+if ! command -v apm &>/dev/null; then
+  {
+    printf "%s\n" "🚨 'apm' CLI が見つかりません。"
+    printf "%s\n" "   インストール (mac/linux): curl -sSL https://aka.ms/apm-unix | sh"
+    printf "%s\n" "   インストール (win):       irm https://aka.ms/apm-windows | iex"
+  } >&2
+  exit 1
+fi
+
+printf "%s\n" "🦄 Installing APM packages from profile: $PROFILE"
+printf "   profile path: \\033[36m%s\\033[0m\n" "$PROFILE_PATH"
+
+cd "$PROFILE_PATH"
+
+if [ -f "apm.lock.yaml" ]; then
+  apm install -g --frozen
+else
+  printf "%s\n" "ℹ️  apm.lock.yaml が無いため初回 install を実行 (lock を生成します)"
+  apm install -g
+fi
+
+printf "%s\n" "✅ Installed APM packages from profile '$PROFILE' to user scope"
+"""
+
+[tasks.update]
+description = "指定プロファイルの apm dependencies を最新 ref に更新し再 install する (lock 更新)"
+depends = ["check"]
+shell = "bash -c"
+quiet = true
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
+run = """
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
+fi
+PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
+
+if ! command -v apm &>/dev/null; then
+  printf "%s\n" "🚨 'apm' CLI が見つかりません。" >&2
+  exit 1
+fi
+
+printf "%s\n" "🦄 Updating APM packages from profile: $PROFILE"
+
+cd "$PROFILE_PATH"
+apm update --yes
+
+printf "%s\n" "✅ Updated APM dependencies for profile '$PROFILE'"
+printf "%s\n" "   次に 'mise run install' で user scope に反映してください"
+"""
+
+[tasks.list]
+description = "利用可能なプロファイル一覧を表示"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+run = """
+PROFILES_PATH="{{config_root}}/$PROFILES_DIR"
+
+if [ "$IS_WSL" = "true" ]; then
+  CURRENT_PROFILE="${WSL_AGENTS_PROFILE:-}"
+else
+  CURRENT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
+fi
+
+printf "%s\n" "🦄 Available Agents (APM) Profiles:"
+if [ -d "$PROFILES_PATH" ]; then
+  for profile in "$PROFILES_PATH"/*; do
+    if [ -d "$profile" ]; then
+      profile_name=$(basename "$profile")
+      if [ "$profile_name" = "$CURRENT_PROFILE" ]; then
+        printf "%s\n" "   ✅ $profile_name (current)"
+      else
+        printf "%s\n" "   ⭕ $profile_name"
+      fi
+    fi
+  done
+else
+  printf "%s\n" "   (No profiles found)"
+fi
+
+if [ -n "$CURRENT_PROFILE" ]; then
+  printf "\nCurrent profile:\\033[36m %s\\033[0m\n" "$CURRENT_PROFILE"
+else
+  printf "%s\n" "\n⚠️ No current profile set in DEFAULT_AGENTS_PROFILE"
+fi
+"""
+
+[tasks.status]
+description = "現在のプロファイル設定と install 状況を確認"
+depends = ["check_env"]
+shell = "bash -c"
+quiet = true
+usage = '''
+flag "--prof <prof>" help="プロファイル名"
+'''
+run = """
+if [ "$IS_WSL" = "true" ]; then
+  DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
+else
+  DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
+fi
+PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
+PROFILE_PATH="{{config_root}}/$PROFILES_DIR/$PROFILE"
+
+printf "%s\n" "🦄 Environment Check"
+printf "os()                 =\\033[36m %s\\033[0m\n" "{{ os() }}"
+printf "IS_WSL               =\\033[36m %s\\033[0m\n" "$IS_WSL"
+printf "config_root          =\\033[36m %s\\033[0m\n" "{{ config_root }}"
+printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
+printf "Profile path         =\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  printf "❌ Profile directory does not exist:\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
+  exit 1
+fi
+
+printf "\n📂 apm.yml dependencies:\n"
+if [ -f "$PROFILE_PATH/apm.yml" ]; then
+  grep -E '^\\s*-\\s+' "$PROFILE_PATH/apm.yml" | sed 's/^/  /' || true
+else
+  printf "\\033[31m%s\\033[0m\n" "   ❌ apm.yml does not exist"
+fi
+
+printf "\n🔒 apm.lock.yaml:\n"
+if [ -f "$PROFILE_PATH/apm.lock.yaml" ]; then
+  printf "   ✅ exists\n"
+else
+  printf "\\033[33m%s\\033[0m\n" "   ⚠️ not generated yet (run 'mise run install')"
+fi
+
+printf "\n🌐 Installed at user scope:\n"
+printf "   ~/.claude/skills/:\n"
+ls -1 "$HOME/.claude/skills" 2>/dev/null | sed 's/^/     - /' || printf "     (none)\n"
+printf "   ~/.codex/skills/:\n"
+ls -1 "$HOME/.codex/skills" 2>/dev/null | sed 's/^/     - /' || printf "     (none)\n"
+
+printf "\n💡 Commands:\n"
+printf "   install : mise run install [--prof <profile>]\n"
+printf "   update  : mise run update  [--prof <profile>]\n"
+printf "   list    : mise run list\n"
+"""
