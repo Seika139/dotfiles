@@ -10,11 +10,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 PROFILES_PATH="${ROOT_DIR}/$PROFILES_DIR"
 
-if [ "$IS_WSL" = "true" ]; then
-  CURRENT_PROFILE="${WSL_AGENTS_PROFILE:-}"
-else
-  CURRENT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
-fi
+CURRENT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
 
 printf "%s\n" "🦄 Available Agents (APM) Profiles:"
 if [ -d "$PROFILES_PATH" ]; then
