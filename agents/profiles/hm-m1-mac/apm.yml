@@ -17,6 +17,7 @@ dependencies:
     - Caromaf/agent-package-basic/packages/breaking-change-in-php-framework#main
     - Caromaf/agent-package-basic/packages/close-issue#main
     - Caromaf/agent-package-basic/packages/codex-review#main
+    - Caromaf/agent-package-basic/packages/commit-message#main
     - Caromaf/agent-package-basic/packages/create-issue#main
     - Caromaf/agent-package-basic/packages/discover#main
     - Caromaf/agent-package-basic/packages/framework-changelog#main
