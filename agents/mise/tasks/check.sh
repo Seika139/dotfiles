@@ -9,12 +9,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-if [ "$IS_WSL" = "true" ]; then
-  DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
-else
-  DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
-fi
-PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
+PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 printf "Using profile: \\033[36m%s\\033[0m\n" "$PROFILE"
 if [ -z "$PROFILE" ]; then
   printf "%s\n" "❌ Error: DEFAULT_AGENTS_PROFILE is not set in environment variables" >&2
