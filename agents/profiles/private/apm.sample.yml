@@ -1,0 +1,13 @@
+# private overlay の雛形。`apm.yml` にコピーして編集する:
+#   cp profiles/private/apm.sample.yml profiles/private/apm.yml
+# 詳細は ../../README.md §4 を参照。
+#
+# overlay は active profile の apm.yml に重ねて install される。
+# `dependencies.apm` / `dependencies.mcp` のみマージ対象 (name / targets 等は無視)。
+name: private-overlay
+description: local private overlay
+dependencies:
+  apm:
+    - example-org/private-package/packages/foo#main
+    - example-org/private-package/packages/bar#main
+  mcp: []
