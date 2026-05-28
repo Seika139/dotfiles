@@ -74,9 +74,8 @@ fi
 # プロファイル下のファイル/ディレクトリ存在確認
 # ---------------------------------------------------------------------------
 printf "\n📂 Original files and directories:\n"
-# NOTE: commands/ skills/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
-#   rules/ は将来 APM `instructions` primitive に移行予定 (migration-plan.md §8)。
-for file in settings.json settings.local.json CLAUDE.md custom-config rules; do
+# NOTE: commands/ skills/ rules/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
+for file in settings.json settings.local.json CLAUDE.md custom-config; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -153,8 +152,8 @@ fi
 # その他は symlink で同期されているはず
 # ---------------------------------------------------------------------------
 printf "\n🔗 Symlinks in\033[36m %s/.claude:\033[0m\n" "$HOME"
-# NOTE: commands/ skills/ は APM 管理 (~/.claude/{commands,skills}/ は real dir) に移行済のためチェック対象外。
-for file in CLAUDE.md custom-config rules; do
+# NOTE: commands/ skills/ rules/ は APM 管理 (~/.claude/{commands,skills,rules}/ は real dir) に移行済のためチェック対象外。
+for file in CLAUDE.md custom-config; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
 
