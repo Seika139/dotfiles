@@ -171,7 +171,7 @@ cd packages/<name> && apm compile --validate
 
 ## 6. 関連
 
-- skills の配備 flag 戦略 (default `apm install -g --frozen`): `../../ONBOARDING.md` §5.8
-  または `sync-guide.md`
+- skills の配備 flag 戦略 (default `apm install -g --frozen`) と APM 実挙動: [apm-behavior-reference.md](./apm-behavior-reference.md)
 - migrate.sh の legacy symlink cleanup (rules 含む): `agents/mise/tasks/migrate.sh`
-- custom-config 依存問題 (OSS 化 prerequisite): ONBOARDING.md §5.9
+- commit-message instruction の移行記録・Codex 見送り決定: [migration-plan.md](./migration-plan.md) §8
+- custom-config 依存問題: [migration-plan.md](./migration-plan.md) (create-issue の 3 段 fallback)
