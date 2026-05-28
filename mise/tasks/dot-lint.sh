@@ -24,11 +24,24 @@ print_blue "linting Markdown files"$'\n'
 rumdl check .
 markdownlint-cli2
 
+# shfmt と shellcheck でチェックするファイル・ディレクトリのリスト
+shell_files=(
+  install.sh
+  unlink.sh
+  bash/
+  mise/tasks/
+  agents/mise/tasks/
+)
+
 print_blue "linting shell scripts with shfmt"$'\n'
-shfmt -d mise/tasks/**
+find "${shell_files[@]}" -type f \
+  \( -name "*.sh" -o -name "*.bash" \) -print0 |
+  xargs -0 shfmt -d
 
 print_blue "linting shell scripts with shellcheck"$'\n'
-shellcheck -x mise/tasks/*.sh install.sh unlink.sh agents/mise/tasks/*.sh
+find "${shell_files[@]}" -type f \
+  \( -name "*.sh" -o -name "*.bash" \) -print0 |
+  xargs -0 shellcheck -x
 
 print_blue "linting toml with taplo"$'\n'
 RUST_LOG=warn taplo fmt --check --diff
