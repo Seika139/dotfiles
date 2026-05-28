@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #MISE description="指定プロファイルの apm dependencies を最新 ref に再解決 + user scope に再 deploy (lock 更新)"
-#MISE depends=["check"]
+#MISE depends=["apm-available", "check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 
@@ -35,11 +35,6 @@ fi
 PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 APM_HOME="${HOME}/.apm"
-
-if ! command -v apm &>/dev/null; then
-  printf "%s\n" "🚨 'apm' CLI が見つかりません。" >&2
-  exit 1
-fi
 
 printf "%s\n" "🦄 Refreshing APM packages from profile: $PROFILE"
 printf "   profile path: \033[36m%s\033[0m\n" "$PROFILE_PATH"

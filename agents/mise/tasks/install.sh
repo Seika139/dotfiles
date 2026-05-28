@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #MISE description="指定プロファイルの apm.yml を ~/.apm/apm.yml にシンクし、APM packages を user scope (~/.claude/skills, ~/.codex/skills 等) に install する"
-#MISE depends=["check"]
+#MISE depends=["apm-available", "check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 
@@ -30,15 +30,6 @@ fi
 PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 APM_HOME="${HOME}/.apm"
-
-if ! command -v apm &>/dev/null; then
-  {
-    printf "%s\n" "🚨 'apm' CLI が見つかりません。"
-    printf "%s\n" "   インストール (mac/linux): curl -sSL https://aka.ms/apm-unix | sh"
-    printf "%s\n" "   インストール (win):       irm https://aka.ms/apm-windows | iex"
-  } >&2
-  exit 1
-fi
 
 printf "%s\n" "🦄 Installing APM packages from profile: $PROFILE"
 printf "   profile path: \033[36m%s\033[0m\n" "$PROFILE_PATH"
