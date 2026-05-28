@@ -23,6 +23,7 @@ ignore: |
   /node_modules/
   # 自動生成されるロックファイルは lint しない。
   pnpm-lock.yaml
+  apm.lock.yaml
 
 rules:
   line-length:
