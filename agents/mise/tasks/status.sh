@@ -9,12 +9,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-if [ "$IS_WSL" = "true" ]; then
-  DEFAULT_PROFILE="${WSL_AGENTS_PROFILE:-}"
-else
-  DEFAULT_PROFILE="${DEFAULT_AGENTS_PROFILE:-}"
-fi
-PROFILE="${usage_prof:-$DEFAULT_PROFILE}"
+PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 
 printf "%s\n" "🦄 Environment Check"
