@@ -124,18 +124,17 @@ cat > "$PROFILE_PATH/AGENTS.md" << 'EOF'
 <!-- Note any specific restrictions or security considerations -->
 EOF
 
-mkdir -p "$PROFILE_PATH/prompts"
+# custom-config のみ作成。
+# NOTE: prompts/ と skills/ は APM 管理 (dotfiles/agents/) に移行済のため作成しない。
+#   `mise run install`@agents/ で ~/.codex/{prompts,skills}/ に直接配備される。
 mkdir -p "$PROFILE_PATH/custom-config"
-mkdir -p "$PROFILE_PATH/skills"
 
 printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 printf "%s\n" "📝 Edit settings in:"
 printf "%s\n" "   - $PROFILE_PATH/config.base.toml"
 printf "%s\n" "   - $PROFILE_PATH/config.local.toml (optional, git-ignored)"
 printf "%s\n" "   - $PROFILE_PATH/AGENTS.md"
-printf "%s\n" "   - $PROFILE_PATH/prompts/"
 printf "%s\n" "   - $PROFILE_PATH/custom-config/"
-printf "%s\n" "   - $PROFILE_PATH/skills/"
 """
 
 [tasks.link]
@@ -221,7 +220,8 @@ if [ ! -d "$PROFILE_PATH" ]; then
 fi
 
 printf "\n📂 Original files and directories:\n"
-for file in AGENTS.md prompts custom-config skills; do
+# NOTE: prompts/ skills/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
+for file in AGENTS.md custom-config; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -277,7 +277,8 @@ else
 fi
 
 printf "\n🔗 Symlinks in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
-for file in AGENTS.md prompts custom-config; do
+# NOTE: prompts/ は APM 管理 (~/.codex/prompts/ は real dir) に移行済のためチェック対象外。
+for file in AGENTS.md custom-config; do
   target="${HOME}/.codex/$file"
   source="$PROFILE_PATH/$file"
 
@@ -307,40 +308,23 @@ for file in AGENTS.md prompts custom-config; do
   fi
 done
 
-printf "\n🧩 Profile skill symlinks in\\033[36m %s/.codex/skills:\\033[0m\n" "$HOME"
-if [ -d "$PROFILE_PATH/skills" ]; then
-  found_skill=false
-  for source in "$PROFILE_PATH/skills"/*; do
-    [ -d "$source" ] || continue
-    [ -f "$source/SKILL.md" ] || continue
-    found_skill=true
-    skill_name=$(basename "$source")
-    target="${HOME}/.codex/skills/$skill_name"
-
-    if [ -L "$target" ]; then
-      link_target=$(readlink "$target")
-      if [ "$link_target" = "$source" ]; then
-        printf "%s\n" "   ✅ $source -> $link_target"
-      else
-        printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
-      fi
-    elif [ -e "$target" ]; then
-      printf "%s\n" "   ⚠️  $target exists but is not a profile symlink"
-    else
-      printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
-    fi
-  done
-  if [ "$found_skill" = "false" ]; then
-    printf "%s\n" "   (No profile skills found)"
-  fi
+printf "\n🧩 APM-managed skills in\\033[36m %s/.codex/skills:\\033[0m\n" "$HOME"
+# NOTE: APM 移行後は ~/.codex/skills/ は APM が real dir として書き込む。
+#   profile から symlink するのは廃止 (旧コード残骸は本ファイル過去 commit を参照)。
+#   詳細は dotfiles/agents/ 配下と migration-plan.md を参照。
+if [ -d "${HOME}/.codex/skills" ]; then
+  skill_count=$(find "${HOME}/.codex/skills" -mindepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+  printf "%s\n" "   ✅ $skill_count skill(s) deployed (managed by 'apm install -g')"
+  printf "\\033[36m%s\\033[0m\n" "         詳細: cd ~/dotfiles/agents && mise run status"
 else
-  printf "%s\n" "   (No skills directory found)"
+  printf "\\033[33m%s\\033[0m\n" "   ❌ ${HOME}/.codex/skills does not exist. Run: cd ~/dotfiles/agents && mise run install"
 fi
 
 printf "%s\n" "\n💡 Commands:"
 printf "%s\n" "   反映/更新: mise run link --prof \"$PROFILE\""
 printf "%s\n" "   Codexが書いたconfigを取り込み: mise run pull_config --prof \"$PROFILE\""
 printf "%s\n" "   プロファイル変更: mise run switch [--prof <profile-name>]"
+printf "%s\n" "   APM-managed skills: cd ~/dotfiles/agents && mise run status"
 """
 
 [tasks.switch]
