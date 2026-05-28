@@ -1,5 +1,9 @@
 # === user-managed ===
 mise.local.toml
 
+# === private overlay (PC ローカルの非公開 apm.yml + 派生 lock) ===
+profiles/private/**
+!profiles/private/apm.sample.yml
+
 # === APM auto-managed (do not remove; apm install re-adds it) ===
 apm_modules/
