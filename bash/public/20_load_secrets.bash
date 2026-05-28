@@ -44,9 +44,7 @@ check_required_env_vars() {
 # 機密情報を含む環境変数の名前だけをここに列挙し、読み込まれたことを確認する
 # 環境プロファイル等で事前に BDOT_SECRETS_REQUIRED_VARS を定義しておけばデフォルトを上書きできる
 if [[ -z "${BDOT_SECRETS_REQUIRED_VARS+x}" ]]; then
-  BDOT_SECRETS_REQUIRED_VARS=(
-    "OPENAI_API_KEY"
-  )
+  BDOT_SECRETS_REQUIRED_VARS=()
 fi
 
 if [[ "${BDOTDIR_SHELL_IS_INTERACTIVE:-0}" == "1" ]] && ((${#BDOT_SECRETS_REQUIRED_VARS[@]} > 0)); then
