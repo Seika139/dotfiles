@@ -17,6 +17,10 @@ if [ -d "$PROFILES_PATH" ]; then
   for profile in "$PROFILES_PATH"/*; do
     if [ -d "$profile" ]; then
       profile_name=$(basename "$profile")
+      # private/ は profile ではなく overlay のため一覧対象外
+      if [ "$profile_name" = "private" ]; then
+        continue
+      fi
       if [ "$profile_name" = "$CURRENT_PROFILE" ]; then
         printf "%s\n" "   ✅ $profile_name (current)"
       else
@@ -26,6 +30,12 @@ if [ -d "$PROFILES_PATH" ]; then
   done
 else
   printf "%s\n" "   (No profiles found)"
+fi
+
+# private overlay が存在すれば併記
+if [ -f "$PROFILES_PATH/private/apm.yml" ]; then
+  printf "\n%s\n" "🔒 Private overlay:"
+  printf "   ✅ profiles/private/apm.yml (active で profile に重ねて install)\n"
 fi
 
 if [ -n "$CURRENT_PROFILE" ]; then

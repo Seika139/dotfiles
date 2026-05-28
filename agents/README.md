@@ -14,9 +14,13 @@ dotfiles/agents/
 ├── mise/
 │   └── tasks/                # install / update / status / list / check_env / migrate
 └── profiles/
-    └── <machine>/
-        ├── apm.yml           # 当該マシンで install するパッケージの宣言
-        └── apm.lock.yaml     # install 後に生成。commit して再現性を確保
+    ├── <machine>/
+    │   ├── apm.yml           # 当該マシンで install するパッケージの宣言
+    │   └── apm.lock.yaml     # install 後に生成。commit して再現性を確保
+    └── private/              # 任意の overlay (詳細は §4)
+        ├── apm.sample.yml    # 雛形。git-tracked
+        ├── apm.yml           # active profile に重ねる private dependencies (gitignored)
+        └── apm.lock.yaml     # private 込みのマージ後 lock (gitignored)
 ```
 
 ## 設計原則
@@ -43,6 +47,10 @@ dependencies:
 
 ## クイックスタート (新マシン)
 
+> 前提: `uv` (Python 環境) が導入済。merge スクリプト (PEP 723 inline metadata) を
+> `uv run` 経由で実行するため必須。未導入なら:
+> `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
 ```bash
 # 1) APM CLI を導入
 # https://microsoft.github.io/apm/quickstart/#1-install-apm を参照
@@ -58,7 +66,11 @@ echo "<machine>" > ~/dotfiles/.active-profile
 #    ~/.cursor/commands, ~/.gemini/skills 等) を実 dir として用意する
 cd ~/dotfiles/agents && mise trust && mise run migrate
 
-# 4) install 実行 (~/.apm/apm.yml を profile/apm.yml と同期 → apm install -g)
+# 4) (任意) private overlay を有効化したい場合
+#    cp profiles/private/apm.sample.yml profiles/private/apm.yml
+#    詳細は §4
+
+# 5) install 実行 (~/.apm/apm.yml を profile/apm.yml と同期 → apm install -g)
 mise run install
 ```
 
@@ -79,6 +91,48 @@ mise run list                  # 利用可能 profile 一覧
 mise run update                # apm install -g --refresh --force で最新 ref に再解決
 mise run install --prof <m>    # 別 profile を一時的に当てる
 ```
+
+## 4. private overlay (任意)
+
+`profiles/private/apm.yml` を作ると、`mise run install` / `mise run update` 実行時に
+**active profile の `apm.yml` に重ねて** user scope へ install できる。GitHub に push できない
+private repo の package、評価用の一時 package、PC 固有の package などをここに置く。
+
+`profiles/private/apm.yml` と `apm.lock.yaml` は `agents/.gitignore` で除外。
+**`apm.sample.yml` のみ git-tracked** で、新マシンの初期化雛形として残る。
+
+### 4.1 初期化 (PC ごと、必要なら)
+
+```bash
+cd ~/dotfiles/agents
+cp profiles/private/apm.sample.yml profiles/private/apm.yml
+$EDITOR profiles/private/apm.yml      # 必要な private dependencies を書く
+mise run install                      # base + private がマージされて install される
+```
+
+### 4.2 仕様
+
+`apm.yml` は overlay なので `dependencies` だけで十分:
+
+```yaml
+dependencies:
+  apm:
+    - <owner>/<private-repo>/packages/<pkg>#main
+  mcp: []
+```
+
+挙動:
+
+- マージ範囲は `dependencies.apm` と `dependencies.mcp` のみ。`name` / `targets` /
+  `includes` 等のメタは active profile 側の値が常に優先される
+- 重複 ref (完全一致) は base 側を残して dedupe される
+- private 有効時、`apm.lock.yaml` は **`profiles/private/apm.lock.yaml`** にコピーバック
+  される。git-tracked な `profiles/<machine>/apm.lock.yaml` には触らない (= public 側に
+  private ref が漏れない)
+- private を撤去したいときは `rm profiles/private/apm.yml profiles/private/apm.lock.yaml`
+  してから `mise run install`。`~/.apm/apm.yml` が public 側だけのマニフェストに戻る
+
+`mise run status` で base/overlay の dependencies が分けて表示される。
 
 ## APM の責務範囲
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #MISE description="指定プロファイルの apm dependencies を最新 ref に再解決 + user scope に再 deploy (lock 更新)"
-#MISE depends=["apm-available", "check"]
+#MISE depends=["apm-available", "uv-available", "check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 
@@ -29,24 +29,50 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
+PRIVATE_PATH="${ROOT_DIR}/$PROFILES_DIR/private"
 APM_HOME="${HOME}/.apm"
+
+PRIVATE_YML="$PRIVATE_PATH/apm.yml"
+PRIVATE_LOCK="$PRIVATE_PATH/apm.lock.yaml"
+HAS_PRIVATE=false
+if [ -f "$PRIVATE_YML" ]; then
+  HAS_PRIVATE=true
+fi
 
 printf "%s\n" "🦄 Refreshing APM packages from profile: $PROFILE"
 printf "   profile path: \033[36m%s\033[0m\n" "$PROFILE_PATH"
 printf "   apm home    : \033[36m%s\033[0m\n" "$APM_HOME"
+if [ "$HAS_PRIVATE" = "true" ]; then
+  printf "   private overlay: \033[36m%s\033[0m\n" "$PRIVATE_YML"
+fi
 
 mkdir -p "$APM_HOME"
 
-# Step 1: profile/apm.yml -> ~/.apm/apm.yml シンク (既存と差分があればバックアップ)
+# Step 1: profile/apm.yml [+ private/apm.yml] -> ~/.apm/apm.yml シンク
 TARGET_YML="$APM_HOME/apm.yml"
 SOURCE_YML="$PROFILE_PATH/apm.yml"
-if [ -f "$TARGET_YML" ] && ! diff -q "$SOURCE_YML" "$TARGET_YML" >/dev/null 2>&1; then
+TMP_YML=$(mktemp -t apm-merged.XXXXXX.yml)
+trap 'rm -f "$TMP_YML"' EXIT
+
+if [ "$HAS_PRIVATE" = "true" ]; then
+  uv run "${ROOT_DIR}/mise/scripts/merge_apm_yml.py" \
+    --base "$SOURCE_YML" --overlay "$PRIVATE_YML" >"$TMP_YML"
+else
+  cp "$SOURCE_YML" "$TMP_YML"
+fi
+
+if [ -f "$TARGET_YML" ] && ! diff -q "$TMP_YML" "$TARGET_YML" >/dev/null 2>&1; then
   backup="${TARGET_YML}.backup.$(date +%Y%m%d_%H%M%S)"
   cp "$TARGET_YML" "$backup"
   printf "%s\n" "   💾 既存 ~/.apm/apm.yml をバックアップ: $backup"
 fi
-cp "$SOURCE_YML" "$TARGET_YML"
-printf "%s\n" "   📝 Synced profile apm.yml -> $TARGET_YML"
+mv "$TMP_YML" "$TARGET_YML"
+trap - EXIT
+if [ "$HAS_PRIVATE" = "true" ]; then
+  printf "%s\n" "   📝 Synced profile + private overlay -> $TARGET_YML"
+else
+  printf "%s\n" "   📝 Synced profile apm.yml -> $TARGET_YML"
+fi
 
 # Step 2: 既存 lock を削除 (--refresh で新 lock を生成させる)
 TARGET_LOCK="$APM_HOME/apm.lock.yaml"
@@ -70,11 +96,21 @@ printf "%s\n" "   📦 Running: apm install -g --refresh --force"
 apm install -g --refresh --force
 
 # Step 4: 新規生成 lock を profile/ にコピーバック
-SOURCE_LOCK="$PROFILE_PATH/apm.lock.yaml"
+#   private overlay 有効時は profiles/private/apm.lock.yaml (gitignored) に書く。
+if [ "$HAS_PRIVATE" = "true" ]; then
+  SOURCE_LOCK="$PRIVATE_LOCK"
+else
+  SOURCE_LOCK="$PROFILE_PATH/apm.lock.yaml"
+fi
 if [ -f "$TARGET_LOCK" ]; then
+  mkdir -p "$(dirname "$SOURCE_LOCK")"
   cp "$TARGET_LOCK" "$SOURCE_LOCK"
   printf "%s\n" "   ✅ Refreshed lock copied back to: $SOURCE_LOCK"
-  printf "%s\n" "      (git diff で確認のうえ commit してください)"
+  if [ "$HAS_PRIVATE" = "true" ]; then
+    printf "%s\n" "      (gitignored — 同 PC 内で --frozen install 用に保持されます)"
+  else
+    printf "%s\n" "      (git diff で確認のうえ commit してください)"
+  fi
 fi
 
 printf "%s\n" "✅ Refreshed APM dependencies for profile '$PROFILE' (lock + user-scope deploy 完了)"
