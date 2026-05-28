@@ -6,7 +6,8 @@
 #USAGE   help "textlintも実行する場合はこのフラグを指定してください（時間がかかる場合があります）"
 #USAGE }
 
-set -euo pipefail
+# 途中でエラーが出ても他のファイルのリントは続行するため、set -e は使用しない
+set -uo pipefail
 
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
