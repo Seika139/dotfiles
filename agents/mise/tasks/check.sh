@@ -23,7 +23,10 @@ if [ ! -d "$PROFILE_PATH" ]; then
     printf "%s\n" "❌ Error: Profile directory '$PROFILE_PATH' does not exist"
     printf "%s\n" "   Available profiles:"
     if [ -d "${ROOT_DIR}/$PROFILES_DIR" ]; then
-      ls -1 "${ROOT_DIR}/$PROFILES_DIR" | sed 's/^/   - /'
+      for entry in "${ROOT_DIR}/$PROFILES_DIR"/*; do
+        [ -e "$entry" ] || continue
+        printf "   - %s\n" "${entry##*/}"
+      done
     else
       printf "%s\n" "   (No profiles directory found)"
     fi

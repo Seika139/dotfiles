@@ -148,11 +148,23 @@ echo ""
 # 検証: 残っているものを表示
 # ---------------------------------------------------------------------------
 echo "=== AFTER ==="
+show_command_skill_entries() {
+  local base=$1
+  local matched=0
+  local entry
+  for entry in "$base"/commands "$base"/commands-* "$base"/skills "$base"/skills-*; do
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    ls -ld "$entry"
+    matched=1
+  done
+  [ "$matched" -eq 1 ] || echo "  (no commands/skills entries)"
+}
+
 echo "--- ~/.claude/ ---"
-ls -la ~/.claude/ | grep -E '(commands|skills)' || echo "  (no commands/skills entries)"
+show_command_skill_entries "$HOME/.claude"
 echo ""
 echo "--- ~/.gemini/ ---"
-ls -la ~/.gemini/ | grep -E '(commands|skills)' || echo "  (no commands/skills entries)"
+show_command_skill_entries "$HOME/.gemini"
 echo ""
 echo "--- ~/.codex/skills/ remaining ---"
 ls -la ~/.codex/skills/ 2>/dev/null || echo "  (~/.codex/skills/ removed)"

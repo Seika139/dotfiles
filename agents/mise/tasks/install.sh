@@ -93,6 +93,13 @@ if [ -f "$SOURCE_LOCK" ]; then
   fi
   cp "$SOURCE_LOCK" "$TARGET_LOCK"
   printf "%s\n" "   🔒 Synced lock -> $TARGET_LOCK"
+elif [ -f "$TARGET_LOCK" ]; then
+  # source 側に lock が無いのに ~/.apm 側に古い lock が残っていると、
+  # 新しい apm.yml + 古い lock の組で --frozen install が必ず失敗する。
+  # backup を取ってから削除し、Step 3 で lock 無しモード (apm install -g) に倒す。
+  backup="${TARGET_LOCK}.backup.$(date +%Y%m%d_%H%M%S)"
+  mv "$TARGET_LOCK" "$backup"
+  printf "%s\n" "   🧹 stale lock を退避: $backup"
 fi
 
 # ---------------------------------------------------------------------------

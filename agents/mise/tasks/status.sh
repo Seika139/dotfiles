@@ -8,9 +8,11 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+INSPECT_SCRIPT="${ROOT_DIR}/mise/scripts/inspect_apm_yml.py"
 
 PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
+PROFILE_YML="$PROFILE_PATH/apm.yml"
 PRIVATE_PATH="${ROOT_DIR}/$PROFILES_DIR/private"
 PRIVATE_YML="$PRIVATE_PATH/apm.yml"
 PRIVATE_LOCK="$PRIVATE_PATH/apm.lock.yaml"
@@ -19,6 +21,7 @@ if [ -f "$PRIVATE_YML" ]; then
   HAS_PRIVATE=true
 fi
 
+# 🦄 セクション 1: Environment Check
 printf "%s\n" "🦄 Environment Check"
 printf "OS                   =\\033[36m %s\\033[0m\n" "$(uname -s)"
 printf "IS_WSL               =\\033[36m %s\\033[0m\n" "$IS_WSL"
@@ -36,18 +39,37 @@ if [ ! -d "$PROFILE_PATH" ]; then
   exit 1
 fi
 
-printf "\n📂 apm.yml dependencies (base):\n"
-if [ -f "$PROFILE_PATH/apm.yml" ]; then
-  grep -E '^[[:space:]]*-[[:space:]]+' "$PROFILE_PATH/apm.yml" | sed 's/^/  /' || true
-else
-  printf "\\033[31m%s\\033[0m\n" "   ❌ apm.yml does not exist"
+# 📂 セクション 2: apm.yml dependencies
+if [ ! -f "$PROFILE_YML" ]; then
+  printf "\n📂 apm.yml: \\033[31m❌ does not exist\\033[0m\n"
+  exit 1
 fi
 
+INSPECT_ARGS=(--base "$PROFILE_YML")
 if [ "$HAS_PRIVATE" = "true" ]; then
-  printf "\n📂 apm.yml dependencies (private overlay):\n"
-  grep -E '^[[:space:]]*-[[:space:]]+' "$PRIVATE_YML" | sed 's/^/  /' || true
+  INSPECT_ARGS+=(--overlay "$PRIVATE_YML")
+fi
+INSPECT_OUT="$(uv run --quiet "$INSPECT_SCRIPT" "${INSPECT_ARGS[@]}")"
+
+TARGETS_CSV="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="target"{print $2}' | paste -sd, -)"
+APM_BASE="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-base"{print $2}')"
+APM_OVERLAY="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-overlay"{print $2}')"
+DECLARED_SORTED="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-merged"{print $2}' | sort -u)"
+
+printf "\n🎯 Targets:\\033[36m %s\\033[0m\n" "${TARGETS_CSV:-(none)}"
+
+APM_BASE_COUNT="$(printf "%s" "$APM_BASE" | grep -c . || true)"
+APM_OVERLAY_COUNT="$(printf "%s" "$APM_OVERLAY" | grep -c . || true)"
+PROFILE_YML_REL="${PROFILE_YML#"${ROOT_DIR}"/}"
+PRIVATE_YML_REL="${PRIVATE_YML#"${ROOT_DIR}"/}"
+
+printf "\n📂 dependencies.apm:\n"
+printf "   base    : %b%2d packages%b (%s)\n" '\033[36m' "$APM_BASE_COUNT" '\033[0m' "$PROFILE_YML_REL"
+if [ "$HAS_PRIVATE" = "true" ]; then
+  printf "   overlay : %b%2d packages%b (%s)\n" '\033[36m' "$APM_OVERLAY_COUNT" '\033[0m' "$PRIVATE_YML_REL"
 fi
 
+# 🔒 セクション 3: apm.lock.yaml
 printf "\n🔒 apm.lock.yaml:\n"
 if [ "$HAS_PRIVATE" = "true" ]; then
   if [ -f "$PRIVATE_LOCK" ]; then
@@ -61,14 +83,68 @@ else
   printf "\\033[33m%s\\033[0m\n" "   ⚠️ not generated yet (run 'mise run install')"
 fi
 
-printf "\n🌐 Installed at user scope:\n"
-printf "   ~/.claude/skills/:\n"
-ls -1 "$HOME/.claude/skills" 2>/dev/null | sed 's/^/     - /' || printf "     (none)\n"
-printf "   ~/.codex/skills/:\n"
-ls -1 "$HOME/.codex/skills" 2>/dev/null | sed 's/^/     - /' || printf "     (none)\n"
-printf "   ~/.gemini/skills/:\n"
-ls -1 "$HOME/.gemini/skills" 2>/dev/null | sed 's/^/     - /' || printf "     (none)\n"
+# 🌐 セクション 4: Installed at user scope
+#   - claude / agents: APM が declared package を実体配備する正の install 先
+#   - codex / gemini : `~/.agents/skills/` を読みに行くため per-tool には配備されない。
+#                      actual を参考表示し、手動配備の遺物 (codex-primary-runtime 等) の
+#                      可視化に留める
+DECLARED_COUNT="$(printf "%s" "$DECLARED_SORTED" | grep -c . || true)"
 
+list_actual() {
+  local dir="$1"
+  if [ -d "$dir" ]; then
+    find "$dir" -mindepth 1 -maxdepth 1 -not -name '.*' -exec basename {} \; 2>/dev/null | sort -u
+  fi
+}
+
+print_diff() {
+  local label="$1" dir="$2" actual missing extra m_count e_count a_count
+  actual="$(list_actual "$dir")"
+  a_count="$(printf "%s" "$actual" | grep -c . || true)"
+  missing="$(comm -23 <(printf "%s\n" "$DECLARED_SORTED") <(printf "%s\n" "$actual"))"
+  extra="$(comm -13 <(printf "%s\n" "$DECLARED_SORTED") <(printf "%s\n" "$actual"))"
+  m_count="$(printf "%s" "$missing" | grep -c . || true)"
+  e_count="$(printf "%s" "$extra" | grep -c . || true)"
+
+  printf "   %s (%s):\n" "$label" "$dir"
+  printf "     declared=%s actual=%s" "$DECLARED_COUNT" "$a_count"
+  if [ "$m_count" = "0" ] && [ "$e_count" = "0" ]; then
+    printf " \\033[32m✅ in sync\\033[0m\n"
+    return
+  fi
+  printf "\n"
+  if [ "$m_count" != "0" ]; then
+    printf "     \\033[33m⚠️ missing (%s):\\033[0m\n" "$m_count"
+    printf "%s\n" "$missing" | sed 's/^/       - /'
+  fi
+  if [ "$e_count" != "0" ]; then
+    printf "     \\033[2m• extra (%s, not declared):\\033[0m\n" "$e_count"
+    printf "%s\n" "$extra" | sed 's/^/       - /'
+  fi
+}
+
+print_actual() {
+  local label="$1" dir="$2" actual a_count
+  actual="$(list_actual "$dir")"
+  a_count="$(printf "%s" "$actual" | grep -c . || true)"
+  printf "   %s (%s):\n" "$label" "$dir"
+  if [ "$a_count" = "0" ]; then
+    printf "     \\033[2m(empty — APM は cross-tool 配備のみ)\\033[0m\n"
+    return
+  fi
+  printf "     \\033[2mactual=%s (cross-tool 配備のため declared 比較なし):\\033[0m\n" "$a_count"
+  printf "%s\n" "$actual" | sed 's/^/       - /'
+}
+
+printf "\n🌐 Installed at user scope (declared vs actual):\n"
+print_diff "claude" "$HOME/.claude/skills"
+print_diff "agents" "$HOME/.agents/skills"
+
+printf "\n📎 Per-tool dirs (参考表示 / Codex・Gemini は ~/.agents/skills/ を読む):\n"
+print_actual "codex" "$HOME/.codex/skills"
+print_actual "gemini" "$HOME/.gemini/skills"
+
+# 💡 セクション 5: Commands ヒント
 printf "\n💡 Commands:\n"
 printf "   install : mise run install [--prof <profile>]\n"
 printf "   update  : mise run update  [--prof <profile>]\n"
