@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="lint（rumdl + markdownlint-cli2 + textlint + shfmt + taplo）"
+#MISE description="lint（rumdl + markdownlint-cli2 + textlint + shfmt + shellcheck + taplo）"
 #MISE quiet=true
 #USAGE flag "-t --textlint" {
 #USAGE   help "textlintも実行する場合はこのフラグを指定してください（時間がかかる場合があります）"
@@ -26,6 +26,9 @@ markdownlint-cli2
 
 print_blue "linting shell scripts with shfmt"$'\n'
 shfmt -d mise/tasks/**
+
+print_blue "linting shell scripts with shellcheck"$'\n'
+shellcheck -x mise/tasks/*.sh install.sh unlink.sh agents/mise/tasks/*.sh
 
 print_blue "linting toml with taplo"$'\n'
 RUST_LOG=warn taplo fmt --check --diff
