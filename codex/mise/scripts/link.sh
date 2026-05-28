@@ -5,6 +5,18 @@
 #MISE shell="bash -c"
 #MISE quiet=true
 
+# ---------------------------------------------------------------------------
+# APM との共存方針:
+#   ~/.codex/skills/<name>/ が APM により実 dir として作られている場合、
+#   このスクリプトは touch しない (skills セクションの "Skipping skill because
+#   target already exists" 経路でスキップする)。
+#   APM 専管 skill 名 (aws-auth / login-microsoft / spark-* 等) は dotfiles 側
+#   profiles/<prof>/skills/ にも置かないことで衝突を避ける。
+#   instructions primitive は現時点では APM で deploy しない前提のため
+#   ~/.codex/AGENTS.md は symlink で問題ないが、instructions 導入時には
+#   AGENTS.md も APM 専管にする必要がある。
+# ---------------------------------------------------------------------------
+
 set -eu
 
 if [ "${MISE_CONFIG_ROOT:-}" = "" ]; then
