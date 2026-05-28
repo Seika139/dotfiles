@@ -56,6 +56,27 @@ APM_BASE="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-base"{print $2}'
 APM_OVERLAY="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-overlay"{print $2}')"
 DECLARED_SORTED="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-merged"{print $2}' | sort -u)"
 
+# declared package を primitive 種別で分類する。
+# instructions (例: commit-message) は ~/.claude/rules/ に配備されるため、skills 一覧
+# (~/.claude/skills/) には現れない。種別は ~/.apm/apm_modules の .apm/ 構造で判定する。
+classify_is_instruction() {
+  compgen -G "$HOME/.apm/apm_modules/*/*/packages/$1/.apm/instructions" >/dev/null 2>&1
+}
+DECLARED_SKILLS=""
+DECLARED_INSTRUCTIONS=""
+while IFS= read -r _pkg; do
+  [ -n "$_pkg" ] || continue
+  if classify_is_instruction "$_pkg"; then
+    DECLARED_INSTRUCTIONS+="${_pkg}"$'\n'
+  else
+    DECLARED_SKILLS+="${_pkg}"$'\n'
+  fi
+done <<EOF
+$DECLARED_SORTED
+EOF
+DECLARED_SKILLS="$(printf "%s" "$DECLARED_SKILLS" | sort -u)"
+DECLARED_INSTRUCTIONS="$(printf "%s" "$DECLARED_INSTRUCTIONS" | sort -u)"
+
 printf "\n🎯 Targets:\\033[36m %s\\033[0m\n" "${TARGETS_CSV:-(none)}"
 
 APM_BASE_COUNT="$(printf "%s" "$APM_BASE" | grep -c . || true)"
@@ -88,8 +109,6 @@ fi
 #   - codex / gemini : `~/.agents/skills/` を読みに行くため per-tool には配備されない。
 #                      actual を参考表示し、手動配備の遺物 (codex-primary-runtime 等) の
 #                      可視化に留める
-DECLARED_COUNT="$(printf "%s" "$DECLARED_SORTED" | grep -c . || true)"
-
 list_actual() {
   local dir="$1"
   if [ -d "$dir" ]; then
@@ -97,17 +116,26 @@ list_actual() {
   fi
 }
 
+# rules/ は package 名 = `<name>.md` (file) なので比較用に拡張子を剥がす
+# (skills/ は dir 名 = package 名で一致するため list_actual で足りる)
+list_actual_rules() {
+  local dir="$1"
+  if [ -d "$dir" ]; then
+    find "$dir" -mindepth 1 -maxdepth 1 -not -name '.*' -exec basename {} \; 2>/dev/null | sed 's/\.md$//' | sort -u
+  fi
+}
+
 print_diff() {
-  local label="$1" dir="$2" actual missing extra m_count e_count a_count
-  actual="$(list_actual "$dir")"
+  local label="$1" dir="$2" declared="$3" actual="$4" missing extra m_count e_count a_count d_count
+  d_count="$(printf "%s" "$declared" | grep -c . || true)"
   a_count="$(printf "%s" "$actual" | grep -c . || true)"
-  missing="$(comm -23 <(printf "%s\n" "$DECLARED_SORTED") <(printf "%s\n" "$actual"))"
-  extra="$(comm -13 <(printf "%s\n" "$DECLARED_SORTED") <(printf "%s\n" "$actual"))"
+  missing="$(comm -23 <(printf "%s\n" "$declared") <(printf "%s\n" "$actual"))"
+  extra="$(comm -13 <(printf "%s\n" "$declared") <(printf "%s\n" "$actual"))"
   m_count="$(printf "%s" "$missing" | grep -c . || true)"
   e_count="$(printf "%s" "$extra" | grep -c . || true)"
 
   printf "   %s (%s):\n" "$label" "$dir"
-  printf "     declared=%s actual=%s" "$DECLARED_COUNT" "$a_count"
+  printf "     declared=%s actual=%s" "$d_count" "$a_count"
   if [ "$m_count" = "0" ] && [ "$e_count" = "0" ]; then
     printf " \\033[32m✅ in sync\\033[0m\n"
     return
@@ -136,9 +164,12 @@ print_actual() {
   printf "%s\n" "$actual" | sed 's/^/       - /'
 }
 
-printf "\n🌐 Installed at user scope (declared vs actual):\n"
-print_diff "claude" "$HOME/.claude/skills"
-print_diff "agents" "$HOME/.agents/skills"
+printf "\n🌐 Skills (declared vs actual):\n"
+print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS" "$(list_actual "$HOME/.claude/skills")"
+print_diff "agents" "$HOME/.agents/skills" "$DECLARED_SKILLS" "$(list_actual "$HOME/.agents/skills")"
+
+printf "\n📐 Instructions / rules (declared vs actual):\n"
+print_diff "claude rules" "$HOME/.claude/rules" "$DECLARED_INSTRUCTIONS" "$(list_actual_rules "$HOME/.claude/rules")"
 
 printf "\n📎 Per-tool dirs (参考表示 / Codex・Gemini は ~/.agents/skills/ を読む):\n"
 print_actual "codex" "$HOME/.codex/skills"
