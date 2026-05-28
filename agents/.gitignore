@@ -5,5 +5,8 @@ mise.local.toml
 profiles/private/**
 !profiles/private/apm.sample.yml
 
+# === apm.lock.yaml ===
+apm.lock.yaml
+
 # === APM auto-managed (do not remove; apm install re-adds it) ===
 apm_modules/
