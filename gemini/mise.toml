@@ -123,6 +123,11 @@ printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 
 [tasks.link]
 description = "指定プロファイルの設定ファイルをシンボリックリンクする"
+# APM との共存方針:
+#   commands / skills は APM 管理 (dotfiles/agents/) に移行済のため本タスクでは扱わない。
+#   `mise run install`@agents/ で ~/.gemini/{commands,skills}/ に直接配備される
+#   (consumer apm.yml で targets: gemini を含めると 21 skills + 12 commands が配備される)。
+#   このタスクは GEMINI.md と antigravity/global_workflows のみ symlink する。
 depends = ["check_env"]
 shell = "bash -c"
 quiet = true
