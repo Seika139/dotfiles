@@ -9,7 +9,7 @@ rumdl = "latest"
 taplo = "latest"
 markdownlint-cli2 = "latest"
 
-[tasks.init]
+[tasks.dot-init]
 description = "dotfile mise管理の初期化（タスクに実行権限を付与、依存同期など）"
 quiet = true
 run = [
@@ -17,6 +17,6 @@ run = [
   "bash mise/tasks/initialize.sh",
 ]
 
-[tasks.upgrade]
+[tasks.dot-upgrade]
 description = "mise tools の依存関係を最新にする"
 run = ["mise upgrade", "mise lock"]
