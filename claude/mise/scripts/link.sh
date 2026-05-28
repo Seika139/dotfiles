@@ -13,9 +13,10 @@
 #                  CCWB の物理書き換えと共存するため symlink にしない。
 #   settings.local.json: Claude Code が読まないため ~/.claude/ には配置しない。
 #                        既存 symlink があれば削除する。
-#   CLAUDE.md / rules / custom-config: 従来通り symlink。
-#   commands / skills: APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
-#                      `mise run install`@agents/ で ~/.claude/{commands,skills}/ に直接配備される。
+#   CLAUDE.md / custom-config: 従来通り symlink。
+#   commands / skills / rules: APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
+#                      commands/skills は `mise run install`@agents/ で ~/.claude/{commands,skills}/ に、
+#                      rules は instructions primitive として ~/.claude/rules/<n>.md に直接配備される。
 # ---------------------------------------------------------------------------
 
 set -eu
@@ -133,9 +134,10 @@ fi
 
 # ---------------------------------------------------------------------------
 # その他: 従来通り symlink で配置
-# commands / skills は APM 専管のためここでは扱わない (上のヘッダコメント参照)。
+# commands / skills / rules は APM 専管のためここでは扱わない (上のヘッダコメント参照)。
+# rules は APM instructions primitive (例: commit-message) として ~/.claude/rules/ に配備。
 # ---------------------------------------------------------------------------
-symlink_targets=(CLAUDE.md custom-config rules)
+symlink_targets=(CLAUDE.md custom-config)
 
 for file in "${symlink_targets[@]}"; do
   source="$PROFILE_PATH/$file"

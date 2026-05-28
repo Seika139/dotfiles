@@ -119,6 +119,31 @@ else
 fi
 echo ""
 
+# ---------------------------------------------------------------------------
+# Step 5: ~/.claude/rules (link.sh が作る dir-level symlink → dotfiles)
+#         rules は APM instructions primitive (例: commit-message) として
+#         ~/.claude/rules/<n>.md に配備されるようになったため、symlink を外して
+#         APM が real dir として書けるようにする。
+# ---------------------------------------------------------------------------
+echo "--- Step 5: ~/.claude/rules ---"
+if [ -L ~/.claude/rules ]; then
+  target=$(readlink ~/.claude/rules)
+  case "$target" in
+  */dotfiles/*)
+    mv ~/.claude/rules "$TRASH_DIR/claude-rules"
+    echo "  💾 moved (was symlink → $target)"
+    ;;
+  *)
+    echo "  ⏭️   skipped: symlink points elsewhere ($target)"
+    ;;
+  esac
+elif [ -e ~/.claude/rules ]; then
+  echo "  ⏭️   skipped: exists but not a symlink (real file/dir — APM may have already created it)"
+else
+  echo "  ✅ already gone"
+fi
+echo ""
+
 # 注意: ~/.agents/skills/ は削除しない。default flag (`apm install -g --frozen`) では
 # ここが cross-tool 共有先として Codex/Gemini/Cursor/Copilot の skill 配備先になるため
 # (load-bearing)。legacy symlink の掃除は Step 1-4 で完了。
