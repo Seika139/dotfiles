@@ -15,7 +15,7 @@
 | PC          | apm.yml 配置 | mise install 検証 | 旧 dotfiles 削除 | 備考                                       |
 | ----------- | ------------ | ----------------- | ---------------- | ------------------------------------------ |
 | wsl-ubuntu  | ✅           | ✅                | ⚪ 不要           | dotfiles 内に旧 skill/command 無し         |
-| hm-m1-mac   | ✅           | ✅ (実機)          | ❌                | `claude/`, `codex/`, `gemini/` 配下に残骸あり |
+| hm-m1-mac   | ✅           | ✅ (実機)          | ✅ (2026-05-29)    | claude/codex/gemini profile + sync_prompt_skills.py を削除 (59 件) |
 | xsv-linux-1 | ✅           | ✅ (2026-05-29)    | ❌                | respond-pr 系 5 件残骸の削除が残る         |
 | cg-m2-mac   | ✅           | ✅ (2026-05-28)    | ⚪ 不要           | §1.1–§1.7 完走、削除対象なしで完了         |
 | win-15034   | ✅           | ❌                 | ❌                | 最大規模 (46 件残骸)                       |
