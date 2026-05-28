@@ -167,13 +167,11 @@ cat > "$PROFILE_PATH/CLAUDE.md" << 'EOF'
 <!-- Note any specific restrictions or security considerations -->
 EOF
 
-# commands ディレクトリ作成
-mkdir -p "$PROFILE_PATH/commands"
-
-# skills ディレクトリ作成
-mkdir -p "$PROFILE_PATH/skills"
-
 # rules ディレクトリ作成
+# NOTE: commands/ と skills/ は APM 管理 (dotfiles/agents/) に移行済のため作成しない。
+#   `mise run install`@agents/ で ~/.claude/{commands,skills}/ に直接配備される。
+#   rules/ は将来 APM `instructions` primitive に移行予定 (migration-plan.md §8)。
+#   移行完了までは link.sh が profile から symlink するため、ここで作成する。
 mkdir -p "$PROFILE_PATH/rules"
 
 printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
@@ -181,8 +179,7 @@ printf "%s\n" "📝 Edit settings in:"
 printf "%s\n" "   - $PROFILE_PATH/settings.json"
 printf "%s\n" "   - $PROFILE_PATH/settings.local.json"
 printf "%s\n" "   - $PROFILE_PATH/CLAUDE.md"
-printf "%s\n" "   - $PROFILE_PATH/commands/"
-printf "%s\n" "   - $PROFILE_PATH/skills/"
+printf "%s\n" "   - $PROFILE_PATH/rules/"
 """
 
 [tasks.recover]

@@ -74,7 +74,9 @@ fi
 # プロファイル下のファイル/ディレクトリ存在確認
 # ---------------------------------------------------------------------------
 printf "\n📂 Original files and directories:\n"
-for file in settings.json settings.local.json CLAUDE.md commands skills custom-config rules; do
+# NOTE: commands/ skills/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
+#   rules/ は将来 APM `instructions` primitive に移行予定 (migration-plan.md §8)。
+for file in settings.json settings.local.json CLAUDE.md custom-config rules; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -151,7 +153,8 @@ fi
 # その他は symlink で同期されているはず
 # ---------------------------------------------------------------------------
 printf "\n🔗 Symlinks in\033[36m %s/.claude:\033[0m\n" "$HOME"
-for file in CLAUDE.md commands skills custom-config rules; do
+# NOTE: commands/ skills/ は APM 管理 (~/.claude/{commands,skills}/ は real dir) に移行済のためチェック対象外。
+for file in CLAUDE.md custom-config rules; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
 
@@ -171,6 +174,20 @@ for file in CLAUDE.md commands skills custom-config rules; do
   fi
 done
 
+printf "\n🧩 APM-managed in\033[36m %s/.claude/{commands,skills}:\033[0m\n" "$HOME"
+# NOTE: APM 移行後は ~/.claude/{commands,skills}/ は APM が real dir として書き込む。
+#   詳細は dotfiles/agents/ 配下と migration-plan.md を参照。
+for sub in commands skills; do
+  target="${HOME}/.claude/$sub"
+  if [ -d "$target" ]; then
+    count=$(find "$target" -mindepth 1 -maxdepth 2 \( -name "*.md" -o -name "SKILL.md" \) 2>/dev/null | wc -l | tr -d ' ')
+    printf "%s\n" "   ✅ $target ($count entries, managed by 'apm install -g')"
+  else
+    printf "\033[33m%s\033[0m\n" "   ❌ $target does not exist. Run: cd ~/dotfiles/agents && mise run install"
+  fi
+done
+
 printf "\n💡 Commands:\n"
 printf "   リンク作成/更新: mise run link --prof \"%s\"\n" "$PROFILE"
 printf "   プロファイル変更: mise run switch [--prof <profile-name>]\n"
+printf "   APM-managed の詳細: cd ~/dotfiles/agents && mise run status\n"
