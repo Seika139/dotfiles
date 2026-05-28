@@ -119,30 +119,9 @@ else
 fi
 echo ""
 
-# ---------------------------------------------------------------------------
-# Step 5: ~/.agents/skills/ の全削除 (Codex 2 重発火回避)
-#
-# Codex CLI は ~/.codex/skills/ と ~/.agents/skills/ 両方を読むため、両方に
-# skill が居ると 1 skill が 2 重発火する。install.sh/update.sh に
-# --exclude agent-skills を追加して今後は cross-tool 共有先に配備しない方針。
-# 既存配備物は今後 update されないので Trash 退避してクリーンな状態にする。
-# Claude/Gemini/Cursor/Copilot は ~/.agents/skills/ を読まないので影響なし。
-# ---------------------------------------------------------------------------
-echo "--- Step 5: ~/.agents/skills/ 全削除 (Codex 2 重発火回避) ---"
-if [ -d ~/.agents/skills ]; then
-  mkdir -p "$TRASH_DIR/agents-skills-all"
-  moved=0
-  for entry in ~/.agents/skills/* ~/.agents/skills/.[!.]*; do
-    [ -e "$entry" ] || continue
-    mv "$entry" "$TRASH_DIR/agents-skills-all/"
-    moved=$((moved + 1))
-  done
-  echo "  💾 moved: $moved 件"
-  rmdir "$TRASH_DIR/agents-skills-all" 2>/dev/null && echo "  (empty trash subdir cleaned)" || true
-else
-  echo "  ✅ ~/.agents/skills/ does not exist"
-fi
-echo ""
+# 注意: ~/.agents/skills/ は削除しない。default flag (`apm install -g --frozen`) では
+# ここが cross-tool 共有先として Codex/Gemini/Cursor/Copilot の skill 配備先になるため
+# (load-bearing)。legacy symlink の掃除は Step 1-4 で完了。
 
 # ---------------------------------------------------------------------------
 # 検証: 残っているものを表示
