@@ -4,6 +4,8 @@
 #MISE depends=["apm-available", "uv-available", "check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
+#USAGE flag "-f --force" help="ローカル編集を上書きして強制デプロイする (security gate を無効化するので通常用途では使わない)"
+#USAGE flag "-v --verbose" help="詳細なログを表示する"
 
 # ---------------------------------------------------------------------------
 # 設計: profile/apm.yml は intent (dotfiles 管理)、~/.apm/apm.yml は live manifest。
@@ -26,6 +28,18 @@ PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 PRIVATE_PATH="${ROOT_DIR}/$PROFILES_DIR/private"
 APM_HOME="${HOME}/.apm"
+
+# --force: unmanaged ローカルファイルを APM 管理下に取り込む (移行用) や、
+# security gate を無効化したい場合の opt-in。日常運用では渡さない。
+FORCE_FLAG=""
+if [ "${usage_force:-false}" = "true" ]; then
+  FORCE_FLAG="--force"
+fi
+
+VERBOSE_FLAG=""
+if [ "${usage_verbose:-false}" = "true" ]; then
+  VERBOSE_FLAG="--verbose"
+fi
 
 # private overlay: profiles/private/ は .gitignore 配下の任意 dir。
 # apm.yml があれば dependencies.{apm,mcp} を active profile に重ねて install する。
@@ -114,11 +128,11 @@ fi
 # - Codex/Gemini: cross-tool (~/.agents/skills/) を読む → cross-tool 配備のみで OK
 # - Cursor/Copilot: cross-tool 読み挙動は未検証だが、現状 skill 機能要求なしと判断
 if [ -f "$TARGET_LOCK" ]; then
-  printf "%s\n" "   📦 Running: apm install -g --frozen"
-  apm install -g --frozen
+  printf "%s\n" "   📦 Running: apm install -g --frozen${FORCE_FLAG:+ $FORCE_FLAG}${VERBOSE_FLAG:+ $VERBOSE_FLAG}"
+  apm install -g --frozen $FORCE_FLAG $VERBOSE_FLAG
 else
-  printf "%s\n" "   📦 Running: apm install -g (no lock yet)"
-  apm install -g
+  printf "%s\n" "   📦 Running: apm install -g${FORCE_FLAG:+ $FORCE_FLAG}${VERBOSE_FLAG:+ $VERBOSE_FLAG} (no lock yet)"
+  apm install -g $FORCE_FLAG $VERBOSE_FLAG
 fi
 
 # ---------------------------------------------------------------------------

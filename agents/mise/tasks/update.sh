@@ -4,6 +4,7 @@
 #MISE depends=["apm-available", "uv-available", "check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
+#USAGE flag "-v --verbose" help="詳細なログを表示する"
 
 # ---------------------------------------------------------------------------
 # 設計: `apm update` には `-g` フラグが無く、project-local モードでしか動かない。
@@ -31,6 +32,11 @@ PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 PRIVATE_PATH="${ROOT_DIR}/$PROFILES_DIR/private"
 APM_HOME="${HOME}/.apm"
+
+VERBOSE_FLAG=""
+if [ "${usage_verbose:-false}" = "true" ]; then
+  VERBOSE_FLAG="--verbose"
+fi
 
 PRIVATE_YML="$PRIVATE_PATH/apm.yml"
 PRIVATE_LOCK="$PRIVATE_PATH/apm.lock.yaml"
@@ -92,8 +98,8 @@ fi
 # 自前 catalog (Caromaf/agent-package-basic) なので security findings は self-induced と
 # 判断して許容。サードパーティ catalog を入れる際は要検討。
 # default flag 採用 (install.sh と同じ理由、§3 物理制約表参照)
-printf "%s\n" "   📦 Running: apm install -g --refresh --force"
-apm install -g --refresh --force
+printf "%s\n" "   📦 Running: apm install -g --refresh --force${VERBOSE_FLAG:+ $VERBOSE_FLAG}"
+apm install -g --refresh --force $VERBOSE_FLAG
 
 # Step 4: 新規生成 lock を profile/ にコピーバック
 #   private overlay 有効時は profiles/private/apm.lock.yaml (gitignored) に書く。

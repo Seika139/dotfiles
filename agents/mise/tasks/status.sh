@@ -126,7 +126,7 @@ list_actual_rules() {
 }
 
 print_diff() {
-  local label="$1" dir="$2" declared="$3" actual="$4" missing extra m_count e_count a_count d_count
+  local label="$1" dir="$2" declared="$3" actual="$4" missing extra m_count e_count a_count d_count count_color
   d_count="$(printf "%s" "$declared" | grep -c . || true)"
   a_count="$(printf "%s" "$actual" | grep -c . || true)"
   missing="$(comm -23 <(printf "%s\n" "$declared") <(printf "%s\n" "$actual"))"
@@ -135,7 +135,12 @@ print_diff() {
   e_count="$(printf "%s" "$extra" | grep -c . || true)"
 
   printf "   %s (%s):\n" "$label" "$dir"
-  printf "     declared=%s actual=%s" "$d_count" "$a_count"
+  if [ "$d_count" = "$a_count" ]; then
+    count_color='\033[32m' # green: declared と actual の件数が一致
+  else
+    count_color='\033[31m' # red: 件数が不一致
+  fi
+  printf "    %b declared=%s actual=%s\\033[0m" "$count_color" "$d_count" "$a_count"
   if [ "$m_count" = "0" ] && [ "$e_count" = "0" ]; then
     printf " \\033[32m✅ in sync\\033[0m\n"
     return
