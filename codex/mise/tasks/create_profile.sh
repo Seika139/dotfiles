@@ -37,9 +37,6 @@ model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true
 
-[features]
-web_search_request = true
-
 EOF
 
 cat >"$PROFILE_PATH/AGENTS.md" <<'EOF'
