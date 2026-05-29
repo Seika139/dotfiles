@@ -65,6 +65,7 @@
     "Koebon",
     "laravel",
     "libpq",
+    "localstack",
     "meilisearch",
     "Mkdocs",
     "mktemp",
