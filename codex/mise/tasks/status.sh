@@ -102,8 +102,8 @@ for file in AGENTS.md custom-config; do
 
   if [ -L "$target" ]; then
     link_target="$(readlink "$target")"
-    source_real="$(realpath -m "$source")"
-    target_real="$(realpath -m "$target")"
+    source_real="$(realpath "$source")"
+    target_real="$(realpath "$target")"
     if [ "$target_real" = "$source_real" ]; then
       printf "%s\n" "   ✅ $source -> $link_target"
     else
