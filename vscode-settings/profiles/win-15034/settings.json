@@ -95,6 +95,7 @@
     "libpq",
     "loadtest",
     "localtime",
+    "localstack",
     "loglevel",
     "ltsv",
     "mapfile",
@@ -432,6 +433,7 @@
   },
   "japanese-proofreading.textlint.ひらく漢字": false,
   "japanese-proofreading.textlint.外来語カタカナ表記": false,
+  "japanese-proofreading.textlint.かっこ類と隣接する文字の間のスペースの有無": false,
   "bashBeautify.tabSize": 4,
   // ↓ trailing spaces
   "files.trimTrailingWhitespace": true,
