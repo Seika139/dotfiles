@@ -146,7 +146,7 @@ print_diff() {
     printf "%s\n" "$missing" | sed 's/^/       - /'
   fi
   if [ "$e_count" != "0" ]; then
-    printf "     \\033[2m• extra (%s, not declared):\\033[0m\n" "$e_count"
+    printf "     \\033[38;5;200m• extra (%s, not declared):\\033[0m\n" "$e_count"
     printf "%s\n" "$extra" | sed 's/^/       - /'
   fi
 }
