@@ -16,8 +16,8 @@
     "swift-lsp@claude-plugins-official": true
   },
   "env": {
-    "ANTHROPIC_MODEL": "claude-opus-4-7",
-    "ANTHROPIC_SMALL_FAST_MODEL": "claude-sonnet-4-5"
+    "ANTHROPIC_MODEL": "claude-opus-4-8",
+    "ANTHROPIC_SMALL_FAST_MODEL": "claude-sonnet-4-6"
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -45,6 +45,17 @@
         "matcher": "permission_prompt"
       }
     ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && mise tasks ls 2>/dev/null | grep -q '^format' && mise run format >/dev/null 2>&1 || true",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|NotebookEdit"
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -59,10 +70,7 @@
   },
   "mcpServers": {
     "second-brain": {
-      "args": [
-        "-m",
-        "server.mcp_stdio"
-      ],
+      "args": ["-m", "server.mcp_stdio"],
       "command": "/Users/suzukikenichi/programs/second-brain/.venv/bin/python",
       "cwd": "/Users/suzukikenichi/programs/second-brain"
     }
