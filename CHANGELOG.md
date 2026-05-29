@@ -26,6 +26,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **agents (APM 移行)**
+  - `agents/` ディレクトリを新設し、prompts / skills / commands / instructions を**ツール非依存の primitive** として APM (Agent Package Manager) で一元管理する仕組みを導入。`mise run install` で Claude Code / Codex CLI / Gemini など各ツールのネイティブ配置先（`~/.claude/skills`、`~/.codex/skills` 等）へ自動展開する
+  - プロファイル別 `apm.yml`（`hm-m1-mac` / `cg-m2-mac` / `win-15034` / `wsl-ubuntu` / `xsv-linux-1` の 5 PC 分）でマシンごとに導入するパッケージを宣言できるようにした
+  - APM 運用タスクを追加（`install` / `status` / `update` / `list` / `migrate` / `check` / `check_env`）。新規 PC は `migrate`（旧 symlink を Trash 退避）→ `check_env`（プロファイル自動判定）→ `install` の手順でセットアップする
+  - 公開リポに載せない個別パッケージを重ねられる private overlay（`profiles/private/apm.yml`）と、追跡用サンプル `apm.sample.yml` を追加
+  - 移行計画・チェックリスト・drift 防止・instructions primitive などの運用ドキュメントを `agents/docs/` に追加
+- **lint / format**
+  - リポ全体を対象とした統一 lint / format タスク `dot-lint` / `dot-format` を追加（markdownlint-cli2 / rumdl / textlint / shfmt / shellcheck / yamllint / taplo を一括実行、`--textlint` で日本語校正も実行）
+  - 各 linter の設定ファイル（`.markdownlint-cli2.jsonc` / `.rumdl.toml` / `.textlintrc.yml` / `.yamllint.yml` / `taplo.toml`）と textlint 用 `package.json` を追加
+- **codex**
+  - `config.base.toml`（共有）と `config.local.toml`（マシン個別）をマージして `~/.codex/config.toml` を生成する `render_config.py` を導入し、共有設定と秘匿設定を分離
+  - Codex ランタイムが書き換えた `~/.codex/config.toml` を dotfiles 側へ吸収する `pull_config`（`mise run pull_config`）を追加し、設定変更の手動反映を不要にした
+- **mouse_emulator**
+  - 障害物回避ゲーム用 `DodgeEngine` を追加（スコアベースの動的フェーズ切替に対応）
+  - シャニマス プロデュース自走エンジン（`produce-auto`）を追加。状態 OCR 読み取り・戦略決定・画面遷移検証・JSONL ターンログ・ログ分析（`produce-analyze`）・キャリブレーションツールを統合
+  - `mss` の導入によりスクリーンキャプチャを高速化
+- **claude**
+  - ツール実行後に自動整形を走らせる `PostToolUse` フックを追加
+  - AI 駆動開発・プラグイン・継続運用・GitHub Actions self-hosted runner などの解説ドキュメントを `claude/docs/` に追加
+  - `~/.claude/settings.json` を分解して dotfiles へ取り込む `recover`（逆流）タスクを追加
+- **bash**
+  - 複数パターン検索ユーティリティ `regex_and` / `regex_or`、fzf 連携のファイル選択ヘルパー、`gtl`（タグをバージョン降順表示）、`xx`（`codex --yolo`）エイリアスを追加
+
+### Changed
+
+- **mise (claude / codex / brew / vscode-settings)**
+  - mise タスクの引数定義を `option()` / `arg()` から新 mise CLI の `usage` ブロック・`usage_*` 変数形式へ移行
+  - WSL 判定を不安定な `exec()` から `read_file()` ベースへ変更し堅牢化（claude）
+  - `settings.local.json` を空 `{}`（git-ignored）既定にし、公開リポに秘匿情報を置かない設計を明文化
+- **vscode-settings / cursor**
+  - GitHub Copilot のコミットメッセージガイドを Conventional Commits から日本語スタイル（50 文字以内・動詞終止・バッククォート参照・プレフィックス禁止）へ変更
+  - Python フォーマッタを `ms-python.black-formatter` から `charliermarsh.ruff` へ移行
+  - ターミナルのタブタイトルを `${sequence}` に統一し、カラーテーマを `Dark Modern` に統一、`cSpell.userWords` を拡充
+- **claude**
+  - `CLAUDE.md` から廃止コマンド・古い情報を削除し、推論スタイルと Markdown 文章スタイル（1 文 1 行・semantic line breaks 禁止）のガイドを追加
+  - `settings.json` のモデルバージョンを更新
+
+### Removed
+
+- **claude / codex**
+  - APM 移行に伴い、`claude/` `codex/` 配下に重複保持していた旧 commands / skills / prompts のコピー（review-pr・solve-issue・create-issue・close-issue・codex-review など計 100 ファイル超）を削除。機能は APM パッケージとして全マシンへ配備されるため、利用者から見た機能に変化はない
+  - 環境変数定義 `11_claude_envs.bash` を廃止し、プロファイルへ統合
+
+### Fixed
+
+- **claude**
+  - ステータスラインのホームディレクトリ短縮表示（`~`）と使用率表示を修正
+
 ## [0.9.0] - 2026-03-30
 
 ### Added
