@@ -9,6 +9,13 @@
     },
     {
       "Info": "",
+      "Name": "apm",
+      "Source": "main",
+      "Updated": "2026-05-29T12:44:50.7802859+09:00",
+      "Version": "0.16.0"
+    },
+    {
+      "Info": "",
       "Name": "bat",
       "Source": "main",
       "Updated": "2026-01-23T11:04:10.1236925+09:00",
@@ -60,15 +67,15 @@
       "Info": "",
       "Name": "fzf",
       "Source": "main",
-      "Updated": "2026-05-01T11:38:20.6376582+09:00",
-      "Version": "0.72.0"
+      "Updated": "2026-05-29T11:35:39.3192679+09:00",
+      "Version": "0.73.1"
     },
     {
       "Info": "",
       "Name": "gh",
       "Source": "main",
-      "Updated": "2026-05-01T11:38:21.9382169+09:00",
-      "Version": "2.92.0"
+      "Updated": "2026-05-29T11:35:40.8778554+09:00",
+      "Version": "2.93.0"
     },
     {
       "Info": "",
@@ -88,8 +95,8 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2026-03-31T11:12:28.256396+09:00",
-      "Version": "2026.3.17"
+      "Updated": "2026-05-29T12:43:33.1271307+09:00",
+      "Version": "2026.5.16"
     },
     {
       "Info": "",
@@ -116,8 +123,8 @@
       "Info": "",
       "Name": "uv",
       "Source": "main",
-      "Updated": "2026-05-14T16:13:23.4092453+09:00",
-      "Version": "0.11.14"
+      "Updated": "2026-05-29T11:35:44.8706569+09:00",
+      "Version": "0.11.17"
     },
     {
       "Info": "",
@@ -136,16 +143,16 @@
   ],
   "buckets": [
     {
-      "Manifests": 1533,
+      "Manifests": 1552,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2026-05-14T14:35:46+09:00"
+      "Updated": "2026-05-29T10:23:02+09:00"
     },
     {
-      "Manifests": 2306,
+      "Manifests": 2303,
       "Name": "extras",
       "Source": "https://github.com/ScoopInstaller/Extras",
-      "Updated": "2026-05-14T14:36:11+09:00"
+      "Updated": "2026-05-29T10:23:53+09:00"
     }
   ]
 }
