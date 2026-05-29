@@ -34,4 +34,6 @@ dependencies:
     - Caromaf/agent-package-basic/packages/ux-review#main
     - Caromaf/agent-package-basic/packages/with-codex-skills#main
     - Caromaf/agent-package-basic/packages/worktree#main
+    - Caromaf/agent-package-basic/packages/discover-signals#main
+    - Caromaf/agent-package-basic/packages/triage-improvements#main
   mcp: []
