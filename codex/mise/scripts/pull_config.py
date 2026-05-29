@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# ///
 """Pull ~/.codex/config.toml into profile base + local with smart routing.
 
 config.base.toml に既に存在するキーは base 側の値を更新し、
