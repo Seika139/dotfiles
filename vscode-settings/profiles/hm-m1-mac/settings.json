@@ -394,6 +394,7 @@
   "terminal.integrated.defaultProfile.osx": "bash",
   "terminal.integrated.gpuAcceleration": "off",
   "terminal.integrated.unicodeVersion": "11",
+  "terminal.integrated.tabs.title": "${sequence}",
   "vsicons.dontShowNewVersionMessage": true,
   "[vue]": {
     "editor.defaultFormatter": "Vue.volar"
