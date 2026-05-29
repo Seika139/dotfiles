@@ -78,6 +78,6 @@ if [ ! -f "$runtime_config" ]; then
   exit 1
 fi
 
-python3 "${MISE_CONFIG_ROOT}/mise/scripts/pull_config.py" \
+"${MISE_CONFIG_ROOT}/mise/scripts/pull_config.py" \
   --runtime "$runtime_config" \
   --profile-path "$PROFILE_PATH"
