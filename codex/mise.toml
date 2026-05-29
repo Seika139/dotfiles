@@ -254,11 +254,11 @@ printf "\n⚙️ Runtime config in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
 config_target="${HOME}/.codex/config.toml"
 if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ] || [ -f "$PROFILE_PATH/config.local.toml" ]; then
   tmp_config="$(mktemp)"
-  if python3 "{{config_root}}/mise/scripts/render_config.py" --profile-path "$PROFILE_PATH" --output "$tmp_config"; then
+  if "{{config_root}}/mise/scripts/render_config.py" --profile-path "$PROFILE_PATH" --output "$tmp_config"; then
     if [ -L "$config_target" ]; then
       printf "%s\n" "   ⚠️  $config_target is still a symlink. Run: mise run link --prof \"$PROFILE\""
     elif [ -f "$config_target" ]; then
-      if python3 "{{config_root}}/mise/scripts/render_config.py" --profile-path "$PROFILE_PATH" --same-as "$config_target"; then
+      if "{{config_root}}/mise/scripts/render_config.py" --profile-path "$PROFILE_PATH" --same-as "$config_target"; then
         printf "%s\n" "   ✅ $config_target matches rendered profile config"
       else
         printf "%s\n" "   ⚠️  $config_target differs from rendered profile config"
