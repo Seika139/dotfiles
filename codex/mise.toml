@@ -21,6 +21,7 @@ IS_WSL = '''
 [tasks.grant-permissions]
 description = "mise/ 内のスクリプトに実行権限を付与する"
 quiet = true
+shell = "bash -c"
 run = [
   'find ./mise/ -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} +',
 ]
