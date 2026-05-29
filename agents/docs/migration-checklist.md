@@ -1,7 +1,7 @@
 # Migration Checklist: 各 PC で APM 移行を完走させる手順
 
-未実施 PC で「dotfiles 旧 skill/command/prompt の物理削除」までを完走させるための
-**コピペ可能なチェックリスト**。1 PC = 1 セッションで完走できる粒度に分解してある。
+追加 PC / 再セットアップ時に「dotfiles 旧 skill/command/prompt の物理削除」までを
+完走させるための**コピペ可能なチェックリスト**。1 PC = 1 セッションで完走できる粒度に分解してある。
 
 > **本ドキュメントの性質**: 各 PC で**順番にコピペすれば終わる手順書**。
 > 全体方針・転換ログは [migration-plan.md](./migration-plan.md) を、
@@ -18,7 +18,7 @@
 | hm-m1-mac   | ✅           | ✅ (実機)          | ✅ (2026-05-29)    | claude/codex/gemini profile + sync_prompt_skills.py を削除 (59 件) |
 | xsv-linux-1 | ✅           | ✅ (2026-05-29)    | ✅ (2026-05-29)    | respond-pr 系 5 件削除済                   |
 | cg-m2-mac   | ✅           | ✅ (2026-05-28)    | ⚪ 不要           | §1.1–§1.7 完走、削除対象なしで完了         |
-| win-15034   | ✅           | ❌                 | ❌                | 最大規模 (46 件残骸)                       |
+| win-15034   | ✅           | ✅ (2026-05-29)    | ✅ (2026-05-29)    | repo 上の旧 46 件削除済、実機 install 完了 |
 
 ⚪ = そもそも対象なし、❌ = 未実施、✅ = 実施済み。
 
@@ -26,8 +26,7 @@
 
 ## 1. 共通: 各 PC で踏む手順
 
-未実施 PC (xsv-linux-1 / cg-m2-mac / hm-m1-mac / win-15034) では、その PC のローカルで
-以下を**順番に**実行する。
+追加 PC / 再セットアップ時は、その PC のローカルで以下を**順番に**実行する。
 
 ### 1.1 dotfiles を最新化
 
@@ -115,6 +114,7 @@ ls ~/.agents/skills/ | head -5
 ### 1.8 旧 dotfiles の物理削除 (PC 別、§2)
 
 §2 の「該当 PC のブロック」を上から順にコピペ。
+win-15034 は repo 上では削除済みのため、実機側では最新化後に対象 directory が残っていないことを確認するだけでよい。
 
 ### 1.9 dotfiles を commit
 
@@ -168,7 +168,10 @@ rmdir ~/dotfiles/codex/profiles/xsv-linux-1/prompts 2>/dev/null
 skills / commands / prompts ディレクトリは既に空。`rm` 実行不要。
 `mise run install` が成功すれば §1 で完走扱い。
 
-### 2.3 hm-m1-mac (claude 17 + gemini 4 = 21 件、codex 側は別途調査)
+### 2.3 hm-m1-mac (59 件、2026-05-29 実施済み)
+
+repo 上では 2026-05-29 に claude/codex/gemini profile と
+`sync_prompt_skills.py` を削除済み。再実行しても対象は存在しない想定。
 
 #### claude side (17 件)
 
@@ -210,17 +213,14 @@ rm -rf \
 rmdir ~/dotfiles/gemini/profiles/hm-m1-mac/commands 2>/dev/null
 ```
 
-#### codex side (実機調査が必要)
+#### codex side
 
-```bash
-# まず実機で内容確認:
-ls ~/dotfiles/codex/profiles/hm-m1-mac/{skills,prompts}/ 2>/dev/null
+repo 上では削除済み。`~/dotfiles/codex/profiles/hm-m1-mac/{skills,prompts}/` は
+存在しない想定。
 
-# APM 移管済 (basic catalog 21 件 + custom catalog 7 件と一致するもの) を削除。
-# 一覧は §2.4 win-15034 codex side を参考に、実在するものだけに絞る。
-```
+### 2.4 win-15034 (claude 16 + codex 30 = 46 件、2026-05-29 実施済み)
 
-### 2.4 win-15034 (claude 16 + codex 30 = 46 件)
+repo 上では 2026-05-29 に削除済み。再実行しても対象は存在しない想定。
 
 #### claude side
 
