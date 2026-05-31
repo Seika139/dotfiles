@@ -45,3 +45,4 @@ rules:
     min-spaces-from-content: 1
   brackets:
     max-spaces-inside: 1
+  document-start: disable
