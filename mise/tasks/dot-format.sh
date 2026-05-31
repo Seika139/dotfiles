@@ -52,8 +52,12 @@ yamllint -f parsable . | while IFS= read -r finding; do
     line_num="${BASH_REMATCH[2]}"
     # `-i.bak` は BSD/GNU 双方で in-place 編集として動く portable 形式。
     # `-E` (ERE) で正規表現方言差を回避する。
-    sed -i.bak -E "${line_num}s/[[:space:]]+\$//" "$file" && rm -f "$file.bak"
-    print_green "Fixed trailing spaces: $file:$line_num"$'\n'
+    if sed -i.bak -E "${line_num}s/[[:space:]]+\$//" "${file}"; then
+      rm -f "${file}.bak"
+      print_green "Fixed trailing spaces: ${file}:${line_num}"$'\n'
+    else
+      print_red "Failed to fix trailing spaces: ${file}:${line_num}"$'\n'
+    fi
   fi
 done
 
