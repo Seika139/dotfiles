@@ -1,0 +1,105 @@
+[tools]
+python = "3.12"
+uv = "latest"
+
+#################################
+# Environments and Dependencies #
+#################################
+
+[tasks.venv]
+description = "uvを利用して仮想環境を作成します。ある場合はスキップされます"
+shell = "bash -c"
+quiet = true
+run = '''
+if [ ! -d "{{config_root}}/.venv" ]; then
+  echo "Creating .venv ..."
+  uv venv --clear
+fi
+'''
+
+[tasks.reset-venv]
+description = "仮想環境をリセットします"
+shell = "bash -c"
+quiet = true
+run = '''
+echo "Resetting .venv ..."
+venv_dir="{{config_root}}/.venv"
+if [ -d "$venv_dir" ]; then
+  echo "Removing existing .venv ...";
+  chmod -R +w "$venv_dir" 2>/dev/null || true;
+  find "$venv_dir" -type l -delete 2>/dev/null || true;
+  find "$venv_dir" -type f -exec chmod +w {} \; 2>/dev/null || true;
+  rm -rf "$venv_dir" 2>/dev/null || sudo rm -rf "$venv_dir" || true;
+fi
+uv venv --clear
+echo "done. Run 'mise run resolve' to sync dependencies."
+'''
+
+[tasks.resolve]
+description = "依存関係を解決します"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+run = '''
+if [ -d "{{config_root}}/.venv" ] \
+  && [ ! -f "{{config_root}}/.venv/bin/python" ] \
+  && [ ! -f "{{config_root}}/.venv/Scripts/python.exe" ]; then
+  echo "virtual environment is broken. Recreating..."
+  mise run reset-venv
+fi
+
+uv lock
+uv sync
+
+printf "✅ Dependencies are resolved.\n"
+'''
+
+[tasks.upgrade]
+description = "依存関係を最新のバージョンにアップグレードします"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+run = 'uv sync --upgrade'
+
+################
+# Code Quality #
+################
+
+[tasks.format]
+description = "コードのフォーマットを実行します"
+shell = "bash -c"
+quiet = true
+run = '''
+printf "\033[33m%s\033[0m\n" "Running ruff format..."
+uv run ruff format .
+'''
+
+####################
+# Auto Click Tasks #
+####################
+
+[tasks.click]
+description = "シンプルな自動クリック（現在のカーソル位置を連打）"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+usage = '''
+flag "--duration <seconds>" {
+  help "クリック間隔（秒）"
+  default "1.0"
+}
+'''
+run = 'uv run python -m automation.auto_click -d ${usage_duration}'
+
+[tasks.click-coords]
+description = "記録した複数座標・間隔を再生して連打します"
+shell = "bash -c"
+quiet = true
+depends = ["venv"]
+usage = '''
+flag "--duration <seconds>" {
+  help "デフォルトのクリック間隔（秒、記録が1点のみのとき使用）"
+  default "1.0"
+}
+'''
+run = 'uv run python -m automation.auto_click_coordinates -d ${usage_duration}'

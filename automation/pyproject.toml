@@ -1,16 +1,28 @@
-[tool.poetry]
+[project]
 name = "automation"
 version = "0.1.0"
-description = ""
-authors = ["Seika139 <tcoanzu@gmail.com>"]
+description = "Simple auto-clicker utilities for macOS / Windows"
+requires-python = ">=3.12"
 readme = "README.md"
+authors = [{ name = "Seika139", email = "tcoanzu@gmail.com" }]
+dependencies = [
+  "pyautogui>=0.9.54",
+  "pynput>=1.7.7",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-pyautogui = "^0.9.54"
-pynput = "^1.7.7"
+[dependency-groups]
+dev = [
+  "ruff>=0.14.2",
+]
 
+[tool.uv]
+# モジュール実行 (`python -m automation.xxx`) で使うためビルド/インストールはしない
+package = false
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["automation"]
