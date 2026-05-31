@@ -4,11 +4,13 @@ install_before = "7d"
 [tools]
 node = "latest"
 pnpm = "latest"
+python = "latest"
 shfmt = "latest"
 shellcheck = "latest"
 rumdl = "latest"
 taplo = "latest"
 markdownlint-cli2 = "latest"
+yamllint = "latest"
 
 [tasks.dot-init]
 description = "dotfile mise管理の初期化（タスクに実行権限を付与、依存同期など）"

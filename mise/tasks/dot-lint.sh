@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="lint（rumdl + markdownlint-cli2 + textlint + shfmt + shellcheck + taplo）"
+#MISE description="lint（rumdl + markdownlint-cli2 + textlint + shfmt + shellcheck + taplo + yamllint）"
 #MISE quiet=true
 #USAGE flag "-t --textlint" {
 #USAGE   help "textlintも実行する場合はこのフラグを指定してください（時間がかかる場合があります）"
@@ -45,6 +45,9 @@ find "${shell_files[@]}" -type f \
 
 print_blue "linting toml with taplo"$'\n'
 RUST_LOG=warn taplo fmt --check --diff
+
+print_blue "linting YAML files with yamllint"$'\n'
+yamllint .
 
 if [ "${usage_textlint:-}" = "true" ]; then
   print_blue "linting text files with textlint"$'\n'
