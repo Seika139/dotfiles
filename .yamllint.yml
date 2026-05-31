@@ -14,13 +14,22 @@ ignore: |
   .ssh/config_save_*
   .env
   bash/daily/.cache/
+  # Cursor 関連のファイルを除外（入れ子の node_modules ごと）。
+  .cursor/
+  # 一時ファイル。
+  **/tmp/*
+  !**/tmp/.gitkeep
   .rumdl_cache/
   __pycache__/
   *.pyc
   /.pytest_cache/
   /.ruff_cache/
-  /.venv/
-  /node_modules/
+  # venv / node_modules はサブプロジェクト配下にもあるため深さ非依存で除外する
+  # （yamllint は git 管理状態を見ず実ファイルを走査するため）。
+  **/.venv/
+  **/node_modules/
+  # Serena のツール生成ファイル（global gitignore で除外済み。CI と挙動を揃える）。
+  .serena/
   # 自動生成されるロックファイルは lint しない。
   pnpm-lock.yaml
   apm.lock.yaml
