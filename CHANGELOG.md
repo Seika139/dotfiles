@@ -48,6 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **claude / codex**
   - Slack / Discord 通知スクリプトを Claude 以外のツール名でも再利用できるように変更
 
+### Fixed
+
+- **codex**
+  - プロファイルごとに生成される `notify.log` を git 管理対象から除外
+- **lint / format**
+  - `pnpm-lock.yaml` の `qs` / `brace-expansion` を更新し、npm 開発依存の既知の脆弱性を解消
+
 ### Removed
 
 - **automation**
