@@ -2,15 +2,30 @@ model = "gpt-5.5"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true
-
 notify = [
   "bash",
   "-lc",
-  'CODEX_NOTIFY_CHANNEL=discord CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/xsv-linux-1/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "CODEX_NOTIFY_CHANNEL=discord CODEX_NOTIFY_DEBUG_LOG=\"$HOME/dotfiles/codex/profiles/xsv-linux-1/notify.log\" exec \"$HOME/dotfiles/codex/notify.sh\" \"$@\"",
   "codex-notify",
 ]
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
-status_line = ["model-with-reasoning", "current-dir", "project-name", "git-branch", "pull-request-number", "branch-changes", "run-state", "permissions", "approval-mode", "context-used", "context-window-size", "used-tokens", "task-progress"]
+status_line = [
+  "model-with-reasoning",
+  "current-dir",
+  "project-name",
+  "git-branch",
+  "pull-request-number",
+  "branch-changes",
+  "run-state",
+  "permissions",
+  "approval-mode",
+  "context-used",
+  "context-window-size",
+  "used-tokens",
+  "task-progress",
+  "five-hour-limit",
+  "weekly-limit",
+]
 status_line_use_colors = true

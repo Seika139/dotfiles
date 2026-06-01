@@ -15,5 +15,19 @@ notify = [
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
-status_line = ["model-with-reasoning", "current-dir", "project-name", "git-branch", "pull-request-number", "branch-changes", "run-state", "permissions", "approval-mode", "context-used", "context-window-size", "used-tokens", "task-progress"]
+status_line = [
+  "model-with-reasoning",
+  "current-dir",
+  "project-name",
+  "git-branch",
+  "pull-request-number",
+  "branch-changes",
+  "run-state",
+  "permissions",
+  "approval-mode",
+  "context-used",
+  "context-window-size",
+  "used-tokens",
+  "task-progress",
+]
 status_line_use_colors = true
