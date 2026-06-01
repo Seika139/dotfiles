@@ -2,3 +2,13 @@ model = "gpt-5.5"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true
+
+notify = [
+  "bash",
+  "-lc",
+  'CODEX_NOTIFY_CHANNEL=discord CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/xsv-linux-1/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "codex-notify",
+]
+
+[tui]
+notifications = ["agent-turn-complete", "approval-requested"]
