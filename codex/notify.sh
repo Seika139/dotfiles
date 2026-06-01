@@ -121,6 +121,12 @@ notify_with_notify_send() {
 }
 
 play_ringtone() {
+  # 既定では MP3 を鳴らさない。CODEX_NOTIFY_RINGTONE=1 (true/on) で明示的に有効化する。
+  case "${CODEX_NOTIFY_RINGTONE:-0}" in
+  1 | true | on | yes) ;;
+  *) return 0 ;;
+  esac
+
   [[ "$(uname -s 2>/dev/null)" == "Darwin" ]] || return 1
   command -v afplay >/dev/null 2>&1 || return 1
 
@@ -137,7 +143,9 @@ play_ringtone() {
   fi
 
   local pick="${candidates[RANDOM % ${#candidates[@]}]}"
-  nohup afplay "$pick" >/dev/null 2>&1 &
+  # afplay -v は 1.0 が等倍。0.0〜1.0 で音量を絞れる。
+  local volume="${CODEX_NOTIFY_RINGTONE_VOLUME:-0.1}"
+  nohup afplay -v "$volume" "$pick" >/dev/null 2>&1 &
 }
 
 notify_local() {
