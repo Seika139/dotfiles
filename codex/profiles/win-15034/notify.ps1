@@ -5,6 +5,18 @@ param(
 
 $Message = "Codex finished"
 
+# 既定では着信音 (MP3 / Beep) を鳴らさない。
+# CODEX_NOTIFY_RINGTONE=1 (true/on/yes) で明示的に有効化する。bash 版 notify.sh と挙動を揃える。
+$ringtoneEnabled = $false
+if ($env:CODEX_NOTIFY_RINGTONE -and ($env:CODEX_NOTIFY_RINGTONE.Trim().ToLower() -in @('1', 'true', 'on', 'yes'))) {
+    $ringtoneEnabled = $true
+}
+
+# 音量も bash 版と同じ環境変数で上書きできるようにする。
+if ($env:CODEX_NOTIFY_RINGTONE_VOLUME) {
+    [double]::TryParse($env:CODEX_NOTIFY_RINGTONE_VOLUME, [ref]$Volume) | Out-Null
+}
+
 if (-not [string]::IsNullOrWhiteSpace($Argument) -and $Argument -ne '{message}') {
     try {
         $payload = $Argument | ConvertFrom-Json -ErrorAction Stop
@@ -40,26 +52,29 @@ catch {
 }
 
 # Play a random ringtone (or fallback beep) on the STA thread.
-Add-Type -AssemblyName presentationCore
-$homePath = [Environment]::GetFolderPath('UserProfile')
-$ringtoneDir = Join-Path $homePath 'dotfiles\codex\ringtones'
+# 既定では無効。CODEX_NOTIFY_RINGTONE=1 のときだけ再生する。
+if ($ringtoneEnabled) {
+    Add-Type -AssemblyName presentationCore
+    $homePath = [Environment]::GetFolderPath('UserProfile')
+    $ringtoneDir = Join-Path $homePath 'dotfiles\codex\ringtones'
 
-if (Test-Path -LiteralPath $ringtoneDir) {
-    $candidates = Get-ChildItem -LiteralPath $ringtoneDir -File |
-    Where-Object { $_.Extension -match '^\.(mp3|wav)$' }
+    if (Test-Path -LiteralPath $ringtoneDir) {
+        $candidates = Get-ChildItem -LiteralPath $ringtoneDir -File |
+        Where-Object { $_.Extension -match '^\.(mp3|wav)$' }
 
-    if ($candidates) {
-        $pick = Get-Random -InputObject $candidates
-        $player = New-Object System.Windows.Media.MediaPlayer
-        $player.Volume = $Volume
-        $player.Open([Uri]$pick.FullName)
-        $player.Play()
-        Start-Sleep -Seconds 12
+        if ($candidates) {
+            $pick = Get-Random -InputObject $candidates
+            $player = New-Object System.Windows.Media.MediaPlayer
+            $player.Volume = $Volume
+            $player.Open([Uri]$pick.FullName)
+            $player.Play()
+            Start-Sleep -Seconds 12
+        }
+        else {
+            [Console]::Beep(880, 300)
+        }
     }
     else {
         [Console]::Beep(880, 300)
     }
-}
-else {
-    [Console]::Beep(880, 300)
 }
