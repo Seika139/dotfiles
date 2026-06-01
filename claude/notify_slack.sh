@@ -21,13 +21,14 @@ input=$(cat)
 event=$(echo "$input" | jq -r '.hook_event_name // empty')
 cwd=$(echo "$input" | jq -r '.cwd // empty')
 user_host="${USER:-${USERNAME:-unknown}}@$(hostname)"
+tool_name="${NOTIFY_TOOL_NAME:-claude}"
 
 case "$event" in
   Stop)
-    message="実行中の claude が停止しました."$'\n'"${user_host} ${cwd}"
+    message="実行中の ${tool_name} が停止しました."$'\n'"${user_host} ${cwd}"
     ;;
   Notification)
-    message="実行中の claude が許可を要求しています."$'\n'"${user_host} ${cwd}"
+    message="実行中の ${tool_name} が許可を要求しています."$'\n'"${user_host} ${cwd}"
     ;;
   *)
     exit 0
