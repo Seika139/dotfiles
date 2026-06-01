@@ -3,5 +3,12 @@ model_reasoning_effort = "xhigh"
 hide_agent_reasoning = true
 network_access = true
 
+notify = [
+  "bash",
+  "-lc",
+  'CODEX_NOTIFY_CHANNEL=slack CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/cg-m2-mac/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "codex-notify",
+]
+
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
