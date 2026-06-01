@@ -3,5 +3,15 @@ model_reasoning_effort = "medium"
 hide_agent_reasoning = true
 network_access = true
 
+notify = [
+  "bash",
+  "-lc",
+  'CODEX_NOTIFY_CHANNEL=none CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/hm-m1-mac/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "codex-notify",
+]
+
+[tui]
+notifications = ["agent-turn-complete", "approval-requested"]
+
 [tools]
 web_search = true
