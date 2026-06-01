@@ -1,3 +1,13 @@
 network_access = true
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
+
+notify = [
+  "bash",
+  "-lc",
+  'CODEX_NOTIFY_CHANNEL=slack CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/wsl-ubuntu/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "codex-notify",
+]
+
+[tui]
+notifications = ["agent-turn-complete", "approval-requested"]
