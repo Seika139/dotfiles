@@ -23,6 +23,7 @@
     "BDOTDIR",
     "bgmdb",
     "buildx",
+    "cand",
     "CCOEFF",
     "CEDEC",
     "certifi",
@@ -65,6 +66,7 @@
     "Koebon",
     "laravel",
     "libpq",
+    "linuxbrew",
     "localstack",
     "meilisearch",
     "Mkdocs",
@@ -113,6 +115,7 @@
     "SCRIPTDIR",
     "Sercuit",
     "shellcheck",
+    "shellenv",
     "shfmt",
     "signingkey",
     "songdb",
@@ -135,7 +138,8 @@
     "venv",
     "wada",
     "winget",
-    "worktree"
+    "worktree",
+    "xhigh"
   ],
   "editor.formatOnSave": false,
   "trailing-spaces.trimOnSave": true,
