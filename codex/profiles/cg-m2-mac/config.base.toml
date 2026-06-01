@@ -1,4 +1,7 @@
 model = "gpt-5.5"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 hide_agent_reasoning = true
 network_access = true
+
+[tui]
+notifications = ["agent-turn-complete", "approval-requested"]
