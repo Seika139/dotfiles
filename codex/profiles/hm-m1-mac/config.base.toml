@@ -2,7 +2,6 @@ model = "gpt-5.5"
 model_reasoning_effort = "medium"
 hide_agent_reasoning = true
 network_access = true
-
 notify = [
   "bash",
   "-lc",
