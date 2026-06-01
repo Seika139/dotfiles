@@ -84,7 +84,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 usage = '''
-flag "--duration <seconds>" {
+flag "-d --duration <seconds>" {
   help "クリック間隔（秒）"
   default "1.0"
 }
@@ -97,7 +97,7 @@ shell = "bash -c"
 quiet = true
 depends = ["venv"]
 usage = '''
-flag "--duration <seconds>" {
+flag "-d --duration <seconds>" {
   help "デフォルトのクリック間隔（秒、記録が1点のみのとき使用）"
   default "1.0"
 }
