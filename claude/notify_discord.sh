@@ -20,16 +20,17 @@ input=$(cat)
 
 event=$(echo "$input" | jq -r '.hook_event_name // empty')
 cwd=$(echo "$input" | jq -r '.cwd // empty')
-user_host="${USER}@$(hostname -s)"
+user_host="${USER:-${USERNAME:-unknown}}@$(hostname -s)"
+tool_name="${NOTIFY_TOOL_NAME:-Claude}"
 
 case "$event" in
   Stop)
-    title="Claude Code タスク完了"
-    description="実行中の Claude が停止しました。"
+    title="${tool_name} タスク完了"
+    description="実行中の ${tool_name} が停止しました。"
     color=3066993 # 緑
     ;;
   Notification)
-    title=$(echo "$input" | jq -r '.title // "Claude Code 通知"')
+    title=$(echo "$input" | jq -r --arg tool_name "$tool_name" '.title // ($tool_name + " 通知")')
     description=$(echo "$input" | jq -r '.message // ""')
     color=15105570 # オレンジ
     ;;

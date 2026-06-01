@@ -2,3 +2,32 @@ model = "gpt-5.5"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true
+
+notify = [
+  "pwsh.exe",
+  "-NoLogo",
+  "-ExecutionPolicy",
+  "Bypass",
+  "-STA",
+  "-File",
+  "C:/Users/S13316/dotfiles/codex/profiles/win-15034/notify.ps1",
+]
+
+[tui]
+notifications = ["agent-turn-complete", "approval-requested"]
+status_line = [
+  "model-with-reasoning",
+  "current-dir",
+  "project-name",
+  "git-branch",
+  "pull-request-number",
+  "branch-changes",
+  "run-state",
+  "permissions",
+  "approval-mode",
+  "context-used",
+  "context-window-size",
+  "used-tokens",
+  "task-progress",
+]
+status_line_use_colors = true

@@ -5,15 +5,10 @@ description = "Simple auto-clicker utilities for macOS / Windows"
 requires-python = ">=3.12"
 readme = "README.md"
 authors = [{ name = "Seika139", email = "tcoanzu@gmail.com" }]
-dependencies = [
-  "pyautogui>=0.9.54",
-  "pynput>=1.7.7",
-]
+dependencies = ["pyautogui>=0.9.54", "pynput>=1.7.7"]
 
 [dependency-groups]
-dev = [
-  "ruff>=0.14.2",
-]
+dev = ["ruff>=0.14.2"]
 
 [tool.uv]
 # モジュール実行 (`python -m automation.xxx`) で使うためビルド/インストールはしない

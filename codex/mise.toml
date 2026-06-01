@@ -1,3 +1,6 @@
+[tools]
+jq = "latest"
+
 [env]
 PROFILES_DIR = "profiles"
 # WSL 環境なら true になる
@@ -24,4 +27,5 @@ quiet = true
 shell = "bash -c"
 run = [
   'find ./mise/ -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} +',
+  'test ! -f ./notify.sh || chmod +x ./notify.sh',
 ]

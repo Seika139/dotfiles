@@ -10,6 +10,9 @@ config.base.toml.backup.*
 
 create-issue-config.json
 
+# Codex notification debug logs generated per profile.
+profiles/*/notify.log
+
 # skill-creator が作る一時コピーを無視する。
 **/skills/*-skill-*/
 **/prompts/*-skill-*.md
