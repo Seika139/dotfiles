@@ -27,6 +27,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **automation**
+  - 自動クリックユーティリティのセットアップと実行を `mise` / `uv` で行えるようにし、`click` / `click-coords` / `resolve` / `upgrade` / `reset-venv` / `format` タスクを追加
+- **lint / format**
+  - `dot-lint` / `dot-format` に `yamllint` を追加し、YAML の lint と行末スペースの自動修正に対応（[#43](https://github.com/Seika139/dotfiles/pull/43)）
+- **codex**
+  - macOS / Linux / WSL 共通の Codex 通知スクリプトを追加し、タスク完了・許可要求をローカル通知および Slack / Discord Webhook へ送れるようにした
+  - 各 Codex プロファイルに TUI 通知とステータスライン表示を追加
+- **bash**
+  - `gh` の認証トークンを `GITHUB_TOKEN` に引き継ぎ、GitHub API の未認証レート制限を避けやすくした
+- **hlp**
+  - `awk` コマンドのヘルプを追加し、`rg` コマンドの複数キーワード検索・複数行検索の説明を拡充
+
+### Changed
+
+- **automation**
+  - 依存管理を Poetry から `uv` に移行し、Python 3.12 以上を前提にした構成へ更新
+- **claude / codex**
+  - Slack / Discord 通知スクリプトを Claude 以外のツール名でも再利用できるように変更
+
+### Removed
+
+- **automation**
+  - Poetry 用の lock ファイルを削除
+- **codex**
+  - `cg-m2-mac` プロファイル専用の通知スクリプトを廃止し、共通通知スクリプトへ統合
+
 ## [0.10.0] - 2026-05-30
 
 ### Added
