@@ -302,6 +302,7 @@
     "winget",
     "worklog",
     "worktree",
+    "Worktrees",
     "wslpath"
   ],
   "[html]": {
