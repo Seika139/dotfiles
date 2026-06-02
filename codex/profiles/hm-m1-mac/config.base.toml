@@ -5,7 +5,7 @@ network_access = true
 notify = [
   "bash",
   "-lc",
-  'CODEX_NOTIFY_CHANNEL=none CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/hm-m1-mac/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "CODEX_NOTIFY_CHANNEL=none CODEX_NOTIFY_DEBUG_LOG=\"$HOME/dotfiles/codex/profiles/hm-m1-mac/notify.log\" exec \"$HOME/dotfiles/codex/notify.sh\" \"$@\"",
   "codex-notify",
 ]
 
