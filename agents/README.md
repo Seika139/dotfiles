@@ -12,7 +12,7 @@ dotfiles/agents/
 ├── mise.toml                 # 共通 env (IS_WSL 等) のみ
 ├── mise.local.toml           # 各 PC のローカル設定 (.gitignore、自動生成)
 ├── mise/
-│   └── tasks/                # install / update / status / list / check_env / migrate
+│   └── tasks/                # install / update / status / list / check_env / migrate / install-agmsg
 └── profiles/
     ├── <machine>/
     │   ├── apm.yml           # 当該マシンで install するパッケージの宣言
@@ -90,6 +90,7 @@ mise run status                # 現在の profile と install 状況を表示
 mise run list                  # 利用可能 profile 一覧
 mise run update                # apm install -g --refresh --force で最新 ref に再解決
 mise run install --prof <m>    # 別 profile を一時的に当てる
+mise run install-agmsg         # 非 APM peer tool (agmsg) を pin した SHA で導入 (§ 非 APM peer tool)
 ```
 
 ## 4. private overlay (任意)
@@ -133,6 +134,19 @@ dependencies:
   してから `mise run install`。`~/.apm/apm.yml` が public 側だけのマニフェストに戻る
 
 `mise run status` で base/overlay の dependencies が分けて表示される。
+
+## 非 APM peer tool (agmsg 等)
+
+APM パッケージ化できないが `~/.agents/skills/` に同居させて使うツールは、専用 task で導入する。現状は [agmsg](https://github.com/fujibee/agmsg) (cross-agent messaging) が該当する。agmsg は SQLite DB 初期化・`~/.codex/config.toml` の `writable_roots` 追記・Claude slash command 生成というステートフルな installer を持ち、APM の静的展開では再現できないため APM パッケージにはしない (`profiles/*/apm.yml` には載せない)。
+
+導入は SHA pin した専用 task で行う。
+
+```bash
+mise run install-agmsg              # cmd=agmsg, pin した SHA で install / update
+mise run install-agmsg -- --cmd m   # コマンド名を変える場合 (引数は -- の後ろで python へ渡す)
+```
+
+agmsg は `~/.agents/skills/<cmd>/` に入り APM の配備先と同居するが、installer が置く `.agmsg` マーカーで識別され、`mise run status` では drift 比較から除外して `🔌 external` 枠に表示される (APM 宣言に無くても誤検出にならない)。`~/.codex/config.toml` への編集は版管理外なので、別 PC では各々 `mise run install-agmsg` を実行する。詳細と設計判断は [docs/agmsg-integration.md](docs/agmsg-integration.md) を参照。
 
 ## APM の責務範囲
 
