@@ -28,6 +28,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **agents**
+  - APM 非管理の peer tool を専用 task で導入する仕組みを追加し、cross-agent messaging の [agmsg](https://github.com/fujibee/agmsg) を `mise run install-agmsg` で導入できるようにした（コミット SHA pin・`sqlite3` 前提）
+  - 各マシンの profile に `architecture-review` / `audit-memory` / `delegate-worktrees` skill を追加
+  - `mise run status` が APM 非管理の skill を `.agmsg` マーカーで判定し、drift 検査から除外して external として表示するようにした
+
+### Changed
+
+- **codex**
+  - タスク完了・停止時の通知で、既定では着信音を鳴らさないようにした（macOS / Windows 共通）。`CODEX_NOTIFY_RINGTONE=1` で有効化、`CODEX_NOTIFY_RINGTONE_VOLUME` で音量を調整できる
+- **automation**
+  - `click` / `click-coords` タスクの `--duration` に短縮形 `-d` を追加
+
 ## [0.11.0] - 2026-06-01
 
 ### Added
