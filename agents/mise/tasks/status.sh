@@ -125,6 +125,20 @@ list_actual_rules() {
   fi
 }
 
+# 非 APM の peer tool (agmsg 等) を識別する。APM が宣言しない skill dir でも、
+# agmsg installer が必ず置く `.agmsg` マーカー (固定名, cmd 名を変えても同じ) を持つ
+# ものは drift ではなく external として扱い、declared vs actual 比較から除外する。
+list_external_skills() {
+  local dir="$1" d
+  [ -d "$dir" ] || return 0
+  for d in "$dir"/*/; do
+    [ -d "$d" ] || continue
+    if [ -e "${d}.agmsg" ]; then
+      basename "$d"
+    fi
+  done | sort -u
+}
+
 print_diff() {
   local label="$1" dir="$2" declared="$3" actual="$4" missing extra m_count e_count a_count d_count count_color
   d_count="$(printf "%s" "$declared" | grep -c . || true)"
@@ -171,7 +185,19 @@ print_actual() {
 
 printf "\n🌐 Skills (declared vs actual):\n"
 print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS" "$(list_actual "$HOME/.claude/skills")"
-print_diff "agents" "$HOME/.agents/skills" "$DECLARED_SKILLS" "$(list_actual "$HOME/.agents/skills")"
+
+# agents skills は APM cross-tool 配備先だが、非 APM の peer tool (agmsg) も同居する。
+# external を actual から除いて APM の drift だけを比較し、external は別枠で可視化する。
+AGENTS_ACTUAL="$(list_actual "$HOME/.agents/skills")"
+AGENTS_EXTERNAL="$(list_external_skills "$HOME/.agents/skills")"
+if [ -n "$AGENTS_EXTERNAL" ]; then
+  AGENTS_ACTUAL="$(comm -23 <(printf "%s\n" "$AGENTS_ACTUAL") <(printf "%s\n" "$AGENTS_EXTERNAL"))"
+fi
+print_diff "agents" "$HOME/.agents/skills" "$DECLARED_SKILLS" "$AGENTS_ACTUAL"
+if [ -n "$AGENTS_EXTERNAL" ]; then
+  printf "     \\033[36m🔌 external (非 APM / agmsg-managed, drift 比較から除外):\\033[0m\n"
+  printf "%s\n" "$AGENTS_EXTERNAL" | sed 's/^/       - /'
+fi
 
 printf "\n📐 Instructions / rules (declared vs actual):\n"
 print_diff "claude rules" "$HOME/.claude/rules" "$DECLARED_INSTRUCTIONS" "$(list_actual_rules "$HOME/.claude/rules")"
