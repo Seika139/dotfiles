@@ -38,4 +38,7 @@ dependencies:
     - Caromaf/agent-package-basic/packages/worktree#main
     - Caromaf/agent-package-basic/packages/discover-signals#main
     - Caromaf/agent-package-basic/packages/triage-improvements#main
+    - Caromaf/agent-package-basic/packages/architecture-review#main
+    - Caromaf/agent-package-basic/packages/audit-memory#main
+    - Caromaf/agent-package-basic/packages/delegate-worktrees#main
   mcp: []
