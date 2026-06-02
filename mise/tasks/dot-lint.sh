@@ -45,6 +45,9 @@ find "${shell_files[@]}" -type f \
 
 print_blue "linting toml with taplo"$'\n'
 RUST_LOG=warn taplo fmt --check --diff
+if [ -f "${HOME}/.codex/config.toml" ]; then
+  RUST_LOG=warn taplo fmt --check --diff -- "${HOME}/.codex/config.toml"
+fi
 
 print_blue "linting YAML files with yamllint"$'\n'
 yamllint .

@@ -40,6 +40,9 @@ find "${shell_files[@]}" -type f \
 
 print_blue "formatting toml with taplo"$'\n'
 RUST_LOG=warn taplo fmt
+if [ -f "${HOME}/.codex/config.toml" ]; then
+  RUST_LOG=warn taplo fmt -- "${HOME}/.codex/config.toml"
+fi
 
 # yamllint には自動修正機能が無いため、parsable 出力を解析して
 # `trailing-spaces` 違反の行だけ sed で行末スペースを除去する。
