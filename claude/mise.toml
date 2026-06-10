@@ -27,6 +27,7 @@ quiet = true
 hide = true
 run = [
   "find ./mise -type f -name \"*.sh\" -exec chmod +x {} +",
+  "find ./profiles -type f -name \"*.sh\" -exec chmod +x {} +",
   "test ! -f ./notify_slack.sh || chmod +x ./notify_slack.sh",
   "test ! -f ./notify_discord.sh || chmod +x ./notify_discord.sh",
   "test ! -f ./status_line.sh || chmod +x ./status_line.sh",
