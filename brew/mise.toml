@@ -89,7 +89,7 @@ EXCLUDE_FILE="$PROFILE_DIR/.dump_exclude"
 
 echo "🦄 Dumping current brew packages to profile: $PROFILE"
 mkdir -p "$PROFILE_DIR"
-brew bundle dump --file="$BREWFILE" --force
+brew bundle dump --file="$BREWFILE" --force --no-describe
 
 # 除外リスト (.dump_exclude) があれば該当行を削除する
 # 書式: Brewfile の行と完全一致する文字列を1行1エントリで記載
