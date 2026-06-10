@@ -63,11 +63,12 @@ PATH を指定しない場合はカレントディレクトリが検索対象に
 |           `--json`           | 検索結果を JSON 形式で出力                 |
 |       `-c`, `--count`        | マッチした行数を表示する                   |
 | `-l`, `--files-with-matches` | マッチした行があるファイル名のみを表示する |
+|   `--files-without-match`    | マッチした行がないファイル名のみを表示する |
 
 ## 複数のキーワードを含むファイルを検索する方法
 
 rg は 1 回の呼び出しでは原則 1 つのパターンしか取れないため、AND 検索（複数キーワードをすべて含む）を行うには工夫が必要です。
-状況に応じて次の 3 つを使い分けます。
+状況に応じて次の方法を使い分けます。
 
 ### 1. ファイル単位で AND したい — パイプで `-l` を連結
 
@@ -132,14 +133,38 @@ rg "$(regex_or TODO FIXME WIP)"
 rg -e TODO -e FIXME -e WIP
 ```
 
+### 5. A を含み B を含まない検索
+
+同じ行の中で「A は含むが B は含まない」箇所を探すだけなら、まず A で検索してから `-v` で B を含む行を除外します。
+
+```bash
+# TODO を含み、DEBUG を含まない行を表示
+rg TODO path/ | rg -v DEBUG
+```
+
+ファイル単位で「A を含むファイルのうち、B を含まないファイル」を列挙したい場合は、A にマッチしたファイル一覧を後段の `rg --files-without-match` に渡します。
+
+```bash
+# TODO を含み、DEBUG を含まないファイル名を列挙
+rg -l TODO path/ | xargs rg --files-without-match DEBUG
+
+# パスに空白などが含まれる可能性がある場合
+rg -l -0 TODO path/ | xargs -0 rg --files-without-match DEBUG
+```
+
+`rg -v B` は「B を含まない行」を表示するオプションです。
+ファイル単位で B を含まないことを確認したい場合は、`rg --files-without-match B` を使います。
+
 ### 使い分けの指針
 
-|          やりたいこと          | 推奨                                           |
-| :----------------------------: | :--------------------------------------------- |
-| ファイル単位で AND（順序不問） | `rg -l A \| xargs rg -l B`                     |
-|   同一行内で AND（順序不問）   | `rg "$(regex_and A B)"`                        |
-|        行をまたいで AND        | `rg -U --multiline-dotall "$(regex_and A B)"`  |
-|            OR 検索             | `rg "$(regex_or A B C)"` / `rg -e A -e B -e C` |
+|             やりたいこと             | 推奨                                           |
+| :----------------------------------: | :--------------------------------------------- |
+|    ファイル単位で AND（順序不問）    | `rg -l A \| xargs rg -l B`                     |
+|      同一行内で AND（順序不問）      | `rg "$(regex_and A B)"`                        |
+|           行をまたいで AND           | `rg -U --multiline-dotall "$(regex_and A B)"`  |
+|               OR 検索                | `rg "$(regex_or A B C)"` / `rg -e A -e B -e C` |
+| 同一行内で A を含み B を含まない検索 | `rg A \| rg -v B`                              |
+| ファイル単位で A を含み B を含まない | `rg -l A \| xargs rg --files-without-match B`  |
 
 ## インストール方法
 
