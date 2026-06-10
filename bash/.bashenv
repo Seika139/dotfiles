@@ -18,7 +18,9 @@ fi
 export DOTPATH
 export BDOTDIR="${DOTPATH}/bash"
 
-source "${BDOTDIR}/.bash_profile"
+# Added by Volta
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
 
 # Add user's local bin to PATH if it exists and is not already there
 if [[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
@@ -30,6 +32,4 @@ if [[ -d "$HOME/.antigravity/" ]]; then
   export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 fi
 
-# Added by Volta
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"
+source "${BDOTDIR}/.bash_profile"
