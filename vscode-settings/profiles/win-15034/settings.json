@@ -11,6 +11,7 @@
     "autofetch",
     "autopep",
     "autouse",
+    "awslocal",
     "axios",
     "batcat",
     "BDOTDIR",
@@ -21,6 +22,7 @@
     "buildx",
     "caty",
     "chara",
+    "chdir",
     "coloneqq",
     "Colour",
     "Colours",
@@ -133,6 +135,7 @@
     "pathlib",
     "pathspec",
     "Patroni",
+    "PDCA",
     "pecl",
     "pgdata",
     "PGDATABASE",
@@ -240,6 +243,7 @@
     "wslvar",
     "xhprof",
     "xlarge",
+    "yamllintignore",
     "zizmor"
   ],
   "cSpell.enabledFileTypes": {
