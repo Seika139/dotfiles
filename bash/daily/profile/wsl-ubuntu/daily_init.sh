@@ -19,14 +19,19 @@ mise upgrade
 
 # Volta 管理のツール（volta list から動的に取得）
 echo "=== volta ==="
-volta list all --format plain | awk '
+if ! command -v volta >/dev/null 2>&1; then
+  echo "Volta が見つかりません。インストールしてください: https://volta.sh/"
+  exit 1
+else
+  volta list all --format plain | awk '
   /^runtime .* \(default\)/ { name=$2; sub(/@[^@]*$/, "", name); print name }
   /^package-manager /        { name=$2; sub(/@[^@]*$/, "", name); print name }
   /^package .* \(default\)/  { name=$2; sub(/@[^@]*$/, "", name); print name }
 ' | sort -u | while read -r pkg; do
-  echo "volta install ${pkg}@latest"
-  volta install "${pkg}@latest"
-done
+    echo "volta install ${pkg}@latest"
+    volta install "${pkg}@latest"
+  done
+fi
 
 # uv 本体（pipx 経由でインストール）
 echo "=== uv ==="
