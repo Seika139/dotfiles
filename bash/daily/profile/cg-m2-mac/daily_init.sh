@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-volta install node@latest @openai/codex@latest
+volta install node@latest
 
 (
   cd "${DOTPATH}" || true
