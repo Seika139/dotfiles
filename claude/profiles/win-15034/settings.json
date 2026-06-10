@@ -60,19 +60,11 @@
       {
         "hooks": [
           {
-            "command": "pwsh.exe -NoProfile -Command 'New-BurntToastNotification -Text \"🦄 Claude Code\", (\"実行中の claude が停止しました.`n\" + $env:USERNAME + \"@\" + $env:COMPUTERNAME)'",
+            "command": "bash \"C:/Users/S13316/dotfiles/claude/notify_stop_windows.sh\" Claude",
             "type": "command"
           },
           {
-            "command": "pwsh.exe -NoProfile -Command 'Start-Sleep -Seconds 9.7; Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.Speak(\"クロードが停止しました\")'",
-            "type": "command"
-          },
-          {
-            "command": "pwsh -sta -Command 'Add-Type -AssemblyName presentationCore; $homePath=[Environment]::GetFolderPath(\"UserProfile\"); $dir=Join-Path $homePath \"dotfiles\\claude\\ringtones\"; $files=Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -match \"^\\.(mp3|wav)\" }; if($files){ $pick=$files | Get-Random; $m=New-Object System.Windows.Media.MediaPlayer; $m.Volume = 0.4; $m.Open([uri]$pick.FullName); $m.Play(); Start-Sleep 10 } else { [console]::Beep(880,300) }'",
-            "type": "command"
-          },
-          {
-            "command": "~/dotfiles/claude/notify_slack.sh",
+            "command": "bash \"C:/Users/S13316/dotfiles/claude/notify_slack.sh\" Claude",
             "type": "command"
           }
         ],
