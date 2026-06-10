@@ -62,15 +62,59 @@ gll() {
 
 # git の不要なブランチを削除する
 grm() {
+  local default_branch repo_root default_worktree branch worktree_path status
+
   default_branch=$(git rev-parse --abbrev-ref origin/HEAD | sed 's/origin\///') || return 1
-  echo_yellow "git checkout ${default_branch}" &&
-    git checkout "${default_branch}" &&
-    echo_yellow "git pull" &&
-    git pull &&
-    echo_yellow "git remote prune origin" &&
-    git remote prune origin &&
-    echo_yellow "git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -d" &&
-    git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -d
+  repo_root=$(git rev-parse --show-toplevel) || return 1
+  default_worktree=$(
+    git worktree list --porcelain |
+      awk -v branch="refs/heads/${default_branch}" '
+        /^worktree / { path = substr($0, 10) }
+        /^branch / && substr($0, 8) == branch { print path; exit }
+      '
+  )
+
+  if [[ -z "${default_worktree}" ]]; then
+    default_worktree="${repo_root}"
+    echo_yellow "git checkout ${default_branch}" &&
+      git checkout "${default_branch}" || return 1
+  fi
+
+  echo_yellow "git -C ${default_worktree} pull" &&
+    git -C "${default_worktree}" pull || return 1
+
+  echo_yellow "git -C ${default_worktree} remote prune origin" &&
+    git -C "${default_worktree}" remote prune origin || return 1
+
+  status=0
+  while IFS= read -r branch; do
+    [[ -n "${branch}" ]] || continue
+
+    worktree_path=$(
+      git worktree list --porcelain |
+        awk -v branch="refs/heads/${branch}" '
+          /^worktree / { path = substr($0, 10) }
+          /^branch / && substr($0, 8) == branch { print path; exit }
+        '
+    )
+
+    if [[ -n "${worktree_path}" ]]; then
+      echo_yellow "git -C ${default_worktree} worktree remove ${worktree_path}"
+      git -C "${default_worktree}" worktree remove "${worktree_path}" || {
+        status=1
+        continue
+      }
+    fi
+
+    echo_yellow "git -C ${default_worktree} branch -d ${branch}"
+    git -C "${default_worktree}" branch -d "${branch}" || status=1
+  done < <(
+    git -C "${default_worktree}" for-each-ref \
+      --format='%(refname:short)%09%(upstream:track)' refs/heads |
+      awk -F '\t' '$2 == "[gone]" { print $1 }'
+  )
+
+  return "${status}"
 }
 
 alias gd='git diff --src-prefix="BEFORE/" --dst-prefix=" AFTER/"'
