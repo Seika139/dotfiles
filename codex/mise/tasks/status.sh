@@ -29,7 +29,8 @@ fi
 
 printf "\n📂 Original files and directories:\n"
 # NOTE: prompts/ skills/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
-for file in AGENTS.md custom-config; do
+profile_targets=(AGENTS.md custom-config hooks.json)
+for file in "${profile_targets[@]}"; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
@@ -87,7 +88,7 @@ fi
 
 printf "\n🔗 Symlinks in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
 # NOTE: prompts/ は APM 管理 (~/.codex/prompts/ は real dir) に移行済のためチェック対象外。
-for file in AGENTS.md custom-config; do
+for file in "${profile_targets[@]}"; do
   target="${HOME}/.codex/$file"
   source="$PROFILE_PATH/$file"
 
@@ -109,9 +110,20 @@ for file in AGENTS.md custom-config; do
     else
       printf "%s\n" "   ⚠️  $source -> $link_target (不一致)"
     fi
-  elif [ -f "$target" ]; then
-    printf "%s\n" "   ❌ $file (通常ファイル、シンボリックリンクではない). Use the following command ↓"
-    printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
+  elif [ -f "$target" ] && [ -f "$source" ]; then
+    if cmp -s "$source" "$target"; then
+      printf "%s\n" "   ✅ $source -> $target (regular file copy matches)"
+    else
+      printf "%s\n" "   ❌ $file (通常ファイル、profile と内容不一致). Use the following command ↓"
+      printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
+    fi
+  elif [ -d "$target" ] && [ -d "$source" ]; then
+    if diff -qr "$source" "$target" >/dev/null 2>&1; then
+      printf "%s\n" "   ✅ $source -> $target (regular directory copy matches)"
+    else
+      printf "%s\n" "   ❌ $file (通常ディレクトリ、profile と内容不一致). Use the following command ↓"
+      printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
+    fi
   else
     printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
   fi

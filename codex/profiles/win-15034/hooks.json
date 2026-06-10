@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"C:/Users/S13316/dotfiles/claude/notify_stop_windows.sh\" Codex"
+          },
+          {
+            "type": "command",
+            "command": "bash \"C:/Users/S13316/dotfiles/claude/notify_slack.sh\" Codex"
+          }
+        ]
+      }
+    ]
+  }
+}

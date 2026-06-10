@@ -63,9 +63,16 @@ EOF
 #   `mise run install`@agents/ で ~/.codex/{prompts,skills}/ に直接配備される。
 mkdir -p "$PROFILE_PATH/custom-config"
 
+cat >"$PROFILE_PATH/hooks.json" <<'EOF'
+{
+  "hooks": {}
+}
+EOF
+
 printf "%s\n" "✅ Created profile '$PROFILE' at $PROFILE_PATH"
 printf "%s\n" "📝 Edit settings in:"
 printf "%s\n" "   - $PROFILE_PATH/config.base.toml"
 printf "%s\n" "   - $PROFILE_PATH/config.local.toml (optional, git-ignored)"
 printf "%s\n" "   - $PROFILE_PATH/AGENTS.md"
 printf "%s\n" "   - $PROFILE_PATH/custom-config/"
+printf "%s\n" "   - $PROFILE_PATH/hooks.json"

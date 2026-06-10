@@ -93,7 +93,7 @@ mkdir -p "$CODEX_HOME"
 # prompts / skills は APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
 # `mise run install`@agents/ で ~/.codex/skills/ に直接配備される
 # (codex は user-scope で prompts 非対応 — agents/ 側で codex 用 prompts は配備されない)。
-main_targets=(AGENTS.md custom-config)
+main_targets=(AGENTS.md custom-config hooks.json)
 render_config="${MISE_CONFIG_ROOT}/mise/scripts/render_config.py"
 
 printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"

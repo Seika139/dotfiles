@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render_config import emit_table  # noqa: E402
+from render_config import drop_volatile_state, emit_table  # noqa: E402
 
 
 def split_runtime(
@@ -123,6 +123,7 @@ def main() -> int:
     except Exception as error:
         print(f"pull_config.py: failed to parse {runtime_path}: {error}", file=sys.stderr)
         return 1
+    runtime = drop_volatile_state(runtime)
 
     base = load_toml(base_path) if base_path.is_file() else {}
     new_base, new_local = split_runtime(runtime, base)
