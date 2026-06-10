@@ -2,14 +2,15 @@
 install_before = "7d"
 
 [tools]
+markdownlint-cli2 = "latest"
 node = "latest"
 pnpm = "latest"
 python = "latest"
+rumdl = "latest"
 shfmt = "latest"
 shellcheck = "latest"
-rumdl = "latest"
 taplo = "latest"
-markdownlint-cli2 = "latest"
+uv = "latest"
 yamllint = "latest"
 
 [tasks.dot-init]
