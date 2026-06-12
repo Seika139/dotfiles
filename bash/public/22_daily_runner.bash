@@ -45,6 +45,132 @@ _bdotdir_normalize_cache_key() {
   printf '%s' "$key"
 }
 
+_bdotdir_daily_proc_start_time() {
+  local pid="$1"
+  local stat rest
+  [[ -r "/proc/${pid}/stat" ]] || return 1
+
+  stat="$(<"/proc/${pid}/stat")"
+  rest="${stat#*) }"
+  # shellcheck disable=SC2086
+  set -- $rest
+  [[ -n "${20:-}" ]] || return 1
+  printf '%s' "${20}"
+}
+
+_bdotdir_daily_boot_id() {
+  [[ -r /proc/sys/kernel/random/boot_id ]] || return 1
+  cat /proc/sys/kernel/random/boot_id
+}
+
+_bdotdir_daily_process_tree_contains_profile_script() {
+  local pid="$1"
+  local cmdline fd_target child_pid
+  local -a children=()
+
+  [[ -d "/proc/${pid}" ]] || return 1
+
+  if [[ -r "/proc/${pid}/cmdline" ]]; then
+    cmdline="$(tr '\0' ' ' <"/proc/${pid}/cmdline")"
+    if [[ "$cmdline" == *"${BDOTDIR_DAILY_ROOT}/profile/"* ]]; then
+      return 0
+    fi
+  fi
+
+  if [[ -e "/proc/${pid}/fd/255" ]]; then
+    fd_target="$(readlink "/proc/${pid}/fd/255" 2>/dev/null || true)"
+    if [[ "$fd_target" == "${BDOTDIR_DAILY_ROOT}/profile/"* ]]; then
+      return 0
+    fi
+  fi
+
+  if [[ -r "/proc/${pid}/task/${pid}/children" ]]; then
+    read -r -a children <"/proc/${pid}/task/${pid}/children"
+    for child_pid in "${children[@]}"; do
+      if _bdotdir_daily_process_tree_contains_profile_script "$child_pid"; then
+        return 0
+      fi
+    done
+  fi
+
+  return 1
+}
+
+_bdotdir_daily_read_runner_lock() {
+  local lock_file="$1"
+  local first_line key value
+
+  BDOTDIR_DAILY_LOCK_PID=""
+  BDOTDIR_DAILY_LOCK_START_TIME=""
+  BDOTDIR_DAILY_LOCK_BOOT_ID=""
+  BDOTDIR_DAILY_LOCK_LEGACY=0
+
+  [[ -f "$lock_file" ]] || return 1
+  IFS= read -r first_line <"$lock_file" || [[ -n "$first_line" ]] || return 1
+
+  if [[ "$first_line" =~ ^[0-9]+$ ]]; then
+    BDOTDIR_DAILY_LOCK_PID="$first_line"
+    BDOTDIR_DAILY_LOCK_LEGACY=1
+    return 0
+  fi
+
+  while IFS='=' read -r key value; do
+    case "$key" in
+    pid) BDOTDIR_DAILY_LOCK_PID="$value" ;;
+    start_time) BDOTDIR_DAILY_LOCK_START_TIME="$value" ;;
+    boot_id) BDOTDIR_DAILY_LOCK_BOOT_ID="$value" ;;
+    esac
+  done <"$lock_file"
+
+  [[ "$BDOTDIR_DAILY_LOCK_PID" =~ ^[0-9]+$ ]]
+}
+
+_bdotdir_daily_runner_lock_is_active() {
+  local lock_file="$1"
+  local pid current_start_time current_boot_id
+
+  _bdotdir_daily_read_runner_lock "$lock_file" || return 1
+  pid="$BDOTDIR_DAILY_LOCK_PID"
+
+  kill -0 "$pid" 2>/dev/null || return 1
+
+  if [[ "$BDOTDIR_DAILY_LOCK_LEGACY" == "1" ]]; then
+    if [[ -d /proc ]]; then
+      _bdotdir_daily_process_tree_contains_profile_script "$pid"
+      return $?
+    fi
+    return 0
+  fi
+
+  if [[ -n "$BDOTDIR_DAILY_LOCK_BOOT_ID" ]]; then
+    current_boot_id="$(_bdotdir_daily_boot_id 2>/dev/null)" || return 1
+    [[ "$current_boot_id" == "$BDOTDIR_DAILY_LOCK_BOOT_ID" ]] || return 1
+  fi
+
+  if [[ -n "$BDOTDIR_DAILY_LOCK_START_TIME" ]]; then
+    current_start_time="$(_bdotdir_daily_proc_start_time "$pid" 2>/dev/null)" || return 1
+    [[ "$current_start_time" == "$BDOTDIR_DAILY_LOCK_START_TIME" ]] || return 1
+  fi
+
+  return 0
+}
+
+_bdotdir_daily_write_runner_lock() {
+  local lock_file="$1"
+  local pid start_time boot_id
+
+  pid="${BASHPID:-$$}"
+  start_time="$(_bdotdir_daily_proc_start_time "$pid" 2>/dev/null || true)"
+  boot_id="$(_bdotdir_daily_boot_id 2>/dev/null || true)"
+
+  {
+    printf 'pid=%s\n' "$pid"
+    [[ -n "$start_time" ]] && printf 'start_time=%s\n' "$start_time"
+    [[ -n "$boot_id" ]] && printf 'boot_id=%s\n' "$boot_id"
+    printf 'profile=%s\n' "$DAILY_PROFILE"
+  } >"$lock_file"
+}
+
 bdotdir_run_once_per_day() {
   if [[ $# -lt 2 ]]; then
     _bdotdir_daily_log_warn "bdotdir_run_once_per_day: cache key とコマンドを指定してください"
@@ -130,19 +256,19 @@ _bdotdir_run_profile_daily_scripts() {
 
   # 排他制御: ロックファイルのチェック
   if [[ -f "$lock_file" ]]; then
-    local pid
-    pid="$(<"$lock_file")"
-    if kill -0 "$pid" 2>/dev/null; then
+    if _bdotdir_daily_runner_lock_is_active "$lock_file"; then
+      local pid="$BDOTDIR_DAILY_LOCK_PID"
       _bdotdir_daily_log_verbose "デイリー処理が既に他のシェル(PID: ${pid})で実行中のため、スキップします"
       return 0
-    else
-      _bdotdir_daily_log_verbose "古いロックファイル(PID: ${pid})を検出しました。プロセスが存在しないため削除して続行します"
-      rm -f "$lock_file"
     fi
+
+    local pid="${BDOTDIR_DAILY_LOCK_PID:-unknown}"
+    _bdotdir_daily_log_verbose "古いロックファイル(PID: ${pid})を検出しました。実行中のデイリー処理ではないため削除して続行します"
+    rm -f "$lock_file"
   fi
 
   # ロックの取得
-  printf '%s' "$$" >"$lock_file"
+  _bdotdir_daily_write_runner_lock "$lock_file"
   # 終了時にロックファイルを確実に削除するためのトラップ
   trap 'rm -f "$lock_file"' EXIT INT TERM
 
@@ -168,7 +294,13 @@ _bdotdir_run_profile_daily_scripts() {
   trap - EXIT INT TERM
 }
 
-_bdotdir_run_profile_daily_scripts
+(
+  _bdotdir_run_profile_daily_scripts
+)
 
 unset -f _bdotdir_daily_log_verbose _bdotdir_daily_log_warn _bdotdir_normalize_cache_key \
+  _bdotdir_daily_proc_start_time _bdotdir_daily_boot_id \
+  _bdotdir_daily_process_tree_contains_profile_script _bdotdir_daily_read_runner_lock \
+  _bdotdir_daily_runner_lock_is_active _bdotdir_daily_write_runner_lock \
   bdotdir_run_once_per_day bdotdir_run_daily_script _bdotdir_run_profile_daily_scripts
+unset BDOTDIR_DAILY_LOCK_PID BDOTDIR_DAILY_LOCK_START_TIME BDOTDIR_DAILY_LOCK_BOOT_ID BDOTDIR_DAILY_LOCK_LEGACY
