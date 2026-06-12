@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **bash / claude / codex**
+  - hook 通知用の環境変数を `DISCORD_WEBHOOK_URL` から `AGENT_NOTIFY_DISCORD_WEBHOOK_URL` にリネーム（移行措置として旧名フォールバックあり）。マシン全体に export される汎用名が、プロジェクト固有の `.env` の同名変数を覆い隠して別チャンネルへ通知される事故への対処
+
 ### Added
 
 - **agents**

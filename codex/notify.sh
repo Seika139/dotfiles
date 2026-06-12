@@ -164,7 +164,7 @@ resolve_channel() {
   local channel="${CODEX_NOTIFY_CHANNEL:-auto}"
   case "$channel" in
   auto)
-    if [[ -n "${DISCORD_WEBHOOK_URL:-}" && -z "${SLACK_WEBHOOK_URL:-}" ]]; then
+    if [[ -n "${AGENT_NOTIFY_DISCORD_WEBHOOK_URL:-${DISCORD_WEBHOOK_URL:-}}" && -z "${SLACK_WEBHOOK_URL:-}" ]]; then
       printf '%s\n' "discord"
     elif [[ -n "${SLACK_WEBHOOK_URL:-}" ]]; then
       printf '%s\n' "slack"

@@ -3,7 +3,8 @@
 # stdin から hook の JSON を受け取り、Discord に通知を送る
 #
 # 環境変数:
-#   DISCORD_WEBHOOK_URL - Discord Webhook URL (必須)
+#   AGENT_NOTIFY_DISCORD_WEBHOOK_URL - Discord Webhook URL (必須)
+#     (移行措置として旧名 DISCORD_WEBHOOK_URL もフォールバックで読む)
 #
 # 使い方:
 #   hook_event_name に応じてメッセージを生成する
@@ -12,7 +13,9 @@
 
 set -euo pipefail
 
-if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
+WEBHOOK_URL="${AGENT_NOTIFY_DISCORD_WEBHOOK_URL:-${DISCORD_WEBHOOK_URL:-}}"
+
+if [[ -z "$WEBHOOK_URL" ]]; then
   exit 0
 fi
 
@@ -60,4 +63,4 @@ payload=$(jq -n \
 curl -s -o /dev/null -X POST \
   -H "Content-Type: application/json" \
   -d "$payload" \
-  "$DISCORD_WEBHOOK_URL"
+  "$WEBHOOK_URL"
