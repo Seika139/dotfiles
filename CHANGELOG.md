@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - APM 非管理の peer tool を専用 task で導入する仕組みを追加し、cross-agent messaging の [agmsg](https://github.com/fujibee/agmsg) を `mise run install-agmsg` で導入できるようにした（コミット SHA pin・`sqlite3` 前提）
   - 各マシンの profile に `architecture-review` / `audit-memory` / `delegate-worktrees` skill を追加
   - `mise run status` が APM 非管理の skill を `.agmsg` マーカーで判定し、drift 検査から除外して external として表示するようにした
+- **codex**
+  - WSL Ubuntu 用の Codex 通知スクリプトを追加し、タスク完了時のデスクトップ通知と効果音再生に対応した
+  - Windows の Codex で Stop 時にローカル通知と Slack 通知を送る `hooks.json` を追加した
+- **hlp**
+  - `rg` のヘルプに `--files-without-match` と「A を含み B を含まない検索」の節を追加した
 
 ### Changed
 
@@ -41,6 +46,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - タスク完了・停止時の通知で、既定では着信音を鳴らさないようにした（macOS / Windows 共通）。`CODEX_NOTIFY_RINGTONE=1` で有効化、`CODEX_NOTIFY_RINGTONE_VOLUME` で音量を調整できる
 - **automation**
   - `click` / `click-coords` タスクの `--duration` に短縮形 `-d` を追加
+- **bash**
+  - 不要ブランチを削除する `grm` を git worktree に対応させ、`[gone]` になったブランチに紐づく worktree も合わせて削除するようにした
+  - daily runner のロックを PID・プロセス開始時刻・boot_id で検証するようにし、再起動後の残存ロックや PID 再利用による誤検知を防ぐようにした
+- **claude**
+  - Windows の Stop 通知を `settings.json` のインライン記述から `notify_stop_windows.ps1` / `notify_stop_windows.sh` に切り出し、音声系を一時停止スイッチで無効化できるようにした
+  - `notify_slack.sh` の Webhook 取得を堅牢化し、secrets / `settings.json` からのフォールバック取得に対応。`jq` / `curl` 不在時や送信失敗時も hook を妨げず終了するようにした
+  - `grant-permissions` が `profiles` 配下の `*.sh` にも実行権限を付与するようにした
+- **lint / format**
+  - `dot-lint` / `dot-format` が `~/.codex/config.toml` も taplo で整形・検査するようにした
 
 ## [0.11.0] - 2026-06-01
 
