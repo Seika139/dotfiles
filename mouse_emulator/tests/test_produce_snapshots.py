@@ -85,7 +85,10 @@ class TestRunSummaryReportFormat:
             decision = TurnDecision(action_kind=action, rationale="t")
             summary.record(
                 TurnLogEntry.from_state_and_decision(
-                    turn, state, decision, stop_reason=stop,
+                    turn,
+                    state,
+                    decision,
+                    stop_reason=stop,
                 ),
             )
         return summary

@@ -168,9 +168,7 @@ class DigitMatcher:
         Returns:
             左 x 昇順にソート済み。重なりは NMS で 1 つに統合。
         """
-        effective_threshold = (
-            threshold if threshold is not None else self._threshold
-        )
+        effective_threshold = threshold if threshold is not None else self._threshold
         arr = np.asarray(image.convert("L"), dtype=np.uint8)
         templates = (
             self._templates
@@ -194,7 +192,9 @@ class DigitMatcher:
                 if pattern.shape[1] > arr.shape[1]:
                     continue
                 result = cv2.matchTemplate(
-                    arr, pattern, cv2.TM_CCOEFF_NORMED,
+                    arr,
+                    pattern,
+                    cv2.TM_CCOEFF_NORMED,
                 )
                 locations = np.where(result >= effective_threshold)
                 for y, x in zip(*locations, strict=False):

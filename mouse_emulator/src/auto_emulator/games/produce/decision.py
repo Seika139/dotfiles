@@ -334,9 +334,7 @@ class StrategyEngine:
         if not state.lessons:
             return None
         for preferred in plan.primary_lesson_preference:
-            matches = [
-                lesson for lesson in state.lessons if preferred in lesson.name
-            ]
+            matches = [lesson for lesson in state.lessons if preferred in lesson.name]
             if not matches:
                 continue
             if plan.prefer_fans_efficiency:
@@ -383,9 +381,7 @@ class StrategyEngine:
             return sum(preview.stat_gains.values())
 
         for preferred in plan.primary_lesson_preference:
-            matches = [
-                lesson for lesson in state.lessons if preferred in lesson.name
-            ]
+            matches = [lesson for lesson in state.lessons if preferred in lesson.name]
             if not matches:
                 continue
             best = max(matches, key=lambda m: gain_score(m.slot))

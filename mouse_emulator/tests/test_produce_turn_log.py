@@ -54,7 +54,10 @@ class TestTurnLogEntry:
         state = GameState(season=4)
         decision = TurnDecision(action_kind="lesson", rationale="x")
         entry = TurnLogEntry.from_state_and_decision(
-            0, state, decision, stop_reason="complete",
+            0,
+            state,
+            decision,
+            stop_reason="complete",
         )
         assert entry.stop_reason == "complete"
 
@@ -68,7 +71,10 @@ class TestJsonlTurnLogger:
         logger.log(TurnLogEntry.from_state_and_decision(0, state, decision))
         logger.log(
             TurnLogEntry.from_state_and_decision(
-                1, state, decision, stop_reason="max_turns",
+                1,
+                state,
+                decision,
+                stop_reason="max_turns",
             ),
         )
         lines = log_path.read_text(encoding="utf-8").splitlines()
@@ -137,7 +143,10 @@ class TestRunSummary:
         state = GameState(season=season, fans_to_target=fans)
         decision = TurnDecision(action_kind=action, rationale="t")
         return TurnLogEntry.from_state_and_decision(
-            turn, state, decision, stop_reason=stop,
+            turn,
+            state,
+            decision,
+            stop_reason=stop,
         )
 
     def test_records_total_and_decision_counts(self) -> None:

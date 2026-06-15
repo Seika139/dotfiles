@@ -188,11 +188,7 @@ class TestE2EFlowFanCompletion:
                 self._fans_queue = [1000, 1000, 0]
 
             def read(self, image: Image.Image) -> GameState:  # noqa: ARG002
-                fans = (
-                    self._fans_queue.pop(0)
-                    if self._fans_queue
-                    else 0
-                )
+                fans = self._fans_queue.pop(0) if self._fans_queue else 0
                 return GameState(
                     season=4,
                     week_remaining=1,

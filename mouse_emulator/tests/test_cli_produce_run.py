@@ -75,7 +75,10 @@ class TestProduceAnalyze:
             decision = TurnDecision(action_kind=action, rationale="t")
             logger.log(
                 TurnLogEntry.from_state_and_decision(
-                    turn, state, decision, stop_reason=stop,
+                    turn,
+                    state,
+                    decision,
+                    stop_reason=stop,
                 ),
             )
 

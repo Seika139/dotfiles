@@ -140,10 +140,7 @@ def refine_region_to_aspect(  # noqa: PLR0913
 
     cw = col_run[1] - col_run[0] + 1
     ch = row_run[1] - row_run[0] + 1
-    if (
-        cw < (sx1 - sx0) * min_content_frac
-        or ch < (sy1 - sy0) * min_content_frac
-    ):
+    if cw < (sx1 - sx0) * min_content_frac or ch < (sy1 - sy0) * min_content_frac:
         return RefineReport(rough, False, "検出領域が不自然に小さい", 0, 0, 0, 0)
 
     det_left = sx0 + col_run[0]

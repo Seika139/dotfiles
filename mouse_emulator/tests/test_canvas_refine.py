@@ -29,7 +29,10 @@ def _screen_with_canvas(
     arr = np.full((h, w, 3), 30, dtype=np.uint8)  # 暗い一様背景
     x0, y0, x1, y1 = canvas_box
     arr[y0:y1, x0:x1] = rng.integers(
-        0, 256, size=(y1 - y0, x1 - x0, 3), dtype=np.uint8,
+        0,
+        256,
+        size=(y1 - y0, x1 - x0, 3),
+        dtype=np.uint8,
     )
     return Image.fromarray(arr)
 
