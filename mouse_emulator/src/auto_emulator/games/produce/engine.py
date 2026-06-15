@@ -40,6 +40,7 @@ from auto_emulator.games.produce.reader import ProduceStateReader
 from auto_emulator.games.produce.state import (
     GameState,
     LessonPreview,
+    ProduceItemSlot,
     ScreenKind,
 )
 from auto_emulator.games.produce.turn_log import (
@@ -81,6 +82,8 @@ class ProduceEngine:
         summary: RunSummary | None = None,
         click_settle: float = 0.4,
         loop_interval: float = 1.5,
+        hp_recover_threshold: float = 0.5,
+        healing_item_keywords: tuple[str, ...] = (),
     ) -> None:
         self._region = region
         self._reader = reader or ProduceStateReader()
@@ -93,6 +96,12 @@ class ProduceEngine:
         self._summary = summary
         self._click_settle = click_settle
         self._loop_interval = loop_interval
+        # HP がこの比率を下回ったら、ホーム起点ターンで回復アイテムを使う
+        # (週を消費しない pre-step)。`healing_item_keywords` 未設定なら無効。
+        self._hp_recover_threshold = hp_recover_threshold
+        self._healing_item_keywords = healing_item_keywords
+        # 使える回復アイテムが尽きたら True にして以後の探索を打ち切る。
+        self._healing_exhausted = False
 
     @property
     def summary(self) -> RunSummary | None:
@@ -125,9 +134,7 @@ class ProduceEngine:
         Returns:
             最初に観測された画面種別。timeout 超過時は `None`。
         """
-        targets: set[ScreenKind] = (
-            {target} if isinstance(target, str) else set(target)
-        )
+        targets: set[ScreenKind] = {target} if isinstance(target, str) else set(target)
         deadline = time.monotonic() + timeout
         while True:
             kind = self.detect_screen()
@@ -279,7 +286,7 @@ class ProduceEngine:
             self._execute_reflection()
             return
         if kind == "item":
-            self._execute_item()
+            self._execute_item(decision.target_slot)
             return
         if kind == "noop":
             self._log("[produce] noop")
@@ -302,21 +309,97 @@ class ProduceEngine:
         self._tap(self._points.home.reflection_card)
         # スキル取得・パッシブ ON はサブシーンで人手 or テンプレ判定が必要
 
-    def _execute_item(self) -> None:
-        """ホーム画面想定: アイテムタブ → 最初のスロット → 使用 → 閉じる。
+    def _execute_item(self, slot: int = 0) -> None:
+        """ホーム画面想定: アイテムタブ → 対象枠 使う → 確認 使う → 閉じる。
 
-        旧 `sample2.yml` の 3 ステップ (選択 / 使用 / 閉じる) を等価実装。
-        スロット選択は左上 (`first_slot`) 固定で、最初の手持ちアイテム
-        (スタミナ回復ドリンク等) を使う想定。将来複数アイテム選択や
-        在庫確認を入れる場合はここを拡張する。
+        アイテム使用は 2 段階 (一覧の `使う` → 使用確認ダイアログの `使う`)。
+        枠の横位置は reader の `card_centers_x` を真実源とする。`slot` が
+        範囲外なら末尾の枠にフォールバックする。
         """
         self._tap(self._points.home.item_tab)
         self._sleep_settle()
-        self._tap(self._points.item.first_slot)
+        self._tap_item_use(slot)
         self._sleep_settle()
-        self._tap(self._points.item.use_button)
+        self._tap(self._points.item.confirm_use)
         self._sleep_settle()
         self._tap(self._points.item.close_button)
+
+    def _tap_item_use(self, slot: int) -> None:
+        """アイテム一覧の対象枠 `使う` ボタンをタップする。"""
+        centers = self._reader.item_regions.card_centers_x
+        cx = centers[slot] if 0 <= slot < len(centers) else centers[-1]
+        self._tap(self._points.item.use_button(cx))
+
+    def _pick_healing_item(
+        self,
+        items: list[ProduceItemSlot],
+    ) -> ProduceItemSlot | None:
+        """使用可能な回復アイテム (名前キーワード前方一致) を 1 つ選ぶ。
+
+        Returns:
+            最初に一致した使用可能枠。無ければ None。
+        """
+        for item in items:
+            if item.usable and any(
+                kw in item.name for kw in self._healing_item_keywords
+            ):
+                return item
+        return None
+
+    def _maybe_recover_hp(self, state: GameState, *, on_home: bool) -> GameState:
+        """HP が閾値未満ならホームで回復アイテムを使う (週を消費しない pre-step)。
+
+        アイテム使用はターンを消費しないため、レッスン決定の前段で差し込み、
+        使用後に状態を読み直して回復後の HP を後段の決定に反映する。使える
+        回復アイテムが見つからなければ以後の探索を打ち切る (`_healing_exhausted`)。
+        ホーム起点ターンでのみ動作する (アイテムタブはホームのサイドバー)。
+
+        Args:
+            state: 現ターンの観測状態。
+            on_home: 現在ホーム画面か (schedule 起点では False)。
+
+        Returns:
+            回復を行った場合は読み直した状態、それ以外は元の `state`。
+        """
+        if (
+            self._healing_exhausted
+            or not self._healing_item_keywords
+            or not on_home
+            or state.hp_pct is None
+            or state.hp_pct >= self._hp_recover_threshold
+        ):
+            return state
+        self._tap(self._points.home.item_tab)
+        self._sleep_settle()
+        frame = self._capture.capture(region=self._region)
+        items = self._reader.read_produce_items(frame)
+        target = self._pick_healing_item(items)
+        if target is None:
+            self._log(
+                "[produce] HP low but no usable healing item; "
+                "disabling item recovery for the rest of the run",
+            )
+            self._healing_exhausted = True
+            self._tap(self._points.item.close_button)
+            self._sleep_settle()
+            return state
+        self._log(
+            f"[produce] HP {state.hp_pct:.0%} < "
+            f"{self._hp_recover_threshold:.0%}; using item '{target.name}' "
+            f"at slot {target.slot}",
+        )
+        self._tap_item_use(target.slot)
+        self._sleep_settle()
+        self._tap(self._points.item.confirm_use)
+        self._sleep_settle()
+        self._tap(self._points.item.close_button)
+        self._sleep_settle()
+        recovered = self.read_state_with_retry(
+            require_fields=(),
+            max_attempts=2,
+            poll_interval=0.0,
+        )
+        return recovered if recovered is not None else state
 
     def enable_dialog_fast_forward(self) -> None:
         """会話パートで早送り x4 トグルを ON にする (M2 / M14)。
@@ -417,7 +500,10 @@ class ProduceEngine:
             )
             if ready is None:
                 self._log_turn(
-                    turn_index, last_state, last_decision, "stuck:home",
+                    turn_index,
+                    last_state,
+                    last_decision,
+                    "stuck:home",
                 )
                 return "stuck:home"
             on_schedule = ready == "schedule"
@@ -429,6 +515,9 @@ class ProduceEngine:
             if state is None:
                 self._log_turn(turn_index, last_state, last_decision, "stuck:ocr")
                 return "stuck:ocr"
+            # 週を消費しない回復アイテム使用を決定の前段に差し込む。
+            # signature は回復後の状態 (週/ファンは不変) から取る。
+            state = self._maybe_recover_hp(state, on_home=not on_schedule)
             signature = (state.season, state.week_remaining, state.fans_to_target)
             if no_progress_threshold > 0 and last_signature is not None:
                 if signature == last_signature:
@@ -439,7 +528,10 @@ class ProduceEngine:
                             f"consecutive turns; signature={signature}",
                         )
                         self._log_turn(
-                            turn_index, state, last_decision, "stuck:no_progress",
+                            turn_index,
+                            state,
+                            last_decision,
+                            "stuck:no_progress",
                         )
                         return "stuck:no_progress"
                 else:
@@ -468,7 +560,10 @@ class ProduceEngine:
                 )
                 if reached is None:
                     self._log_turn(
-                        turn_index, state, decision, "stuck:schedule",
+                        turn_index,
+                        state,
+                        decision,
+                        "stuck:schedule",
                     )
                     return "stuck:schedule"
             self.execute_decision(decision, state)

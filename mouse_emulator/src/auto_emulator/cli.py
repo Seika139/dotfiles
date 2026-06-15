@@ -483,6 +483,23 @@ def run_produce(  # noqa: PLR0913, PLR0912
         ),
     ),
     pause_key: str | None = PAUSE_KEY_OPTION,
+    healing_item: list[str] = typer.Option(  # noqa: B008
+        [],
+        "--healing-item",
+        help=(
+            "体力回復アイテム名のキーワード (前方一致)。複数指定可 "
+            "(例: --healing-item ヒーリング --healing-item ドリンク)。"
+            "HP が閾値未満のホーム起点ターンで、使用可能なものを使う。"
+            "未指定なら回復アイテム使用は無効"
+        ),
+    ),
+    hp_recover_threshold: float = typer.Option(
+        0.5,
+        "--hp-recover-threshold",
+        min=0.0,
+        max=1.0,
+        help="この HP 比率未満で回復アイテムを使う (休息判定とは別)",
+    ),
 ) -> None:
     """シャニマス プロデュースモードを自走する (E1.4 + D5/D6).
 
@@ -564,6 +581,11 @@ def run_produce(  # noqa: PLR0913, PLR0912
         combo_label = "+".join(pause_combo)
         typer.echo(f"一時停止キー: {combo_label} (同じキーで再開)")
 
+    if healing_item:
+        typer.echo(
+            f"体力回復アイテム: {', '.join(healing_item)} "
+            f"(HP < {hp_recover_threshold:.0%} で使用)",
+        )
     engine = ProduceEngine(
         region=region,
         reader=reader,
@@ -573,6 +595,8 @@ def run_produce(  # noqa: PLR0913, PLR0912
         turn_logger=turn_logger,
         summary=summary,
         logger=typer.echo,
+        healing_item_keywords=tuple(healing_item),
+        hp_recover_threshold=hp_recover_threshold,
     )
     try:
         with TerminationMonitor(
