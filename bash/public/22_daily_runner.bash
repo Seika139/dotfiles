@@ -103,6 +103,7 @@ _bdotdir_daily_read_runner_lock() {
   BDOTDIR_DAILY_LOCK_PID=""
   BDOTDIR_DAILY_LOCK_START_TIME=""
   BDOTDIR_DAILY_LOCK_BOOT_ID=""
+  BDOTDIR_DAILY_LOCK_CREATED_AT=""
   BDOTDIR_DAILY_LOCK_LEGACY=0
 
   [[ -f "$lock_file" ]] || return 1
@@ -119,6 +120,7 @@ _bdotdir_daily_read_runner_lock() {
     pid) BDOTDIR_DAILY_LOCK_PID="$value" ;;
     start_time) BDOTDIR_DAILY_LOCK_START_TIME="$value" ;;
     boot_id) BDOTDIR_DAILY_LOCK_BOOT_ID="$value" ;;
+    created_at) BDOTDIR_DAILY_LOCK_CREATED_AT="$value" ;;
     esac
   done <"$lock_file"
 
@@ -127,7 +129,7 @@ _bdotdir_daily_read_runner_lock() {
 
 _bdotdir_daily_runner_lock_is_active() {
   local lock_file="$1"
-  local pid current_start_time current_boot_id
+  local pid current_start_time current_boot_id now lock_age
 
   _bdotdir_daily_read_runner_lock "$lock_file" || return 1
   pid="$BDOTDIR_DAILY_LOCK_PID"
@@ -152,21 +154,37 @@ _bdotdir_daily_runner_lock_is_active() {
     [[ "$current_start_time" == "$BDOTDIR_DAILY_LOCK_START_TIME" ]] || return 1
   fi
 
+  if [[ -d /proc ]]; then
+    if _bdotdir_daily_process_tree_contains_profile_script "$pid"; then
+      return 0
+    fi
+
+    if [[ "$BDOTDIR_DAILY_LOCK_CREATED_AT" =~ ^[0-9]+$ ]]; then
+      now="$(date +%s)"
+      lock_age=$((now - BDOTDIR_DAILY_LOCK_CREATED_AT))
+      ((lock_age < 5)) && return 0
+    fi
+
+    return 1
+  fi
+
   return 0
 }
 
 _bdotdir_daily_write_runner_lock() {
   local lock_file="$1"
-  local pid start_time boot_id
+  local pid start_time boot_id created_at
 
   pid="${BASHPID:-$$}"
   start_time="$(_bdotdir_daily_proc_start_time "$pid" 2>/dev/null || true)"
   boot_id="$(_bdotdir_daily_boot_id 2>/dev/null || true)"
+  created_at="$(date +%s)"
 
   {
     printf 'pid=%s\n' "$pid"
     [[ -n "$start_time" ]] && printf 'start_time=%s\n' "$start_time"
     [[ -n "$boot_id" ]] && printf 'boot_id=%s\n' "$boot_id"
+    printf 'created_at=%s\n' "$created_at"
     printf 'profile=%s\n' "$DAILY_PROFILE"
   } >"$lock_file"
 }
@@ -197,13 +215,16 @@ bdotdir_run_once_per_day() {
   fi
 
   _bdotdir_daily_log_verbose "日次コマンド(${key})を実行します..."
-  if "${command[@]}"; then
+  # 起動元シェルの stdin を継承すると、VS Code/WSL の pipe を読んで残ることがある。
+  local exit_code
+  if "${command[@]}" </dev/null; then
     printf '%s\n' "$today" >"$cache_file"
     _bdotdir_daily_log_verbose "日次コマンド(${key})の実行が完了しました"
     return 0
+  else
+    exit_code=$?
   fi
 
-  local exit_code=$?
   _bdotdir_daily_log_warn "日次コマンド(${key})の実行に失敗しました (exit ${exit_code})"
   return $exit_code
 }
@@ -240,6 +261,11 @@ bdotdir_run_daily_script() {
 
   if [[ ${#script_args[@]} -gt 0 ]]; then
     runner+=("${script_args[@]}")
+  fi
+
+  local script_timeout="${BDOTDIR_DAILY_SCRIPT_TIMEOUT:-1800}"
+  if [[ "$script_timeout" =~ ^[1-9][0-9]*$ ]] && command -v timeout >/dev/null 2>&1; then
+    runner=("timeout" "$script_timeout" "${runner[@]}")
   fi
 
   bdotdir_run_once_per_day "$absolute_path" "${runner[@]}"
@@ -303,4 +329,4 @@ unset -f _bdotdir_daily_log_verbose _bdotdir_daily_log_warn _bdotdir_normalize_c
   _bdotdir_daily_process_tree_contains_profile_script _bdotdir_daily_read_runner_lock \
   _bdotdir_daily_runner_lock_is_active _bdotdir_daily_write_runner_lock \
   bdotdir_run_once_per_day bdotdir_run_daily_script _bdotdir_run_profile_daily_scripts
-unset BDOTDIR_DAILY_LOCK_PID BDOTDIR_DAILY_LOCK_START_TIME BDOTDIR_DAILY_LOCK_BOOT_ID BDOTDIR_DAILY_LOCK_LEGACY
+unset BDOTDIR_DAILY_LOCK_PID BDOTDIR_DAILY_LOCK_START_TIME BDOTDIR_DAILY_LOCK_BOOT_ID BDOTDIR_DAILY_LOCK_CREATED_AT BDOTDIR_DAILY_LOCK_LEGACY
