@@ -94,6 +94,32 @@ class LessonPreview(BaseModel):
     )
 
 
+class ProduceItemSlot(BaseModel):
+    """アイテム画面 (プロデュースアイテム) に並ぶ 1 枠分の情報。
+
+    体力回復アイテムは「プロデュース前にセットしたアイテム」の中から
+    名前キーワードで識別する。使用可否 (`usable`) は枠下部ボタンの色で
+    判定する: `使う` は明るいマゼンタ (使用可)、`使用中` は暗いグレー
+    (使用不可)。極小フォントの「使用可能数」数字 OCR (0→8 等の誤読が
+    多い) に頼らないため堅牢。`usable_count` は読めれば補助情報として
+    持つが、判定には使わない。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    slot: int = Field(ge=0, description="左から 0,1,... の枠位置")
+    name: str = Field(description="アイテム名 (日本語 OCR)。読めなければ空文字")
+    usable: bool = Field(
+        default=False,
+        description="`使う` ボタンが活性 (マゼンタ) か。判定の一次情報",
+    )
+    usable_count: int | None = Field(
+        default=None,
+        ge=0,
+        description="使用可能数 (補助情報)。OCR できなければ None",
+    )
+
+
 class AuditionOption(BaseModel):
     """オーディションタブ内のスワイプ可能なカード 1 枚分の情報。"""
 

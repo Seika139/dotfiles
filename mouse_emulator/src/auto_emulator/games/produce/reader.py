@@ -27,6 +27,7 @@ from auto_emulator.games.produce.state import (
     GameState,
     LessonOption,
     LessonPreview,
+    ProduceItemSlot,
     ScreenKind,
 )
 
@@ -78,7 +79,10 @@ class LessonRegions:
     # ファン獲得見込み。単一フレームでは選択中カードの値しか取れない。
     selected_fans_preview: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(
-            x=0.845, y=0.482, w=0.065, h=0.050,
+            x=0.845,
+            y=0.482,
+            w=0.065,
+            h=0.050,
         ),
     )
     # 選択中カードは色付き本体が上方向にせり出す。各カード中心の縦
@@ -179,12 +183,40 @@ class StatusRegions:
     # 実機 8 枚 (1x/2x, 値 0/1/8/18/54/86) で検証済みの座標。
     trouble_pct: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(
-            x=0.867, y=0.244, w=0.075, h=0.082,
+            x=0.867,
+            y=0.244,
+            w=0.075,
+            h=0.082,
         ),
     )
     tension_lv: FractionalRegion = field(
         default_factory=lambda: FractionalRegion(x=0.896, y=0.074, w=0.013, h=0.034),
     )
+
+
+@dataclass(frozen=True)
+class ItemScreenRegions:
+    """「プロデュースアイテム」画面に並ぶアイテム枠の座標。
+
+    ホーム左サイドバー「アイテム」を開くと出るダイアログ。各枠は
+    [アイテム名(1-2 行)] / [アイテム画像] / [使用可能数 N] / [使う|使用中]
+    の縦並び。`card_centers_x` の長さが横に並ぶ枠数を決める。実機 2x
+    キャプチャ (`produce_item_screen.png`, 2924x1666) で実測キャリブ。
+
+    使用可否は枠下部ボタン帯 (`button_band`) のマゼンタ比率で判定する。
+    `使う` は明るいマゼンタ、`使用中` は暗いグレーなので、カード中心
+    ±`button_half_w` の範囲にマゼンタが `button_magenta_min_ratio` 以上
+    あれば使用可とみなす (極小数字 OCR より堅牢)。名前は折り返す場合が
+    あるため帯を広めに取り、キーワード前方一致で識別する精度を狙う。
+    """
+
+    card_centers_x: tuple[float, ...] = (0.382, 0.620)
+    name_band: tuple[float, float] = (0.25, 0.36)
+    name_width: float = 0.24
+    # 使う/使用中 ボタン帯。マゼンタ比率で usable を判定する
+    button_band: tuple[float, float] = (0.70, 0.80)
+    button_half_w: float = 0.09
+    button_magenta_min_ratio: float = 0.03
 
 
 _FANS_RE = re.compile(r"([0-9][0-9,]*)")
@@ -207,6 +239,7 @@ class ProduceStateReader:
         status: StatusRegions | None = None,
         auditions: AuditionRegions | None = None,
         lesson_preview: LessonPreviewRegions | None = None,
+        items: ItemScreenRegions | None = None,
         digit_matcher: DigitMatcher | None = None,
         tesseract_cmd: str | None = None,
     ) -> None:
@@ -216,6 +249,7 @@ class ProduceStateReader:
         self._lesson_preview = lesson_preview or LessonPreviewRegions()
         self._status = status or StatusRegions()
         self._auditions = auditions or AuditionRegions()
+        self._items = items or ItemScreenRegions()
         self._digit_matcher = digit_matcher
         if tesseract_cmd is not None:
             pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
@@ -807,3 +841,64 @@ class ProduceStateReader:
         enlarged = gray.resize((gray.width * 4, gray.height * 4))
         binarized = enlarged.point(lambda x: 255 if x > 180 else 0)
         return [crop, enlarged, binarized]
+
+    @property
+    def item_regions(self) -> ItemScreenRegions:
+        return self._items
+
+    def read_produce_items(self, image: Image.Image) -> list[ProduceItemSlot]:
+        """「プロデュースアイテム」画面に並ぶアイテム枠を読み取る。
+
+        各枠でアイテム名 (日本語 OCR) と使用可能数 (数字 OCR) を読む。
+        名前が空に読めた枠 (アイテム未配置の空枠) は結果に含めない。
+        体力回復アイテムかどうかの判定は呼び出し側 (engine) が名前キーワードで
+        行うため、ここでは枠の生情報だけを返す (責務分離)。
+
+        Args:
+            image: アイテム画面のフレーム。
+
+        Returns:
+            slot 0 (左端) から順の `ProduceItemSlot`。空枠は除外。
+        """
+        regions = self._items
+        name_top, name_bottom = regions.name_band
+        name_half_w = regions.name_width / 2
+        results: list[ProduceItemSlot] = []
+        for slot, cx in enumerate(regions.card_centers_x):
+            name_region = FractionalRegion(
+                x=cx - name_half_w,
+                y=name_top,
+                w=regions.name_width,
+                h=name_bottom - name_top,
+            )
+            name = self._ocr_japanese(image, name_region)
+            if not name:
+                continue
+            usable = self._button_is_active(image, cx)
+            results.append(
+                ProduceItemSlot(slot=slot, name=name, usable=usable),
+            )
+        return results
+
+    def _button_is_active(self, image: Image.Image, card_center_x: float) -> bool:
+        """枠下部ボタン帯にマゼンタ (`使う`) が十分あれば使用可と判定する。
+
+        `使用中` は暗いグレーでマゼンタを含まないため False になる。
+
+        Returns:
+            ボタンがマゼンタ (活性) なら True。
+        """
+        regions = self._items
+        top, bottom = regions.button_band
+        box = FractionalRegion(
+            x=card_center_x - regions.button_half_w,
+            y=top,
+            w=regions.button_half_w * 2,
+            h=bottom - top,
+        ).to_pixels(image.width, image.height)
+        arr = np.asarray(image.crop(box).convert("RGB")).astype(np.int16)
+        if arr.size == 0:
+            return False
+        r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+        magenta = (r > 200) & (g < 150) & (b > 150)
+        return bool(magenta.mean() >= regions.button_magenta_min_ratio)

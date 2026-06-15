@@ -22,6 +22,7 @@ from auto_emulator.games.produce.digit_matcher import (
 )
 from auto_emulator.games.produce.reader import (
     HeaderRegions,
+    ItemScreenRegions,
     LessonRegions,
     ProduceStateReader,
     StatsRegions,
@@ -33,6 +34,7 @@ from auto_emulator.games.produce.state import (
     GameState,
     LessonOption,
     LessonPreview,
+    ProduceItemSlot,
 )
 from auto_emulator.games.produce.strategy import SEASON_STRATEGY, SeasonPlan
 from auto_emulator.games.produce.turn_log import (
@@ -53,10 +55,12 @@ __all__ = [
     "FractionalRegion",
     "GameState",
     "HeaderRegions",
+    "ItemScreenRegions",
     "JsonlTurnLogger",
     "LessonOption",
     "LessonPreview",
     "LessonRegions",
+    "ProduceItemSlot",
     "ProduceStateReader",
     "RunSummary",
     "SeasonPlan",
