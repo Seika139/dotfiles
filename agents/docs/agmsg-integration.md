@@ -38,6 +38,7 @@ consumer 層の専用 mise file task として実装した。**APM (profiles/*/a
 
 - `mise/tasks/sqlite3-available.sh` (新規): `apm-available.sh` / `uv-available.sh` と同型の hidden ガード。`command -v sqlite3` が無ければ error + exit 1。
 - `mise/tasks/install-agmsg.sh` (新規): 本体。`--cmd` / `--ref` flag を持ち、`sqlite3-available` に depends。
+- `mise/tasks/check-agmsg.sh` (新規): agmsg が入っているか / 各 CLI 連携 (Claude command, Copilot skill, Codex writable_roots) が wiring 済みかを `.agmsg` マーカー基準で確認する可視タスク。`--cmd` flag を持ち、install 済みなら exit 0・未 install なら exit 1 を返すので guard/CI 兼用。pin SHA は install-agmsg.sh から読み出して二重管理を避ける。
 - `mise/tasks/status.sh` (変更): agmsg は APM 非宣言なので `~/.agents/skills/` の drift 検査で「extra (not declared)」と誤検出される。`.agmsg` マーカーを持つ skill dir を external として識別し、declared vs actual 比較から除外して別枠 (🔌 external) に表示するよう修正。これで `declared=N actual=N ✅ in sync` を保ちつつ agmsg を可視化できる。
 
 ### 3.2 使い方
@@ -46,7 +47,10 @@ consumer 層の専用 mise file task として実装した。**APM (profiles/*/a
 mise run install-agmsg                 # cmd=agmsg, pin 済み SHA で導入
 mise run install-agmsg -- --cmd m      # コマンド名を変える場合 (引数は -- の後ろ)
 mise run install-agmsg -- --ref <sha>  # pin を一時上書き
+mise run check-agmsg                   # 入っているか / 連携 wiring を確認
 ```
+
+- pin SHA を上げた後は `mise run install-agmsg` を再実行すれば良い。既存 install (`.agmsg` マーカー) があれば install.sh が `--update` 経路に入り、DB / team を保持したまま新 SHA の scripts・SKILL.md に更新する。
 
 - 取得: `setup.sh` の curl|bash は使わず、**SHA pin で `git clone --filter=blob:none --no-checkout` → checkout → ローカルの install.sh 実行**。
 - 冪等: `~/.agents/skills/<cmd>/.agmsg` マーカーを見て、既存なら `install.sh --update` (DB/team 保持)、無ければ新規 `--cmd`。
