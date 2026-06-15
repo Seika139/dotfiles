@@ -27,7 +27,7 @@
 set -euo pipefail
 
 # pin。更新時は agmsg の差分をレビューしてから SHA を上げる。
-DEFAULT_AGMSG_REF="2b8ddbe280b4f52bf74998428597723afc0b27a3"
+DEFAULT_AGMSG_REF="5aad45e85d8a541d5d202ecc58c4011749804618"
 
 CMD="${usage_cmd:-agmsg}"
 AGMSG_REF="${usage_ref:-$DEFAULT_AGMSG_REF}"
