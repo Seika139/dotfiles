@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import ClassVar
 
 from PIL import Image
 
@@ -13,9 +14,11 @@ from auto_emulator.games.produce import (
     GameState,
     LessonOption,
     LessonPreview,
+    ProduceItemSlot,
     TurnDecision,
 )
 from auto_emulator.games.produce.engine import ProduceEngine
+from auto_emulator.games.produce.reader import ProduceStateReader
 from mouse_core import Region
 
 
@@ -130,9 +133,6 @@ class TestLessonPreviewCycleSafety:
 
     @staticmethod
     def _build(selected_slot: int) -> tuple[ProduceEngine, FakePointer]:
-        from auto_emulator.games.produce.reader import (  # noqa: PLC0415
-            ProduceStateReader,
-        )
 
         class _SelReader(ProduceStateReader):
             def detect_selected_lesson_slot(
@@ -217,9 +217,6 @@ class TestAuditionSwipeEarlyBreak:
         decision: TurnDecision,
         reader_name: str,
     ) -> tuple[ProduceEngine, FakePointer]:
-        from auto_emulator.games.produce.reader import (  # noqa: PLC0415
-            ProduceStateReader,
-        )
 
         class _FakeReader(ProduceStateReader):
             def read_current_audition_name(
@@ -514,9 +511,7 @@ class TestConsumeUntilHome:
         unknown = Image.new("RGB", (3024, 1610), color=(180, 195, 220))
         capture = FakeCapture(unknown)
         engine, pointer = self._build(capture)
-        assert (
-            engine.consume_until_home(max_taps=4, poll_interval=0.0) is False
-        )
+        assert engine.consume_until_home(max_taps=4, poll_interval=0.0) is False
         assert len(pointer.clicks) == 4
 
 
@@ -888,3 +883,148 @@ class TestRunFullProduce:
         # フェイク画像なので 6 件のプレースホルダ (OCR 失敗時の挙動)
         assert len(state.lessons) == 6
         assert all(isinstance(lesson, LessonOption) for lesson in state.lessons)
+
+
+class TestHpItemRecovery:
+    """HP 低下時の回復アイテム pre-step (週を消費しない) の検証。
+
+    OCR を踏まないよう、`ProduceStateReader` を継承して
+    `read_produce_items` と再読み取り系メソッドをフェイク化する。
+    """
+
+    @staticmethod
+    def _reader(
+        items: list[ProduceItemSlot],
+        *,
+        recovered_hp: float = 0.9,
+    ) -> ProduceStateReader:
+        class _Reader(ProduceStateReader):
+            def read_produce_items(
+                self,
+                image: Image.Image,  # noqa: ARG002
+            ) -> list[ProduceItemSlot]:
+                return items
+
+            def read(self, image: Image.Image) -> GameState:  # noqa: ARG002
+                return GameState(season=1, hp_pct=recovered_hp)
+
+            def lessons_from_schedule(
+                self,
+                image: Image.Image,  # noqa: ARG002
+            ) -> list[LessonOption]:
+                return []
+
+            def read_selected_lesson_preview_fans(
+                self,
+                image: Image.Image,  # noqa: ARG002
+            ) -> int | None:
+                return None
+
+        return _Reader()
+
+    def _engine(
+        self,
+        reader: ProduceStateReader,
+        *,
+        keywords: tuple[str, ...],
+        threshold: float = 0.5,
+    ) -> tuple[ProduceEngine, FakePointer]:
+        pointer = FakePointer()
+        engine = ProduceEngine(
+            region=Region(left=0.0, top=0.0, right=1000.0, bottom=1000.0),
+            reader=reader,
+            strategy=FakeStrategy(
+                TurnDecision(action_kind="noop", rationale="t"),
+            ),
+            capture=FakeCapture(Image.new("RGB", (1423, 800))),
+            pointer=pointer,
+            click_settle=0.0,
+            loop_interval=0.0,
+            logger=lambda _: None,
+            healing_item_keywords=keywords,
+            hp_recover_threshold=threshold,
+        )
+        return engine, pointer
+
+    _ITEMS: ClassVar[list[ProduceItemSlot]] = [
+        ProduceItemSlot(slot=0, name="283プロのタオル", usable=False),
+        ProduceItemSlot(slot=1, name="ヒーリングフルーツタルト", usable=True),
+    ]
+
+    def test_uses_usable_healing_item_when_hp_low(self) -> None:
+        reader = self._reader(self._ITEMS, recovered_hp=0.9)
+        engine, pointer = self._engine(reader, keywords=("ヒーリング",))
+        result = engine._maybe_recover_hp(
+            GameState(season=1, hp_pct=0.3),
+            on_home=True,
+        )
+        # item_tab + slot1 使う + 確認使う + 閉じる = 4 クリック
+        assert len(pointer.clicks) == 4
+        assert pointer.clicks[0][0] < 0.10  # item_tab (左サイドバー)
+        # 2 クリック目は slot 1 の使う (card_centers_x[1] ≈ 0.62)
+        assert 0.55 < pointer.clicks[1][0] < 0.66
+        # 3 クリック目は確認ダイアログの使う (x ≈ 0.58)
+        assert 0.54 < pointer.clicks[2][0] < 0.62
+        # 回復後の状態を読み直して返す
+        assert result.hp_pct == 0.9
+        assert engine._healing_exhausted is False
+
+    def test_skips_when_hp_at_or_above_threshold(self) -> None:
+        reader = self._reader(self._ITEMS)
+        engine, pointer = self._engine(reader, keywords=("ヒーリング",))
+        state = GameState(season=1, hp_pct=0.6)
+        result = engine._maybe_recover_hp(state, on_home=True)
+        assert pointer.clicks == []
+        assert result is state
+
+    def test_skips_when_no_keywords_configured(self) -> None:
+        reader = self._reader(self._ITEMS)
+        engine, pointer = self._engine(reader, keywords=())
+        state = GameState(season=1, hp_pct=0.2)
+        engine._maybe_recover_hp(state, on_home=True)
+        assert pointer.clicks == []
+
+    def test_skips_when_not_on_home(self) -> None:
+        reader = self._reader(self._ITEMS)
+        engine, pointer = self._engine(reader, keywords=("ヒーリング",))
+        state = GameState(season=1, hp_pct=0.2)
+        engine._maybe_recover_hp(state, on_home=False)
+        assert pointer.clicks == []
+
+    def test_marks_exhausted_when_no_usable_healing_item(self) -> None:
+        # 回復アイテムが使用中 (usable=False) のみ → 使えるものが無い
+        items = [
+            ProduceItemSlot(slot=0, name="283プロのタオル", usable=True),
+            ProduceItemSlot(slot=1, name="ヒーリングフルーツタルト", usable=False),
+        ]
+        reader = self._reader(items)
+        engine, pointer = self._engine(reader, keywords=("ヒーリング",))
+        state = GameState(season=1, hp_pct=0.2)
+        result = engine._maybe_recover_hp(state, on_home=True)
+        # item_tab + 閉じる の 2 クリックで撤退
+        assert len(pointer.clicks) == 2
+        assert engine._healing_exhausted is True
+        assert result is state
+
+    def test_exhausted_guard_skips_item_screen(self) -> None:
+        reader = self._reader(self._ITEMS)
+        engine, pointer = self._engine(reader, keywords=("ヒーリング",))
+        engine._healing_exhausted = True
+        engine._maybe_recover_hp(
+            GameState(season=1, hp_pct=0.1),
+            on_home=True,
+        )
+        assert pointer.clicks == []
+
+    def test_pick_healing_item_requires_usable_and_keyword(self) -> None:
+        reader = self._reader([])
+        engine, _ = self._engine(reader, keywords=("ヒーリング", "ドリンク"))
+        items = [
+            ProduceItemSlot(slot=0, name="283プロのタオル", usable=True),
+            ProduceItemSlot(slot=1, name="ヒーリングフルーツタルト", usable=False),
+            ProduceItemSlot(slot=2, name="スタミナドリンク", usable=True),
+        ]
+        picked = engine._pick_healing_item(items)
+        # タオルはキーワード不一致、ヒーリングは使用不可 → ドリンクが選ばれる
+        assert picked is not None
+        assert picked.slot == 2

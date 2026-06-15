@@ -338,3 +338,35 @@ class TestTroubleTwoDigit:
         reader = ProduceStateReader()
         with Image.open(FIXTURE_DIR / "real_home_canvas.png") as img:
             assert reader.read_trouble_pct(img) is None
+
+
+class TestReadProduceItems:
+    """アイテム画面 (プロデュースアイテム) の枠読み取り。
+
+    `produce_item_screen.png` は実機 2x キャプチャ。左 = 283プロのタオル
+    (使用中 = グレー)、右 = ヒーリングフルーツタルト (使う = マゼンタ)。
+    使用可否はボタン色で判定するため OCR を踏まず検証できる。名前は
+    日本語 OCR なので tesseract 必須。
+    """
+
+    ITEM_FIXTURE = FIXTURE_DIR / "produce_item_screen.png"
+
+    def test_button_color_decides_usable_without_ocr(self) -> None:
+        reader = ProduceStateReader()
+        with Image.open(self.ITEM_FIXTURE) as img:
+            centers = reader.item_regions.card_centers_x
+            # 左枠 (使用中=グレー) は False、右枠 (使う=マゼンタ) は True
+            assert reader._button_is_active(img, centers[0]) is False
+            assert reader._button_is_active(img, centers[1]) is True
+
+    @requires_tesseract
+    def test_reads_names_and_usability(self) -> None:
+        reader = ProduceStateReader()
+        with Image.open(self.ITEM_FIXTURE) as img:
+            items = reader.read_produce_items(img)
+        # 2 枠とも名前が読め、回復アイテムだけが usable
+        by_slot = {it.slot: it for it in items}
+        assert "タオル" in by_slot[0].name
+        assert by_slot[0].usable is False
+        assert "ヒーリング" in by_slot[1].name
+        assert by_slot[1].usable is True
