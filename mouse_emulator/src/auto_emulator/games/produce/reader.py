@@ -213,8 +213,9 @@ class ItemScreenRegions:
     card_centers_x: tuple[float, ...] = (0.382, 0.620)
     name_band: tuple[float, float] = (0.25, 0.36)
     name_width: float = 0.24
-    # 使う/使用中 ボタン帯。マゼンタ比率で usable を判定する
-    button_band: tuple[float, float] = (0.70, 0.80)
+    # 使う/使用中 ボタン帯。マゼンタ比率で usable を判定する。
+    # 実機計測でボタンは y≈0.669-0.713 にあるため、そこに正対させる。
+    button_band: tuple[float, float] = (0.66, 0.72)
     button_half_w: float = 0.09
     button_magenta_min_ratio: float = 0.03
 

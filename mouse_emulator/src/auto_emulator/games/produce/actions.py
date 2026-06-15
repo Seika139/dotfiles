@@ -79,15 +79,15 @@ class ItemActionPoints(BaseModel):
 
     # 一覧の各枠 `使う` ボタンの y。x は枠中心 (reader 側 card_centers_x)。
     use_button_y: float = Field(
-        default=0.73,
+        default=0.69,
         ge=0.0,
         le=1.0,
-        description="アイテム一覧の各枠 `使う` ボタンの y 中心",
+        description="アイテム一覧の各枠 `使う` ボタンの y 中心 (実測 0.669-0.713)",
     )
     confirm_use: Point = Point(
         x=0.580,
-        y=0.770,
-        description="使用確認ダイアログの `使う` (確定)",
+        y=0.805,
+        description="使用確認ダイアログの `使う` (確定、実測 y 0.766-0.844)",
     )
     close_button: Point = Point(
         x=0.500,
