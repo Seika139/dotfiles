@@ -277,10 +277,7 @@ def collect_region_dump() -> dict[str, Any]:
                     label: _region_to_dict(region)
                     for label, region in zip(
                         stat_labels,
-                        (
-                            r
-                            for _, r in ProduceStateReader.iter_stat_regions(stats)
-                        ),
+                        (r for _, r in ProduceStateReader.iter_stat_regions(stats)),
                         strict=False,
                     )
                 },
@@ -356,8 +353,8 @@ def collect_region_dump() -> dict[str, Any]:
                 ),
             },
             "item": {
-                "first_slot": _point_to_dict(ITEM_POINTS.first_slot),
-                "use_button": _point_to_dict(ITEM_POINTS.use_button),
+                "use_button_y": ITEM_POINTS.use_button_y,
+                "confirm_use": _point_to_dict(ITEM_POINTS.confirm_use),
                 "close_button": _point_to_dict(ITEM_POINTS.close_button),
                 "back_button": _point_to_dict(ITEM_POINTS.back_button),
             },

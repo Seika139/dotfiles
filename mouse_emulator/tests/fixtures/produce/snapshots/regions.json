@@ -260,20 +260,16 @@
       }
     },
     "item": {
-      "first_slot": {
-        "x": 0.3,
-        "y": 0.4,
-        "description": "アイテム一覧の左上 (最初のスロット)"
-      },
-      "use_button": {
-        "x": 0.5,
-        "y": 0.85,
-        "description": "使用確認モーダル中央の使用ボタン"
+      "use_button_y": 0.73,
+      "confirm_use": {
+        "x": 0.58,
+        "y": 0.77,
+        "description": "使用確認ダイアログの `使う` (確定)"
       },
       "close_button": {
         "x": 0.5,
-        "y": 0.7,
-        "description": "使用後の閉じる/OK ボタン"
+        "y": 0.82,
+        "description": "アイテム一覧の `閉じる`"
       },
       "back_button": {
         "x": 0.038,

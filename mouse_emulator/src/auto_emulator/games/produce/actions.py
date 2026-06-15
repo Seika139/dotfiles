@@ -31,7 +31,11 @@ class ScheduleActionPoints(BaseModel):
 
     lesson_tab: Point = Point(x=0.060, y=0.180, description="左タブ: レッスン&お仕事")
     audition_tab: Point = Point(x=0.060, y=0.350, description="左タブ: オーディション")
-    confirm_button: Point = Point(x=0.847, y=0.928, description="右下: 決定")
+    # Phase 3: 実機 canvas (`schedule_preview_vocal.png` 1x /
+    # `real_schedule_canvas.png` 2x) で赤紫「決定」ボタン中心を実測。
+    # 旧 (0.847,0.928) は x が ~107px 左にズレ、サポートスキルと決定の
+    # 隙間を押していた (レッスン未確定 → stuck:no_progress の原因)。
+    confirm_button: Point = Point(x=0.920, y=0.932, description="右下: 決定")
     back_button: Point = Point(x=0.038, y=0.928, description="左下: 戻る")
     reflection_button: Point = Point(x=0.553, y=0.928, description="下中央: 振り返り")
 
@@ -64,32 +68,52 @@ class HomeActionPoints(BaseModel):
 class ItemActionPoints(BaseModel):
     """アイテム使用画面のクリックポイント。
 
-    座標は実機未検証の推定値。`tools/calibrate_produce.py` で目視
-    キャリブが必要。
+    アイテム使用は 2 段階: ①一覧で対象枠の `使う` ボタン → ②使用確認
+    ダイアログの `使う` で確定。枠の横位置 (x) は `ItemScreenRegions`
+    の `card_centers_x` を単一の真実源とし、ここでは `使う` ボタンの
+    y (`use_button_y`) と確認/閉じるの固定点だけ持つ。実機 2x キャプチャ
+    (`produce_item_screen.png` / `produce_item_confirm.png`) で実測。
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    first_slot: Point = Point(
-        x=0.300,
-        y=0.400,
-        description="アイテム一覧の左上 (最初のスロット)",
+    # 一覧の各枠 `使う` ボタンの y。x は枠中心 (reader 側 card_centers_x)。
+    use_button_y: float = Field(
+        default=0.73,
+        ge=0.0,
+        le=1.0,
+        description="アイテム一覧の各枠 `使う` ボタンの y 中心",
     )
-    use_button: Point = Point(
-        x=0.500,
-        y=0.850,
-        description="使用確認モーダル中央の使用ボタン",
+    confirm_use: Point = Point(
+        x=0.580,
+        y=0.770,
+        description="使用確認ダイアログの `使う` (確定)",
     )
     close_button: Point = Point(
         x=0.500,
-        y=0.700,
-        description="使用後の閉じる/OK ボタン",
+        y=0.820,
+        description="アイテム一覧の `閉じる`",
     )
     back_button: Point = Point(
         x=0.038,
         y=0.928,
         description="アイテム画面から戻る (左下)",
     )
+
+    def use_button(self, card_center_x: float) -> Point:
+        """指定枠中心 x の `使う` ボタン位置を返す。
+
+        Args:
+            card_center_x: 対象枠の中心 x (reader の card_centers_x[slot])。
+
+        Returns:
+            その枠の `使う` ボタンをタップする `Point`。
+        """
+        return Point(
+            x=card_center_x,
+            y=self.use_button_y,
+            description="アイテム一覧の対象枠 `使う`",
+        )
 
 
 class AuditionBattlePoints(BaseModel):
