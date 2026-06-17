@@ -200,7 +200,9 @@ bdotdir_run_once_per_day() {
   local -a command=("$@")
 
   local normalized_key
-  normalized_key="$(_bdotdir_normalize_cache_key "$key")"
+  local profile_key
+  profile_key="$(_bdotdir_normalize_cache_key "$DAILY_PROFILE")"
+  normalized_key="${profile_key}__$(_bdotdir_normalize_cache_key "$key")"
   local cache_file="${BDOTDIR_DAILY_CACHE_DIR}/${normalized_key}.stamp"
   local today
   today="$(date +%Y-%m-%d)"
@@ -273,7 +275,9 @@ bdotdir_run_daily_script() {
 
 _bdotdir_run_profile_daily_scripts() {
   local profile_dir="${BDOTDIR_DAILY_ROOT}/profile/${DAILY_PROFILE}"
-  local lock_file="${BDOTDIR_DAILY_CACHE_DIR}/runner.lock"
+  local profile_key
+  profile_key="$(_bdotdir_normalize_cache_key "$DAILY_PROFILE")"
+  local lock_file="${BDOTDIR_DAILY_CACHE_DIR}/runner-${profile_key}.lock"
 
   if [[ ! -d "$profile_dir" ]]; then
     _bdotdir_daily_log_warn "プロファイルディレクトリが見つかりません: ${profile_dir}"
