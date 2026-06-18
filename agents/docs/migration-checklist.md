@@ -12,13 +12,13 @@
 
 ## 0. PC 別 進捗 (2026-05-29 時点)
 
-| PC          | apm.yml 配置 | mise install 検証 | 旧 dotfiles 削除 | 備考                                       |
-| ----------- | ------------ | ----------------- | ---------------- | ------------------------------------------ |
-| wsl-ubuntu  | ✅           | ✅                | ⚪ 不要           | dotfiles 内に旧 skill/command 無し         |
-| hm-m1-mac   | ✅           | ✅ (実機)          | ✅ (2026-05-29)    | claude/codex/gemini profile + sync_prompt_skills.py を削除 (59 件) |
-| xsv-linux-1 | ✅           | ✅ (2026-05-29)    | ✅ (2026-05-29)    | respond-pr 系 5 件削除済                   |
-| cg-m2-mac   | ✅           | ✅ (2026-05-28)    | ⚪ 不要           | §1.1–§1.7 完走、削除対象なしで完了         |
-| win-15034   | ✅           | ✅ (2026-05-29)    | ✅ (2026-05-29)    | repo 上の旧 46 件削除済、実機 install 完了 |
+| PC          | apm.yml 配置 | mise install 検証 | 旧 dotfiles 削除 | 備考                                                               |
+| ----------- | ------------ | ----------------- | ---------------- | ------------------------------------------------------------------ |
+| wsl-ubuntu  | ✅           | ✅                | ⚪ 不要          | dotfiles 内に旧 skill/command 無し                                 |
+| hm-m1-mac   | ✅           | ✅ (実機)         | ✅ (2026-05-29)  | claude/codex/gemini profile + sync_prompt_skills.py を削除 (59 件) |
+| xsv-linux-1 | ✅           | ✅ (2026-05-29)   | ✅ (2026-05-29)  | respond-pr 系 5 件削除済                                           |
+| cg-m2-mac   | ✅           | ✅ (2026-05-28)   | ⚪ 不要          | §1.1–§1.7 完走、削除対象なしで完了                                 |
+| win-15034   | ✅           | ✅ (2026-05-29)   | ✅ (2026-05-29)  | repo 上の旧 46 件削除済、実機 install 完了                         |
 
 ⚪ = そもそも対象なし、❌ = 未実施、✅ = 実施済み。
 
@@ -295,10 +295,10 @@ rmdir ~/dotfiles/codex/profiles/win-15034/prompts 2>/dev/null
 
 - [ ] `mise run install` が exit 0
 - [ ] `~/.claude/skills/` に basic catalog 21 件が見える
-  (custom catalog 7 件は wsl-ubuntu のみ)
+      (custom catalog 7 件は wsl-ubuntu のみ)
 - [ ] `~/.agents/skills/` に同じ skill が cross-tool 共有として見える
 - [ ] `dotfiles/{claude,codex,gemini}/profiles/<pc>/{skills,commands,prompts}/` に
-  APM 移管対象が残っていない (gemini は hm-m1-mac のみ profile が存在)
+      APM 移管対象が残っていない (gemini は hm-m1-mac のみ profile が存在)
 - [ ] dotfiles に削除 commit が積まれている
 
 ---

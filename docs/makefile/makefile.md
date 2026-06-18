@@ -244,7 +244,6 @@ example:
 
 ```bash
 make example # 空文字列が出力される
-
 ```
 
 上記の例では、`VAR=1` と `echo $VAR` は別のシェルで実行されるため、変数 `VAR` が出力されない。

@@ -95,12 +95,12 @@ async def run_generation(
 
 **設計のポイント:**
 
-| 要素 | 役割 |
-|------|------|
-| `asyncio.Event` | 切断をバックグラウンドタスクに通知 |
-| `collected_chunks` | Queue への put とは独立にチャンクを収集 → DB 保存を保証 |
+| 要素                   | 役割                                                      |
+| ---------------------- | --------------------------------------------------------- |
+| `asyncio.Event`        | 切断をバックグラウンドタスクに通知                        |
+| `collected_chunks`     | Queue への put とは独立にチャンクを収集 → DB 保存を保証   |
 | `consecutive_timeouts` | Queue が詰まったら put を諦める（バックプレッシャー制御） |
-| `finally` ブロック | 例外が発生しても DB 保存を必ず実行 |
+| `finally` ブロック     | 例外が発生しても DB 保存を必ず実行                        |
 
 ### 3. asyncio.shield で DB 保存を保護
 
@@ -215,15 +215,15 @@ await save_final(message_id, "".join(parts), status="completed")
 
 ## まとめ: 切断耐性パターン一覧
 
-| パターン | 用途 |
-|----------|------|
-| Queue + Task 分離 | 生成と配信を独立させる |
-| `asyncio.Event` (disconnected) | 切断をバックグラウンドに通知 |
-| `asyncio.shield()` | DB 保存をキャンセルから保護 |
-| `asyncio.Future` | バックグラウンド → Generator の結果受け渡し |
-| Sentinel (`None`) | ストリーム終了の明示的シグナル |
-| Consecutive timeout counter | Queue のバックプレッシャー制御 |
-| Fire-and-forget task set | タスクの GC 防止 |
-| Generation status ポーリング | クライアント側の復旧手段 |
-| Stale message cleanup | サーバークラッシュからの復旧 |
-| 中間チェックポイント | 二重障害時のデータ復旧 |
+| パターン                       | 用途                                        |
+| ------------------------------ | ------------------------------------------- |
+| Queue + Task 分離              | 生成と配信を独立させる                      |
+| `asyncio.Event` (disconnected) | 切断をバックグラウンドに通知                |
+| `asyncio.shield()`             | DB 保存をキャンセルから保護                 |
+| `asyncio.Future`               | バックグラウンド → Generator の結果受け渡し |
+| Sentinel (`None`)              | ストリーム終了の明示的シグナル              |
+| Consecutive timeout counter    | Queue のバックプレッシャー制御              |
+| Fire-and-forget task set       | タスクの GC 防止                            |
+| Generation status ポーリング   | クライアント側の復旧手段                    |
+| Stale message cleanup          | サーバークラッシュからの復旧                |
+| 中間チェックポイント           | 二重障害時のデータ復旧                      |

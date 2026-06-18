@@ -59,14 +59,14 @@ mise run produce-auto -- \
     --pause-key ctrl+p
 ```
 
-| オプション | 用途 |
-| --- | --- |
-| `--templates-dir <path>` | DigitMatcher の digit PNG ディレクトリ (default: `tests/fixtures/produce/digits`) |
-| `--log-file <path>` | ターン毎の状態を JSONL で永続化 (省略時は D5 で自動命名 `~/.cache/auto-emulator/produce/produce-YYYYMMDD-HHMM.jsonl`) |
-| `--no-log` | JSONL ログを完全に無効化 (D5 自動命名も抑止) |
-| `--max-turns <N>` | 自走上限 (default 200) |
-| `--pause-key <combo>` | 一時停止/再開ホットキー (例: `ctrl+p`) |
-| `--no-calibrate` | キャリブレーションをスキップ (現状は preset 未対応なので必ず手動キャリブが走る) |
+| オプション               | 用途                                                                                                                  |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `--templates-dir <path>` | DigitMatcher の digit PNG ディレクトリ (default: `tests/fixtures/produce/digits`)                                     |
+| `--log-file <path>`      | ターン毎の状態を JSONL で永続化 (省略時は D5 で自動命名 `~/.cache/auto-emulator/produce/produce-YYYYMMDD-HHMM.jsonl`) |
+| `--no-log`               | JSONL ログを完全に無効化 (D5 自動命名も抑止)                                                                          |
+| `--max-turns <N>`        | 自走上限 (default 200)                                                                                                |
+| `--pause-key <combo>`    | 一時停止/再開ホットキー (例: `ctrl+p`)                                                                                |
+| `--no-calibrate`         | キャリブレーションをスキップ (現状は preset 未対応なので必ず手動キャリブが走る)                                       |
 
 ### ステップ 3: キャリブレーション
 
@@ -90,13 +90,13 @@ mise run produce-auto -- \
 
 ### ステップ 5: 停止
 
-| 操作 | 動作 |
-| --- | --- |
-| `Ctrl+C` | 即時中断 (現ターンの操作が途中で打ち切られる可能性あり) |
-| `--pause-key ctrl+p` | 設定したキーで一時停止 / 再開 (Engine が見ている画面遷移は止まる) |
-| ファン目標到達 | `stop_reason="complete"` でループ自然終了 |
-| ターン上限 | `stop_reason="max_turns"` |
-| 自動検出: 詰まり | `stop_reason="stuck:home" / "stuck:schedule" / "stuck:ocr" / "stuck:no_progress"` |
+| 操作                 | 動作                                                                              |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `Ctrl+C`             | 即時中断 (現ターンの操作が途中で打ち切られる可能性あり)                           |
+| `--pause-key ctrl+p` | 設定したキーで一時停止 / 再開 (Engine が見ている画面遷移は止まる)                 |
+| ファン目標到達       | `stop_reason="complete"` でループ自然終了                                         |
+| ターン上限           | `stop_reason="max_turns"`                                                         |
+| 自動検出: 詰まり     | `stop_reason="stuck:home" / "stuck:schedule" / "stuck:ocr" / "stuck:no_progress"` |
 
 終了時には `停止理由: complete` の後に、D6 の **run サマリ**が
 表示される (Ctrl+C 中断時も同じサマリが出る):

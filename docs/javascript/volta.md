@@ -34,12 +34,12 @@ Volta は JavaScript/TypeScript 開発向けに、Node.js ランタイムと npm
 - `volta install pnpm@<version>` で pnpm をユーザー全体にインストールできます。
 - pnpm は `volta pin` に対応していないです
 
-    ```bash
-    $ volta pin pnpm@10.17
-    error: Only node and yarn can be pinned in a project
+  ```bash
+  $ volta pin pnpm@10.17
+  error: Only node and yarn can be pinned in a project
 
-    Use `npm install` or `yarn add` to select a version of pnpm for this project.
-    ```
+  Use `npm install` or `yarn add` to select a version of pnpm for this project.
+  ```
 
 - そのため、プロジェクトで pnpm のバージョンを固定したい場合は、次のいずれかを利用します。
   - `volta install pnpm@<version>` を全員が実行してグローバルツールチェーンを揃える。

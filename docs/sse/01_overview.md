@@ -21,7 +21,6 @@ data: {"content": "、お手伝い"}
 
 event: done
 data: {}
-
 ```
 
 **ルール:**

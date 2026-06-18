@@ -37,27 +37,27 @@
 解像度が変わっても比率指定なので追従するが、UI レイアウト自体が
 変われば調整が必要。
 
-| 型 | 担当 |
-| --- | --- |
-| `HeaderRegions` | シーズン / 残り週 / ファン (画面上部) |
-| `StatsRegions` | 6 ステ表示行 |
-| `StatusRegions` | HP バー / トラブル率 / テンション |
-| `LessonRegions` | スケジュール画面のレッスンカード 6 枚 |
-| `HomeActionPoints` | ホーム画面のカード (プロデュース / 休む等) |
-| `ScheduleActionPoints` | スケジュール画面のタブ / 決定 / 戻る |
-| `AuditionBattlePoints` | 戦闘画面の AUTO / 倍速 / 一時停止 |
-| `DialogPoints` | 早送り×4 / 3 択 (桃緑黄) / 中央タップ |
-| `ItemActionPoints` | アイテム選択 / 使用 / 閉じる |
-| `ModalDismissPoints` | 想定外モーダル除去候補 |
+| 型                     | 担当                                       |
+| ---------------------- | ------------------------------------------ |
+| `HeaderRegions`        | シーズン / 残り週 / ファン (画面上部)      |
+| `StatsRegions`         | 6 ステ表示行                               |
+| `StatusRegions`        | HP バー / トラブル率 / テンション          |
+| `LessonRegions`        | スケジュール画面のレッスンカード 6 枚      |
+| `HomeActionPoints`     | ホーム画面のカード (プロデュース / 休む等) |
+| `ScheduleActionPoints` | スケジュール画面のタブ / 決定 / 戻る       |
+| `AuditionBattlePoints` | 戦闘画面の AUTO / 倍速 / 一時停止          |
+| `DialogPoints`         | 早送り×4 / 3 択 (桃緑黄) / 中央タップ      |
+| `ItemActionPoints`     | アイテム選択 / 使用 / 閉じる               |
+| `ModalDismissPoints`   | 想定外モーダル除去候補                     |
 
 ## 主要ツール: `tools/calibrate_produce.py`
 
 3 つのサブコマンドを持つ統合キャリブ CLI:
 
-| サブコマンド | 用途 |
-| --- | --- |
-| `overlay` | スクショに全リージョン矩形 + アクションマーカーを描画 (目視確認) |
-| `extract` | スクショの指定領域を crop して PNG 保存 (digit テンプレ補充用) |
+| サブコマンド   | 用途                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| `overlay`      | スクショに全リージョン矩形 + アクションマーカーを描画 (目視確認)  |
+| `extract`      | スクショの指定領域を crop して PNG 保存 (digit テンプレ補充用)    |
 | `dump-regions` | 現コード定義の全 fractional 座標を JSON 出力 (プロファイル化前段) |
 
 ### `overlay`: 矩形 + マーカー重ね描き
@@ -71,11 +71,11 @@ open /tmp/calibrated.png
 
 オプション:
 
-| フラグ | 効果 |
-| --- | --- |
+| フラグ         | 効果                                              |
+| -------------- | ------------------------------------------------- |
 | `--out <path>` | 出力 PNG パス (default: `<input>_calibrated.png`) |
-| `--no-regions` | リージョン矩形を描かない (マーカーだけ表示) |
-| `--no-points` | アクションマーカーを描かない (矩形だけ表示) |
+| `--no-regions` | リージョン矩形を描かない (マーカーだけ表示)       |
+| `--no-points`  | アクションマーカーを描かない (矩形だけ表示)       |
 
 線太さは画像幅から自動算出されるので、大小いずれの解像度でも視認可能。
 
@@ -228,11 +228,11 @@ fans_to_target: FractionalRegion = field(
 `ProduceStateReader.detect_screen_kind` は**右下コーナーの RGB**を
 signature にしている:
 
-| 画面種別 | 検出条件 |
-| --- | --- |
+| 画面種別          | 検出条件                                          |
+| ----------------- | ------------------------------------------------- |
 | `schedule_lesson` | R > 200, G < 170, B > 150 (マゼンタ = 決定ボタン) |
-| `home` | G > R+10, G > B (緑 = 流行確認カード) |
-| `audition_battle` | RGB すべて < 140 (ダーク = ステージ背景) |
+| `home`            | G > R+10, G > B (緑 = 流行確認カード)             |
+| `audition_battle` | RGB すべて < 140 (ダーク = ステージ背景)          |
 
 新画面 (例: `schedule_audition`, `dialog`, `result`) を識別したい
 場合の追加手順:
@@ -283,6 +283,6 @@ DigitMatcher で読めない数字 (`4` がテンプレに無い等) は `_ocr_i
 - [ ] DigitMatcher テンプレが要求 digit をすべてカバー
 - [ ] `detect_screen_kind` が想定画面を正しく識別
 - [ ] `produce-auto` が少なくとも 1 ターン分の状態を正しく抽出
-  (試運転で `[produce] turn season=X week=Y fans_left=Z` を確認)
+      (試運転で `[produce] turn season=X week=Y fans_left=Z` を確認)
 
 ここまで通れば実機 dry-run の準備が整っている。

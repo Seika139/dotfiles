@@ -35,19 +35,19 @@ CCWB の認証ヘルパー (`credential-process --force-init` 等) は `~/.claud
 ### 双方向同期モデル
 
 ```text
-                              [編集]
-                                │
-                                ▼
-   dotfiles/profiles/<host>/settings.json (公開、git管理)
-   dotfiles/profiles/<host>/settings.local.json (秘匿、gitignored)
-                │                       ▲
-                │ merge (link)          │ split (recover)
-                ▼                       │
-            ~/.claude/settings.json (Claude Code が読む唯一の原本)
-                ▲
-                │ [CCWB が物理書き換え]
-                │
-            CCWB credential-process / --force-init
+                           [編集]
+                             │
+                             ▼
+dotfiles/profiles/<host>/settings.json (公開、git管理)
+dotfiles/profiles/<host>/settings.local.json (秘匿、gitignored)
+             │                       ▲
+             │ merge (link)          │ split (recover)
+             ▼                       │
+         ~/.claude/settings.json (Claude Code が読む唯一の原本)
+             ▲
+             │ [CCWB が物理書き換え]
+             │
+         CCWB credential-process / --force-init
 ```
 
 - **`~/.claude/settings.json`** は実ファイル運用。symlink にしない。

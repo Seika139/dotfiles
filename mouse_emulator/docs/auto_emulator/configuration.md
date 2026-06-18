@@ -173,17 +173,17 @@ conditions:
 
 ### 条件演算子の使い分け
 
-| 演算子                | 役割                                                                                  | 主なオプション例                      | 典型的な YAML 断片 |
-| --------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- | ------------------ |
-| `always` / `never`    | 条件に関係なく必ず成功 / 失敗。デバッグ用やフォールバックの分岐に利用。               | なし                                  | `op: "always"`    |
-| `match`               | 直前の検出結果 (`DetectionResult`) を評価。`min_score` でしきい値を設定可能。         | `min_score`                            | `op: "match"`     |
-| `all` / `any`         | 子条件をまとめるラッパー。`all` は全て真、`any` はいずれか真で成立。                  | 子 `conditions`                        | `op: "all"`      |
-| `not`                 | 子条件 1 件の真偽を反転。                                                             | 子 `conditions` (1 件だけ)             | `op: "not"`      |
-| `state_equals` 系     | `set_state` アクション等で保存した `shared_state` を参照してステートマシンを構築。     | `key`, `value`                         | `op: "state_equals"` |
-| `state_not_equals`    | `state_equals` の否定形。                                                              | `key`, `value`                         | `op: "state_not_equals"` |
-| `text_contains` 系    | OCR など `DetectionResult.data.text` を埋める検出器と組み合わせてテキストを評価。      | `value`, `ignore_case` (既定 `true`)   | `op: "text_contains"` |
-| `text_equals`         | テキストの完全一致を判定。                                                            | `value`, `ignore_case`                 | `op: "text_equals"` |
-| `text_matches`        | 正規表現でテキストを判定。                                                             | `value` (正規表現), `ignore_case`      | `op: "text_matches"` |
+| 演算子             | 役割                                                                               | 主なオプション例                     | 典型的な YAML 断片       |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------ | ------------------------ |
+| `always` / `never` | 条件に関係なく必ず成功 / 失敗。デバッグ用やフォールバックの分岐に利用。            | なし                                 | `op: "always"`           |
+| `match`            | 直前の検出結果 (`DetectionResult`) を評価。`min_score` でしきい値を設定可能。      | `min_score`                          | `op: "match"`            |
+| `all` / `any`      | 子条件をまとめるラッパー。`all` は全て真、`any` はいずれか真で成立。               | 子 `conditions`                      | `op: "all"`              |
+| `not`              | 子条件 1 件の真偽を反転。                                                          | 子 `conditions` (1 件だけ)           | `op: "not"`              |
+| `state_equals` 系  | `set_state` アクション等で保存した `shared_state` を参照してステートマシンを構築。 | `key`, `value`                       | `op: "state_equals"`     |
+| `state_not_equals` | `state_equals` の否定形。                                                          | `key`, `value`                       | `op: "state_not_equals"` |
+| `text_contains` 系 | OCR など `DetectionResult.data.text` を埋める検出器と組み合わせてテキストを評価。  | `value`, `ignore_case` (既定 `true`) | `op: "text_contains"`    |
+| `text_equals`      | テキストの完全一致を判定。                                                         | `value`, `ignore_case`               | `op: "text_equals"`      |
+| `text_matches`     | 正規表現でテキストを判定。                                                         | `value` (正規表現), `ignore_case`    | `op: "text_matches"`     |
 
 `text_*` 条件は OCR 検出器が `data.text` を埋めた場合に有効になります。テンプレート検出などテキストが付与されない検出器と組み合わせると常に失敗するため注意してください。また、`state_*` 条件は `shared_state`（辞書型）を参照します。例えば以下のように OCR で「READY」を検出したらステートを切り替え、次のステップでは `state_equals` でその値を待つ、といった構成が可能です。
 
