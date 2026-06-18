@@ -45,6 +45,39 @@ _bdotdir_normalize_cache_key() {
   printf '%s' "$key"
 }
 
+_bdotdir_daily_stamp_is_today() {
+  local stamp_file="$1"
+  local today="$2"
+  local last_run
+
+  [[ -f "$stamp_file" ]] || return 1
+  last_run="$(<"$stamp_file")"
+  [[ "$last_run" == "$today" ]]
+}
+
+_bdotdir_daily_write_stamp() {
+  local stamp_file="$1"
+  local today="$2"
+
+  printf '%s\n' "$today" >"$stamp_file"
+}
+
+_bdotdir_daily_log_script_skip_status() {
+  local script_path="$1"
+  local today="$2"
+  local profile_key normalized_key cache_file
+
+  profile_key="$(_bdotdir_normalize_cache_key "$DAILY_PROFILE")"
+  normalized_key="${profile_key}__$(_bdotdir_normalize_cache_key "$script_path")"
+  cache_file="${BDOTDIR_DAILY_CACHE_DIR}/${normalized_key}.stamp"
+
+  if _bdotdir_daily_stamp_is_today "$cache_file" "$today"; then
+    _bdotdir_daily_log_verbose "日次コマンド(${script_path})は既に実行済みです"
+  else
+    _bdotdir_daily_log_verbose "日次コマンド(${script_path})は本日すでに実行を試行済みです"
+  fi
+}
+
 _bdotdir_daily_proc_start_time() {
   local pid="$1"
   local stat rest
@@ -208,9 +241,7 @@ bdotdir_run_once_per_day() {
   today="$(date +%Y-%m-%d)"
 
   if [[ -f "$cache_file" ]]; then
-    local last_run
-    last_run="$(<"$cache_file")"
-    if [[ "$last_run" == "$today" ]]; then
+    if _bdotdir_daily_stamp_is_today "$cache_file" "$today"; then
       _bdotdir_daily_log_verbose "日次コマンド(${key})は既に実行済みです"
       return 0
     fi
@@ -220,7 +251,7 @@ bdotdir_run_once_per_day() {
   # 起動元シェルの stdin を継承すると、VS Code/WSL の pipe を読んで残ることがある。
   local exit_code
   if "${command[@]}" </dev/null; then
-    printf '%s\n' "$today" >"$cache_file"
+    _bdotdir_daily_write_stamp "$cache_file" "$today"
     _bdotdir_daily_log_verbose "日次コマンド(${key})の実行が完了しました"
     return 0
   else
@@ -278,10 +309,29 @@ _bdotdir_run_profile_daily_scripts() {
   local profile_key
   profile_key="$(_bdotdir_normalize_cache_key "$DAILY_PROFILE")"
   local lock_file="${BDOTDIR_DAILY_CACHE_DIR}/runner-${profile_key}.lock"
+  local runner_stamp_file="${BDOTDIR_DAILY_CACHE_DIR}/runner-${profile_key}.stamp"
+  local today
+  today="$(date +%Y-%m-%d)"
 
   if [[ ! -d "$profile_dir" ]]; then
     _bdotdir_daily_log_warn "プロファイルディレクトリが見つかりません: ${profile_dir}"
     return 1
+  fi
+
+  # 実行対象スクリプトを収集
+  local -a scripts=()
+  while IFS= read -r script; do
+    [[ -n "$script" ]] && scripts+=("$script")
+  done < <(LC_ALL=C find "${profile_dir}" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.bash' \) -print | LC_ALL=C sort)
+
+  if _bdotdir_daily_stamp_is_today "$runner_stamp_file" "$today"; then
+    if [[ -f "$lock_file" ]] && ! _bdotdir_daily_runner_lock_is_active "$lock_file"; then
+      rm -f "$lock_file"
+    fi
+    for script in "${scripts[@]}"; do
+      _bdotdir_daily_log_script_skip_status "$script" "$today"
+    done
+    return 0
   fi
 
   # 排他制御: ロックファイルのチェック
@@ -299,19 +349,15 @@ _bdotdir_run_profile_daily_scripts() {
 
   # ロックの取得
   _bdotdir_daily_write_runner_lock "$lock_file"
+  # シェル起動時の定期処理なので、失敗や中断があっても同じ日に再試行し続けない。
+  _bdotdir_daily_write_stamp "$runner_stamp_file" "$today"
   # 終了時にロックファイルを確実に削除するためのトラップ
-  trap 'rm -f "$lock_file"' EXIT INT TERM
-
-  # 実行対象スクリプトを収集
-  local -a scripts=()
-  while IFS= read -r script; do
-    [[ -n "$script" ]] && scripts+=("$script")
-  done < <(LC_ALL=C find "${profile_dir}" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.bash' \) -print | LC_ALL=C sort)
+  trap 'rm -f "$lock_file"' EXIT INT TERM HUP
 
   if [[ ${#scripts[@]} -eq 0 ]]; then
     # スクリプトがない場合は何もしない
     rm -f "$lock_file"
-    trap - EXIT INT TERM
+    trap - EXIT INT TERM HUP
     return 0
   fi
 
@@ -321,7 +367,7 @@ _bdotdir_run_profile_daily_scripts() {
 
   # 正常終了時のクリーンアップ
   rm -f "$lock_file"
-  trap - EXIT INT TERM
+  trap - EXIT INT TERM HUP
 }
 
 (
@@ -329,6 +375,8 @@ _bdotdir_run_profile_daily_scripts() {
 )
 
 unset -f _bdotdir_daily_log_verbose _bdotdir_daily_log_warn _bdotdir_normalize_cache_key \
+  _bdotdir_daily_stamp_is_today _bdotdir_daily_write_stamp \
+  _bdotdir_daily_log_script_skip_status \
   _bdotdir_daily_proc_start_time _bdotdir_daily_boot_id \
   _bdotdir_daily_process_tree_contains_profile_script _bdotdir_daily_read_runner_lock \
   _bdotdir_daily_runner_lock_is_active _bdotdir_daily_write_runner_lock \
