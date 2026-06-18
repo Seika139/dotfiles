@@ -1,1 +1,4 @@
 not-used/
+
+# DAILY_PROFILE はマシン固有のため git 管理しない（各マシンでローカル作成）
+daily/.env
