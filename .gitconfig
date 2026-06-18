@@ -78,3 +78,5 @@
 	autoStash = true
 [merge]
 	conflictStyle = zdiff3
+[beads]
+	role = maintainer
