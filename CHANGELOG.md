@@ -39,11 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - APM 非管理の peer tool を専用 task で導入する仕組みを追加し、cross-agent messaging の [agmsg](https://github.com/fujibee/agmsg) を `mise run install-agmsg` で導入できるようにした（コミット SHA pin・`sqlite3` 前提）
   - 各マシンの profile に `architecture-review` / `audit-memory` / `delegate-worktrees` skill を追加
   - `mise run status` が APM 非管理の skill を `.agmsg` マーカーで判定し、drift 検査から除外して external として表示するようにした
+  - agmsg の導入状況と各 CLI 連携（Claude command / Copilot skill / Codex writable_roots）を確認する `mise run check-agmsg` を追加（install 済みなら exit 0・未導入なら exit 1 を返し guard / CI 兼用）
+  - issue tracker beads を Claude / Codex から使うための連携ガイドを `agents/docs/` に追加
 - **codex**
   - WSL Ubuntu 用の Codex 通知スクリプトを追加し、タスク完了時のデスクトップ通知と効果音再生に対応した
   - Windows の Codex で Stop 時にローカル通知と Slack 通知を送る `hooks.json` を追加した
 - **hlp**
   - `rg` のヘルプに `--files-without-match` と「A を含み B を含まない検索」の節を追加した
+  - GitHub のセキュリティ機能（Dependabot / secret scanning / code scanning / dependency review 等）の解説ドキュメントを `docs/help/github/` に追加した
+- **mouse_emulator**
+  - produce-auto が HP 低下時に回復アイテムを使用するようになった（アイテム画面の OCR 読み取りとアイテム使用の 2 段階確定に対応）
 
 ### Changed
 
@@ -59,7 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `notify_slack.sh` の Webhook 取得を堅牢化し、secrets / `settings.json` からのフォールバック取得に対応。`jq` / `curl` 不在時や送信失敗時も hook を妨げず終了するようにした
   - `grant-permissions` が `profiles` 配下の `*.sh` にも実行権限を付与するようにした
 - **lint / format**
+  - `dot-lint` / `dot-format` に dprint を追加し、Markdown のテーブルを全角幅を考慮して桁揃えするようにした（TOC の日本語アンカーは保持される）
   - `dot-lint` / `dot-format` が `~/.codex/config.toml` も taplo で整形・検査するようにした
+
+### Fixed
+
+- **lint / format**
+  - textlint の transitive 依存 `hono` を 4.12.25 に更新し、Dependabot が報告した脆弱性 4 件（Set-Cookie injection・mount プレフィックス誤処理・IPv6 deny bypass・JWT scheme 緩和）を解消した
 
 ## [0.11.0] - 2026-06-01
 
