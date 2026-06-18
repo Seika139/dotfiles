@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="format（rumdl + markdownlint-cli2 + textlint + shfmt + taplo + yamllint）"
+#MISE description="format（dprint + rumdl + markdownlint-cli2 + textlint + shfmt + taplo + yamllint）"
 #MISE quiet=true
 #USAGE flag "-t --textlint" {
 #USAGE   help "textlintも実行する場合はこのフラグを指定してください（時間がかかる場合があります）"
