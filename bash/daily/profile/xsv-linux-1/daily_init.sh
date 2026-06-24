@@ -115,5 +115,49 @@ update_bd() {
   fi
 }
 
+# ccusage (npm global) を npm registry の最新版に更新する。
+# bd と違い GitHub release ではなく npm 管理なので npm install -g で更新する。
+update_ccusage() {
+  if ! command -v npm >/dev/null 2>&1; then
+    printf "%s\n" "npm が無いため ccusage 更新をスキップします。"
+    return 1
+  fi
+
+  # 現在のバージョンを取得する（未導入なら空）。
+  local current_ver=""
+  if command -v ccusage >/dev/null 2>&1; then
+    current_ver="$(ccusage --version 2>/dev/null |
+      sed -n 's/^ccusage \([0-9][0-9.]*\).*/\1/p' | head -n1)"
+  fi
+
+  # registry の最新版を取得する。
+  local latest_ver
+  if ! latest_ver="$(npm view ccusage version 2>/dev/null)"; then
+    printf "%s\n" "npm registry の取得に失敗しました。ccusage 更新をスキップします。"
+    return 1
+  fi
+  if [ -z "$latest_ver" ]; then
+    printf "%s\n" "最新バージョンの判定に失敗しました。ccusage 更新をスキップします。"
+    return 1
+  fi
+
+  if [ "$current_ver" = "$latest_ver" ]; then
+    printf "%s\n" "ccusage は最新です (${current_ver})。"
+    return 0
+  fi
+  printf "%s\n" "ccusage を更新します: ${current_ver:-未導入} -> ${latest_ver}"
+
+  # stdout は抑制しつつ、失敗時の stderr は残して原因を追えるようにする。
+  if npm install -g "ccusage@${latest_ver}" >/dev/null; then
+    printf "%s\n" "ccusage を ${latest_ver} に更新しました。"
+  else
+    printf "%s\n" "ccusage の更新に失敗しました。"
+    return 1
+  fi
+}
+
 printf "%b%s%b\n" "\\033[38;5;214m" "=== beads (bd) ===" "\\033[0m"
 update_bd
+
+printf "%b%s%b\n" "\\033[38;5;214m" "=== ccusage ===" "\\033[0m"
+update_ccusage
