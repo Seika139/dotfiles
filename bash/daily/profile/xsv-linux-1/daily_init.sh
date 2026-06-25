@@ -115,11 +115,19 @@ update_bd() {
   fi
 }
 
-# ccusage (npm global) を npm registry の最新版に更新する。
-# bd と違い GitHub release ではなく npm 管理なので npm install -g で更新する。
+# ccusage (pnpm global) を npm registry の最新版に更新する。
+# bd と違い GitHub release ではなく npm registry 管理だが、グローバル JS は
+# lifecycle script をデフォルトでブロックする pnpm で入れる方針のため pnpm add -g で更新する。
 update_ccusage() {
-  if ! command -v npm >/dev/null 2>&1; then
-    printf "%s\n" "npm が無いため ccusage 更新をスキップします。"
+  # 非対話起動 (cron 等) では PNPM_HOME 未設定で pnpm add -g が失敗するため補う。
+  export PNPM_HOME="${PNPM_HOME:-${HOME}/.local/share/pnpm}"
+  case ":${PATH}:" in
+    *":${PNPM_HOME}:"*) ;;
+    *) export PATH="${PNPM_HOME}:${PATH}" ;;
+  esac
+
+  if ! command -v pnpm >/dev/null 2>&1; then
+    printf "%s\n" "pnpm が無いため ccusage 更新をスキップします。"
     return 1
   fi
 
@@ -132,7 +140,7 @@ update_ccusage() {
 
   # registry の最新版を取得する。
   local latest_ver
-  if ! latest_ver="$(npm view ccusage version 2>/dev/null)"; then
+  if ! latest_ver="$(pnpm view ccusage version 2>/dev/null)"; then
     printf "%s\n" "npm registry の取得に失敗しました。ccusage 更新をスキップします。"
     return 1
   fi
@@ -148,7 +156,7 @@ update_ccusage() {
   printf "%s\n" "ccusage を更新します: ${current_ver:-未導入} -> ${latest_ver}"
 
   # stdout は抑制しつつ、失敗時の stderr は残して原因を追えるようにする。
-  if npm install -g "ccusage@${latest_ver}" >/dev/null; then
+  if pnpm add -g "ccusage@${latest_ver}" >/dev/null; then
     printf "%s\n" "ccusage を ${latest_ver} に更新しました。"
   else
     printf "%s\n" "ccusage の更新に失敗しました。"
