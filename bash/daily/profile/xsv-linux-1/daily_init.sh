@@ -122,8 +122,8 @@ update_ccusage() {
   # 非対話起動 (cron 等) では PNPM_HOME 未設定で pnpm add -g が失敗するため補う。
   export PNPM_HOME="${PNPM_HOME:-${HOME}/.local/share/pnpm}"
   case ":${PATH}:" in
-    *":${PNPM_HOME}:"*) ;;
-    *) export PATH="${PNPM_HOME}:${PATH}" ;;
+  *":${PNPM_HOME}:"*) ;;
+  *) export PATH="${PNPM_HOME}:${PATH}" ;;
   esac
 
   if ! command -v pnpm >/dev/null 2>&1; then
