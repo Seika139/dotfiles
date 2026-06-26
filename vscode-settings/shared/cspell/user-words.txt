@@ -1,5 +1,5 @@
 # Shared cSpell user dictionary.
-# 1 word per line. Lines starting with '#' are comments.
+# 1 word per line. Lines starting with '
 # Loaded via cSpell.customDictionaries in each profile's settings.json.
 Abema
 adduser
@@ -185,6 +185,7 @@ mapfile
 marp
 Mathf
 mccabe
+mdformat
 meilisearch
 Milvus
 Mkdocs
