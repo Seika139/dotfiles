@@ -18,7 +18,6 @@
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "global.anthropic.claude-opus-4-8",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "global.anthropic.claude-sonnet-4-6",
     "ANTHROPIC_MODEL": "global.anthropic.claude-opus-4-7",
-    "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
     "API_TIMEOUT_MS": "1200000",
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "16384",
@@ -26,8 +25,7 @@
     "MAX_THINKING_TOKENS": "1024",
     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
     "OTEL_LOGS_EXPORTER": "otlp",
-    "OTEL_METRICS_EXPORTER": "otlp",
-    "___CLAUDE_CODE_MAX_OUTPUT_TOKENS": "4096"
+    "OTEL_METRICS_EXPORTER": "otlp"
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
