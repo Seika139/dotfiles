@@ -3,7 +3,6 @@
     "commit": "",
     "pr": ""
   },
-  "defaultMode": "acceptEdits",
   "enabledPlugins": {
     "codex@openai-codex": true,
     "commit-commands@claude-plugins-official": true,
