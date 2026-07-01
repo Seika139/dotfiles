@@ -1,6 +1,5 @@
-# Claude Instructions for this Profile
+# Claude Instructions
 
-This profile is applied to user's global setting.
 Use Japanese for communication.
 
 ## Environment-Specific Notes
