@@ -1,11 +1,11 @@
-network_access = true
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
-
+personality = "pragmatic"
+service_tier = "fast"
 notify = [
   "bash",
   "-lc",
-  'CODEX_NOTIFY_CHANNEL=slack CODEX_NOTIFY_DEBUG_LOG="$HOME/dotfiles/codex/profiles/wsl-ubuntu/notify.log" exec "$HOME/dotfiles/codex/notify.sh" "$@"',
+  "CODEX_NOTIFY_CHANNEL=slack CODEX_NOTIFY_DEBUG_LOG=\"$HOME/dotfiles/codex/profiles/wsl-ubuntu/notify.log\" exec \"$HOME/dotfiles/codex/notify.sh\" \"$@\"",
   "codex-notify",
 ]
 
@@ -25,5 +25,8 @@ status_line = [
   "context-window-size",
   "used-tokens",
   "task-progress",
+  "thread-title",
+  "total-input-tokens",
+  "total-output-tokens",
 ]
 status_line_use_colors = true
