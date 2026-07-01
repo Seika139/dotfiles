@@ -290,15 +290,40 @@ if [ ! -f "$BREWFILE_PATH" ]; then
 fi
 
 printf "🦄 Sync: install + upgrade by Brewfile\n"
+
+# password (sudo) を要求する upgrade はスキップして継続する。
+# brew は SUDO_ASKPASS があると sudo -A を使う (system_command.rb)。
+# askpass を /usr/bin/false に固定すると sudo は即拒否され、TTY プロンプトでハングしない。
+export SUDO_ASKPASS=/usr/bin/false
+
+SYNC_LOG="$(mktemp -t brew-sync.XXXXXX)"
+trap 'rm -f "$SYNC_LOG"' EXIT
+
 brew update
+
 # --greedy が指定されたら、auto_updates等も含めてcaskを積極アップグレード
 if [ "${usage_greedy:-false}" = "true" ]; then
   printf "🧪 Greedy upgrade for casks (including auto_updates)\n"
-  brew upgrade --cask --greedy
+  brew upgrade --cask --greedy 2>&1 | tee -a "$SYNC_LOG" || true
 fi
-brew bundle install --file="$BREWFILE_PATH"
+brew bundle install --file="$BREWFILE_PATH" 2>&1 | tee -a "$SYNC_LOG" || true
+
+# password (sudo) 要求などで失敗＝スキップされたパッケージ名を抽出する。
+# brew bundle は "(Installing|Upgrading) <name> has failed!"、
+# brew upgrade は "Error: <name>: Failure while executing" を出すので両方から拾う。
+# ※ run は TOML の複数行文字列でバックスラッシュがエスケープ扱いになるため、
+#   後方参照を使わず awk のフィールド位置で名前を取り出す。
+SKIPPED="$(awk '
+  /has failed!/ { for (i = 1; i <= NF; i++) if ($i == "failed!") print $(i - 2) }
+  /^Error: .* Failure while executing/ { name = $2; sub(/:$/, "", name); print name }
+' "$SYNC_LOG" | sort -u)"
 
 printf "\n✅ Sync complete!\n"
+if [ -n "$SKIPPED" ]; then
+  printf "\n⚠️  password (sudo) 要求などでスキップ/失敗したパッケージ:\n"
+  printf '%s\n' "$SKIPPED" | sed 's/^/  - /'
+  printf "→ 個別に更新する場合はパスワード入力付きで: brew upgrade <package>\n"
+fi
 printf "Brewfileで管理されていないパッケージを削除する場合は: mise run prune --prof \"$PROFILE\"\n"
 """
 
