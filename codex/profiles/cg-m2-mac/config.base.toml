@@ -1,8 +1,7 @@
 model = "gpt-5.5"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "medium"
 hide_agent_reasoning = true
 network_access = true
-# notify は local.toml に移動した
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
@@ -22,3 +21,6 @@ status_line = [
   "task-progress",
 ]
 status_line_use_colors = true
+
+[sandbox_workspace_write]
+network_access = true
