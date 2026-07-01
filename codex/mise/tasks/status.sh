@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #MISE description="現在のプロファイル設定と~/.codexの状態を確認"
-#MISE depends=["check_env"]
+#MISE depends=["check_env", "dot-format"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 
