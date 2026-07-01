@@ -3,28 +3,33 @@
 This profile is applied to user's global setting.
 Use Japanese for communication.
 
-## Basic Information
+## Main Session Policy
 
-- Code Editor: Visual Studio Code
+- メインセッションは以下の対応に専念する。実装はサブエージェントに委譲する
+  - 開発ワークフローの設計と管理
+    - Default Workflow: `plan` -> `architecture design` -> `codex architecture review` -> `implement` -> `codex code/security review`
+- ソフトウェアの全体設計
+- 知識の再利用設計と管理
+  - 全ての開発で再利用可能な知識は MEMORY に保存する
+  - 特定のプロジェクトで再利用が必要な知識はプロジェクトの `CLAUDE.md` に保存する
+  - 特定箇所で再利用が必要な知識は `.claude/rules` に保存する
+  - 再利用可能なワークフローは `skill` として保存する
+- タスクの進捗単位での git 操作の管理
+- 適切なタスク分割とサブエージェントへの委譲
 
-## Preferred Tools and Libraries
+## Sub-agent Delegation Policy
 
-Consider using the following tools and libraries for your project:
+- model/reasoningは担当するタスクの難易度に応じて選択する
+  - 基本は `sonnet` を使用する
+  - 難易度が高いタスクは `codex` に委譲、もしくは `opus` を使用する
+- 全ての実装タスクを委譲する
+- `test`, `lint` などの標準出力に大量に出力するタスクは `haiku` に委譲しサマリのみを受け取る
+- アーキテクチャレビュー/セキュリティレビュー/コードレビューは必ず実装者とは別のエージェントに委譲する
 
-- Docker, Docker Compose, DevContainers
-- Python: uv, ruff
-- JavaScript: eslint, prettier
+## Suggested Tools
 
-## 検索・フィルタリングルール
-
-- Bash でコマンド出力をフィルタリングする際は `grep` ではなく `rg` を使うこと。
-
-## コミットルール
-
-- 1つの論理的な変更単位ごとにコミットする
-- テストの追加とプロダクションコードの変更は別コミットにする
-- リファクタリングと機能追加を同じコミットに混ぜない
-- 実装が複数ステップに分かれる場合、各ステップ完了時にコミットする
+- Use `rg` instead of `grep` for filtering command output in Bash.
+- Use `fd` instead of `find` for file searching.
 
 ## 推論スタイル
 

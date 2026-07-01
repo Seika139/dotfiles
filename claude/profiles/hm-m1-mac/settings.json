@@ -3,6 +3,9 @@
     "commit": "",
     "pr": ""
   },
+  "autoMode": {
+    "environment": ["$defaults"]
+  },
   "defaultMode": "acceptEdits",
   "enabledPlugins": {
     "codex@openai-codex": true,
@@ -16,8 +19,7 @@
     "swift-lsp@claude-plugins-official": true
   },
   "env": {
-    "ANTHROPIC_MODEL": "claude-opus-4-8",
-    "ANTHROPIC_SMALL_FAST_MODEL": "claude-sonnet-4-6"
+    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1"
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
