@@ -62,7 +62,7 @@
       }
     ]
   },
-  "model": "opus[1m]",
+  "model": "sonnet",
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -95,5 +95,6 @@
   "statusLine": {
     "command": "~/dotfiles/claude/status_line.sh",
     "type": "command"
-  }
+  },
+  "tui": "fullscreen"
 }
