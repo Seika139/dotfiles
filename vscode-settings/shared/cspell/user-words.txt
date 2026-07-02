@@ -228,6 +228,7 @@ openclaw
 opencode
 opendiff
 openpyxl
+opusplan
 organisation
 OSTYPE
 pacman

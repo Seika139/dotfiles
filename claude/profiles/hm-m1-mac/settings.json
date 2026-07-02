@@ -19,7 +19,10 @@
     "swift-lsp@claude-plugins-official": true
   },
   "env": {
-    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1"
+    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1m]",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5[1m]",
+    "ANTHROPIC_MODEL": "opusplan"
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
