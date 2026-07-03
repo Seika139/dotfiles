@@ -48,9 +48,9 @@ function _bdot_build_ps1() {
     c_git='\[\e[1;33m\]'
     ;;
   win-15034)
-    c_user='\[\e[40;35m\]'
+    c_user='\[\e[35m\]'
     c_time='\[\e[38;5;213m\]'
-    c_dir='\[\e[38;5;225m\]'
+    c_dir='\[\e[38;5;123m\]'
     c_git='\[\e[1;35m\]'
     ;;
   xsv*)
