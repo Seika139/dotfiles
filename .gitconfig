@@ -7,11 +7,12 @@
 	meta = yellow
 [core]
 	pager = less -R
-	quotepath = false # git statusなどで日本語ファイル名をエンコードせずに表示してくれる
+	quotepath = on
 	symlinks = true
 	editor = vim
 [diff]
 	algorithm = histogram
+	relative = true
 [init]
     # git init 時のデフォルトブランチ名を main に設定する
 	defaultBranch = main
@@ -80,3 +81,18 @@
 	conflictStyle = zdiff3
 [beads]
 	role = maintainer
+[safe]
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor/.github-config
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor/.github-config
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor/.github-config
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor/.github-config
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+	directory = /home/ebi/actions-runner-wcm/_work/web-change-monitor/web-change-monitor
+[url "https://:x-oauth-basic@github.com/"]
+	insteadOf = https://github.com/
