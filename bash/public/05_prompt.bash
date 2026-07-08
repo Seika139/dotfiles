@@ -42,7 +42,7 @@ function _bdot_build_ps1() {
     c_git='\[\e[1;36m\]'
     ;;
   wsl-ubuntu)
-    c_user='\[\e[40;33m\]'
+    c_user='\[\e[38;5;220m\]'
     c_time='\[\e[38;5;214m\]'
     c_dir='\[\e[38;5;228m\]'
     c_git='\[\e[1;33m\]'

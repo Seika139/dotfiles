@@ -165,6 +165,7 @@ fi
 
 # Claude Code のエイリアス
 alias cc='claude --dangerously-skip-permissions'
+alias cco='claude --dangerously-skip-permissions --agent Orchestrator'
 # Codex CLI のエイリアス
 alias xx='codex --yolo'
 
