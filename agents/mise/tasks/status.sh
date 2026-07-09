@@ -57,18 +57,31 @@ APM_OVERLAY="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-overlay"{prin
 DECLARED_SORTED="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-merged"{print $2}' | sort -u)"
 
 # declared package を primitive 種別で分類する。
-# instructions (例: commit-message) は ~/.claude/rules/ に配備されるため、skills 一覧
-# (~/.claude/skills/) には現れない。種別は ~/.apm/apm_modules の .apm/ 構造で判定する。
+# instructions (例: commit-message) は ~/.claude/rules/ に、agents は ~/.claude/agents/
+# に配備されるため、skills 一覧 (~/.claude/skills/) には現れない。
+# 種別は ~/.apm/apm_modules の .apm/ 構造で判定する。
 classify_is_instruction() {
   compgen -G "$HOME/.apm/apm_modules/*/*/packages/$1/.apm/instructions" >/dev/null 2>&1
 }
+classify_is_agent() {
+  compgen -G "$HOME/.apm/apm_modules/*/*/packages/$1/.apm/agents" >/dev/null 2>&1
+}
 DECLARED_SKILLS=""
 DECLARED_INSTRUCTIONS=""
+DECLARED_AGENTS=""
 while IFS= read -r _pkg; do
   [ -n "$_pkg" ] || continue
+  _is_instruction=false
+  _is_agent=false
   if classify_is_instruction "$_pkg"; then
     DECLARED_INSTRUCTIONS+="${_pkg}"$'\n'
-  else
+    _is_instruction=true
+  fi
+  if classify_is_agent "$_pkg"; then
+    DECLARED_AGENTS+="${_pkg}"$'\n'
+    _is_agent=true
+  fi
+  if [ "$_is_instruction" = "false" ] && [ "$_is_agent" = "false" ]; then
     DECLARED_SKILLS+="${_pkg}"$'\n'
   fi
 done <<EOF
@@ -76,6 +89,7 @@ $DECLARED_SORTED
 EOF
 DECLARED_SKILLS="$(printf "%s" "$DECLARED_SKILLS" | sort -u)"
 DECLARED_INSTRUCTIONS="$(printf "%s" "$DECLARED_INSTRUCTIONS" | sort -u)"
+DECLARED_AGENTS="$(printf "%s" "$DECLARED_AGENTS" | sort -u)"
 
 printf "\n🎯 Targets:\\033[36m %s\\033[0m\n" "${TARGETS_CSV:-(none)}"
 
@@ -123,6 +137,62 @@ list_actual_rules() {
   if [ -d "$dir" ]; then
     find "$dir" -mindepth 1 -maxdepth 1 -not -name '.*' -exec basename {} \; 2>/dev/null | sed 's/\.md$//' | sort -u
   fi
+}
+
+# agents primitive は package 名と配備ファイル名が一致しないことがある。
+# APM module 側の .apm/agents/*.md が ~/.claude/agents/ に全て存在すれば
+# package 単位で installed とみなす。
+agent_package_installed() {
+  local pkg="$1" agent_dir file all_found has_file
+  for agent_dir in "$HOME"/.apm/apm_modules/*/*/packages/"$pkg"/.apm/agents; do
+    [ -d "$agent_dir" ] || continue
+    all_found=true
+    has_file=false
+    for file in "$agent_dir"/*.md; do
+      [ -f "$file" ] || continue
+      has_file=true
+      if [ ! -f "$HOME/.claude/agents/$(basename "$file")" ]; then
+        all_found=false
+        break
+      fi
+    done
+    if [ "$has_file" = "true" ] && [ "$all_found" = "true" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+list_actual_agent_packages() {
+  local agent_dir pkg
+  for agent_dir in "$HOME"/.apm/apm_modules/*/*/packages/*/.apm/agents; do
+    [ -d "$agent_dir" ] || continue
+    pkg="$(basename "$(dirname "$(dirname "$agent_dir")")")"
+    if agent_package_installed "$pkg"; then
+      printf "%s\n" "$pkg"
+    fi
+  done
+  list_unmanaged_agent_files
+}
+
+list_known_agent_files() {
+  local file
+  for file in "$HOME"/.apm/apm_modules/*/*/packages/*/.apm/agents/*.md; do
+    [ -f "$file" ] || continue
+    basename "$file" .md
+  done | sort -u
+}
+
+list_unmanaged_agent_files() {
+  local file name
+  [ -d "$HOME/.claude/agents" ] || return 0
+  for file in "$HOME"/.claude/agents/*.md; do
+    [ -f "$file" ] || continue
+    name="$(basename "$file" .md)"
+    if ! printf "%s\n" "${KNOWN_AGENT_FILES:-}" | grep -Fxq "$name"; then
+      printf "unmanaged:%s\n" "$name"
+    fi
+  done | sort -u
 }
 
 # 非 APM の peer tool (agmsg 等) を識別する。APM が宣言しない skill dir でも、
@@ -198,6 +268,10 @@ if [ -n "$AGENTS_EXTERNAL" ]; then
   printf "     \\033[36m🔌 external (非 APM / agmsg-managed, drift 比較から除外):\\033[0m\n"
   printf "%s\n" "$AGENTS_EXTERNAL" | sed 's/^/       - /'
 fi
+
+printf "\n🤖 Agents (declared vs actual):\n"
+KNOWN_AGENT_FILES="$(list_known_agent_files)"
+print_diff "claude agents" "$HOME/.claude/agents" "$DECLARED_AGENTS" "$(list_actual_agent_packages | sort -u)"
 
 printf "\n📐 Instructions / rules (declared vs actual):\n"
 print_diff "claude rules" "$HOME/.claude/rules" "$DECLARED_INSTRUCTIONS" "$(list_actual_rules "$HOME/.claude/rules")"
