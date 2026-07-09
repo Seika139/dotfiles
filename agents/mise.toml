@@ -2,13 +2,14 @@
 PROFILES_DIR = "profiles"
 # WSL 環境なら true になる
 # Tera 側の外部プロセス呼び出しはバージョン間で挙動が不安定なため read_file + containing で判定する
+# Tera v2 では containing の引数に pat= が必要
 # Tera の is テストは変数にしか使えないため set で一旦変数に入れる
 # {%- -%} で空白・改行を除去して "true" / "false" のみが値になるようにする
 IS_WSL = '''
 {%- set proc = "/proc/version" -%}
 {%- if os() == "linux" and proc is file -%}
   {%- set content = read_file(path="/proc/version") -%}
-  {%- if content is containing("microsoft") -%}
+  {%- if content | lower is containing(pat="microsoft") -%}
     true
   {%- else -%}
     false
