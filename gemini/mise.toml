@@ -8,7 +8,7 @@ IS_WSL = '''
 {%- set proc = "/proc/version" -%}
 {%- if os() == "linux" and proc is file -%}
   {%- set content = read_file(path="/proc/version") -%}
-  {%- if content is containing("microsoft") -%}
+  {%- if content | lower is containing(pat="microsoft") -%}
     true
   {%- else -%}
     false
