@@ -41,5 +41,8 @@ dependencies:
     - Caromaf/agent-package-basic/packages/architecture-review#main
     - Caromaf/agent-package-basic/packages/audit-memory#main
     - Caromaf/agent-package-basic/packages/delegate-worktrees#main
-    - Caromaf/agent-package-basic/packages/agent-team#main
+    - git: Caromaf/agent-package-basic
+      path: packages/agent-team
+      ref: main
+      targets: [claude]
   mcp: []

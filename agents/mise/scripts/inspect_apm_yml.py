@@ -12,9 +12,10 @@ stdout に prefix-tagged な TSV を 1 行 1 件で出力する:
     apm-overlay	<pkg>           overlay の dependencies.apm から抽出した package 名
     apm-merged	<pkg>           base + overlay を dedup したあとの package 名
 
-package 名抽出ルール: ref が "<owner>/<repo>/packages/<name>[#<ref>]" 形式なら
-<name>、それ以外 (ローカルパス / 不明形式) は ref 文字列をそのまま返す。
+package 名抽出ルール: string form の ref または object form の path が
+".../packages/<name>" 形式なら <name>、それ以外は入力を文字列化して返す。
 """
+
 from __future__ import annotations
 
 import argparse
@@ -34,13 +35,21 @@ def _load(path: Path) -> dict:
     return data
 
 
-def _pkg_name(ref) -> str:
-    if not isinstance(ref, str):
-        return yaml.safe_dump(ref, sort_keys=True).strip()
-    head = ref.split("#", 1)[0]
+def _name_from_path(path: str) -> str:
+    head = path.split("#", 1)[0].replace("\\", "/").strip("/")
+    if head.startswith("packages/"):
+        return head.removeprefix("packages/").strip("/")
     if "/packages/" in head:
         return head.rsplit("/packages/", 1)[-1].strip("/")
     return head
+
+
+def _pkg_name(ref) -> str:
+    if isinstance(ref, str):
+        return _name_from_path(ref)
+    if isinstance(ref, dict) and isinstance(ref.get("path"), str):
+        return _name_from_path(ref["path"])
+    return yaml.safe_dump(ref, sort_keys=True, default_flow_style=True).strip()
 
 
 def _apm_list(doc: dict) -> list:
@@ -65,9 +74,7 @@ def main() -> int:
     args = parser.parse_args()
 
     base = _load(args.base)
-    overlay = (
-        _load(args.overlay) if args.overlay and args.overlay.is_file() else {}
-    )
+    overlay = _load(args.overlay) if args.overlay and args.overlay.is_file() else {}
 
     for tgt in base.get("targets") or []:
         print(f"target\t{tgt}")
