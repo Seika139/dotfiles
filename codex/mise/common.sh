@@ -35,3 +35,18 @@ codex_profile_path() {
 codex_os_name() {
   uname -s | tr '[:upper:]' '[:lower:]'
 }
+
+codex_python() {
+  local candidate
+  for candidate in python3 python; do
+    if ! command -v "$candidate" >/dev/null 2>&1; then
+      continue
+    fi
+    if "$candidate" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
+      command -v "$candidate"
+      return 0
+    fi
+  done
+  printf "%s\n" "Python 3.11+ が必要です。python3 または python を PATH に追加してください。" >&2
+  return 1
+}

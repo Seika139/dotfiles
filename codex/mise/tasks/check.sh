@@ -22,6 +22,7 @@ if [ -z "$PROFILE" ]; then
 fi
 
 PROFILE_PATH="$(codex_profile_path "$ROOT_DIR" "$PROFILE")"
+AGENTS_PATH="${ROOT_DIR}/agents"
 
 if [ ! -d "$PROFILE_PATH" ]; then
   {
@@ -39,3 +40,10 @@ if [ ! -d "$PROFILE_PATH" ]; then
   } >&2
   exit 1
 fi
+
+if [ ! -d "$AGENTS_PATH" ]; then
+  printf "%s\n" "❌ Error: native agent directory '$AGENTS_PATH' does not exist" >&2
+  exit 1
+fi
+PYTHON="$(codex_python)"
+"$PYTHON" "${ROOT_DIR}/mise/scripts/validate_agents.py" "$AGENTS_PATH"

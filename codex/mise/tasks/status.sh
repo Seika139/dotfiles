@@ -17,6 +17,32 @@ PROFILE="$(codex_profile_or_default "${usage_prof:-}")"
 PROFILE_PATH="$(codex_profile_path "$ROOT_DIR" "$PROFILE")"
 
 printf "%s\n" "🦄 Environment Check"
+AGENTS_PATH="${ROOT_DIR}/agents"
+AGENT_TARGET="${HOME}/.codex/agents"
+printf "%s\n" "Native agents source: $AGENTS_PATH"
+printf "%s\n" "Native agents target: $AGENT_TARGET"
+printf "%s\n" "Native agents deployment: regular files (manifest-managed)"
+PYTHON="$(codex_python)"
+if "$PYTHON" "${ROOT_DIR}/mise/scripts/validate_agents.py" "$AGENTS_PATH" >/dev/null; then
+  printf "%s\n" "   ✅ native agent definitions are valid"
+else
+  printf "%s\n" "   ❌ native agent definitions are invalid"
+fi
+if [ -d "$AGENT_TARGET" ]; then
+  for source in "$AGENTS_PATH"/*.toml; do
+    [ -f "$source" ] || continue
+    target="$AGENT_TARGET/$(basename "$source")"
+    if [ -f "$target" ] && [ -f "${HOME}/.codex/.codex-dotfiles-native-agents.manifest" ] && tr -d '\r' <"${HOME}/.codex/.codex-dotfiles-native-agents.manifest" | grep -Fqx -- "$(basename "$source")" && cmp -s "$source" "$target"; then
+      printf "%s\n" "   ✅ $target (managed regular file matches)"
+    elif [ -e "$target" ] || [ -L "$target" ]; then
+      printf "%s\n" "   ⚠️  $target (未管理または不一致)"
+    else
+      printf "%s\n" "   ❌ $target (missing; mise run link --prof \"$PROFILE\")"
+    fi
+  done
+else
+  printf "%s\n" "   ❌ $AGENT_TARGET does not exist; mise run link --prof \"$PROFILE\""
+fi
 printf "os()                 =\\033[36m %s\\033[0m\n" "$(codex_os_name)"
 printf "IS_WSL               =\\033[36m %s\\033[0m\n" "${IS_WSL:-false}"
 printf "config_root          =\\033[36m %s\\033[0m\n" "$ROOT_DIR"
@@ -86,7 +112,7 @@ else
   printf "%s\n" "   ⚠️  No config sources in profile; existing $config_target is left untouched"
 fi
 
-printf "\n🔗 Symlinks in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
+printf "\n🔗 Profile files in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
 # NOTE: prompts/ は APM 管理 (~/.codex/prompts/ は real dir) に移行済のためチェック対象外。
 for file in "${profile_targets[@]}"; do
   target="${HOME}/.codex/$file"

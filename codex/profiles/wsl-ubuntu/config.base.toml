@@ -2,12 +2,18 @@ model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 service_tier = "fast"
+
 notify = [
   "bash",
   "-lc",
   "CODEX_NOTIFY_CHANNEL=slack CODEX_NOTIFY_DEBUG_LOG=\"$HOME/dotfiles/codex/profiles/wsl-ubuntu/notify.log\" exec \"$HOME/dotfiles/codex/notify.sh\" \"$@\"",
   "codex-notify",
 ]
+
+# Native Codex agent の並列実行制限。
+[agents]
+max_threads = 4
+max_depth = 1
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]

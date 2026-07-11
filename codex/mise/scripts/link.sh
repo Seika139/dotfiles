@@ -89,6 +89,7 @@ fi
 PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR}/$PROFILE"
 CODEX_HOME="${HOME}/.codex"
 mkdir -p "$CODEX_HOME"
+agents_sync="${MISE_CONFIG_ROOT}/mise/scripts/sync_agents.sh"
 
 # prompts / skills は APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
 # `mise run install`@agents/ で ~/.codex/skills/ に直接配備される
@@ -160,6 +161,9 @@ for file in "${main_targets[@]}"; do
     printf "   ⚠️  Skipping missing file: \\033[31m%s\\033[0m\n" "$source"
   fi
 done
+
+printf "%s\n" "🧩 Installing native Codex agents as regular files"
+bash "$agents_sync" "$MISE_CONFIG_ROOT" "$CODEX_HOME"
 
 # skills 配備は APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
 # ~/.codex/skills/ への配備は `mise run install`@agents/ が直接行う。

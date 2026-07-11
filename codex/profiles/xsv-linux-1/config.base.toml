@@ -2,12 +2,18 @@ model = "gpt-5.5"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true
+
 notify = [
   "bash",
   "-lc",
   "CODEX_NOTIFY_CHANNEL=discord CODEX_NOTIFY_DEBUG_LOG=\"$HOME/dotfiles/codex/profiles/xsv-linux-1/notify.log\" exec \"$HOME/dotfiles/codex/notify.sh\" \"$@\"",
   "codex-notify",
 ]
+
+# Native Codex agent の並列実行制限。
+[agents]
+max_threads = 4
+max_depth = 1
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]

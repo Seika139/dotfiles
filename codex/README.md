@@ -11,6 +11,7 @@ codex/
   mise.toml
   mise/scripts/
     link.sh
+    sync_agents.sh
     pull_config.sh
     render_config.py
     sync_prompt_skills.py
@@ -22,6 +23,10 @@ codex/
       prompts/
       skills/
       custom-config/
+  agents/
+    <native-agent>.toml
+  docs/
+    native-agents.md
 ```
 
 主な profile:
@@ -40,10 +45,13 @@ mise run list
 ~/.codex/prompts         -> codex/profiles/<profile>/prompts
 ~/.codex/custom-config   -> codex/profiles/<profile>/custom-config
 ~/.codex/skills/<skill>  -> codex/profiles/<profile>/skills/<skill>
+~/.codex/agents/<name>.toml  通常ファイルとして配備
 ~/.codex/config.toml     通常ファイルとして生成
 ```
 
 `skills` は `~/.codex/skills` ディレクトリごとの symlink にはしません。Codex の `.system` skill を残すため、profile skill だけを個別に symlink します。
+
+`agents` は package 共通の native Codex TOML を個別の通常ファイルとして配備します。役割の使い分けと衝突時のバックアップ規則は [docs/native-agents.md](docs/native-agents.md) を参照してください。
 
 `prompts/` は Claude command 由来の元ファイル置き場です。現在の Codex CLI 0.125.0 では、`~/.codex/prompts/*.md` は独自 slash command として読み込まれません。そのため `mise run link` 時に `prompts/*.md` から `skills/<command-name>/SKILL.md` を生成し、`$command-name` として使えるようにしています。
 

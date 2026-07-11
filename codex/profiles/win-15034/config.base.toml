@@ -6,6 +6,11 @@ personality = "pragmatic"
 windows_wsl_setup_acknowledged = true
 # notify は local.toml に移動した
 
+# Native Codex agent の並列実行制限。
+[agents]
+max_threads = 4
+max_depth = 1
+
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
 status_line = [
