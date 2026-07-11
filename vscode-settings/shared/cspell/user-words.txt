@@ -124,6 +124,7 @@ getline
 ghostty
 gitattributes
 gitdir
+githubcopilot
 gitmessage
 gitmoji
 gmail
