@@ -4,7 +4,9 @@
     "pr": ""
   },
   "autoMode": {
-    "environment": ["$defaults"]
+    "environment": [
+      "$defaults"
+    ]
   },
   "enabledPlugins": {
     "codex@openai-codex": true,
@@ -17,10 +19,10 @@
     "skill-creator@claude-plugins-official": true
   },
   "env": {
-    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1m]",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5[1m]",
-    "ANTHROPIC_MODEL": "opusplan"
+    "ANTHROPIC_MODEL": "claude-fable-5[1m]",
+    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1"
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -71,7 +73,6 @@
       }
     ]
   },
-  "model": "sonnet",
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
