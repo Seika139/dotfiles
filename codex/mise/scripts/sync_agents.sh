@@ -8,18 +8,6 @@ SOURCE_DIR="${ROOT_DIR}/agents"
 TARGET_DIR="${CODEX_HOME_DIR}/agents"
 MANIFEST="${CODEX_HOME_DIR}/.codex-dotfiles-native-agents.manifest"
 
-mkdir -p "$CODEX_HOME_DIR"
-if [ -e "$TARGET_DIR" ] && [ ! -d "$TARGET_DIR" ]; then
-  printf "❌ Agent target is not a directory: %s\n" "$TARGET_DIR" >&2
-  exit 1
-fi
-mkdir -p "$TARGET_DIR"
-
-is_managed_name() {
-  local name="$1"
-  [ -f "$MANIFEST" ] && tr -d '\r' <"$MANIFEST" | grep -Fqx -- "$name"
-}
-
 backup_target() {
   local target="$1"
   local backup
@@ -29,6 +17,21 @@ backup_target() {
   done
   mv -- "$target" "$backup"
   printf "%s\n" "$backup"
+}
+
+mkdir -p "$CODEX_HOME_DIR"
+if [ -L "$TARGET_DIR" ]; then
+  target_backup="$(backup_target "$TARGET_DIR" | tail -n 1)"
+  printf "   agents directory symlink をバックアップ: %s -> %s\n" "$TARGET_DIR" "$target_backup"
+elif [ -e "$TARGET_DIR" ] && [ ! -d "$TARGET_DIR" ]; then
+  printf "❌ Agent target is not a directory: %s\n" "$TARGET_DIR" >&2
+  exit 1
+fi
+mkdir -p "$TARGET_DIR"
+
+is_managed_name() {
+  local name="$1"
+  [ -f "$MANIFEST" ] && tr -d '\r' <"$MANIFEST" | grep -Fqx -- "$name"
 }
 
 copy_to_temp() {
@@ -51,8 +54,22 @@ install_file() {
 
   temporary="$(copy_to_temp "$source" "$target")"
   if is_managed_name "$name"; then
-    mv -f -- "$temporary" "$target"
-    return 0
+    if [ -f "$target" ] && [ ! -L "$target" ]; then
+      mv -f -- "$temporary" "$target"
+      return 0
+    fi
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      backup="$(backup_target "$target" | tail -n 1)"
+      printf "   managed agent の不正な target をバックアップ: %s -> %s\n" "$target" "$backup"
+    fi
+    if mv -f -- "$temporary" "$target"; then
+      return 0
+    fi
+    rm -f -- "$temporary"
+    if [ -n "$backup" ] && [ ! -e "$target" ] && [ ! -L "$target" ]; then
+      mv -- "$backup" "$target" || true
+    fi
+    return 1
   fi
 
   if [ -e "$target" ] || [ -L "$target" ]; then

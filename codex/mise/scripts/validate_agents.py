@@ -6,7 +6,7 @@ import tomllib
 from pathlib import Path
 
 REQUIRED = {"name", "description", "developer_instructions", "model", "model_reasoning_effort"}
-READ_ONLY = {"architecture-reviewer", "code-reviewer", "security-reviewer"}
+READ_ONLY = {"architecture-reviewer", "cheap-researcher", "code-reviewer", "security-reviewer"}
 ALLOWED_REASONING_EFFORTS = {"minimal", "low", "medium", "high", "xhigh"}
 ALLOWED_SANDBOX_MODES = {"read-only", "workspace-write", "danger-full-access"}
 
@@ -39,7 +39,7 @@ def validate(directory: Path) -> list[str]:
         if data.get("name") != path.stem:
             errors.append(f"{path}: name はファイル名と一致させてください")
         if path.stem in READ_ONLY and sandbox_mode != "read-only":
-            errors.append(f"{path}: reviewer は sandbox_mode = \"read-only\" にしてください")
+            errors.append(f"{path}: 読み取り専用 agent は sandbox_mode = \"read-only\" にしてください")
     return errors
 
 

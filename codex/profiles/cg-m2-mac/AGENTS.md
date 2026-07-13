@@ -19,12 +19,10 @@ Use Japanese for communication.
 
 ## Sub-agent Delegation Policy
 
-- model/reasoningは担当するタスクの難易度に応じて選択する
-  - 基本は `gpt-5.4` を使用する
-  - 難易度が高いタスクは `gpt-5.6` または `gpt-5.5` に委譲する
-- 全ての実装タスクを委譲する
-- `test`, `lint` などの標準出力に大量に出力するタスクは `gpt-5.4-mini` に委譲しサマリのみを受け取る
-- アーキテクチャレビュー/セキュリティレビュー/コードレビューは必ず実装者とは別のエージェントに委譲する
+- コード検索、関連ファイルの特定、既存実装と影響範囲の調査は `cheap-researcher` に委譲する。
+- 全ての実装タスクは `implementor` に委譲する。
+- `test`、`lint`、`build` など標準出力が長くなるコマンドの実行と要約は `output-summarizer` に委譲する。
+- アーキテクチャレビューは `architecture-reviewer`、コードレビューは `code-reviewer`、セキュリティレビューは `security-reviewer` に委譲し、必ず実装者とは別のエージェントを使う。
 
 ## Markdown 文章スタイル
 

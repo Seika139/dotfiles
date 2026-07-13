@@ -3,6 +3,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -66,6 +67,23 @@ class NativeAgentSyncTest(unittest.TestCase):
             self.assertEqual(backups[0].read_text(encoding="utf-8"), "local = true\n")
             self.assertIn("implementor.toml", (home / MANIFEST_NAME).read_text(encoding="utf-8"))
 
+    def test_deploys_cheap_researcher_contract_as_managed_regular_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "home"
+
+            result = self.run_sync(home)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            target = home / "agents" / "cheap-researcher.toml"
+            self.assertTrue(target.is_file())
+            self.assertFalse(target.is_symlink())
+            self.assertIn("cheap-researcher.toml", (home / MANIFEST_NAME).read_text(encoding="utf-8").splitlines())
+            data = tomllib.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(data["name"], "cheap-researcher")
+            self.assertEqual(data["model"], "gpt-5.6-terra")
+            self.assertEqual(data["model_reasoning_effort"], "low")
+            self.assertEqual(data["sandbox_mode"], "read-only")
+
     def test_managed_update_replaces_without_new_backup(self):
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp) / "home"
@@ -85,6 +103,58 @@ class NativeAgentSyncTest(unittest.TestCase):
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertIn("# test update", target.read_text(encoding="utf-8"))
             self.assertEqual(list(target.parent.glob("implementor.toml.backup.*")), backups_before)
+
+    def test_repairs_managed_directory_target_and_backs_it_up(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp) / "home"
+            first = self.run_sync(home)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            target = home / "agents" / "cheap-researcher.toml"
+            target.unlink()
+            target.mkdir()
+            marker = target / "local.txt"
+            marker.write_text("preserve me\n", encoding="utf-8")
+
+            result = self.run_sync(home)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(target.is_file())
+            self.assertFalse(target.is_symlink())
+            data = tomllib.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(data["name"], "cheap-researcher")
+            backups = list(target.parent.glob("cheap-researcher.toml.backup.*"))
+            self.assertEqual(len(backups), 1)
+            self.assertTrue(backups[0].is_dir())
+            self.assertEqual((backups[0] / "local.txt").read_text(encoding="utf-8"), "preserve me\n")
+            self.assertIn("managed agent の不正な target をバックアップ", result.stdout)
+
+    def test_replaces_agents_directory_symlink_without_following_it(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            home = root / "home"
+            home.mkdir()
+            external = root / "external-agents"
+            external.mkdir()
+            marker = external / "do-not-touch.toml"
+            marker.write_text("external = true\n", encoding="utf-8")
+            target = home / "agents"
+            try:
+                target.symlink_to(external, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"directory symlink is unavailable: {exc}")
+
+            result = self.run_sync(home)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(target.is_dir())
+            self.assertFalse(target.is_symlink())
+            self.assertTrue((target / "cheap-researcher.toml").is_file())
+            self.assertEqual(marker.read_text(encoding="utf-8"), "external = true\n")
+            backups = list(home.glob("agents.backup.*"))
+            self.assertEqual(len(backups), 1)
+            self.assertTrue(backups[0].is_symlink())
+            self.assertEqual(backups[0].resolve(), external.resolve())
+            self.assertIn("agents directory symlink をバックアップ", result.stdout)
 
     def test_removes_only_stale_managed_file_and_preserves_unmanaged(self):
         with tempfile.TemporaryDirectory() as temp:

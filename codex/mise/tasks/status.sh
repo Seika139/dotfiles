@@ -28,14 +28,24 @@ if "$PYTHON" "${ROOT_DIR}/mise/scripts/validate_agents.py" "$AGENTS_PATH" >/dev/
 else
   printf "%s\n" "   ❌ native agent definitions are invalid"
 fi
-if [ -d "$AGENT_TARGET" ]; then
+if [ -L "$AGENT_TARGET" ]; then
+  printf "%s\n" "   ❌ $AGENT_TARGET (symlink drift; mise run link --prof \"$PROFILE\")"
+elif [ -d "$AGENT_TARGET" ]; then
   for source in "$AGENTS_PATH"/*.toml; do
     [ -f "$source" ] || continue
-    target="$AGENT_TARGET/$(basename "$source")"
-    if [ -f "$target" ] && [ -f "${HOME}/.codex/.codex-dotfiles-native-agents.manifest" ] && tr -d '\r' <"${HOME}/.codex/.codex-dotfiles-native-agents.manifest" | grep -Fqx -- "$(basename "$source")" && cmp -s "$source" "$target"; then
+    name="$(basename "$source")"
+    target="$AGENT_TARGET/$name"
+    manifest="${HOME}/.codex/.codex-dotfiles-native-agents.manifest"
+    managed=false
+    if [ -f "$manifest" ] && tr -d '\r' <"$manifest" | grep -Fqx -- "$name"; then
+      managed=true
+    fi
+    if [ "$managed" = true ] && [ -f "$target" ] && [ ! -L "$target" ] && cmp -s "$source" "$target"; then
       printf "%s\n" "   ✅ $target (managed regular file matches)"
+    elif [ "$managed" = true ] && { [ -e "$target" ] || [ -L "$target" ]; }; then
+      printf "%s\n" "   ❌ $target (managed drift; mise run link --prof \"$PROFILE\")"
     elif [ -e "$target" ] || [ -L "$target" ]; then
-      printf "%s\n" "   ⚠️  $target (未管理または不一致)"
+      printf "%s\n" "   ⚠️  $target (unmanaged collision)"
     else
       printf "%s\n" "   ❌ $target (missing; mise run link --prof \"$PROFILE\")"
     fi

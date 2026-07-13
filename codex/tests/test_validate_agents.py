@@ -40,10 +40,12 @@ class ValidateAgentsTest(unittest.TestCase):
         self.assertTrue(any("model_reasoning_effort" in error for error in errors))
         self.assertTrue(any("sandbox_mode" in error for error in errors))
 
-    def test_reviewers_require_read_only_sandbox(self):
-        text = VALID.replace('name = "example"', 'name = "code-reviewer"')
-        errors = self.validate_text(text, "code-reviewer.toml")
-        self.assertTrue(any("read-only" in error for error in errors))
+    def test_read_only_agents_require_read_only_sandbox(self):
+        for name in ("code-reviewer", "cheap-researcher"):
+            with self.subTest(name=name):
+                text = VALID.replace('name = "example"', f'name = "{name}"')
+                errors = self.validate_text(text, f"{name}.toml")
+                self.assertTrue(any("読み取り専用 agent" in error and "read-only" in error for error in errors))
 
 
 if __name__ == "__main__":
