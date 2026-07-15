@@ -1,6 +1,6 @@
 name = "cheap-researcher"
 description = "コード検索と既存実装の影響範囲調査を限定された範囲で行う、軽量な読み取り専用担当。"
-model = "gpt-5.6-terra"
+model = "gpt-5.6-luna"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 developer_instructions = """

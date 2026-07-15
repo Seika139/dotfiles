@@ -17,16 +17,34 @@ PROFILE="$(codex_profile_or_default "${usage_prof:-}")"
 PROFILE_PATH="$(codex_profile_path "$ROOT_DIR" "$PROFILE")"
 
 printf "%s\n" "🦄 Environment Check"
+printf "os()               = "
+print_cyan "$(codex_os_name)"$'\n'
+printf "IS_WSL             = "
+print_cyan "${IS_WSL:-false}"$'\n'
+printf "config_root        = "
+print_cyan "$ROOT_DIR"$'\n'
+printf "Selected profile   = "
+print_cyan "$PROFILE"$'\n'
+
+if [ ! -d "$PROFILE_PATH" ]; then
+  print_red "❌ Profile directory does not exist: $PROFILE_PATH"$'\n'
+  exit 1
+fi
+
+echo ""
 AGENTS_PATH="${ROOT_DIR}/agents"
 AGENT_TARGET="${HOME}/.codex/agents"
-printf "%s\n" "Native agents source: $AGENTS_PATH"
-printf "%s\n" "Native agents target: $AGENT_TARGET"
-printf "%s\n" "Native agents deployment: regular files (manifest-managed)"
+printf "%s\n" "🤖 Agents:"
+printf "%s" "  Native agents source: "
+print_dim "$AGENTS_PATH"$'\n'
+printf "%s" "  Native agents target: "
+print_dim "$AGENT_TARGET"$'\n'
+printf "%s\n" "  Native agents deployment: regular files (manifest-managed)"
 PYTHON="$(codex_python)"
 if "$PYTHON" "${ROOT_DIR}/mise/scripts/validate_agents.py" "$AGENTS_PATH" >/dev/null; then
   printf "%s\n" "   ✅ native agent definitions are valid"
 else
-  printf "%s\n" "   ❌ native agent definitions are invalid"
+  print_red "   ❌ native agent definitions are invalid"$'\n'
 fi
 if [ -L "$AGENT_TARGET" ]; then
   printf "%s\n" "   ❌ $AGENT_TARGET (symlink drift; mise run link --prof \"$PROFILE\")"
@@ -41,26 +59,25 @@ elif [ -d "$AGENT_TARGET" ]; then
       managed=true
     fi
     if [ "$managed" = true ] && [ -f "$target" ] && [ ! -L "$target" ] && cmp -s "$source" "$target"; then
-      printf "%s\n" "   ✅ $target (managed regular file matches)"
+      printf "%s" "    - "
+      print_dim "$target"
+      printf "%s\n" " (managed regular file matches)"
     elif [ "$managed" = true ] && { [ -e "$target" ] || [ -L "$target" ]; }; then
-      printf "%s\n" "   ❌ $target (managed drift; mise run link --prof \"$PROFILE\")"
+      printf "%s" "    ❌ "
+      print_dim "$target"
+      print_red " (managed drift; mise run link --prof \"$PROFILE\")"$'\n'
     elif [ -e "$target" ] || [ -L "$target" ]; then
-      printf "%s\n" "   ⚠️  $target (unmanaged collision)"
+      printf "%s" "    ⚠️  "
+      print_dim "$target"
+      printf "%s\n" " (unmanaged collision)"
     else
-      printf "%s\n" "   ❌ $target (missing; mise run link --prof \"$PROFILE\")"
+      printf "%s" "    ❌ "
+      print_dim "$target"
+      print_red " (missing; mise run link --prof \"$PROFILE\")"$'\n'
     fi
   done
 else
-  printf "%s\n" "   ❌ $AGENT_TARGET does not exist; mise run link --prof \"$PROFILE\""
-fi
-printf "os()                 =\\033[36m %s\\033[0m\n" "$(codex_os_name)"
-printf "IS_WSL               =\\033[36m %s\\033[0m\n" "${IS_WSL:-false}"
-printf "config_root          =\\033[36m %s\\033[0m\n" "$ROOT_DIR"
-printf "Selected profile     =\\033[36m %s\\033[0m\n" "$PROFILE"
-
-if [ ! -d "$PROFILE_PATH" ]; then
-  printf "❌ Profile directory does not exist:\\033[36m %s\\033[0m\n" "$PROFILE_PATH"
-  exit 1
+  print_red "   ❌ $AGENT_TARGET does not exist; mise run link --prof \"$PROFILE\""$'\n'
 fi
 
 printf "\n📂 Original files and directories:\n"
@@ -69,13 +86,16 @@ profile_targets=(AGENTS.md custom-config hooks.json)
 for file in "${profile_targets[@]}"; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
-    printf "%s\n" "   ✅ $source"
+    printf "   ✅ "
+    print_dim "$source"$'\n'
   else
-    printf "\\033[31m%s\\033[0m\n" "   ❌ $source (missing)"
+    print_red "   ❌ "
+    print_dim "$source"
+    print_red " (missing)"$'\n'
   fi
 done
 
-printf "\n⚙️ Config sources:\n"
+printf "\n⚙️  Config sources:\n"
 for file in config.base.toml config.local.toml config.toml; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ]; then
@@ -91,38 +111,46 @@ for file in config.base.toml config.local.toml config.toml; do
   elif [ "$file" = "config.toml" ] && [ -f "$PROFILE_PATH/config.base.toml" ]; then
     printf "%s\n" "   ⭕ $source (legacy optional)"
   else
-    printf "\\033[33m%s\\033[0m\n" "   ❌ $source (missing)"
+    print_yellow "   ❌ $source (missing)"$'\n'
   fi
 done
 
-printf "\n⚙️ Runtime config in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
+printf "\n⚙️  Runtime config in "
+print_dim "$HOME/.codex:"$'\n'
 config_target="${HOME}/.codex/config.toml"
 render_script="${ROOT_DIR}/mise/scripts/render_config.py"
 if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ] || [ -f "$PROFILE_PATH/config.local.toml" ]; then
   tmp_config="$(mktemp)"
   if "$render_script" --profile-path "$PROFILE_PATH" --output "$tmp_config"; then
     if [ -L "$config_target" ]; then
-      printf "%s\n" "   ⚠️  $config_target is still a symlink. Run: mise run link --prof \"$PROFILE\""
+      printf "%s" "   ⚠️  "
+      print_dim "$config_target"
+      print_yellow " is still a symlink. Run: mise run link --prof \"$PROFILE\""$'\n'
     elif [ -f "$config_target" ]; then
       if "$render_script" --profile-path "$PROFILE_PATH" --same-as "$config_target"; then
         printf "%s\n" "   ✅ $config_target matches rendered profile config"
       else
-        printf "%s\n" "   ⚠️  $config_target differs from rendered profile config"
-        printf "\\033[36m%s\\033[0m\n" "         import runtime changes: mise run pull_config --prof \"$PROFILE\""
-        printf "\\033[36m%s\\033[0m\n" "         re-render profile config: mise run link --prof \"$PROFILE\""
+        printf "%s" "   ⚠️  "
+        print_dim "$config_target"
+        print_yellow " differs from rendered profile config"$'\n'
+        print_yellow "         import runtime changes: "
+        print_cyan "mise run pull_config --prof \"$PROFILE\""$'\n'
+        print_yellow "         re-render profile config: "
+        print_cyan "mise run link --prof \"$PROFILE\""$'\n'
       fi
     else
-      printf "\\033[33m%s\\033[0m\n" "   ❌ $config_target does not exist. Run: mise run link --prof \"$PROFILE\""
+      print_yellow "   ❌ $config_target does not exist. Run: mise run link --prof \"$PROFILE\""$'\n'
     fi
   else
-    printf "\\033[31m%s\\033[0m\n" "   ❌ Failed to render profile config"
+    print_red "   ❌ Failed to render profile config"$'\n'
   fi
   rm -f "$tmp_config"
 else
   printf "%s\n" "   ⚠️  No config sources in profile; existing $config_target is left untouched"
 fi
 
-printf "\n🔗 Profile files in\\033[36m %s/.codex:\\033[0m\n" "$HOME"
+printf "\n🔗 Profile files in "
+print_dim "$HOME/.codex:"$'\n'
 # NOTE: prompts/ は APM 管理 (~/.codex/prompts/ は real dir) に移行済のためチェック対象外。
 for file in "${profile_targets[@]}"; do
   target="${HOME}/.codex/$file"
@@ -132,7 +160,7 @@ for file in "${profile_targets[@]}"; do
     if [ -e "$target" ]; then
       printf "%s\n" "   ⚠️  $source (missing); existing $target is left untouched"
     else
-      printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
+      print_yellow "   ❌ $target does not exist"$'\n'
     fi
     continue
   fi
@@ -161,7 +189,7 @@ for file in "${profile_targets[@]}"; do
       printf "\\033[36m%s\\033[0m\n" "         code '$source' '$target'"
     fi
   else
-    printf "\\033[33m%s\\033[0m\n" "   ❌ $target does not exist"
+    print_yellow "   ❌ $target does not exist"$'\n'
   fi
 done
 

@@ -35,3 +35,7 @@ status_line = [
   "weekly-limit",
 ]
 status_line_use_colors = true
+
+[features.multi_agent_v2]
+hide_spawn_agent_metadata = false
+tool_namespace = "agents"
