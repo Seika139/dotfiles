@@ -5,11 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"C:/Users/S13316/dotfiles/claude/notify_stop_windows.sh\" Codex"
-          },
-          {
-            "type": "command",
-            "command": "bash \"C:/Users/S13316/dotfiles/claude/notify_slack.sh\" Codex"
+            "command": "pwsh.exe -NoProfile -Command \"$script = Join-Path $env:USERPROFILE 'dotfiles/claude/notify_slack.sh'; & 'C:/Program Files/Git/bin/bash.exe' $script Codex\""
           }
         ]
       }
