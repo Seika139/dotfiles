@@ -30,6 +30,8 @@ status_line_use_colors = true
 [tools]
 web_search = true
 
+[features]
+
 [features.multi_agent_v2]
 hide_spawn_agent_metadata = false
 tool_namespace = "agents"
