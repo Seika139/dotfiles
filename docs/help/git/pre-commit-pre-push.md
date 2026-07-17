@@ -172,6 +172,26 @@ repos:
 
 `package.json` ベースのプロジェクトでは [husky](https://typicode.github.io/husky/) や [lefthook](https://github.com/evilmartian/lefthook) が一般的。`npm install` 時の `prepare` スクリプトで自動セットアップできるため共有が楽。
 
+### 4. git-secrets で禁止文字列を検出する(パターンを追跡外に置く個人用途)
+
+プロジェクト固有の禁止文字列(社内ドメインなど)を正規表現で検出したいが、パターン自体が機密情報なので `.pre-commit-config.yaml` のようにリポジトリへコミットしたくない、というケースがある。そうした個人用途には [git-secrets](https://github.com/awslabs/git-secrets) が向いている。
+
+導入は次の 3 層に分離して考えるとよい。
+
+1. バイナリ導入: `mise` で `git-secrets` コマンド自体をインストールする(Mac / Linux で同一手順)。
+2. フック配布: `git config --global init.templatedir` を設定した上で `git secrets --install` をテンプレートディレクトリに対して実行する。これで今後 `git init` / `git clone` するすべてのリポジトリに pre-commit フックが自動でコピーされる(全体 default)。
+3. パターン定義: 検出したい正規表現は追跡対象外の `~/.gitconfig.local` の `[secrets]` セクションに書く。`.gitconfig` が `[include] path = ~/.gitconfig.local` で読み込むため、機能はグローバルに効くがパターンの中身は git 追跡に載らない。
+
+パターンの登録例:
+
+```bash
+git config --file ~/.gitconfig.local --add secrets.patterns '内緒の正規表現'
+```
+
+全体(テンプレートディレクトリ経由)で有効にする一方、既存のリポジトリにはテンプレートが遡及しないため、後付けしたい場合はそのリポジトリで個別に `git secrets --install` を実行する。逆に特定リポジトリだけ除外したい場合は、そのリポジトリの `.git/hooks/` から git-secrets が設置したフックを削除すればよい。ここでも `git commit --no-verify` でスキップ可能なので、後述の「hooks をスキップしたいとき」の通り CI 側で同等のチェックを掛けておくのが定石。
+
+`core.hooksPath` 方式(前述の「1. リポジトリ内ディレクトリを `core.hooksPath` で指す」)はフックスクリプトごとリポジトリにコミットして全員で共有する用途に向いている一方、パターンを追跡外にしたい個人用途では templatedir + `.gitconfig.local` の組み合わせの方が向いている。
+
 ## hooks をスキップしたいとき
 
 緊急時など、どうしても hook を止めたい場合は `--no-verify` を付ける。
