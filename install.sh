@@ -279,6 +279,18 @@ EOF
 [mergetool "sourcetree"]
 	cmd = ${SOURCETREE_CMD:-${DEFAULT_SOURCETREE_CMD}}
 EOF
+
+    # [secrets] セクションの雛形（コメントアウト、git-secrets 用の禁止パターン置き場）
+    # このファイルは .gitignore 済みなので、機密パターンを git 追跡に載せずに登録できる
+    printf '\n'
+    cat <<'EOSECRETS'
+[secrets]
+	# 禁止したい文字列を正規表現で登録する(このファイルは .gitignore 済み = git 追跡外)
+	# 例: patterns = internal\.example\.com
+	# patterns = <regex>
+	# 誤検知の除外: allowed = <regex>
+	# providers で外部コマンドからパターンを供給することも可能
+EOSECRETS
   } >"${file}"
 
   unset NAME EMAIL SIGNINGKEY DEFAULT_CORE_EXCLUDES_FILE CORE_EXCLUDES_FILE DEFAULT_SOURCETREE_CMD SOURCETREE_CMD
@@ -289,7 +301,42 @@ ln -sfnv "${file}" "${HOME}"
 unset file
 
 #-------------------------------------
-# 2-1. .active-profile
+# 2-1. git-secrets の templatedir 設定とフック雛形(全体default)
+#-------------------------------------
+
+# git-secrets は「禁止文字列パターンを検出する pre-commit 等のフック」を
+# init.templatedir 配下に配置するツール。templatedir に置いたフックは
+# 今後の `git init` / `git clone` で作られる全リポジトリに自動でコピーされる。
+# パターン自体は追跡対象外の .gitconfig.local の [secrets] セクションに書くため、
+# ここではフックの配布(全体default)だけを行い、パターンの中身には関与しない。
+#
+# 既存リポジトリに後付けしたい場合は、そのリポジトリで
+# `git secrets --install` を個別に実行すること(templatedir は既存リポジトリには遡及しない)。
+# 逆に特定リポジトリだけ除外したい場合は、そのリポジトリの `.git/hooks/` から
+# git-secrets が設置したフックを削除すればよい。
+
+GIT_TEMPLATE_DIR="${HOME}/.git-templates"
+CURRENT_TEMPLATE_DIR="$(git config --global init.templatedir 2>/dev/null || echo "")"
+
+if [[ -z "${CURRENT_TEMPLATE_DIR}" ]]; then
+  git config --global init.templatedir "${GIT_TEMPLATE_DIR}"
+elif [[ "${CURRENT_TEMPLATE_DIR}" != "${GIT_TEMPLATE_DIR}" ]]; then
+  echo_yellow "⚠️  git config --global init.templatedir が既に ${CURRENT_TEMPLATE_DIR} に設定されています。"
+  echo_yellow "   ${GIT_TEMPLATE_DIR} には上書きしません。git-secrets のフックを使う場合は手動で調整してください。"
+fi
+
+if command -v git-secrets >/dev/null 2>&1; then
+  # -f で既存のフックを強制的に再生成する(冪等)
+  git secrets --install -f "${GIT_TEMPLATE_DIR}" >/dev/null
+  echo_yellow "git-secrets のフックを ${GIT_TEMPLATE_DIR}/hooks/ に設置しました"
+else
+  echo_yellow "git-secrets が見つかりません。mise install 後に install.sh を再実行してください"
+fi
+
+unset GIT_TEMPLATE_DIR CURRENT_TEMPLATE_DIR
+
+#-------------------------------------
+# 2-2. .active-profile
 #-------------------------------------
 
 # 無い場合は作成する（プロンプトの配色テーマ切り替えなどで使用）
