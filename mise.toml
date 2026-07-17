@@ -2,6 +2,7 @@
 install_before = "7d"
 
 [tools]
+"aqua:awslabs/git-secrets" = "latest"
 dprint = "latest"
 markdownlint-cli2 = "latest"
 node = "latest"
