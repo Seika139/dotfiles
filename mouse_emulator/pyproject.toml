@@ -14,7 +14,7 @@ dependencies = [
   "numpy>=1.26.4",
   "opencv-python-headless>=4.10.0.84",
   "pytesseract>=0.3.13",
-  "pillow>=12.2.0",
+  "pillow>=12.3.0",
   "mss>=9.0.1",
 ]
 
