@@ -81,6 +81,8 @@ DOTENV
 dotenvx
 dotfiles
 DOTPATH
+drilldown
+drilldowns
 ecpu
 ECPUs
 Eeuo
@@ -112,6 +114,7 @@ Fernet
 ffprobe
 FQCN
 Franken
+Freeable
 frontmatter
 fukushima
 FUNCTAB
@@ -322,6 +325,7 @@ sfnv
 shellcheck
 shellenv
 shfmt
+shfmtrc
 signingkey
 smallint
 songdb
