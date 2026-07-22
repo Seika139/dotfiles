@@ -1,0 +1,1 @@
+- [mise task stdin/raw](mise_task_stdin_raw.md) — mise task はデフォルトで stdin を読まない。対話 fzf には `#MISE raw=true` が必須
