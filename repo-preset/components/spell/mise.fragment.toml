@@ -1,0 +1,12 @@
+# === spell ===
+
+[tools]
+typos = "latest"
+
+[tasks."spell:lint"]
+description = "スペルチェック（typos + cspell）"
+run = ["typos", "pnpm exec cspell \"**\""]
+
+[tasks."spell:fix"]
+description = "typos でスペルを自動修正"
+run = "typos -w"

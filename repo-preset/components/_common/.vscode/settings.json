@@ -1,0 +1,49 @@
+{
+  // --- editor ---
+  "editor.formatOnSave": true,
+  "editor.rulers": [88, 120],
+  "editor.renderWhitespace": "boundary",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+
+  // --- search / explorer ---
+  "search.exclude": {
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/uv.lock": true,
+    "**/pnpm-lock.yaml": true,
+    "**/.ruff_cache": true,
+    "**/.mypy_cache": true,
+    "**/.pytest_cache": true
+  },
+
+  // --- python (charliermarsh.ruff + ms-python.python) ---
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+
+  // --- typescript / javascript / json (esbenp.prettier-vscode or built-in) ---
+  "[json][jsonc][yaml][markdown]": {
+    "editor.formatOnSave": true
+  },
+
+  // --- shell (foxundermoon.shell-format で shfmt 連携) ---
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "shellformat.flag": "-i 2 -ci -bn",
+
+  // --- markdown ---
+  "markdownlint.run": "onType",
+
+  // --- yaml ---
+  "yaml.customTags": [],
+
+  // --- spellcheck (streetsidesoftware.code-spell-checker) ---
+  "cSpell.enabled": true
+}

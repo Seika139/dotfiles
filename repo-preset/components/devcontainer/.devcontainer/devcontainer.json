@@ -1,0 +1,21 @@
+{
+  "name": "{{project_name}}",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "installOhMyZsh": false
+    },
+    "ghcr.io/jdx/mise/mise:0": {}
+  },
+  "postCreateCommand": "mise install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "charliermarsh.ruff",
+        "DavidAnson.vscode-markdownlint"
+      ]
+    }
+  }
+}

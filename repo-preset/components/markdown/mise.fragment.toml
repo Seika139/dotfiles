@@ -1,0 +1,14 @@
+# === markdown ===
+
+[tools]
+dprint = "latest"
+rumdl = "latest"
+markdownlint-cli2 = "latest"
+
+[tasks."markdown:lint"]
+description = "Markdown の lint（dprint + rumdl + markdownlint-cli2）"
+run = ["dprint check", "rumdl check .", "markdownlint-cli2"]
+
+[tasks."markdown:fix"]
+description = "Markdown の自動整形（dprint + rumdl + markdownlint-cli2）"
+run = ["dprint fmt", "rumdl check --fix .", "markdownlint-cli2 --fix"]

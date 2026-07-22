@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "EditorConfig.EditorConfig",
+    "streetsidesoftware.code-spell-checker",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "DavidAnson.vscode-markdownlint",
+    "foxundermoon.shell-format",
+    "timonwong.shellcheck",
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "ms-python.mypy-type-checker"
+  ]
+}

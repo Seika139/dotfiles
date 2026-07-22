@@ -1,0 +1,8 @@
+# === yaml ===
+
+[tools]
+yamllint = "latest"
+
+[tasks."yaml:lint"]
+description = "YAML の lint"
+run = "yamllint ."

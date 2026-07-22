@@ -1,0 +1,12 @@
+# === toml ===
+
+[tools]
+taplo = "latest"
+
+[tasks."toml:lint"]
+description = "TOML の lint"
+run = "taplo fmt --check --diff"
+
+[tasks."toml:fix"]
+description = "TOML の自動整形"
+run = "taplo fmt"

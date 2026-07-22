@@ -1,0 +1,29 @@
+---
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: ["--branch", "main"]
+
+  - repo: local
+    hooks:
+      - id: git-secrets-scan
+        name: git-secrets scan
+        entry: git secrets --scan
+        language: system
+        stages: [pre-commit]
+
+      - id: no-push-to-main
+        name: block push to main
+        entry: >-
+          bash -c 'while read -r _ _ remote_ref _; do
+          case "$remote_ref" in refs/heads/main) echo "main への push は禁止されています" >&2; exit 1;; esac; done'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

@@ -1,0 +1,50 @@
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+preview = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "A001",
+  "C408",
+  "C901",
+  "COM812",
+  "CPY001",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D105",
+  "D107",
+  "D415",
+  "EM101",
+  "EM102",
+  "FBT001",
+  "PLR0911",
+  "PLR0914",
+  "PLR0915",
+  "PLR2004",
+  "PLR6301",
+  "T201",
+  "TC001",
+  "TC002",
+  "TC003",
+  "TRY003",
+  "RUF001",
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["{{project_slug}}"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

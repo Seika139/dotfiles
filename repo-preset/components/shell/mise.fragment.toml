@@ -1,0 +1,16 @@
+# === shell ===
+
+[tools]
+shfmt = "latest"
+shellcheck = "latest"
+
+[tasks."shell:lint"]
+description = "shell スクリプトの lint と整形チェック"
+run = [
+  "shfmt -d .",
+  "find . -type f \\( -name '*.sh' -o -name '*.bash' \\) -not -path './node_modules/*' -not -path './.venv/*' -exec shellcheck -x {} +",
+]
+
+[tasks."shell:fix"]
+description = "shfmt で shell スクリプトを自動整形"
+run = "shfmt -w ."

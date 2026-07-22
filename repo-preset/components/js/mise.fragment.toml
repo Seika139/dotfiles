@@ -1,0 +1,5 @@
+# === js ===
+
+[tools]
+node = "latest"
+pnpm = "latest"

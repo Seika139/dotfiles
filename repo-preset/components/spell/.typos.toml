@@ -1,0 +1,15 @@
+# typos: https://github.com/crate-ci/typos
+
+[files]
+extend-exclude = [
+  "node_modules",
+  ".venv",
+  ".git",
+  "dist",
+  "build",
+  "*.lock",
+  "pnpm-lock.yaml",
+  "uv.lock",
+]
+
+[default.extend-words]

@@ -1,0 +1,10 @@
+# === textlint ===
+# node/pnpm は js コンポーネントに依存する（DEPENDS_ON 経由で導入される）。
+
+[tasks."textlint:lint"]
+description = "日本語テキストの lint"
+run = "node node_modules/.bin/textlint --config .textlintrc.json ."
+
+[tasks."textlint:fix"]
+description = "日本語テキストの自動修正"
+run = "node node_modules/.bin/textlint --fix --config .textlintrc.json ."

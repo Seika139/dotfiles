@@ -1,0 +1,17 @@
+# === pre-commit ===
+
+[tools]
+pre-commit = "latest"
+"aqua:awslabs/git-secrets" = "latest"
+
+[tasks."precommit:install"]
+description = "pre-commit フックをインストール"
+run = "pre-commit install"
+
+[tasks."precommit:run"]
+description = "pre-commit を全ファイルに対して実行"
+run = "pre-commit run --all-files"
+
+[tasks."precommit:update"]
+description = "pre-commit の hook を最新バージョンに更新"
+run = "pre-commit autoupdate"

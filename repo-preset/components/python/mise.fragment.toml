@@ -1,0 +1,35 @@
+# === python ===
+
+[tools]
+python = "latest"
+uv = "latest"
+
+[tasks."py:sync"]
+description = "Python 依存関係を lock ファイル通りに同期"
+run = "uv sync"
+
+[tasks."py:upgrade"]
+description = "Python 依存関係を最新バージョンにアップグレード"
+run = "uv sync --upgrade"
+
+[tasks."py:lint"]
+description = "ruff check + mypy + pytest"
+shell = "bash -c"
+run = '''
+printf "\033[33m%s\033[0m\n" "Running ruff check..."
+uv run ruff check .
+printf "\033[33m%s\033[0m\n" "Running mypy..."
+uv run mypy .
+printf "\033[33m%s\033[0m\n" "Running pytest..."
+uv run pytest
+'''
+
+[tasks."py:fix"]
+description = "ruff format + ruff check --fix"
+shell = "bash -c"
+run = '''
+printf "\033[33m%s\033[0m\n" "Running ruff format..."
+uv run ruff format .
+printf "\033[33m%s\033[0m\n" "Running ruff check --fix..."
+uv run ruff check . --fix
+'''

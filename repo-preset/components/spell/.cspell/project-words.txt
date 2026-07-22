@@ -1,0 +1,2 @@
+# プロジェクト固有の単語をここに追加する (1 行 1 単語)
+# VS Code の cSpell 拡張からは "Add Words to Project Dictionary" で自動追記される

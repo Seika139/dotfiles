@@ -1,0 +1,2 @@
+# shfmt config
+ci = true
