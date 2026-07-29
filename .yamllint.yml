@@ -33,6 +33,9 @@ ignore: |
   # 自動生成されるロックファイルは lint しない。
   pnpm-lock.yaml
   apm.lock.yaml
+  # repo-preset のテンプレート/断片ファイル。プレースホルダーや合成前提の
+  # 断片で単独では正当な YAML ではないため lint 対象から除外する。
+  repo-preset/components/
 
 rules:
   line-length:

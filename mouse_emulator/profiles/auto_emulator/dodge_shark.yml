@@ -74,10 +74,10 @@ runtime:
   calibration:
     enabled: false
     preset:
-      # left: 1848
-      # top: 109
-      # right: 2231
-      # bottom: 955
+    # left: 1848
+    # top: 109
+    # right: 2231
+    # bottom: 955
 
   controls:
     pause_toggle: "ctrl+p"
