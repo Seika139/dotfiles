@@ -4,7 +4,9 @@
     "pr": ""
   },
   "autoMode": {
-    "environment": ["$defaults"]
+    "environment": [
+      "$defaults"
+    ]
   },
   "defaultMode": "acceptEdits",
   "enabledPlugins": {
@@ -19,7 +21,7 @@
   },
   "env": {
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "global.anthropic.claude-opus-4-8",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "global.anthropic.claude-opus-5",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "global.anthropic.claude-sonnet-5",
     "API_TIMEOUT_MS": "1200000",
     "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
@@ -102,7 +104,17 @@
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
       "Read(.env)",
-      "Read(**/*token*)",
+      "Read(**/*.token)",
+      "Read(**/*access_token*)",
+      "Read(**/*refresh_token*)",
+      "Read(**/*auth_token*)",
+      "Read(**/*api_token*)",
+      "Read(**/*id_token*)",
+      "Read(**/*bearer_token*)",
+      "Read(**/*token*.json)",
+      "Read(**/*token*.txt)",
+      "Read(**/*token*.pem)",
+      "Read(**/.*token*)",
       "Read(**/secrets/**)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
