@@ -2,7 +2,7 @@
 install_before = "7d"
 
 [tools]
-"aqua:awslabs/git-secrets" = "latest"
+"aqua:awslabs/git-secrets" = { version = "latest", os = ["linux", "macos"] }
 dprint = "latest"
 markdownlint-cli2 = "latest"
 node = "latest"
@@ -26,3 +26,8 @@ run = [
 [tasks.dot-upgrade]
 description = "mise tools の依存関係を最新にする"
 run = ["mise upgrade", "mise lock"]
+
+[tasks.install-git-secrets]
+description = "git-secrets を現在の OS に導入する"
+run = "command -v git-secrets >/dev/null || make -C /tmp/git-secrets install"
+run_windows = "if (-not (Get-Command git-secrets -ErrorAction SilentlyContinue)) { git clone https://github.com/awslabs/git-secrets.git $env:TEMP\\git-secrets; & \"$env:TEMP\\git-secrets\\install.ps1\" }"
