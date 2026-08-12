@@ -237,6 +237,11 @@ add_path() {
   [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "Added to PATH: $dir"
 }
 
+# 2026-08-12 git-secrets をインストールしたので PATH に追加する
+if [[ -d "$HOME/.git-secrets" ]]; then
+  add_path "$HOME/.git-secrets"
+fi
+
 # 05 : absolute_path
 # 任意のファイルの絶対パスを取得する
 # ref : https://maku77.github.io/linux/path/absolute-path-of-file.html
