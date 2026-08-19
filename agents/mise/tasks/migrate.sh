@@ -24,6 +24,11 @@ echo ""
 
 # ---------------------------------------------------------------------------
 # Step 1: ~/.claude/commands (link.sh が作る symlink → dotfiles)
+#
+# prompt primitive は全廃したのでこの dir に APM 配備物は入らないが、退避対象には
+# 残す。APM が stale 回収 (remove_stale_deployed_files) のために書き込む先であり、
+# かつ agmsg (非 APM peer tool) が slash command を生成する先でもあるため、
+# dotfiles を指す symlink のままにすると書き込みが dotfiles に透過する。
 # ---------------------------------------------------------------------------
 echo "--- Step 1: ~/.claude/commands ---"
 if [ -L ~/.claude/commands ]; then

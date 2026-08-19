@@ -32,7 +32,7 @@ printf "🦄 Creating new Codex profile: %s\n" "$PROFILE"
 mkdir -p "$PROFILE_PATH"
 
 cat >"$PROFILE_PATH/config.base.toml" <<'EOF'
-model = "gpt-5.1-codex"
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
 network_access = true

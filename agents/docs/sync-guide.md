@@ -13,16 +13,16 @@ APM は 2 つの導入スコープを持つ。**この 2 層は混ぜない**こ
 
 | スコープ        | コマンド                | 展開先                                                  | 何を入れるか                                      |
 | --------------- | ----------------------- | ------------------------------------------------------- | ------------------------------------------------- |
-| **user-global** | `apm install -g`        | `~/.claude/commands/`, `~/.codex/prompts/` 等           | 全プロジェクトで使う汎用 + 非公開用               |
-| **per-project** | `apm install` (in repo) | `<project>/.claude/commands/`, `<project>/apm_modules/` | そのプロジェクト固有のもの, **MCP server** (必須) |
+| **user-global** | `apm install -g`        | `~/.claude/skills/`, `~/.agents/skills/` 等             | 全プロジェクトで使う汎用 + 非公開用               |
+| **per-project** | `apm install` (in repo) | `<project>/.claude/skills/`, `<project>/apm_modules/`   | そのプロジェクト固有のもの, **MCP server** (必須) |
 
 ### なぜ二層なのか (APM の制約)
 
-- prompts / skills / agents / instructions は `-g` で user-global 可
+- skills / agents / instructions は `-g` で user-global 可 (prompt primitive は使わない。§2.5)
 - **MCP server は `-g` だと Copilot CLI / Codex CLI のみ対応**。Claude Code / Cursor 用の
   MCP は per-project install が必須 ([APM CLI ref](https://microsoft.github.io/apm/reference/cli/install/))
-- **codex は user-scope で partial support**。`prompts` / `instructions` type は `-g` で
-  展開されない (= `~/.codex/prompts/` には何も書かれない)
+- **codex は user-scope で partial support**。`instructions` type は `-g` で展開されない
+  (`prompts` も非対応だが、prompt を使わない現方針では無関係)
 
 ### 配布元のマッピング
 
@@ -57,15 +57,21 @@ APM は 2 つの導入スコープを持つ。**この 2 層は混ぜない**こ
 
 ### 2.0.1 [重要] APM 専管 dir は実 dir に保つ
 
-`~/.claude/commands/`, `~/.codex/prompts/`, `~/.cursor/commands/` は **絶対に symlink に
-してはいけない** ([README.md §設計原則](../README.md) 参照)。新マシンセットアップ前に必ず
-確認する:
+`~/.claude/skills/`, `~/.agents/skills/`, `~/.claude/commands/` は **絶対に symlink に
+してはいけない** ([README.md §設計原則](../README.md) 参照)。APM は symlink を辿って
+書き込むため、dotfiles 配下への symlink にすると `apm install -g` が dotfiles repo を
+直接書き換える事故が起きる。
+
+**`~/.claude/commands/` も対象に含める理由**: prompt primitive は全廃した (§2.5) が、この
+dir は依然として **APM が stale 回収 (`remove_stale_deployed_files()`) のために書き込む先**
+であり、かつ **agmsg (非 APM peer tool) が slash command を生成する先**でもある。空だから
+といって symlink にしてよい dir ではない。新マシンセットアップ前に必ず確認する:
 
 ```bash
-ls -la ~/.claude/commands ~/.codex/prompts ~/.cursor/commands 2>/dev/null
+ls -la ~/.claude/skills ~/.agents/skills ~/.claude/commands 2>/dev/null
 # → "drwx..." なら OK (実 dir)
 # → "lrwx..." (-> ...) なら symlink。即座に削除して mkdir し直す:
-#   rm ~/.claude/commands && mkdir ~/.claude/commands
+#   rm ~/.claude/skills && mkdir ~/.claude/skills
 ```
 
 ### 2.1 各マシンで初回セットアップ
@@ -79,7 +85,7 @@ curl -sSL https://aka.ms/apm-unix | APM_INSTALL_DIR="$HOME/.local/bin" sh
 apm --version
 
 # 3) APM 専管 dir を実 dir として用意
-for d in ~/.claude/commands ~/.codex/prompts ~/.cursor/commands; do
+for d in ~/.claude/skills ~/.agents/skills ~/.claude/commands; do
   [ -L "$d" ] && rm "$d"
   mkdir -p "$d"
 done
@@ -152,7 +158,7 @@ lockfile を dotfiles で版管理するか:
 
 ```bash
 cd <別 PC>/agent-package-basic
-$EDITOR packages/review-pr/.apm/prompts/review-pr.prompt.md
+$EDITOR packages/review-pr/.apm/skills/review-pr/SKILL.md
 git add packages/review-pr
 git commit -m "`review-pr` の手順 3 を補足"
 git push origin main
@@ -170,12 +176,31 @@ cd ~/.apm && apm install -g       # main を再 fetch
 
 ```bash
 cd ~/programs/apm/agent-package-custom
-$EDITOR packages/aws-auth/.apm/prompts/aws-auth.prompt.md
+$EDITOR packages/aws-auth/.apm/skills/aws-auth/SKILL.md
 git add packages/aws-auth
 git commit -m "`aws-auth` で SSO プロファイル例を追加"
 git push origin main
 cd ~/.apm && apm install -g
 ```
+
+### 2.5 primitive は skill に単一化する
+
+**新規 package も既存 package も、`.apm/skills/<name>/SKILL.md` の 1 本だけを持つ。`.apm/prompts/<name>.prompt.md` は作らない。** これが現在の正典であり、かつて採用していた PS 両建て (prompt + skill) は全廃した (経緯と ADR は [migration-plan.md](./migration-plan.md) §9.8)。
+
+#### なぜ両建てにしないか
+
+- **commands 形式は legacy であり、skill は機能的な上位集合である**。`~/.claude/commands/<n>.md` と `SKILL.md` は Claude Code 内部で同一のパーサ・同一のオブジェクトビルダを通り、差異は内部タグ `loadedFrom` の値だけ (commands 側は `"commands_DEPRECATED"`)。Anthropic 公式プラグイン `plugins/plugin-dev/skills/command-development/SKILL.md` も「The `.claude/commands/` directory is a legacy format. ... Both are loaded identically — the only difference is file layout.」と明記している。
+- **`/` からの明示起動は skill でも失われない**。`user-invocable` の既定値は true なので、skill も `/` メニューに出る。「skill にすると slash command が使えなくなる」は誤りである。
+- **`allowed-tools` / `argument-hint` は SKILL.md でも有効**。公式プラグイン `example-plugin/skills/example-command/SKILL.md` が両キーを実際に使っている。引数を取る command を skill にしても UX は落ちない。
+- **両建ては機能を何も足さないまま予算を二重消費する**。`/` メニューの上位枠 (同名 2 件が同スコアで 2 枠を占有する) と、モデル向け skill listing の予算が対象。加えて同一内容を 2 ファイルで管理するため構造的に drift する (実際に skill 側 18 ファイルのみ更新され prompt 側が取り残された commit がある)。
+
+#### `allowed-tools` の意味論 (誤解しやすい)
+
+`allowed-tools` は **制限ではなく追加的な事前承認**である。実装は `alwaysAllowRules.command` に追記するだけで、利用可能ツール集合を絞る経路は存在しない。したがって `allowed-tools` に `Bash(...)` しか書いていない skill でも `Edit` / `Write` / `Task` は普通に使える (通常の承認フローに従うだけ)。唯一の例外は `context: fork` を付けた skill を subagent として起動する経路で、そこだけ置換 (絞り込み) が発動する。`context: fork` を使うときはこの差を意識する。
+
+#### 既知の代償: Cursor
+
+**APM は skill を `.cursor/` に配備しない**。cursor に届くのは `agents` primitive (`~/.cursor/agents/*.md`) だけである。したがって Cursor 上で `/<command>` として起動する手段は無く、代替も無い。Cursor を常用しない前提で受容している判断なので、Cursor を主用し始めたら prompt の部分復活を検討する。なお `profiles/*/apm.yml` の `targets:` から `cursor` を外してはならない (agents primitive の配備先として必要)。
 
 ---
 
@@ -256,12 +281,12 @@ apm install --frozen
 
 展開先:
 
-- `<project-repo>/.claude/commands/project-up.md` 等
-- `<project-repo>/.codex/prompts/project-up.md` 等
+- `<project-repo>/.claude/skills/project-up/SKILL.md` 等
+- `<project-repo>/.agents/skills/project-up/SKILL.md` 等 (cross-tool 共有先)
 - `<project-repo>/apm_modules/` (キャッシュ、gitignore)
 - `<project-repo>/apm.lock.yaml` (commit する)
 
-> Claude Code は project-local の `.claude/commands/` を user-global の `~/.claude/commands/` より**優先して読む**。同名 command があれば project-local が勝つので、特定のプロジェクトでだけ独自版に差し替え可能。
+> Claude Code は project-local の skill を user-global の `~/.claude/skills/` より**優先して読む**。同名 skill があれば project-local が勝つので、特定のプロジェクトでだけ独自版に差し替え可能。
 
 ---
 
@@ -274,7 +299,7 @@ apm install --frozen
 cd ~/dotfiles && git pull
 
 # (2) APM 専管 dir が実 dir であることを確認
-ls -la ~/.claude/commands ~/.codex/prompts ~/.cursor/commands 2>/dev/null
+ls -la ~/.claude/skills ~/.agents/skills ~/.claude/commands 2>/dev/null
 # symlink になっていれば: rm + mkdir で実 dir に直す
 
 # (3) ~/.apm/apm.yml の symlink を確認
@@ -300,7 +325,7 @@ cd ~/programs/<proj> && git pull && apm install --frozen
 | ドリフト (lockfile vs manifest) を確認 | `apm install -g --frozen` が失敗すれば食い違いあり      |
 | キャッシュを無視して再取得             | `apm install -g --refresh`                              |
 | `~/.apm/apm.yml` が symlink か確認     | `file ~/.apm/apm.yml`                                   |
-| 展開先が実 dir か symlink か確認       | `ls -la ~/.claude/commands ~/.codex/prompts`            |
+| 展開先が実 dir か symlink か確認       | `ls -la ~/.claude/skills ~/.agents/skills`              |
 | user-scope の対応状況を見る            | `apm install -g --dry-run` 実行時の警告メッセージを読む |
 
 ---
@@ -356,15 +381,21 @@ cd ~/.apm && apm install -g
 rm ~/.claude/commands/foo.md.bak
 ```
 
-### 6.3 codex の `~/.codex/prompts/` に何も展開されない
+### 6.3 `~/.codex/prompts/` や `~/.cursor/commands/` が空 (= 正常状態)
 
-**症状**: `apm install -g` は成功するが `~/.codex/prompts/` が空。
+**これはトラブルではない。** prompt primitive は全廃した (§2.5) ので、`~/.codex/prompts/`
+`~/.cursor/commands/` `~/.claude/commands/` はいずれも **空であることが正しい**。
 
-**原因**: APM の仕様。`prompts` / `instructions` type は **codex の user-scope では
-partial support** で、deploy 対象外。
+- codex は元々 prompts / instructions が user-scope で partial support (deploy 対象外) だった。
+- 現在は誰も prompt を宣言していないので、そもそも配備すべきものが無い。
+- codex / gemini の skill は `~/.agents/skills/` (cross-tool 共有先) を読むので、per-tool dir
+  (`~/.codex/skills/`) が空でも正常に動く。詳細は
+  [apm-behavior-reference.md](./apm-behavior-reference.md) §2。
 
-**対処**: codex で動かしたい場合は per-project install (`cd <project> && apm install`)
-に回すか、codex 側の primitive type を `skills` (= `<name>/SKILL.md` 形式) に変える。
+**逆に `~/.claude/commands/` や `~/.cursor/commands/` にファイルが増えていたら異常**で、
+upstream catalog で prompt primitive が復活した可能性がある。`mise run status` の
+`🧹 Legacy commands` セクションが検知するので、`extra` が出たら `mise run update` を実行して
+APM に stale 回収させる。
 
 ### 6.4 `~/.apm/apm.yml` が symlink ではなく実ファイルになっている
 
@@ -400,8 +431,8 @@ Some primitives are not supported: copilot (prompts, instructions); cursor (inst
 ```
 
 - `claude` は **full support** (= 全 primitive が user-scope で展開される)
-- `codex` は `prompts` / `instructions` が落ちる → §6.3 の対処
-- `cursor` は `commands` 系 (= `prompts` でラベル付けされたもの) は通る、`instructions` は落ちる
+- `codex` は `prompts` / `instructions` が落ちる。prompt は全廃済みなので実害は `instructions` のみ (§6.3)
+- `cursor` は `instructions` が落ちる。`commands` 系は通るが prompt を宣言しないため配備物は無く、cursor に届くのは `agents` primitive のみ (§2.5 の「既知の代償」)
 
 ---
 

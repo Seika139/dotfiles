@@ -397,8 +397,8 @@ Codex CLI 0.x は `~/.codex/skills/` と `~/.agents/skills/` の両方を skill 
 `#30-#48` を通じて以下のパターンが固まった (今後 basic に新規 package を加える際の手順):
 
 1. `agent-package-basic/packages/<name>/apm.yml` (`name`, `version: 0.1.0`, `description`, `author`, `includes: auto`, 空の `dependencies`)
-2. claude 起源なら `.apm/prompts/<name>.prompt.md` (frontmatter は `description`, `argument-hint`, `allowed-tools` のみ。`mode: agent` は書かない)
-3. codex 起源なら `.apm/skills/<name>/SKILL.md` (frontmatter は `name` (= ディレクトリ名) と `description` (使用シーンを「〜が必要なときに使用する」形式) のみ。`metadata:` や `<!-- codex-profile-generated-from-prompt -->` 等の wrapper は削除)
+2. **起源を問わず `.apm/skills/<name>/SKILL.md` の 1 本にする** (§9.8 で prompt primitive を全廃。当時この step は「claude 起源なら `.apm/prompts/<name>.prompt.md`」だったが、現在の作法としては誤り)。frontmatter は `name` (= ディレクトリ名) と `description` (使用シーンを「〜が必要なときに使用する」形式) が必須で、必要に応じて `argument-hint` / `allowed-tools` を足す。`metadata:` や `<!-- codex-profile-generated-from-prompt -->` 等の wrapper は削除
+3. 旧 prompt 本文と旧 skill 本文の両方が存在した package は、SKILL.md 側に一本化して prompt を削除する
 4. 両系統存在する場合は **本文を `the agent` 主語で統一**、CLI 固有表現は各 target に
    合わせて分岐 (例: `ux-review` の `claude mcp add` ↔ `codex mcp add`)
 5. multi-file skill は `.apm/skills/<name>/{references,scripts}/...` をディレクトリごと配置し、SKILL.md 内の参照パスを **deploy 後の実パス** (`~/.claude/skills/<name>/...`) に揃える (`with-codex-skills` の例)
@@ -463,6 +463,8 @@ codex link.sh は skills loop が APM 製の実 dir を skip する設計のた�
 | Gemini   | **`GEMINI.md` に fold**                       | per-file dir 無し   |
 
 frontmatter の必須フィールドは `applyTo: "<glob>"` (省略すると本体ファイルに混入)。
+
+> **注記 (user-scope では上表どおりにならない)**: この表は primitive 一般の deploy mapping だが、**user-scope (`apm install -g`) では Cursor に instructions は配備されない** (`~/.cursor/rules/` は dir 自体が存在せず lock の配備行も 0 件)。`.cursor/rules/<name>.mdc` は project-local install の話である。実測に基づく現状は [instructions-primitive.md §3](./instructions-primitive.md) を参照。
 
 ### 8.2 着手条件と移行手順
 
@@ -552,6 +554,7 @@ instructions は Claude/Cursor では `apm install` で file 配備されるが�
 - **旧 (Option A)**: 全 command を skill primitive に単一化、`/slash` UI を捨てる。根拠は「APM prompt が Codex に届かない (§instructions) ため Codex カバーには skill 必須。両建ては重複コストなので嫌」。
 - **新 (ハイブリッド)**: PS (prompt + skill 両建て) と -S (skill のみ) を併用。
 - **転換理由**: 引数を取る `/respond-pr` / `/review-pr` 等、`/slash` 明示起動の UX 価値が「重複コスト」より大きいと再評価。両建ての本文 drift 防止策は drift-prevention-plan.md。
+- **⚠️ 後に §9.8 で再転換 (skill 単一化に戻した)**: 上記「転換理由」の前提 (skill では `/slash` 明示起動ができない) は**事実として誤っていた**。skill も `/` から起動でき、`allowed-tools` / `argument-hint` も使える。詳細は §9.8。以下は当時の判断の記録として残す。
 
 ### 9.2 配置場所: dotfiles 内 (`dotfiles/agents/`) → 別 public repo
 
@@ -599,6 +602,20 @@ instructions は Claude/Cursor では `apm install` で file 配備されるが�
 - **転換理由**: `apm compile --validate` で `0 instructions` を確認し原因切り分け → filename 修正で `1 instructions`。
   Codex/Gemini は compile 必須 + symlink 衝突のため意図的に見送り (§8.6)。
 
+### 9.8 primitive 戦略: ハイブリッド (PS/-S) → skill 単一化 (§9.1 の再転換)
+
+- **旧 (ハイブリッド)**: PS (prompt + skill 両建て) と -S (skill のみ) を併用 (§9.1 で決定)。
+- **新 (skill 単一化)**: prompt primitive を全廃し、全 package を skill のみにする。`allowed-tools` / `argument-hint` は SKILL.md の frontmatter へ移植する。
+- **転換理由**: **§9.1 が両建ての根拠にした前提が事実として誤っていた**。§9.1 は「`/slash` 明示起動の UX 価値」を守るために prompt が必要だとしたが、実測と一次情報で以下が確定した。
+  - `~/.claude/commands/<n>.md` と `SKILL.md` は Claude Code 内部で **同一のパーサ・同一のオブジェクトビルダ**を通る。差異は内部タグ `loadedFrom` の値だけで、commands 側には `"commands_DEPRECATED"` が入る。
+  - Anthropic 公式プラグイン `plugins/plugin-dev/skills/command-development/SKILL.md` が明記している: 「The `.claude/commands/` directory is a legacy format. For new skills, use the `.claude/skills/<name>/SKILL.md` directory format. Both are loaded identically — the only difference is file layout.」
+  - skill も `/` メニューに出る (`user-invocable` の既定値は true)。つまり **`/slash` UI は失われない**。§9.1 が守ろうとした UX 価値は、そもそも prompt を捨てても失われなかった。
+  - `allowed-tools` / `argument-hint` は SKILL.md でも有効。公式プラグイン `example-plugin/skills/example-command/SKILL.md` が実際に両キーを使っている。
+- **分岐点だった `allowed-tools` の意味論**: `allowed-tools` は **制限ではなく追加的な事前承認**である。実装は `alwaysAllowRules.command` への追記しかせず、利用可能ツール集合を絞る経路は存在しない。これが分岐点だったのは、もし制限的だとすると `allowed-tools` が `Bash(...)` 系のみで `Edit`/`Write`/`Task` を含まない `solve-issue` 等を SKILL.md へ移した瞬間に実装ループが実行不能になり、移植自体が破壊的変更になっていたからである。実装を読んで追加的と確定したうえで移植を決めた。唯一の例外は `context: fork` の skill を subagent 起動する経路で、そこだけ置換 (絞り込み) が発動する。将来 `context: fork` を付ける場合はこの差に注意する。
+- **代償: Cursor での `/slash` 起動能力の完全喪失**。APM は skill を `.cursor/` に一切配備しない (lock の配備先に `.cursor/skills` は無く、cursor に届くのは `agents` primitive の 3 ファイルのみ)。したがって prompt 廃止後、Cursor 上で `/review-pr` 等を起動する手段は無くなり、代替も存在しない。ユーザーが Cursor 未使用と明言したため受容する。将来 Cursor を常用し始めたら prompt の部分復活を検討する余地を残す。
+- **二重消費していたもの**: `/` メニューの上位 5 枠 (使用実績スコア順で、同名 2 件が同スコアで 2 枠を占有していた) と、モデル向け skill listing の予算。両建ては機能を何も足さずにこれらを消費していた。実際に drift も発生していた (commit `6692c9a` が `.apm/skills/` 18 ファイルのみ更新し `.apm/prompts/` は 0 ファイル)。
+- **副次効果: 5 マシン分の lock 更新が必要**。`agents/profiles/<machine>/apm.yml` は変更不要 (`targets:` から `cursor` を外してはならない。`agent-team` の agents primitive が `~/.cursor/agents/*.md` を配備するため) だが、`agents/profiles/<machine>/apm.lock.yaml` から prompt 由来の配備行 38 + hash 38 が消える。他 4 台でも `mise run update` が必要。**lock の commit はドキュメント編集とは別 commit にする**。
+
 ---
 
 ## 関連ドキュメント
@@ -607,4 +624,4 @@ instructions は Claude/Cursor では `apm install` で file 配備されるが�
 - [sync-guide.md](./sync-guide.md) — 日常運用、マシン間同期、トラブルシュート
 - [apm-behavior-reference.md](./apm-behavior-reference.md) — APM の実挙動リファレンス (skill 配備・flag・物理制約)
 - [instructions-primitive.md](./instructions-primitive.md) — instructions primitive の作法と落とし穴
-- [drift-prevention-plan.md](./drift-prevention-plan.md) — PS package の prompt↔skill drift 防止
+- [drift-prevention-plan.md](./drift-prevention-plan.md) — PS package の prompt↔skill drift 防止。**廃止済み** (§9.8 で prompt primitive を全廃したため前提が消滅。歴史的記録として保存)

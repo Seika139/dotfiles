@@ -1,6 +1,8 @@
 # dotfiles/agents
 
-複数 AI agent ツール (Claude Code / Codex CLI / Cursor 等) で共通利用する **prompts / skills / instructions / agents / commands** を、[APM (Agent Package Manager)](https://microsoft.github.io/apm/) で集約管理するための dotfiles サブディレクトリ。
+複数 AI agent ツール (Claude Code / Codex CLI / Cursor 等) で共通利用する **skills / instructions / agents** を、[APM (Agent Package Manager)](https://microsoft.github.io/apm/) で集約管理するための dotfiles サブディレクトリ。
+
+> **primitive は skill に単一化している**。かつて併用していた prompt primitive (`.claude/commands/` 形式) は全廃した。commands 形式は Claude Code 内部で legacy 扱いであり、skill が機能的な上位集合 (`/` からの明示起動も `allowed-tools` / `argument-hint` も使える) だからである。方針は [docs/sync-guide.md §2.5](docs/sync-guide.md)、経緯は [docs/migration-plan.md §9.8](docs/migration-plan.md)。
 
 このディレクトリには **consumer 側の設定だけ** を置く。パッケージの本体は別の repo で管理している。
 
@@ -29,7 +31,9 @@ dotfiles/agents/
 
 これまで `~/dotfiles/{claude,codex,gemini}/` から symlink で `~/.claude/`, `~/.codex/`, `~/.cursor/` に skills などを展開していたが、本サブディレクトリで実現する apm 対応によって **APM 専管領域は symlink ではなく実ディレクトリで管理する**。
 
-理由: APM は symlink を辿って書き込むため、`~/.claude/commands` を dotfiles 配下への symlink にしていると `apm install -g` が **dotfiles repo を直接書き換える事故** が起きるからである。
+理由: APM は symlink を辿って書き込むため、`~/.claude/skills` などを dotfiles 配下への symlink にしていると `apm install -g` が **dotfiles repo を直接書き換える事故** が起きるからである。
+
+`~/.claude/commands` も対象に含める。prompt primitive を全廃した後もこの dir は空のまま残すべきで、symlink にしてはいけない。**APM が stale 回収 (`remove_stale_deployed_files()`) のために書き込む先**であり、かつ **agmsg (非 APM peer tool) が slash command を生成する先**でもあるためである。
 
 ### 2. consumer manifest は dotfiles で版管理
 
@@ -62,8 +66,8 @@ curl -sSL https://aka.ms/apm-unix | APM_INSTALL_DIR="$HOME/.local/bin" sh
 #    そして dotfiles 共通の active profile を書く (check_env が読む):
 echo "<machine>" > ~/dotfiles/.active-profile
 
-# 3) APM 専管 dir (~/.claude/{commands,skills}, ~/.codex/{prompts,skills},
-#    ~/.cursor/commands, ~/.gemini/skills 等) を実 dir として用意する
+# 3) APM 専管 dir (~/.claude/{skills,commands}, ~/.agents/skills,
+#    ~/.codex/skills, ~/.gemini/skills 等) を実 dir として用意する
 cd ~/dotfiles/agents && mise trust && mise run migrate
 
 # 4) (任意) private overlay を有効化したい場合
@@ -152,7 +156,7 @@ agmsg は `~/.agents/skills/<cmd>/` に入り APM の配備先と同居するが
 
 | APM が引き受ける                                                       | APM が引き受けない (= 各ツール側 `link.sh` の責務として残る)    |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------- |
-| prompts / skills / agents / instructions / commands の各ツールへの展開 | `settings.json` (Claude Code) / `config.toml` (Codex)           |
+| skills / agents / instructions の各ツールへの展開                      | `settings.json` (Claude Code) / `config.toml` (Codex)           |
 | バージョン pin (`apm.lock.yaml`) と再現性                              | `CLAUDE.md` / `AGENTS.md` / `rules/` の配置                     |
 | security scan (hidden Unicode 等)                                      | プロファイル選択 (`~/dotfiles/.active-profile` または `--prof`) |
 

@@ -107,9 +107,10 @@ ls ~/.claude/skills/ | head -5
 ls ~/.agents/skills/ | head -5
 ```
 
-任意のプロジェクトで Claude Code を起動して `/respond-pr` などの slash command が
-出ることを確認 (PS package のみ、-S package は auto-trigger なので CLI 起動だけでは
-表示されない)。
+任意のプロジェクトで Claude Code を起動して `/respond-pr` などが `/` メニューに出ることを
+確認する。primitive は skill に単一化済み (prompt 全廃) だが、skill も `user-invocable` の
+既定値が true なので `/` から明示起動できる。`/` に出ない場合は `~/.claude/skills/<n>/SKILL.md`
+の配備と frontmatter (`name` が dir 名と一致しているか) を確認する。
 
 ### 1.8 旧 dotfiles の物理削除 (PC 別、§2)
 

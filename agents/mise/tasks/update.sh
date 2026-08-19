@@ -20,7 +20,7 @@
 # 流れ:
 #   1. profile/apm.yml を ~/.apm/apm.yml にシンク
 #   2. ~/.apm/apm.lock.yaml を削除 (--refresh 時に新 lock を生成させるため)
-#   3. apm install -g --refresh --legacy-skill-paths
+#   3. apm install -g --refresh --force
 #   4. 新規生成 lock を profile/ にコピーバック (commit 対象)
 # ---------------------------------------------------------------------------
 
@@ -91,7 +91,7 @@ fi
 #
 # --force の意義: lock を消して --refresh すると APM の「所有権記録」がリセットされ、
 # 既存ファイル (前回 deploy したもの) を「自分が書いたものでない」と判断して上書き拒否
-# する (12 PS × 3 location = 36 files skipped が発生)。update は明示的 refresh なので
+# する (= 配備済みファイル数だけ "files skipped" が出る)。update は明示的 refresh なので
 # 上書きが正しい挙動。--force で「locally-authored files on collision」を上書き許可。
 #
 # 注意: --force は同時に「deploy despite critical security findings」も意味する。

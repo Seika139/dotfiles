@@ -1,5 +1,7 @@
 # Drift Prevention Plan: PS package の prompt ↔ skill 同期維持
 
+> **⚠️ 廃止 (obsolete)**: 本ドキュメントは PS 両建て (prompt + skill) を前提とした drift 対策の計画である。[migration-plan.md](./migration-plan.md) §9.8 で **prompt primitive を全廃し skill 単一化に戻したため、前提が消滅した**。drift の構造的原因 (同一内容を 2 ファイルで管理すること) そのものが除去されたので、本文に書かれた CI / script による対策はいずれも不要になった。以下は当時の計測結果と設計判断の記録として残す (§9 ADR ログの「再度方針転換する可能性があるので決定の文脈を保存する」方針に従う)。
+
 `Caromaf/agent-package-basic` の **PS package (prompt + skill 両建て) 12 件** で、
 両ファイルの本文が drift しないようにする CI / script の設計計画。
 **実装は upstream catalog repo 側で行う必要があるため、本ドキュメントは方針のみを残す**。

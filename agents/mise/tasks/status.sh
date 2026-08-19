@@ -66,9 +66,17 @@ classify_is_instruction() {
 classify_is_agent() {
   compgen -G "$HOME/.apm/apm_modules/*/*/packages/$1/.apm/agents" >/dev/null 2>&1
 }
+# prompt primitive は全廃済み (migration-plan.md §9.8)。upstream catalog は別マシンから
+# 更新されるため、prompt が復活してもこのマシンで気づく仕組みが status しかない。
+# しかも prompt を持つ package は通常 skill も併せ持つので DECLARED_SKILLS 側は in sync の
+# まま静かに legacy command が復活する。そのため skill 分類とは独立に prompt を検出する。
+classify_has_prompt() {
+  compgen -G "$HOME/.apm/apm_modules/*/*/packages/$1/.apm/prompts" >/dev/null 2>&1
+}
 DECLARED_SKILLS=""
 DECLARED_INSTRUCTIONS=""
 DECLARED_AGENTS=""
+DECLARED_PROMPTS=""
 while IFS= read -r _pkg; do
   [ -n "$_pkg" ] || continue
   _is_instruction=false
@@ -81,6 +89,9 @@ while IFS= read -r _pkg; do
     DECLARED_AGENTS+="${_pkg}"$'\n'
     _is_agent=true
   fi
+  if classify_has_prompt "$_pkg"; then
+    DECLARED_PROMPTS+="${_pkg}"$'\n'
+  fi
   if [ "$_is_instruction" = "false" ] && [ "$_is_agent" = "false" ]; then
     DECLARED_SKILLS+="${_pkg}"$'\n'
   fi
@@ -90,6 +101,7 @@ EOF
 DECLARED_SKILLS="$(printf "%s" "$DECLARED_SKILLS" | sort -u)"
 DECLARED_INSTRUCTIONS="$(printf "%s" "$DECLARED_INSTRUCTIONS" | sort -u)"
 DECLARED_AGENTS="$(printf "%s" "$DECLARED_AGENTS" | sort -u)"
+DECLARED_PROMPTS="$(printf "%s" "$DECLARED_PROMPTS" | sort -u)"
 
 printf "\n🎯 Targets:\\033[36m %s\\033[0m\n" "${TARGETS_CSV:-(none)}"
 
@@ -130,13 +142,27 @@ list_actual() {
   fi
 }
 
-# rules/ は package 名 = `<name>.md` (file) なので比較用に拡張子を剥がす
+# rules/ と commands/ は package 名 = `<name>.md` (file) なので比較用に拡張子を剥がす
 # (skills/ は dir 名 = package 名で一致するため list_actual で足りる)
-list_actual_rules() {
+list_actual_flat_md() {
   local dir="$1"
   if [ -d "$dir" ]; then
     find "$dir" -mindepth 1 -maxdepth 1 -not -name '.*' -exec basename {} \; 2>/dev/null | sed 's/\.md$//' | sort -u
   fi
+}
+
+# legacy command dir (~/.claude/commands, ~/.cursor/commands) の APM 由来分を列挙する。
+# prompt primitive を全廃したので declared=0 が正常状態であり、ここに何か出たら
+# upstream catalog で prompt が復活したか、stale 回収が済んでいないことを意味する。
+# ただし agmsg (非 APM peer tool) は ~/.claude/commands/<cmd>.md を自前で生成するため、
+# external な名前は除外して誤検知を防ぐ (agmsg 未導入の現状では無影響だが導入後に効く)。
+list_apm_commands() {
+  local dir="$1" external="$2" actual
+  actual="$(list_actual_flat_md "$dir")"
+  if [ -n "$external" ]; then
+    actual="$(comm -23 <(printf "%s\n" "$actual") <(printf "%s\n" "$external"))"
+  fi
+  printf "%s\n" "$actual" | grep -v '^$' || true
 }
 
 # agents primitive は package 名と配備ファイル名が一致しないことがある。
@@ -274,11 +300,25 @@ KNOWN_AGENT_FILES="$(list_known_agent_files)"
 print_diff "claude agents" "$HOME/.claude/agents" "$DECLARED_AGENTS" "$(list_actual_agent_packages | sort -u)"
 
 printf "\n📐 Instructions / rules (declared vs actual):\n"
-print_diff "claude rules" "$HOME/.claude/rules" "$DECLARED_INSTRUCTIONS" "$(list_actual_rules "$HOME/.claude/rules")"
+print_diff "claude rules" "$HOME/.claude/rules" "$DECLARED_INSTRUCTIONS" "$(list_actual_flat_md "$HOME/.claude/rules")"
 
 printf "\n📎 Per-tool dirs (参考表示 / Codex・Gemini は ~/.agents/skills/ を読む):\n"
 print_actual "codex" "$HOME/.codex/skills"
 print_actual "gemini" "$HOME/.gemini/skills"
+
+printf "\n🧹 Legacy commands (prompt 全廃済み / declared=0 が正常。extra が出たら 'mise run update' で APM が回収):\n"
+print_diff "claude commands" "$HOME/.claude/commands" "" "$(list_apm_commands "$HOME/.claude/commands" "$AGENTS_EXTERNAL")"
+print_diff "cursor commands" "$HOME/.cursor/commands" "" "$(list_apm_commands "$HOME/.cursor/commands" "$AGENTS_EXTERNAL")"
+
+if [ -n "$DECLARED_PROMPTS" ]; then
+  _prompt_count="$(printf "%s" "$DECLARED_PROMPTS" | grep -c . || true)"
+  printf "\n\\033[31m⛔ prompt primitive が復活しています (%s packages)\\033[0m\n" "$_prompt_count"
+  printf "   prompt は migration-plan.md §9.8 で全廃した primitive です。skill が機能的上位集合なので\n"
+  printf "   両建ては '/' メニュー枠と skill listing 予算を二重消費し、本文 drift の原因になります。\n"
+  printf "   upstream catalog 側で .apm/prompts/ を削除し、allowed-tools / argument-hint は\n"
+  printf "   SKILL.md の frontmatter に移してください。\n"
+  printf "%s\n" "$DECLARED_PROMPTS" | sed 's/^/     - /'
+fi
 
 # 💡 セクション 5: Commands ヒント
 printf "\n💡 Commands:\n"
