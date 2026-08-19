@@ -22,6 +22,7 @@ autopep
 autoremove
 autouse
 awscc
+awsdac
 awslocal
 awsp
 axios
@@ -94,6 +95,7 @@ elif
 Embedder
 endraw
 endswith
+enduml
 entra
 envrc
 envsubst
@@ -264,6 +266,7 @@ PITR
 pixabay
 pkce
 plushie
+precheck
 predis
 previewable
 printf
@@ -335,6 +338,7 @@ sqlalchemy
 sqlfluff
 sqls
 starlette
+startuml
 strcpy
 struct
 structlog
@@ -401,6 +405,7 @@ winget
 worklog
 workplan
 worktree
+worktreeinclude
 worktrees
 wslpath
 wslvar
