@@ -25,6 +25,7 @@ dependencies:
     - Caromaf/agent-package-basic/packages/gh-link-subissues#main
     - Caromaf/agent-package-basic/packages/gh-unlink-subissue#main
     - Caromaf/agent-package-basic/packages/mise-tasks#main
+    - Caromaf/agent-package-basic/packages/npm-supply-chain-triage#main
     - Caromaf/agent-package-basic/packages/release-execute#main
     - Caromaf/agent-package-basic/packages/release-prepare#main
     - Caromaf/agent-package-basic/packages/respond-pr#main

@@ -19,7 +19,7 @@
 #
 # 流れ:
 #   1. profile/apm.yml を ~/.apm/apm.yml にシンク
-#   2. ~/.apm/apm.lock.yaml を削除 (--refresh 時に新 lock を生成させるため)
+#   2. ~/.apm/apm.lock.yaml をバックアップ (削除はしない。stale file 回収に必要)
 #   3. apm install -g --refresh --force
 #   4. 新規生成 lock を profile/ にコピーバック (commit 対象)
 # ---------------------------------------------------------------------------
@@ -80,24 +80,38 @@ else
   printf "%s\n" "   📝 Synced profile apm.yml -> $TARGET_YML"
 fi
 
-# Step 2: 既存 lock を削除 (--refresh で新 lock を生成させる)
+# Step 2: 既存 lock をバックアップ (削除はしない)
+#
+# 過去は --refresh 前に lock を削除していたが、これは stale file 回収を破壊する副作用が
+# あることが判明した (実測: agent-package-custom の spark-status で追加・削除の両方を
+# 検証。lock を保持したまま --refresh --force を実行しても正しく反映され、
+# skip メッセージも出なかった)。
+#
+# apm.lock.yaml の deployed_files には 2 種類ある。
+#   - skill (ディレクトリ単位、hash 無し): 毎回ディレクトリ全体を丸ごと置き換えるので
+#     lock の有無に関係なく動く。
+#   - flat file (commands/rules/agents、個別ファイルの deployed_file_hashes 有り):
+#     「前回このファイルを自分が書いたか」を前回 lock との比較で判定するため、
+#     前回 lock が無いと stale ファイルの自動回収が機能しない。
+#
+# lock を消さずに保持することで、パッケージの配備先が変わる移行 (例: prompt primitive の
+# 廃止で commands/*.md が消える場合) でも、次回 update で自動的に stale ファイルが
+# 回収されるようになる。
 TARGET_LOCK="$APM_HOME/apm.lock.yaml"
 if [ -f "$TARGET_LOCK" ]; then
-  rm -f "$TARGET_LOCK"
-  printf "%s\n" "   🗑️  既存 ~/.apm/apm.lock.yaml を削除 (新 lock を生成)"
+  lock_backup="${TARGET_LOCK}.backup.$(date +%Y%m%d_%H%M%S)"
+  cp "$TARGET_LOCK" "$lock_backup"
+  printf "%s\n" "   💾 既存 ~/.apm/apm.lock.yaml をバックアップ: $lock_backup"
 fi
 
 # Step 3: apm install -g --refresh --force で最新 ref を再解決 + 既存ファイルも上書き deploy
 #
-# --force の意義: lock を消して --refresh すると APM の「所有権記録」がリセットされ、
-# 既存ファイル (前回 deploy したもの) を「自分が書いたものでない」と判断して上書き拒否
-# する (= 配備済みファイル数だけ "files skipped" が出る)。update は明示的 refresh なので
-# 上書きが正しい挙動。--force で「locally-authored files on collision」を上書き許可。
+# --force の意義: 「locally-authored files on collision」(内容が食い違うファイル) を
+# 上書き許可する。--refresh は明示的な再解決なので上書きが正しい挙動。
 #
 # 注意: --force は同時に「deploy despite critical security findings」も意味する。
 # 自前 catalog (Caromaf/agent-package-basic) なので security findings は self-induced と
 # 判断して許容。サードパーティ catalog を入れる際は要検討。
-# default flag 採用 (install.sh と同じ理由、§3 物理制約表参照)
 printf "%s\n" "   📦 Running: apm install -g --refresh --force${VERBOSE_FLAG:+ $VERBOSE_FLAG}"
 apm install -g --refresh --force $VERBOSE_FLAG
 
