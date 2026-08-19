@@ -55,14 +55,14 @@ Markdown ファイルを書き込む際は以下を守る。チャット応答�
   - ❌ 悪い例 (1 文を複数行に分割):
 
     ```markdown
-    APM を採用。prompts / skills / commands を**ツール非依存の primitive** として
+    APM を採用。skills / agents / instructions を**ツール非依存の primitive** として
     扱い、deploy 時に各ツールのネイティブ配置先へ展開する。
     ```
 
   - ✅ 良い例 (段落 = 1 行):
 
     ```markdown
-    APM を採用。prompts / skills / commands を**ツール非依存の primitive** として扱い、deploy 時に各ツールのネイティブ配置先へ展開する。
+    APM を採用。skills / agents / instructions を**ツール非依存の primitive** として扱い、deploy 時に各ツールのネイティブ配置先へ展開する。
     ```
 
 - 段落の区切りは **空行** で表現する (Markdown の通常の段落ルール)。
