@@ -34,3 +34,9 @@ Uncaught (in promise) Error: Cannot access contents of url "https://...". Extens
 ### URL Incrementer
 
 `Ctrl + Shift + ↑/↓` で URL 文字列を後ろから順にスラッシュ区切りで走査したときに、数字のみまたは `数字.拡張子` になっている箇所をインクリメント / デクリメントさせる。
+
+### Ad Nuisance Remover
+
+邪魔な全画面広告や対応済みの画面端固定広告を、拡張機能のアイコンクリックで現在のタブだけ非表示にし、広告によるスクロールなどの操作制限を解除する。
+もう一度クリックすると、この拡張機能が行った非表示化とスクロール設定の変更を復元できる。
+デバッグ時は `chrome://extensions/` でこの拡張機能の「Service Worker」を開き、実行できないページでの警告を確認する。
