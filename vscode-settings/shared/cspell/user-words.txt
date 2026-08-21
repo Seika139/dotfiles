@@ -239,6 +239,7 @@ opusplan
 organisation
 OSTYPE
 pacman
+PASETO
 Pathlib
 pathspec
 Patroni
