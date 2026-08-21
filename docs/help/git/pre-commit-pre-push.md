@@ -168,6 +168,8 @@ repos:
       - id: ruff-format
 ```
 
+- ✓ 詳細は [git-hook-tools](./git-hook-tools.md) を参照。
+
 ### 3. JavaScript プロジェクトなら husky / lefthook
 
 `package.json` ベースのプロジェクトでは [husky](https://typicode.github.io/husky/) や [lefthook](https://github.com/evilmartian/lefthook) が一般的。`npm install` 時の `prepare` スクリプトで自動セットアップできるため共有が楽。
