@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Ad Nuisance Remover",
+  "version": "1.0.0",
+  "description": "邪魔な広告を手動で隠し、広告によるスクロールなどの操作制限を解除します。",
+  "permissions": ["activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "邪魔な広告・操作制限を解除 / 復元",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  }
+}
