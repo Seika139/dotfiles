@@ -30,7 +30,6 @@ formulahendry.auto-rename-tag
 formulahendry.code-runner
 foxundermoon.shell-format
 geeksharp.openssl-configuration-file
-github.copilot-chat
 github.vscode-github-actions
 golang.go
 google.gemini-cli-vscode-ide-companion
@@ -62,6 +61,7 @@ ms-dotnettools.csharp
 ms-dotnettools.vscode-dotnet-runtime
 ms-python.black-formatter
 ms-python.debugpy
+ms-python.isort
 ms-python.python
 ms-python.vscode-pylance
 ms-python.vscode-python-envs
@@ -101,6 +101,7 @@ sourcegraph.cody-ai
 streetsidesoftware.code-spell-checker
 tabnine.tabnine-vscode
 tamasfe.even-better-toml
+terrastruct.d2
 timonwong.shellcheck
 tobiah.unity-tools
 tomoki1207.pdf
