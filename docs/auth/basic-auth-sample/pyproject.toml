@@ -1,0 +1,9 @@
+[project]
+name = "basic-auth-sample"
+version = "0.1.0"
+description = "Basic 認証を HTTP レベルで学ぶためのローカル専用サンプル"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
