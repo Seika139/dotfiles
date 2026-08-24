@@ -1,0 +1,141 @@
+Diagram:
+  DefinitionFiles:
+    - Type: URL
+      Url: "https://raw.githubusercontent.com/awslabs/diagram-as-code/main/definitions/definition-for-aws-icons-light.yaml"
+
+  Resources:
+    Canvas:
+      Type: AWS::Diagram::Canvas
+      Direction: horizontal
+      Align: center
+      Children:
+        - User
+        - AWSCloud
+    AWSCloud:
+      Type: AWS::Diagram::Cloud
+      Direction: vertical
+      Align: center
+      # Preset: AWSCloudNoLogo
+      Children:
+        - VPC
+    User:
+      Type: AWS::Diagram::Resource
+      Direction: vertical
+      Align: center
+      Preset: User
+    VPC:
+      Type: AWS::EC2::VPC
+      Icon: ""
+      IconFill: null
+      Direction: Vertical
+      Preset: ""
+      Align: ""
+      HeaderAlign: ""
+      FillColor: ""
+      Title: ""
+      TitleColor: ""
+      Font: ""
+      Children:
+        - Subnet1
+        - Subnet2
+        - Subnet3
+      BorderColor: ""
+      BorderChildren: []
+    Subnet1:
+      Type: AWS::EC2::Subnet
+      # Icon: ""
+      # IconFill: null
+      # Direction: ""
+      Preset: PublicSubnet
+      # Align: ""
+      # HeaderAlign: ""
+      # FillColor: ""
+      Title: "Public Subnet"
+      # TitleColor: ""
+      # Font: ""
+      Children:
+        - EC2Instance1
+      BorderColor: ""
+      BorderChildren: []
+
+    Subnet2:
+      Type: AWS::EC2::Subnet
+      Icon: ""
+      IconFill: null
+      Direction: ""
+      Preset: PrivateSubnet
+      Align: ""
+      HeaderAlign: ""
+      FillColor: ""
+      Title: "Private Subnet"
+      TitleColor: ""
+      Font: ""
+      Children:
+        - EC2Instance2
+      BorderColor: ""
+      BorderChildren: []
+
+    Subnet3:
+      Type: AWS::EC2::Subnet
+      Icon: ""
+      IconFill: null
+      Direction: ""
+      Preset: PrivateSubnet
+      Align: ""
+      HeaderAlign: ""
+      FillColor: ""
+      Title: "Isolated Subnet"
+      TitleColor: ""
+      Font: ""
+      Children:
+        - RDSInstance
+      BorderColor: ""
+      BorderChildren:
+
+    RDSInstance:
+      Type: AWS::RDS::DBInstance
+      Icon: ""
+      IconFill: null
+      Direction: ""
+      Preset: "PostgreSQL instance"
+      Align: ""
+      HeaderAlign: ""
+      FillColor: ""
+      Title: ""
+      TitleColor: ""
+      Font: ""
+      Children: []
+      BorderColor: ""
+      BorderChildren: []
+
+    EC2Instance1:
+      Type: AWS::EC2::Instance
+      Icon: ""
+      IconFill: null
+      Direction: ""
+      Preset: ""
+      Align: ""
+      HeaderAlign: ""
+      FillColor: ""
+      Title: ""
+      TitleColor: ""
+      Font: ""
+      Children: []
+      BorderColor: ""
+      BorderChildren: []
+
+    EC2Instance2:
+      Type: AWS::EC2::Instance
+      Icon: ""
+      IconFill: null
+      Direction: ""
+      Preset: ""
+      Align: ""
+      HeaderAlign: ""
+      FillColor: ""
+      Title: ""
+      TitleColor: ""
+      Font: ""
+      Children: []
+      BorderColor: ""
+      BorderChildren: []

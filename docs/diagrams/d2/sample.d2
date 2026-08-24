@@ -1,0 +1,13 @@
+vars: {
+  d2-config: {
+    layout-engine: elk # elk または dagre を指定する
+  }
+}
+
+A: Start
+B: OK?
+B.shape: diamond
+C: Done
+A -> B
+B -> A: No
+B -> C: Yes
