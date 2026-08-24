@@ -33,4 +33,3 @@ Bearer Token
 、OAuth 2.0 Authorization Code Grant + PKCE および OIDC Authorization Code Flow + PKCE のみをサポートします。他のOAuth/OIDCフロー（例: Implicit Flow, Client Credentials Flow）には対応していません。
 
 セッション
-
