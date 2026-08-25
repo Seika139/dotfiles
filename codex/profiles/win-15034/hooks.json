@@ -5,7 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh.exe -NoProfile -Command \"$script = Join-Path $env:USERPROFILE 'dotfiles/claude/notify_slack.sh'; & 'C:/Program Files/Git/bin/bash.exe' $script Codex\""
+            "command": "pwsh.exe -NoProfile -Command \"$env:HOME = $env:USERPROFILE; $script = Join-Path $env:USERPROFILE 'dotfiles/claude/notify_slack.sh'; & 'C:/Program Files/Git/bin/bash.exe' $script Codex\"",
+            "commandWindows": "pwsh.exe -NoProfile -Command \"$env:HOME = $env:USERPROFILE; $script = Join-Path $env:USERPROFILE 'dotfiles/claude/notify_slack.sh'; & 'C:/Program Files/Git/bin/bash.exe' $script Codex\""
           }
         ]
       }
