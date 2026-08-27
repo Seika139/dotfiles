@@ -329,8 +329,42 @@ S-->>U: 200 OK
 
 **公開鍵方式**
 
-公開鍵方式は暗号化と復号化で異なる鍵を使用するため、公開鍵を自分以外のサービスに配布しても安全である。
-これを利用して、自前のサービス外（Google や Microsoft など）の認証サービスを利用することができる。
+公開鍵方式では Application に加えて認証サーバーという登場人物が現れる。
+認証サーバーはアプリケーションのサーバーと同一のサービスでもいいし、Google や Microsoft などの自前のサービス外の認証サービスでもよい。
+公開鍵方式は署名の生成と署名の検証で異なる鍵を使用することから、公開鍵を自分以外のサービスに配布しても安全であるということを生かして、自前のサービス外の認証サービスを利用できるのである。
+
+```mermaid
+sequenceDiagram
+  actor U as ユーザー
+  participant Auth as 認証サーバー
+  participant API as アプリケーションサーバー<br>APIサーバー
+
+  Note over U,Auth: ユーザー認証
+  U->>Auth: ログイン
+  Auth->>Auth: ユーザーを認証<br/>（ID/Password、OIDC、SAMLなど）
+
+  alt 認証失敗
+    Auth-->>U: 401 Unauthorized
+  else 認証成功
+    Note over U,Auth: アクセストークンの発行
+    Auth->>Auth: 秘密鍵で署名したJWTを生成して<br>これをアクセストークンとする
+    Auth-->>U: アクセストークンを返す
+  end
+
+  Note over U,API: 自前サービスへのアクセス
+  U->>API: Request + Access Token
+  API->>API: 公開鍵でJWTの署名を検証
+  API->>API: exp / aud などを検証
+
+  alt Tokenが有効
+    API-->>U: 200 OK
+  else Tokenが無効
+    API-->>U: 401 Unauthorized
+  end
+```
+
+---
+
 その説明は後述する OAuth 2.0 や OpenID Connect（OIDC）で行う。
 その説明にも備えて、ここではユーザーとサーバーに加えて OP（OpenID Provider）が登場する。
 
@@ -370,6 +404,12 @@ JWKS は以下のように複数の公開鍵を含んだ JSON 形式のデータ
 
 Relying Party は kid を用いて JWKS から対応する公開鍵を取得し、署名の検証を行う。
 複数の公開鍵を公開しているメリットとして、鍵のローテーションが容易になる点が挙げられる。新しい鍵を追加しても、古い鍵で署名されたトークンは引き続き検証可能である。
+
+**JWK と JWKS**
+
+**kidによる鍵の選択**
+
+<!-- ここからは下書き -->
 
 ```mermaid
 sequenceDiagram
