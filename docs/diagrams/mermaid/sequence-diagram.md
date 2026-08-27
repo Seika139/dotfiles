@@ -15,6 +15,8 @@ Alice->B: -> で実線
 Alice-->B: --> で点線
 ```
 
+シーケンス図では実線の矢印が送信・リクエストを表し、点線の矢印が応答・レスポンスを表す。
+
 ## コメントの書き方
 
 ```mermaid
@@ -26,6 +28,18 @@ participant B as Bob
 Note over Alice, B: over
 Note left of Alice: left_of
 Note right of B: right_of
+```
+
+## 改行
+
+`<br>` タグで改行できる（描画環境によっては反映されない場合がある）
+
+```mermaid
+sequenceDiagram
+participant Alice
+participant B as Bob
+
+Alice->>B: 1行目<br>改行
 ```
 
 ## 分岐、繰り返し、並行
