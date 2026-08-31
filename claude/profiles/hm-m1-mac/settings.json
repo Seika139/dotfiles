@@ -1,10 +1,13 @@
 {
+  "agentPushNotifEnabled": true,
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "autoMode": {
-    "environment": ["$defaults"]
+    "environment": [
+      "$defaults"
+    ]
   },
   "defaultMode": "acceptEdits",
   "enabledPlugins": {
@@ -20,10 +23,10 @@
     "swift-lsp@claude-plugins-official": true
   },
   "env": {
-    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1m]",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5[1m]",
-    "ANTHROPIC_MODEL": "opusplan"
+    "ANTHROPIC_MODEL": "opusplan",
+    "CLAUDE_CODE_ENABLE_AUTO_MODE": "1"
   },
   "extraKnownMarketplaces": {
     "claude-plugins-official": {
@@ -76,7 +79,10 @@
   },
   "mcpServers": {
     "second-brain": {
-      "args": ["-m", "server.mcp_stdio"],
+      "args": [
+        "-m",
+        "server.mcp_stdio"
+      ],
       "command": "/Users/suzukikenichi/programs/second-brain/.venv/bin/python",
       "cwd": "/Users/suzukikenichi/programs/second-brain"
     }
@@ -93,7 +99,7 @@
       "Bash(gh run list)",
       "Bash(gh run view:*)"
     ],
-    "defaultMode": "acceptEdits",
+    "defaultMode": "auto",
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
