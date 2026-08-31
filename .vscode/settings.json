@@ -5,6 +5,9 @@
     "statusBar.background": "#47042f",
     "statusBar.foreground": "#ffffff",
     "titleBar.inactiveBackground": "#47042f",
-    "titleBar.inactiveForeground": "#ffffff"
+    "titleBar.inactiveForeground": "#ffffff",
+    "modernActivityBar.activeBackground": "#f4dafe",
+    "modernActivityBar.activeForeground": "#000000",
+    "activityBar.inactiveForeground": "#f4dafe"
   }
 }
