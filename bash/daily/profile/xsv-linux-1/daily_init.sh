@@ -38,6 +38,39 @@ update_bd() {
     return 1
   fi
 
+  # hold ファイルがあれば、指定バージョン以上の stable リリースが出るまで更新を保留する。
+  # v1.2.1 が stable としてタグされ DB を未サポート schema へ勝手に移行した事故の再発防止。
+  local hold_file="${HOME}/.local/state/bd-update.hold"
+  if [ -f "$hold_file" ]; then
+    local hold_ver
+    hold_ver="$(head -n1 "$hold_file" | tr -d '[:space:]')"
+    if [ -z "$hold_ver" ]; then
+      printf "%s\n" "hold ファイルの内容が壊れています。hold を無視して更新処理を続行します。"
+    elif [ "$(printf '%s\n%s\n' "$hold_ver" "$latest_ver" | sort -V | head -n1)" != "$hold_ver" ]; then
+      printf "%s\n" "bd 更新は保留中です (v${hold_ver} 以上の stable リリース待ち、latest: v${latest_ver})。"
+      return 0
+    else
+      rm -f "$hold_file"
+      printf "%s\n" "bd 更新の保留を解除しました (v${latest_ver} が stable リリースされたため)。"
+      if command -v gh >/dev/null 2>&1; then
+        gh issue create --repo Seika139/alev \
+          --title "bd 自動更新の hold を解除し v${latest_ver} へ更新する" \
+          --body "$(
+            cat <<EOF
+hold（v1.3.0 以上の stable リリース待ち）が解除され、この後の daily 更新で bd が v${latest_ver} に置き換わります。
+
+確認事項:
+- [ ] 各リポジトリ（web-change-monitor / auto-invest / cookie-clicker）で \`bd list\` が正常動作すること（v1.3.0 は初回起動時に v53→v66 の guided migration が走ります）
+- [ ] alev.service のログに bd 起因のエラーが無いこと
+- [ ] 問題があれば \`~/.local/bin/bd\` を旧版に戻し hold ファイルを再作成すること
+
+関連: https://github.com/Seika139/alev/issues/100
+EOF
+          )" >/dev/null 2>&1 || printf "%s\n" "通知 issue の作成に失敗しました（更新は継続）。"
+      fi
+    fi
+  fi
+
   # 現在のバージョンを取得する（未導入なら空）。
   local current_ver=""
   if command -v bd >/dev/null 2>&1; then

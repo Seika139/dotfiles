@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **bash**
+  - `daily_init.sh` の `update_bd` に hold 機構を追加。v1.2.1 が stable としてタグされ DB を未サポート schema へ勝手に移行した事故の再発防止として、`~/.local/state/bd-update.hold` に指定した最小バージョン以上の stable リリースが出るまで bd 更新を保留し、解除時は Seika139/alev へ通知 issue を作成する
+
 ## [0.12.0] - 2026-06-18
 
 ### Changed
