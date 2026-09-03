@@ -14,7 +14,12 @@ if [ -f /opt/homebrew/bin/brew ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
+#------------------------------------------------------------------------------------------------
 # mise が存在する場合に bash 用の設定を有効化する
+#
+# mise use -g <package> を実行すると package は グローバル設定に追加される
+# シェル起動時にグローバル設定を自動的に PATH に追加するために以下の処理で対応している
+#------------------------------------------------------------------------------------------------
 if command -v mise &>/dev/null; then
   if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     # Windows の git-bash では mise.exe が Windows 形式の PATH (C:\...;C:\...) を出力する。
