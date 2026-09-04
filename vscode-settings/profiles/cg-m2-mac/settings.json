@@ -170,9 +170,10 @@
   "makefile.configureOnOpen": true,
   "remote.autoForwardPortsSource": "hybrid",
   "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
-  "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
-  "gitlens.ai.model": "vscode",
-  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+  "git-worktree-manager.worktreeCopyPatterns": [
+    "CLAUDE.md",
+    ".claude/"
+  ],
   // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
   "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
   "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
@@ -194,5 +195,6 @@
   },
   "python.terminal.activateEnvironment": false,
   "cursor.general.disableHttp2": true,
-  "cursor.general.disableHttp1SSE": true
+  "cursor.general.disableHttp1SSE": true,
+  "terminal.integrated.initialHint": false
 }
