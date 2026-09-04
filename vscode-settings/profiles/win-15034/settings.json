@@ -62,8 +62,6 @@
     }
   ],
   "gitlens.graph.minimap.enabled": false,
-  "gitlens.ai.model": "vscode",
-  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
   // ↑ git
   "terminal.integrated.defaultProfile.windows": "Git Bash",
   // これをオンにしなくてもデフォルトで Git Bash に login した状態でターミナルが開く
