@@ -13,6 +13,7 @@ anthropics
 Anzu
 apcu
 arange
+ASGI
 asorti
 astype
 asyncio
@@ -341,6 +342,7 @@ sqls
 starlette
 startuml
 strcpy
+streamable
 struct
 structlog
 subissue
