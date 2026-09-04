@@ -121,5 +121,6 @@
   "statusLine": {
     "command": "~/dotfiles/claude/status_line.sh",
     "type": "command"
-  }
+  },
+  "tui": "fullscreen"
 }
