@@ -13,4 +13,5 @@ dependencies:
   apm:
     - Caromaf/agent-package-basic#main
     - mattpocock/skills#main
+    - vercel-labs/skills#main
   mcp: []
