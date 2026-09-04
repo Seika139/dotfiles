@@ -8,6 +8,12 @@
       "path": "${userHome}/dotfiles/vscode-settings/shared/cspell/user-words.txt",
       "addWords": true,
       "scope": "user"
+    },
+    "dotfiles-private": {
+      "name": "dotfiles-private",
+      "path": "${userHome}/dotfiles/vscode-settings/private/cspell/user-words.txt",
+      "addWords": true,
+      "scope": "user"
     }
   },
   "cSpell.enabledFileTypes": {
