@@ -29,6 +29,10 @@ Use Japanese for communication.
 ## Suggested Tools
 
 - Use `rg` instead of `grep` for filtering command output in Bash.
+  - パイプの受け手として使う場合は `cmd | rg 'PATTERN' -` のように `-` で stdin を明示する。
+  - ファイル検索として使う場合は `rg -n 'PATTERN' src/` のように対象パスを明示する。
+  - 読み取り範囲を省略したコマンド (`rg 'PATTERN'`, `grep -r 'PATTERN'`, 引数なしの `ls`) は cwd 全体を読むと解析され、`Read(.env)` などの deny rule によって承認プロンプトが要求されるため回避する。
+  - パイプの受け手の `grep` は stdin のみと解析されるので中断しない。`rg` は再帰検索がデフォルトのため `-` が必要になる。
 - Use `fd` instead of `find` for file searching.
 
 ## 推論スタイル
