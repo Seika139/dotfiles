@@ -12,5 +12,49 @@ includes: auto
 dependencies:
   apm:
     - Caromaf/agent-package-basic#main
+<<<<<<< HEAD
     - mattpocock/skills#main
+||||||| 2c726cd
+=======
+    # mattpocock/skills
+    # Caromaf/agent-package-basic は repo 内に apm.yml を配置しているため、上述のように1行で全ての skills を取り込める。
+    # しかし、mattpocock/skills は apm.yml がないので個別パスで宣言する必要がある。
+    # もし repo だけを記述する形式だと apm.lock.yaml 上は package_type=marketplace_plugin として1エントリに展開される。
+    # そのため mise run status にて、設定ファイルと実体の差分計測時に 1 vs 複数の skills となってしまい、差分があると判断されてしまう。
+    - mattpocock/skills/skills/engineering/ask-matt#main
+    - mattpocock/skills/skills/engineering/code-review#main
+    - mattpocock/skills/skills/engineering/codebase-design#main
+    - mattpocock/skills/skills/engineering/diagnosing-bugs#main
+    - mattpocock/skills/skills/engineering/domain-modeling#main
+    - mattpocock/skills/skills/engineering/grill-with-docs#main
+    - mattpocock/skills/skills/engineering/implement#main
+    - mattpocock/skills/skills/engineering/improve-codebase-architecture#main
+    - mattpocock/skills/skills/engineering/prototype#main
+    - mattpocock/skills/skills/engineering/research#main
+    - mattpocock/skills/skills/engineering/resolving-merge-conflicts#main
+    - mattpocock/skills/skills/engineering/setup-matt-pocock-skills#main
+    - mattpocock/skills/skills/engineering/tdd#main
+    - mattpocock/skills/skills/engineering/to-spec#main
+    - mattpocock/skills/skills/engineering/to-tickets#main
+    - mattpocock/skills/skills/engineering/triage#main
+    - mattpocock/skills/skills/engineering/wayfinder#main
+    - mattpocock/skills/skills/engineering/wizard#main
+    - mattpocock/skills/skills/in-progress/claude-handoff#main
+    - mattpocock/skills/skills/in-progress/loop-me#main
+    - mattpocock/skills/skills/in-progress/setup-ts-deep-modules#main
+    - mattpocock/skills/skills/in-progress/writing-beats#main
+    - mattpocock/skills/skills/in-progress/writing-fragments#main
+    - mattpocock/skills/skills/in-progress/writing-shape#main
+    - mattpocock/skills/skills/misc/git-guardrails-claude-code#main
+    - mattpocock/skills/skills/misc/migrate-to-shoehorn#main
+    - mattpocock/skills/skills/misc/scaffold-exercises#main
+    - mattpocock/skills/skills/misc/setup-pre-commit#main
+    - mattpocock/skills/skills/productivity/grill-me#main
+    - mattpocock/skills/skills/productivity/grilling#main
+    - mattpocock/skills/skills/productivity/handoff#main
+    - mattpocock/skills/skills/productivity/teach#main
+    - mattpocock/skills/skills/productivity/to-questionnaire#main
+    - mattpocock/skills/skills/productivity/wait-what#main
+    - mattpocock/skills/skills/productivity/writing-for-agents#main
+>>>>>>> de3ac5f2861ffc2c27b149489e8ebbe59c7a2ce9
   mcp: []
