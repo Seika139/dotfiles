@@ -11,6 +11,6 @@ targets:
 includes: auto
 dependencies:
   apm:
-    # basic (Caromaf/agent-package-basic): claude+codex 両対応 + codex-only 判定/指針 skill 一式 (curated aggregator)
     - Caromaf/agent-package-basic#main
+    - mattpocock/skills#main
   mcp: []

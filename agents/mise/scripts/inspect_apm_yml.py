@@ -13,7 +13,8 @@ stdout に prefix-tagged な TSV を 1 行 1 件で出力する:
     apm-merged  <pkg>           base + overlay を dedup したあとの package 名
 
 package 名抽出ルール: string form の ref または object form の path が
-".../packages/<name>" 形式なら <name>、それ以外は入力を文字列化して返す。
+".../packages/<name>" 形式なら <name>、それ以外は末尾のパスセグメントを
+package 名として返す (外部 repo の SKILL.md 配備先ディレクトリ名と一致させるため)。
 
 ただし string form の ref が "packages/" を含まず、かつ "<owner>/<repo>" の
 bare な形式 (集約 repo をまとめて取り込む形式) の場合は、その先の
@@ -56,6 +57,10 @@ def _name_from_path(path: str) -> str:
         return head.removeprefix("packages/").strip("/")
     if "/packages/" in head:
         return head.rsplit("/packages/", 1)[-1].strip("/")
+    # packages/ 慣習を持たない外部 repo (例: owner/repo/skills/<category>/<name>) は
+    # 末尾のパスセグメントが SKILL.md 配備先のディレクトリ名と一致するため、それを使う。
+    if "/" in head:
+        return head.rsplit("/", 1)[-1]
     return head
 
 
@@ -152,10 +157,26 @@ def _dedup(items) -> list:
     return out
 
 
+def _iter_lock_deployed_files(lock_path: Path) -> list[str]:
+    """apm.lock.yaml の dependencies[].deployed_files を平坦化して返す。
+
+    ファイルが存在しない場合はエラーにせず空リストを返す
+    (--lock 未指定時と同じ扱いにするため)。
+    """
+    if not lock_path.is_file():
+        return []
+    doc = _load(lock_path)
+    files: list[str] = []
+    for dep in doc.get("dependencies") or []:
+        files.extend(dep.get("deployed_files") or [])
+    return _dedup(files)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", required=True, type=Path)
     parser.add_argument("--overlay", type=Path)
+    parser.add_argument("--lock", type=Path)
     args = parser.parse_args()
 
     base = _load(args.base)
@@ -173,6 +194,10 @@ def main() -> int:
         print(f"apm-overlay\t{n}")
     for n in _dedup(base_names + overlay_names):
         print(f"apm-merged\t{n}")
+
+    if args.lock:
+        for path in _iter_lock_deployed_files(args.lock):
+            print(f"deployed\t{path}")
 
     return 0
 

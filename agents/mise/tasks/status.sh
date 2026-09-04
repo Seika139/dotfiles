@@ -45,9 +45,19 @@ if [ ! -f "$PROFILE_YML" ]; then
   exit 1
 fi
 
+EFFECTIVE_LOCK=""
+if [ "$HAS_PRIVATE" = "true" ] && [ -f "$PRIVATE_LOCK" ]; then
+  EFFECTIVE_LOCK="$PRIVATE_LOCK"
+elif [ -f "$PROFILE_PATH/apm.lock.yaml" ]; then
+  EFFECTIVE_LOCK="$PROFILE_PATH/apm.lock.yaml"
+fi
+
 INSPECT_ARGS=(--base "$PROFILE_YML")
 if [ "$HAS_PRIVATE" = "true" ]; then
   INSPECT_ARGS+=(--overlay "$PRIVATE_YML")
+fi
+if [ -n "$EFFECTIVE_LOCK" ]; then
+  INSPECT_ARGS+=(--lock "$EFFECTIVE_LOCK")
 fi
 INSPECT_OUT="$(uv run --quiet "$INSPECT_SCRIPT" "${INSPECT_ARGS[@]}")"
 
@@ -55,6 +65,9 @@ TARGETS_CSV="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="target"{print $2}
 APM_BASE="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-base"{print $2}')"
 APM_OVERLAY="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-overlay"{print $2}')"
 DECLARED_SORTED="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-merged"{print $2}' | sort -u)"
+DEPLOYED_FILES="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="deployed"{print $2}')"
+DECLARED_SKILLS_CLAUDE="$(printf "%s\n" "$DEPLOYED_FILES" | sed -n 's#^\.claude/skills/##p' | sort -u)"
+DECLARED_SKILLS_AGENTS="$(printf "%s\n" "$DEPLOYED_FILES" | sed -n 's#^\.agents/skills/##p' | sort -u)"
 
 # declared package を primitive 種別で分類する。
 # instructions (例: commit-message) は ~/.claude/rules/ に、agents は ~/.claude/agents/
@@ -73,7 +86,6 @@ classify_is_agent() {
 classify_has_prompt() {
   compgen -G "$HOME/.apm/apm_modules/*/*/packages/$1/.apm/prompts" >/dev/null 2>&1
 }
-DECLARED_SKILLS=""
 DECLARED_INSTRUCTIONS=""
 DECLARED_AGENTS=""
 DECLARED_PROMPTS=""
@@ -92,13 +104,9 @@ while IFS= read -r _pkg; do
   if classify_has_prompt "$_pkg"; then
     DECLARED_PROMPTS+="${_pkg}"$'\n'
   fi
-  if [ "$_is_instruction" = "false" ] && [ "$_is_agent" = "false" ]; then
-    DECLARED_SKILLS+="${_pkg}"$'\n'
-  fi
 done <<EOF
 $DECLARED_SORTED
 EOF
-DECLARED_SKILLS="$(printf "%s" "$DECLARED_SKILLS" | sort -u)"
 DECLARED_INSTRUCTIONS="$(printf "%s" "$DECLARED_INSTRUCTIONS" | sort -u)"
 DECLARED_AGENTS="$(printf "%s" "$DECLARED_AGENTS" | sort -u)"
 DECLARED_PROMPTS="$(printf "%s" "$DECLARED_PROMPTS" | sort -u)"
@@ -280,7 +288,7 @@ print_actual() {
 }
 
 printf "\n🌐 Skills (declared vs actual):\n"
-print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS" "$(list_actual "$HOME/.claude/skills")"
+print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS_CLAUDE" "$(list_actual "$HOME/.claude/skills")"
 
 # agents skills は APM cross-tool 配備先だが、非 APM の peer tool (agmsg) も同居する。
 # external を actual から除いて APM の drift だけを比較し、external は別枠で可視化する。
@@ -289,7 +297,7 @@ AGENTS_EXTERNAL="$(list_external_skills "$HOME/.agents/skills")"
 if [ -n "$AGENTS_EXTERNAL" ]; then
   AGENTS_ACTUAL="$(comm -23 <(printf "%s\n" "$AGENTS_ACTUAL") <(printf "%s\n" "$AGENTS_EXTERNAL"))"
 fi
-print_diff "agents" "$HOME/.agents/skills" "$DECLARED_SKILLS" "$AGENTS_ACTUAL"
+print_diff "agents" "$HOME/.agents/skills" "$DECLARED_SKILLS_AGENTS" "$AGENTS_ACTUAL"
 if [ -n "$AGENTS_EXTERNAL" ]; then
   printf "     \\033[36m🔌 external (非 APM / agmsg-managed, drift 比較から除外):\\033[0m\n"
   printf "%s\n" "$AGENTS_EXTERNAL" | sed 's/^/       - /'
