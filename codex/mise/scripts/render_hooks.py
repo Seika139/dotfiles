@@ -113,6 +113,18 @@ def render(profile_path: Path, target: Path) -> dict[str, Any]:
     return {"hooks": merge_hooks(base, local, apm)}
 
 
+def _render_source_label(value: Any) -> str:
+    """Render `_apm_source` as a single display-safe line.
+
+    Non-string values, and strings containing newlines or other control
+    characters, are rendered via `json.dumps` so a hostile value can't break
+    the one-entry-per-line breakdown display.
+    """
+    if isinstance(value, str) and value.isprintable():
+        return value
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
 def format_sources(profile_path: Path, target: Path) -> list[str]:
     """Describe what hooks.base.json / hooks.local.json / apm each contributed.
 
@@ -141,9 +153,7 @@ def format_sources(profile_path: Path, target: Path) -> list[str]:
 
     apm_counts: dict[str, int] = {}
     for group in contributed["apm"]:
-        source = group.get("_apm_source", "unknown")
-        if not isinstance(source, str):
-            source = json.dumps(source, ensure_ascii=False, sort_keys=True)
+        source = _render_source_label(group.get("_apm_source", "unknown"))
         apm_counts[source] = apm_counts.get(source, 0) + 1
 
     if apm_counts:

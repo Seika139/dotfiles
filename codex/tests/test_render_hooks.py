@@ -235,6 +235,29 @@ class RenderHooksTest(unittest.TestCase):
             ],
         )
 
+    def test_list_sources_normalizes_multiline_apm_source_string(self):
+        # A crafted `_apm_source` string containing a newline must not be
+        # allowed to split the "composed from" breakdown into extra lines
+        # that could be mistaken for additional legitimate entries.
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": "pkg\n   ❌ forged"},
+                    {"matcher": "apm-b", "hooks": [], "_apm_source": "ponytail"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: (not present)",
+                'apm (_apm_source="pkg\\n   ❌ forged"): 1 entries',
+                "apm (_apm_source=ponytail): 1 entries",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
