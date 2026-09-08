@@ -109,6 +109,8 @@ codex/profiles/<profile>/hooks.base.json
 
 `mise run install`@agents/ が実行する `apm install -g --refresh --force` は `~/.codex/hooks.json` に `_apm_source` キー付きのエントリを直接書き込みます。生成時にはこの `_apm_source` エントリを保持したまま `hooks.base.json` / `hooks.local.json` の内容とマージするため、`mise run link` を実行しても apm 由来の hook は失われません。
 
+旧構成では `~/.codex/hooks.json` が `profiles/<profile>/hooks.json` への symlink だったため、この変更を pull した直後は symlink が dangling になり、apm 由来の `_apm_source` エントリは生成時に収穫できません。移行初回は `mise run link` の後に `mise run update`@agents/ を実行して apm エントリを再生成してください。
+
 ## よく使うコマンド
 
 profile の状態確認:
