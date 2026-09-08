@@ -138,17 +138,25 @@ else
     only_in_expected=$(comm -13 <(echo "$actual_keys") <(echo "$expected_keys") | wc -l | tr -d ' ')
     printf "%b%s%b\n" "      \033[2m" "差分サマリ: ~/.claude/ のみのキー = $only_in_actual 個、dotfiles のみのキー = $only_in_expected 個" "\033[0m"
     if [ "$only_in_actual" -gt 0 ] && [ "$only_in_expected" -eq 0 ]; then
-      printf "%b%s%b\n" "      \033[36m" "→ ~/.claude/ 側に新規キーあり (外部書き換え)。mise run recover --prof \"$PROFILE\" で取り込み。" "\033[0m"
+      print_cyan "      → ~/.claude/ 側に新規キーあり (外部書き換え)。"
+      print_red "mise run recover --prof \"$PROFILE\""
+      print_cyan " で取り込み。"$'\n'
     elif [ "$only_in_actual" -eq 0 ] && [ "$only_in_expected" -gt 0 ]; then
-      printf "%b%s%b\n" "      \033[36m" "→ dotfiles 側に新規キーあり (編集後 link 未実行)。mise run link --prof \"$PROFILE\" で反映。" "\033[0m"
+      print_cyan "      → dotfiles 側に新規キーあり (編集後 link 未実行)。"
+      print_green "mise run link --prof \"$PROFILE\""
+      print_cyan " で反映。"$'\n'
     elif [ "$only_in_actual" -eq 0 ] && [ "$only_in_expected" -eq 0 ]; then
-      printf "%b%s%b\n" "      \033[36m" "→ キー集合は同じだが値が異なる。どちらを正とするか判断後、recover (~/.claude/ を正) または link (dotfiles を正) を実行。" "\033[0m"
-      printf "%b%s%b%s%b\n" "      \033[2m" "  ~/.claude/ 側の値を dotfiles に取り込む: " "\033[0m\033[31m" "mise run recover --prof \"$PROFILE\"" "\033[0m"
-      printf "%b%s%b%s%b\n" "      \033[2m" "  dotfiles 側の値で ~/.claude/ を上書き  : " "\033[0m\033[32m" "mise run link --prof \"$PROFILE\"" "\033[0m"
+      print_cyan "      → キー集合は同じだが値が異なる。どちらを正とするか判断後、recover (~/.claude/ を正) または link (dotfiles を正) を実行。"$'\n'
+      print_dim "        ~/.claude/ 側の値を dotfiles に取り込む: "
+      print_red "mise run recover --prof \"$PROFILE\""$'\n'
+      print_dim "        dotfiles 側の値で ~/.claude/ を上書き  : "
+      print_green "mise run link --prof \"$PROFILE\""$'\n'
     else
-      printf "%b%s%b\n" "      \033[33m" "→ 双方向に新規キーあり。recover/link を実行する前に変更内容を慎重に確認してください。" "\033[0m"
-      printf "%b%s%b%s%b\n" "      \033[2m" "  ~/.claude/ 側の値を dotfiles に取り込む: " "\033[0m\033[31m" "mise run recover --prof \"$PROFILE\"" "\033[0m"
-      printf "%b%s%b%s%b\n" "      \033[2m" "  dotfiles 側の値で ~/.claude/ を上書き  : " "\033[0m\033[32m" "mise run link --prof \"$PROFILE\"" "\033[0m"
+      print_yellow "      → 双方向に新規キーあり。recover/link を実行する前に変更内容を慎重に確認してください。"$'\n'
+      print_dim "        ~/.claude/ 側の値を dotfiles に取り込む: "
+      print_red "mise run recover --prof \"$PROFILE\""$'\n'
+      print_dim "        dotfiles 側の値で ~/.claude/ を上書き  : "
+      print_green "mise run link --prof \"$PROFILE\""$'\n'
     fi
   fi
 fi
