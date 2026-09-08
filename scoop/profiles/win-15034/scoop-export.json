@@ -4,15 +4,15 @@
       "Info": "",
       "Name": "7zip",
       "Source": "main",
-      "Updated": "2026-05-01T11:38:19.4618515+09:00",
-      "Version": "26.01"
+      "Updated": "2026-09-07T11:16:39.9788738+09:00",
+      "Version": "26.03"
     },
     {
       "Info": "",
       "Name": "apm",
       "Source": "main",
-      "Updated": "2026-05-29T12:44:50.7802859+09:00",
-      "Version": "0.16.0"
+      "Updated": "2026-09-08T11:06:35.8224859+09:00",
+      "Version": "0.30.0"
     },
     {
       "Info": "",
@@ -25,8 +25,8 @@
       "Info": "",
       "Name": "bottom",
       "Source": "main",
-      "Updated": "2026-01-23T11:18:50.7468004+09:00",
-      "Version": "0.12.3"
+      "Updated": "2026-08-28T09:05:05.0721992+09:00",
+      "Version": "0.14.9"
     },
     {
       "Info": "",
@@ -46,43 +46,43 @@
       "Info": "",
       "Name": "dust",
       "Source": "main",
-      "Updated": "2026-01-23T11:10:42.0225837+09:00",
-      "Version": "1.2.4"
+      "Updated": "2026-08-21T11:25:05.4674063+09:00",
+      "Version": "1.2.5"
     },
     {
       "Info": "",
       "Name": "eza",
       "Source": "main",
-      "Updated": "2026-01-23T10:58:01.5054096+09:00",
-      "Version": "0.23.4"
+      "Updated": "2026-07-10T10:44:57.8958171+09:00",
+      "Version": "0.23.5"
     },
     {
       "Info": "",
       "Name": "fd",
       "Source": "main",
-      "Updated": "2026-03-17T10:52:13.3744977+09:00",
-      "Version": "10.4.2"
+      "Updated": "2026-08-27T12:58:00.087803+09:00",
+      "Version": "10.5.0"
     },
     {
       "Info": "",
       "Name": "fzf",
       "Source": "main",
-      "Updated": "2026-05-29T11:35:39.3192679+09:00",
-      "Version": "0.73.1"
+      "Updated": "2026-08-17T17:40:50.0134006+09:00",
+      "Version": "0.74.3"
     },
     {
       "Info": "",
       "Name": "gh",
       "Source": "main",
-      "Updated": "2026-05-29T11:35:40.8778554+09:00",
-      "Version": "2.93.0"
+      "Updated": "2026-09-04T10:39:05.4669663+09:00",
+      "Version": "2.100.0"
     },
     {
       "Info": "",
       "Name": "jq",
       "Source": "main",
-      "Updated": "2025-10-06T11:58:30.1610702+09:00",
-      "Version": "1.8.1"
+      "Updated": "2026-06-22T10:41:36.4487303+09:00",
+      "Version": "1.8.2"
     },
     {
       "Info": "",
@@ -95,22 +95,22 @@
       "Info": "",
       "Name": "mise",
       "Source": "main",
-      "Updated": "2026-05-29T12:43:33.1271307+09:00",
-      "Version": "2026.5.16"
+      "Updated": "2026-09-08T14:22:00.3781633+09:00",
+      "Version": "2026.9.2"
     },
     {
       "Info": "",
       "Name": "procs",
       "Source": "main",
-      "Updated": "2026-03-02T10:55:59.6055379+09:00",
-      "Version": "0.14.11"
+      "Updated": "2026-06-26T18:11:10.4488474+09:00",
+      "Version": "0.14.12"
     },
     {
       "Info": "",
       "Name": "ripgrep",
       "Source": "main",
-      "Updated": "2026-01-23T11:07:57.9818636+09:00",
-      "Version": "15.1.0"
+      "Updated": "2026-07-16T11:09:51.9673561+09:00",
+      "Version": "15.2.0"
     },
     {
       "Info": "",
@@ -123,8 +123,8 @@
       "Info": "",
       "Name": "uv",
       "Source": "main",
-      "Updated": "2026-05-29T11:35:44.8706569+09:00",
-      "Version": "0.11.17"
+      "Updated": "2026-09-07T11:16:49.5046016+09:00",
+      "Version": "0.12.10"
     },
     {
       "Info": "",
@@ -137,22 +137,22 @@
       "Info": "",
       "Name": "zoxide",
       "Source": "main",
-      "Updated": "2026-02-02T11:04:51.0747414+09:00",
-      "Version": "0.9.9"
+      "Updated": "2026-07-07T12:37:11.8949173+09:00",
+      "Version": "0.10.0"
     }
   ],
   "buckets": [
     {
-      "Manifests": 1552,
+      "Manifests": 1641,
       "Name": "main",
       "Source": "https://github.com/ScoopInstaller/Main.git",
-      "Updated": "2026-05-29T10:23:02+09:00"
+      "Updated": "2026-09-08T13:32:23+09:00"
     },
     {
-      "Manifests": 2303,
+      "Manifests": 2381,
       "Name": "extras",
       "Source": "https://github.com/ScoopInstaller/Extras",
-      "Updated": "2026-05-29T10:23:53+09:00"
+      "Updated": "2026-09-08T13:33:36+09:00"
     }
   ]
 }
