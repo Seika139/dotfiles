@@ -13,6 +13,12 @@
 
 set -eu
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
+
+# shellcheck disable=SC1091
+source "${ROOT_DIR}/mise/common.sh"
+
 if [ "${MISE_CONFIG_ROOT:-}" = "" ]; then
   MISE_CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi
@@ -60,13 +66,18 @@ PROFILE_PATH="${MISE_CONFIG_ROOT}/${PROFILES_DIR:-profiles}/$PROFILE"
 # 環境チェック表示
 # ---------------------------------------------------------------------------
 printf "%s\n" "🦄 Environment Check"
-printf "os()                 =\033[36m %s\033[0m\n" "$(detect_os)"
-printf "IS_WSL               =\033[36m %s\033[0m\n" "${IS_WSL:-false}"
-printf "config_root          =\033[36m %s\033[0m\n" "$MISE_CONFIG_ROOT"
-printf "Selected profile     =\033[36m %s\033[0m\n" "$PROFILE"
+printf "os()                 = "
+print_cyan "$(detect_os)"$'\n'
+printf "IS_WSL               = "
+print_cyan "${IS_WSL:-false}"$'\n'
+printf "config_root          = "
+print_cyan "$MISE_CONFIG_ROOT"$'\n'
+printf "Selected profile     = "
+print_cyan "$PROFILE"$'\n'
 
 if [ ! -d "$PROFILE_PATH" ]; then
-  printf "❌ Profile directory does not exist:\033[36m %s\033[0m\n" "$PROFILE_PATH"
+  printf "❌ Profile directory does not exist:"
+  print_cyan "$PROFILE_PATH"$'\n'
   exit 1
 fi
 
@@ -74,13 +85,13 @@ fi
 # プロファイル下のファイル/ディレクトリ存在確認
 # ---------------------------------------------------------------------------
 printf "\n📂 Original files and directories:\n"
-# NOTE: commands/ skills/ rules/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
+# NOTE: skills/ rules/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
 for file in settings.json settings.local.json CLAUDE.md custom-config; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
     printf "%s\n" "   ✅ $source"
   else
-    printf "\033[31m%s\033[0m\n" "   ❌ $source (missing)"
+    print_red "   ❌ $source (missing)"$'\n'
   fi
 done
 
@@ -93,11 +104,11 @@ REPO_SETTINGS="$PROFILE_PATH/settings.json"
 REPO_LOCAL="$PROFILE_PATH/settings.local.json"
 
 if [ -L "$SETTINGS_TARGET" ]; then
-  printf "\033[33m%s\033[0m\n" "   ⚠️  symlink になっています (新方針では実ファイル運用)。mise run link で修正してください。"
+  print_yellow "   ⚠️  symlink になっています (新方針では実ファイル運用)。mise run link で修正してください。"$'\n'
 elif [ ! -f "$SETTINGS_TARGET" ]; then
-  printf "\033[33m%s\033[0m\n" "   ❌ $SETTINGS_TARGET が存在しません。mise run link を実行してください。"
+  print_yellow "   ❌ $SETTINGS_TARGET が存在しません。mise run link を実行してください。"$'\n'
 elif [ ! -f "$REPO_SETTINGS" ]; then
-  printf "\033[31m%s\033[0m\n" "   ❌ $REPO_SETTINGS が存在しません。"
+  print_red "   ❌ $REPO_SETTINGS が存在しません。"$'\n'
 else
   # local が存在しなければ空 JSON 一時ファイルを使う (プロセス置換は変数経由で FD が閉じる罠があるため)
   if [ -f "$REPO_LOCAL" ] && [ -s "$REPO_LOCAL" ]; then
@@ -115,7 +126,7 @@ else
     printf "%s\n" "   ✅ $SETTINGS_TARGET"
     printf "      (dotfiles 側の settings.json + settings.local.json のマージ結果と一致)\n"
   else
-    printf "\033[33m%s\033[0m\n" "   ⚠️  $SETTINGS_TARGET (dotfiles と不一致)"
+    print_yellow "   ⚠️  $SETTINGS_TARGET (dotfiles と不一致)"$'\n'
     printf "      凡例: \033[31m< 行頭\033[0m = ~/.claude/settings.json のみ、\033[32m> 行頭\033[0m = dotfiles マージ結果のみ\n"
     printf "      \033[2m──────────────────────────────────────────────\033[0m\n"
     diff --color=always <(echo "$ACTUAL") <(echo "$EXPECTED") | sed 's/^/      /' || true
@@ -145,14 +156,15 @@ fi
 # ~/.claude/settings.local.json は Claude Code が読まないため使わない
 # 旧運用の symlink/ファイルが残っていたら警告
 if [ -L "${HOME}/.claude/settings.local.json" ] || [ -f "${HOME}/.claude/settings.local.json" ]; then
-  printf "\033[33m%s\033[0m\n" "   ⚠️  ~/.claude/settings.local.json が残存しています (Claude Code は読まないパス)。mise run link で削除されます。"
+  print_yellow "   ⚠️  ~/.claude/settings.local.json が残存しています (Claude Code は読まないパス)。mise run link で削除されます。"$'\n'
 fi
 
 # ---------------------------------------------------------------------------
 # その他は symlink で同期されているはず
 # ---------------------------------------------------------------------------
-printf "\n🔗 Symlinks in\033[36m %s/.claude:\033[0m\n" "$HOME"
-# NOTE: commands/ skills/ rules/ は APM 管理 (~/.claude/{commands,skills,rules}/ は real dir) に移行済のためチェック対象外。
+printf "\n🔗 Symlinks in "
+print_cyan "$HOME/.claude:"$'\n'
+# NOTE: skills/ rules/ は APM 管理 (~/.claude/{skills,rules}/ は real dir) に移行済のためチェック対象外。
 for file in CLAUDE.md custom-config; do
   target="${HOME}/.claude/$file"
   source="$PROFILE_PATH/$file"
@@ -167,26 +179,29 @@ for file in CLAUDE.md custom-config; do
     fi
   elif [ -f "$target" ] || [ -d "$target" ]; then
     printf "%s\n" "   ❌ $file (通常ファイル/ディレクトリ、シンボリックリンクではない). Use the following command ↓"
-    printf "\033[36m%s\033[0m\n" "         mise run link --prof \"$PROFILE\""
+    print_cyan "         mise run link --prof \"$PROFILE\""$'\n'
   else
-    printf "\033[33m%s\033[0m\n" "   ❌ $target does not exist"
+    print_yellow "   ❌ $target does not exist"$'\n'
   fi
 done
 
-printf "\n🧩 APM-managed in\033[36m %s/.claude/{commands,skills}:\033[0m\n" "$HOME"
-# NOTE: APM 移行後は ~/.claude/{commands,skills}/ は APM が real dir として書き込む。
+printf "\n🧩 APM-managed in "
+print_cyan "$HOME/.claude/skills:"$'\n'
+# NOTE: APM 移行後は ~/.claude/skills/ は APM が real dir として書き込む。
+# NOTE: ~/.claude/commands/ も APM で共有していたが skills と二重で表示されるので同期対象から外した。
 #   詳細は dotfiles/agents/ 配下と migration-plan.md を参照。
-for sub in commands skills; do
-  target="${HOME}/.claude/$sub"
-  if [ -d "$target" ]; then
-    count=$(find "$target" -mindepth 1 -maxdepth 2 \( -name "*.md" -o -name "SKILL.md" \) 2>/dev/null | wc -l | tr -d ' ')
-    printf "%s\n" "   ✅ $target ($count entries, managed by 'apm install -g')"
-  else
-    printf "\033[33m%s\033[0m\n" "   ❌ $target does not exist. Run: cd ~/dotfiles/agents && mise run install"
-  fi
-done
+target="${HOME}/.claude/skills"
+if [ -d "$target" ]; then
+  count=$(find "$target" -mindepth 1 -maxdepth 2 \( -name "*.md" -o -name "SKILL.md" \) 2>/dev/null | wc -l | tr -d ' ')
+  printf "%s\n" "   ✅ $target ($count entries, managed by 'apm install -g')"
+else
+  print_yellow "   ❌ $target does not exist. Run: cd ~/dotfiles/agents && mise run install"$'\n'
+fi
 
 printf "\n💡 Commands:\n"
-printf "   リンク作成/更新: mise run link --prof \"%s\"\n" "$PROFILE"
-printf "   プロファイル変更: mise run switch [--prof <profile-name>]\n"
-printf "   APM-managed の詳細: cd ~/dotfiles/agents && mise run status\n"
+printf "   リンク作成/更新: "
+print_cyan "mise run link --prof \"$PROFILE\""$'\n'
+printf "   プロファイル変更: "
+print_cyan "mise run switch [--prof <profile-name>]"$'\n'
+printf "   APM-managed の詳細: "
+print_cyan "cd ~/dotfiles/agents && mise run status"$'\n'
