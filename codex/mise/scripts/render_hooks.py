@@ -30,6 +30,9 @@ def load_hooks(path: Path) -> dict[str, list[Any]]:
     hooks = data.get("hooks", {})
     if not isinstance(hooks, dict):
         raise ValueError(f"{path}: 'hooks' key must be an object")
+    for event, matcher_groups in hooks.items():
+        if not isinstance(matcher_groups, list):
+            raise ValueError(f"{path}: hooks.{event} must be an array, got {type(matcher_groups).__name__}")
     return hooks
 
 

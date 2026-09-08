@@ -90,6 +90,17 @@ class RenderHooksTest(unittest.TestCase):
             },
         )
 
+    def test_base_event_value_object_raises(self):
+        base = {"hooks": {"Stop": {"hooks": []}}}
+        with self.assertRaises(ValueError):
+            self.render_with(base=base)
+
+    def test_local_event_value_string_raises(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        local = {"hooks": {"Stop": "not-a-list"}}
+        with self.assertRaises(ValueError):
+            self.render_with(base=base, local=local)
+
     def test_broken_symlink_target_is_treated_as_empty(self):
         base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
         with tempfile.TemporaryDirectory() as temp:
