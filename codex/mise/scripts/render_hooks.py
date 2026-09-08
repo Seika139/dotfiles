@@ -142,6 +142,8 @@ def format_sources(profile_path: Path, target: Path) -> list[str]:
     apm_counts: dict[str, int] = {}
     for group in contributed["apm"]:
         source = group.get("_apm_source", "unknown")
+        if not isinstance(source, str):
+            source = json.dumps(source, ensure_ascii=False, sort_keys=True)
         apm_counts[source] = apm_counts.get(source, 0) + 1
 
     if apm_counts:

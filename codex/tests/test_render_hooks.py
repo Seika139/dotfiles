@@ -210,6 +210,31 @@ class RenderHooksTest(unittest.TestCase):
             ],
         )
 
+    def test_list_sources_handles_non_string_apm_source(self):
+        # `_apm_source` is written by external tooling and is not validated
+        # to be a string; render_hooks.py must not raise TypeError from an
+        # unhashable dict key or fail sorted() on mixed str/None values.
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": ["pkg-a", "pkg-b"]},
+                    {"matcher": "apm-b", "hooks": [], "_apm_source": None},
+                    {"matcher": "apm-c", "hooks": [], "_apm_source": "ponytail"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: (not present)",
+                'apm (_apm_source=["pkg-a", "pkg-b"]): 1 entries',
+                "apm (_apm_source=null): 1 entries",
+                "apm (_apm_source=ponytail): 1 entries",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
