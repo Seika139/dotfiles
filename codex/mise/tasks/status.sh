@@ -178,13 +178,12 @@ if [ -f "$PROFILE_PATH/hooks.base.json" ] || [ -f "$PROFILE_PATH/hooks.local.jso
     if "$render_hooks_script" --profile-path "$PROFILE_PATH" --target "$hooks_target" --same-as "$hooks_target"; then
       printf "%s\n" "   ✅ $hooks_target matches rendered profile hooks"
       printf "%s\n" "      composed from:"
-      list_sources_output="$("$render_hooks_script" --profile-path "$PROFILE_PATH" --target "$hooks_target" --list-sources)"
-      list_sources_status=$?
-      if [ "$list_sources_status" -eq 0 ]; then
+      if list_sources_output="$("$render_hooks_script" --profile-path "$PROFILE_PATH" --target "$hooks_target" --list-sources)"; then
         while IFS= read -r line; do
           printf "%s\n" "      - $line"
         done <<<"$list_sources_output"
       else
+        list_sources_status=$?
         print_yellow "      ⚠️  failed to list sources (exit $list_sources_status)"$'\n'
       fi
     else
