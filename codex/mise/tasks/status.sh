@@ -115,22 +115,6 @@ for file in config.base.toml config.local.toml config.toml; do
   fi
 done
 
-printf "\n🪝 Hooks sources:\n"
-for file in hooks.base.json hooks.local.json; do
-  source="$PROFILE_PATH/$file"
-  if [ -f "$source" ]; then
-    if [ "$file" = "hooks.local.json" ]; then
-      printf "%s\n" "   ✅ $source (git-ignored local/private)"
-    else
-      printf "%s\n" "   ✅ $source"
-    fi
-  elif [ "$file" = "hooks.local.json" ]; then
-    printf "%s\n" "   ⭕ $source (optional)"
-  else
-    print_yellow "   ❌ $source (missing)"$'\n'
-  fi
-done
-
 printf "\n⚙️  Runtime config in "
 print_dim "$HOME/.codex:"$'\n'
 config_target="${HOME}/.codex/config.toml"
@@ -165,6 +149,22 @@ else
   printf "%s\n" "   ⚠️  No config sources in profile; existing $config_target is left untouched"
 fi
 
+printf "\n🪝 Hooks sources:\n"
+for file in hooks.base.json hooks.local.json; do
+  source="$PROFILE_PATH/$file"
+  if [ -f "$source" ]; then
+    if [ "$file" = "hooks.local.json" ]; then
+      printf "%s\n" "   ✅ $source (git-ignored local/private)"
+    else
+      printf "%s\n" "   ✅ $source"
+    fi
+  elif [ "$file" = "hooks.local.json" ]; then
+    printf "%s\n" "   ⭕ $source (optional)"
+  else
+    print_yellow "   ❌ $source (missing)"$'\n'
+  fi
+done
+
 printf "\n🪝 Runtime hooks in "
 print_dim "$HOME/.codex:"$'\n'
 hooks_target="${HOME}/.codex/hooks.json"
@@ -177,6 +177,15 @@ if [ -f "$PROFILE_PATH/hooks.base.json" ] || [ -f "$PROFILE_PATH/hooks.local.jso
   elif [ -f "$hooks_target" ]; then
     if "$render_hooks_script" --profile-path "$PROFILE_PATH" --target "$hooks_target" --same-as "$hooks_target"; then
       printf "%s\n" "   ✅ $hooks_target matches rendered profile hooks"
+      printf "%s\n" "      composed from:"
+      if list_sources_output="$("$render_hooks_script" --profile-path "$PROFILE_PATH" --target "$hooks_target" --list-sources)"; then
+        while IFS= read -r line; do
+          printf "%s\n" "      - $line"
+        done <<<"$list_sources_output"
+      else
+        list_sources_status=$?
+        print_yellow "      ⚠️  failed to list sources (exit $list_sources_status)"$'\n'
+      fi
     else
       printf "%s" "   ⚠️  "
       print_dim "$hooks_target"

@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mise.scripts.render_hooks import render
+from mise.scripts.render_hooks import format_sources, render
 
 
 class RenderHooksTest(unittest.TestCase):
@@ -26,6 +26,21 @@ class RenderHooksTest(unittest.TestCase):
                 target.write_text(json.dumps(target_content), encoding="utf-8")
 
             return render(profile_path, target)
+
+    def list_sources_with(self, base=None, local=None, target_content=None):
+        with tempfile.TemporaryDirectory() as temp:
+            profile_path = Path(temp) / "profile"
+            profile_path.mkdir()
+            if base is not None:
+                (profile_path / "hooks.base.json").write_text(json.dumps(base), encoding="utf-8")
+            if local is not None:
+                (profile_path / "hooks.local.json").write_text(json.dumps(local), encoding="utf-8")
+
+            target = Path(temp) / "hooks.json"
+            if target_content is not None:
+                target.write_text(json.dumps(target_content), encoding="utf-8")
+
+            return format_sources(profile_path, target)
 
     def test_base_only(self):
         base = {"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "echo hi"}]}]}}
@@ -128,6 +143,120 @@ class RenderHooksTest(unittest.TestCase):
 
             result = render(profile_path, target)
         self.assertEqual(result, base)
+
+    def test_list_sources_all_present(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        local = {"hooks": {"Stop": [{"matcher": "local", "hooks": []}]}}
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": "ponytail"},
+                    {"matcher": "apm-b", "hooks": [], "_apm_source": "ponytail"},
+                    {"matcher": "apm-c", "hooks": [], "_apm_source": "other-pkg"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(base=base, local=local, target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: 1 entries",
+                "apm (_apm_source=other-pkg): 1 entries",
+                "apm (_apm_source=ponytail): 2 entries",
+            ],
+        )
+
+    def test_list_sources_dedupes_entry_shared_by_base_and_local(self):
+        base = {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}}
+        local = {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}}
+        lines = self.list_sources_with(base=base, local=local)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: 0 entries",
+                "apm: (not present)",
+            ],
+        )
+
+    def test_list_sources_dedupes_entry_duplicated_within_base(self):
+        base = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "dup", "hooks": []},
+                    {"matcher": "dup", "hooks": []},
+                ]
+            }
+        }
+        lines = self.list_sources_with(base=base)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: (not present)",
+                "apm: (not present)",
+            ],
+        )
+
+    def test_list_sources_none_present(self):
+        lines = self.list_sources_with()
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: (not present)",
+                "apm: (not present)",
+            ],
+        )
+
+    def test_list_sources_handles_non_string_apm_source(self):
+        # `_apm_source` is written by external tooling and is not validated
+        # to be a string; render_hooks.py must not raise TypeError from an
+        # unhashable dict key or fail sorted() on mixed str/None values.
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": ["pkg-a", "pkg-b"]},
+                    {"matcher": "apm-b", "hooks": [], "_apm_source": None},
+                    {"matcher": "apm-c", "hooks": [], "_apm_source": "ponytail"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: (not present)",
+                'apm (_apm_source=["pkg-a", "pkg-b"]): 1 entries',
+                "apm (_apm_source=null): 1 entries",
+                "apm (_apm_source=ponytail): 1 entries",
+            ],
+        )
+
+    def test_list_sources_normalizes_multiline_apm_source_string(self):
+        # A crafted `_apm_source` string containing a newline must not be
+        # allowed to split the "composed from" breakdown into extra lines
+        # that could be mistaken for additional legitimate entries.
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": "pkg\n   ❌ forged"},
+                    {"matcher": "apm-b", "hooks": [], "_apm_source": "ponytail"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: (not present)",
+                'apm (_apm_source="pkg\\n   ❌ forged"): 1 entries',
+                "apm (_apm_source=ponytail): 1 entries",
+            ],
+        )
 
 
 if __name__ == "__main__":

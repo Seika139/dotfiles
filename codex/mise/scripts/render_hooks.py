@@ -80,14 +80,29 @@ def load_apm_entries(target: Path) -> dict[str, list[Any]]:
     return apm_hooks
 
 
-def merge_hooks(*sources: dict[str, list[Any]]) -> dict[str, list[Any]]:
+def merge_hooks_with_attribution(
+    named_sources: list[tuple[str, dict[str, list[Any]]]],
+) -> tuple[dict[str, list[Any]], dict[str, list[Any]]]:
+    """Merge hook sources in order, deduplicating exact-duplicate matcher groups.
+
+    Returns the merged hooks plus, for each named source, the list of groups it
+    actually contributed post-dedup (a group already contributed by an earlier
+    source is attributed there, not to later sources that repeat it).
+    """
     merged: dict[str, list[Any]] = {}
-    for source in sources:
+    contributed: dict[str, list[Any]] = {name: [] for name, _ in named_sources}
+    for name, source in named_sources:
         for event, matcher_groups in source.items():
             bucket = merged.setdefault(event, [])
             for group in matcher_groups:
                 if group not in bucket:
                     bucket.append(group)
+                    contributed[name].append(group)
+    return merged, contributed
+
+
+def merge_hooks(*sources: dict[str, list[Any]]) -> dict[str, list[Any]]:
+    merged, _ = merge_hooks_with_attribution([(str(index), source) for index, source in enumerate(sources)])
     return merged
 
 
@@ -96,6 +111,58 @@ def render(profile_path: Path, target: Path) -> dict[str, Any]:
     local = load_hooks(profile_path / "hooks.local.json")
     apm = load_apm_entries(target)
     return {"hooks": merge_hooks(base, local, apm)}
+
+
+def _render_source_label(value: Any) -> str:
+    """Render `_apm_source` as a single display-safe line.
+
+    Non-string values, and strings containing newlines or other control
+    characters, are rendered via `json.dumps` so a hostile value can't break
+    the one-entry-per-line breakdown display.
+    """
+    if isinstance(value, str) and value.isprintable():
+        return value
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
+def format_sources(profile_path: Path, target: Path) -> list[str]:
+    """Describe what hooks.base.json / hooks.local.json / apm each contributed.
+
+    Counts reflect what actually survives `merge_hooks`'s dedup, not raw entries
+    per file: a group already contributed by an earlier source (e.g. present in
+    both base and local, or duplicated within base itself) is not double-counted
+    against later sources.
+    """
+    base_path = profile_path / "hooks.base.json"
+    local_path = profile_path / "hooks.local.json"
+
+    _, contributed = merge_hooks_with_attribution(
+        [
+            ("hooks.base.json", load_hooks(base_path)),
+            ("hooks.local.json", load_hooks(local_path)),
+            ("apm", load_apm_entries(target)),
+        ]
+    )
+
+    lines: list[str] = []
+    for filename, source_path in (("hooks.base.json", base_path), ("hooks.local.json", local_path)):
+        if source_path.is_file():
+            lines.append(f"{filename}: {len(contributed[filename])} entries")
+        else:
+            lines.append(f"{filename}: (not present)")
+
+    apm_counts: dict[str, int] = {}
+    for group in contributed["apm"]:
+        source = _render_source_label(group.get("_apm_source", "unknown"))
+        apm_counts[source] = apm_counts.get(source, 0) + 1
+
+    if apm_counts:
+        for source in sorted(apm_counts):
+            lines.append(f"apm (_apm_source={source}): {apm_counts[source]} entries")
+    else:
+        lines.append("apm: (not present)")
+
+    return lines
 
 
 def write_output(path: Path, content: str) -> None:
@@ -120,7 +187,17 @@ def main() -> int:
     parser.add_argument("--target", required=True, type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--same-as", type=Path)
+    parser.add_argument("--list-sources", action="store_true", help="print the composition breakdown and exit")
     args = parser.parse_args()
+
+    if args.list_sources:
+        try:
+            for line in format_sources(args.profile_path, args.target):
+                print(line)
+        except Exception as error:
+            print(f"render_hooks.py: {error}", file=sys.stderr)
+            return 1
+        return 0
 
     try:
         data = render(args.profile_path, args.target)
