@@ -101,6 +101,21 @@ class RenderHooksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.render_with(base=base, local=local)
 
+    def test_base_matcher_group_string_raises(self):
+        base = {"hooks": {"Stop": ["not-a-group"]}}
+        with self.assertRaises(ValueError):
+            self.render_with(base=base)
+
+    def test_base_group_hooks_key_object_raises(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": {"type": "command"}}]}}
+        with self.assertRaises(ValueError):
+            self.render_with(base=base)
+
+    def test_base_group_hooks_entry_string_raises(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": ["not-a-hook"]}]}}
+        with self.assertRaises(ValueError):
+            self.render_with(base=base)
+
     def test_broken_symlink_target_is_treated_as_empty(self):
         base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
         with tempfile.TemporaryDirectory() as temp:

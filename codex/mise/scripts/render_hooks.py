@@ -33,6 +33,24 @@ def load_hooks(path: Path) -> dict[str, list[Any]]:
     for event, matcher_groups in hooks.items():
         if not isinstance(matcher_groups, list):
             raise ValueError(f"{path}: hooks.{event} must be an array, got {type(matcher_groups).__name__}")
+        for index, group in enumerate(matcher_groups):
+            if not isinstance(group, dict):
+                raise ValueError(
+                    f"{path}: hooks.{event}[{index}] must be an object, got {type(group).__name__}"
+                )
+            group_hooks = group.get("hooks")
+            if group_hooks is None:
+                continue
+            if not isinstance(group_hooks, list):
+                raise ValueError(
+                    f"{path}: hooks.{event}[{index}].hooks must be an array, got {type(group_hooks).__name__}"
+                )
+            for hook_index, hook in enumerate(group_hooks):
+                if not isinstance(hook, dict):
+                    raise ValueError(
+                        f"{path}: hooks.{event}[{index}].hooks[{hook_index}] must be an object, "
+                        f"got {type(hook).__name__}"
+                    )
     return hooks
 
 
