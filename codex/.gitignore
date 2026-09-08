@@ -8,6 +8,10 @@ config.local.toml
 config.local.toml.backup.*
 config.base.toml.backup.*
 
+# Codex runtime hooks are generated at ~/.codex/hooks.json from
+# profile hooks.base.json + optional local/private overrides.
+profiles/*/hooks.local.json
+
 create-issue-config.json
 
 # Codex notification debug logs generated per profile.
