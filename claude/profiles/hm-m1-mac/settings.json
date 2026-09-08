@@ -65,6 +65,17 @@
         "matcher": "Edit|Write|NotebookEdit"
       }
     ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "node PONYTAIL_DIR/hooks/ponytail-subagent.js",
+            "type": "command"
+          }
+        ],
+        "matcher": "task|Task"
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -74,6 +85,16 @@
           }
         ],
         "matcher": ""
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "node PONYTAIL_DIR/hooks/ponytail-mode-tracker.js",
+            "type": "command"
+          }
+        ]
       }
     ]
   },
