@@ -12,5 +12,6 @@ includes: auto
 dependencies:
   apm:
     - Caromaf/agent-package-basic#main
+    - DietrichGebert/ponytail#main
     - mattpocock/skills#main
   mcp: []
