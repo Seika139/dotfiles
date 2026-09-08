@@ -36,10 +36,13 @@ def load_hooks(path: Path) -> dict[str, list[Any]]:
 def load_apm_entries(target: Path) -> dict[str, list[Any]]:
     """Extract `_apm_source` matcher groups from an existing deploy target.
 
-    Symlinks are skipped: their target is the git-managed profile file
-    itself, so it never carries `_apm_source` entries written by `apm`.
+    Symlinks are followed rather than skipped: legacy deployments pointed
+    `target` at a profile-managed hooks.json into which `apm install -g`
+    had already written `_apm_source` entries, and those must survive the
+    first `mise run link` after migration. If the symlink target does not
+    exist or is not valid JSON, treat it as empty and continue.
     """
-    if target.is_symlink() or not target.is_file():
+    if not target.is_file():
         return {}
     try:
         hooks = load_hooks(target)

@@ -70,7 +70,7 @@ class RenderHooksTest(unittest.TestCase):
         result = self.render_with(base=base, local=local)
         self.assertEqual(result, {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}})
 
-    def test_symlink_target_does_not_read_apm_source(self):
+    def test_symlink_target_preserves_apm_source(self):
         base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
         target_content = {
             "hooks": {
@@ -78,6 +78,29 @@ class RenderHooksTest(unittest.TestCase):
             }
         }
         result = self.render_with(base=base, target_content=target_content, target_is_symlink=True)
+        self.assertEqual(
+            result,
+            {
+                "hooks": {
+                    "Stop": [
+                        {"matcher": "base", "hooks": []},
+                        {"matcher": "apm", "hooks": [], "_apm_source": "some-package"},
+                    ]
+                }
+            },
+        )
+
+    def test_broken_symlink_target_is_treated_as_empty(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        with tempfile.TemporaryDirectory() as temp:
+            profile_path = Path(temp) / "profile"
+            profile_path.mkdir()
+            (profile_path / "hooks.base.json").write_text(json.dumps(base), encoding="utf-8")
+
+            target = Path(temp) / "hooks.json"
+            os.symlink(Path(temp) / "does-not-exist.json", target)
+
+            result = render(profile_path, target)
         self.assertEqual(result, base)
 
 

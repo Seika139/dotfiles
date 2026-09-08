@@ -137,6 +137,10 @@ if [ -f "$PROFILE_PATH/hooks.base.json" ] || [ -f "$PROFILE_PATH/hooks.local.jso
   if [ -L "$hooks_target" ]; then
     printf "%s\n" "   Replacing hooks symlink with generated file: $hooks_target"
     rm "$hooks_target"
+  elif [ -d "$hooks_target" ]; then
+    printf "%s\n" "🚨 Cannot write hooks because target is a directory: $hooks_target" >&2
+    rm -f "$tmp_hooks"
+    exit 1
   fi
 
   mv "$tmp_hooks" "$hooks_target"
