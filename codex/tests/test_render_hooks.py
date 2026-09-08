@@ -167,6 +167,38 @@ class RenderHooksTest(unittest.TestCase):
             ],
         )
 
+    def test_list_sources_dedupes_entry_shared_by_base_and_local(self):
+        base = {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}}
+        local = {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}}
+        lines = self.list_sources_with(base=base, local=local)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: 0 entries",
+                "apm: (not present)",
+            ],
+        )
+
+    def test_list_sources_dedupes_entry_duplicated_within_base(self):
+        base = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "dup", "hooks": []},
+                    {"matcher": "dup", "hooks": []},
+                ]
+            }
+        }
+        lines = self.list_sources_with(base=base)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: (not present)",
+                "apm: (not present)",
+            ],
+        )
+
     def test_list_sources_none_present(self):
         lines = self.list_sources_with()
         self.assertEqual(
