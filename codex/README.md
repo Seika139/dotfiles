@@ -20,6 +20,8 @@ codex/
       AGENTS.md
       config.base.toml
       config.local.toml
+      hooks.base.json
+      hooks.local.json
       prompts/
       skills/
       custom-config/
@@ -47,6 +49,7 @@ mise run list
 ~/.codex/skills/<skill>  -> codex/profiles/<profile>/skills/<skill>
 ~/.codex/agents/<name>.toml  通常ファイルとして配備
 ~/.codex/config.toml     通常ファイルとして生成
+~/.codex/hooks.json      通常ファイルとして生成
 ```
 
 `skills` は `~/.codex/skills` ディレクトリごとの symlink にはしません。Codex の `.system` skill を残すため、profile skill だけを個別に symlink します。
@@ -91,6 +94,22 @@ args = ["-y", "mcp-remote", "https://developers.openai.com/mcp"]
 ```
 
 同じキーがある場合は `config.local.toml` が優先されます。
+
+## hooks.json の運用
+
+`~/.codex/hooks.json` も symlink ではなく、`config.toml` と同様に生成ファイルとして扱います。
+
+```text
+codex/profiles/<profile>/hooks.base.json
++ codex/profiles/<profile>/hooks.local.json
+= ~/.codex/hooks.json
+```
+
+`hooks.base.json` は git 管理する共有設定、`hooks.local.json` は git 管理しないローカル設定です。
+
+`mise run install`@agents/ が実行する `apm install -g --refresh --force` は `~/.codex/hooks.json` に `_apm_source` キー付きのエントリを直接書き込みます。生成時にはこの `_apm_source` エントリを保持したまま `hooks.base.json` / `hooks.local.json` の内容とマージするため、`mise run link` を実行しても apm 由来の hook は失われません。
+
+旧構成では `~/.codex/hooks.json` が `profiles/<profile>/hooks.json` への symlink だったため、この変更を pull した直後は symlink が dangling になり、apm 由来の `_apm_source` エントリは生成時に収穫できません。移行初回は `mise run link` の後に `mise run update`@agents/ を実行して apm エントリを再生成してください。
 
 ## よく使うコマンド
 
@@ -237,6 +256,7 @@ git 管理するもの:
 
 ```text
 config.base.toml
+hooks.base.json
 AGENTS.md
 prompts/
 skills/
@@ -248,6 +268,7 @@ git 管理しないもの:
 ```text
 config.local.toml
 config.local.toml.backup.*
+hooks.local.json
 mise.local.toml
 秘密情報や PC 固有の設定
 ```

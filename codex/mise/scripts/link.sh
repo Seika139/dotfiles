@@ -94,8 +94,9 @@ agents_sync="${MISE_CONFIG_ROOT}/mise/scripts/sync_agents.sh"
 # prompts / skills は APM 管理 (dotfiles/agents/) に移行済のため本スクリプトでは扱わない。
 # `mise run install`@agents/ で ~/.codex/skills/ に直接配備される
 # (codex は user-scope で prompts 非対応 — agents/ 側で codex 用 prompts は配備されない)。
-main_targets=(AGENTS.md custom-config hooks.json)
+main_targets=(AGENTS.md custom-config)
 render_config="${MISE_CONFIG_ROOT}/mise/scripts/render_config.py"
+render_hooks="${MISE_CONFIG_ROOT}/mise/scripts/render_hooks.py"
 
 printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
 
@@ -126,6 +127,27 @@ if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ]
   printf "%s\n" "   Generated runtime config: $config_target"
 else
   printf "   ⚠️  Skipping config; no config.base.toml, config.toml, or config.local.toml in: \033[31m%s\033[0m\n" "$PROFILE_PATH"
+fi
+
+hooks_target="${CODEX_HOME}/hooks.json"
+if [ -f "$PROFILE_PATH/hooks.base.json" ] || [ -f "$PROFILE_PATH/hooks.local.json" ]; then
+  tmp_hooks="$(mktemp)"
+  "$render_hooks" --profile-path "$PROFILE_PATH" --target "$hooks_target" --output "$tmp_hooks"
+
+  if [ -L "$hooks_target" ]; then
+    printf "%s\n" "   Replacing hooks symlink with generated file: $hooks_target"
+    rm "$hooks_target"
+  elif [ -d "$hooks_target" ]; then
+    printf "%s\n" "🚨 Cannot write hooks because target is a directory: $hooks_target" >&2
+    rm -f "$tmp_hooks"
+    exit 1
+  fi
+
+  mv "$tmp_hooks" "$hooks_target"
+  chmod 600 "$hooks_target"
+  printf "%s\n" "   Generated runtime hooks: $hooks_target"
+else
+  printf "   ⚠️  Skipping hooks; no hooks.base.json or hooks.local.json in: \033[31m%s\033[0m\n" "$PROFILE_PATH"
 fi
 
 for file in "${main_targets[@]}"; do

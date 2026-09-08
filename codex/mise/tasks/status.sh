@@ -82,7 +82,7 @@ fi
 
 printf "\n📂 Original files and directories:\n"
 # NOTE: prompts/ skills/ は APM 管理 (dotfiles/agents/) に移行済のためチェック対象外。
-profile_targets=(AGENTS.md custom-config hooks.json)
+profile_targets=(AGENTS.md custom-config)
 for file in "${profile_targets[@]}"; do
   source="$PROFILE_PATH/$file"
   if [ -f "$source" ] || [ -d "$source" ]; then
@@ -110,6 +110,22 @@ for file in config.base.toml config.local.toml config.toml; do
     printf "%s\n" "   ⭕ $source (optional)"
   elif [ "$file" = "config.toml" ] && [ -f "$PROFILE_PATH/config.base.toml" ]; then
     printf "%s\n" "   ⭕ $source (legacy optional)"
+  else
+    print_yellow "   ❌ $source (missing)"$'\n'
+  fi
+done
+
+printf "\n🪝 Hooks sources:\n"
+for file in hooks.base.json hooks.local.json; do
+  source="$PROFILE_PATH/$file"
+  if [ -f "$source" ]; then
+    if [ "$file" = "hooks.local.json" ]; then
+      printf "%s\n" "   ✅ $source (git-ignored local/private)"
+    else
+      printf "%s\n" "   ✅ $source"
+    fi
+  elif [ "$file" = "hooks.local.json" ]; then
+    printf "%s\n" "   ⭕ $source (optional)"
   else
     print_yellow "   ❌ $source (missing)"$'\n'
   fi
@@ -147,6 +163,32 @@ if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ]
   rm -f "$tmp_config"
 else
   printf "%s\n" "   ⚠️  No config sources in profile; existing $config_target is left untouched"
+fi
+
+printf "\n🪝 Runtime hooks in "
+print_dim "$HOME/.codex:"$'\n'
+hooks_target="${HOME}/.codex/hooks.json"
+render_hooks_script="${ROOT_DIR}/mise/scripts/render_hooks.py"
+if [ -f "$PROFILE_PATH/hooks.base.json" ] || [ -f "$PROFILE_PATH/hooks.local.json" ]; then
+  if [ -L "$hooks_target" ]; then
+    printf "%s" "   ⚠️  "
+    print_dim "$hooks_target"
+    print_yellow " is still a symlink. Run: mise run link --prof \"$PROFILE\""$'\n'
+  elif [ -f "$hooks_target" ]; then
+    if "$render_hooks_script" --profile-path "$PROFILE_PATH" --target "$hooks_target" --same-as "$hooks_target"; then
+      printf "%s\n" "   ✅ $hooks_target matches rendered profile hooks"
+    else
+      printf "%s" "   ⚠️  "
+      print_dim "$hooks_target"
+      print_yellow " differs from rendered profile hooks"$'\n'
+      print_yellow "         re-render profile hooks: "
+      print_cyan "mise run link --prof \"$PROFILE\""$'\n'
+    fi
+  else
+    print_yellow "   ❌ $hooks_target does not exist. Run: mise run link --prof \"$PROFILE\""$'\n'
+  fi
+else
+  printf "%s\n" "   ⚠️  No hooks sources in profile; existing $hooks_target is left untouched"
 fi
 
 printf "\n🔗 Profile files in "
