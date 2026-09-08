@@ -98,6 +98,42 @@ def render(profile_path: Path, target: Path) -> dict[str, Any]:
     return {"hooks": merge_hooks(base, local, apm)}
 
 
+def count_entries(hooks: dict[str, list[Any]]) -> int:
+    """Count matcher groups across all events (one hooks.*.json file's contribution)."""
+    return sum(len(matcher_groups) for matcher_groups in hooks.values())
+
+
+def apm_counts_by_source(target: Path) -> dict[str, int]:
+    """Tally `_apm_source` matcher groups in `target`, keyed by source value."""
+    counts: dict[str, int] = {}
+    for matcher_groups in load_apm_entries(target).values():
+        for group in matcher_groups:
+            source = group.get("_apm_source", "unknown")
+            counts[source] = counts.get(source, 0) + 1
+    return counts
+
+
+def format_sources(profile_path: Path, target: Path) -> list[str]:
+    """Describe what hooks.base.json / hooks.local.json / apm each contributed."""
+    lines: list[str] = []
+
+    for filename in ("hooks.base.json", "hooks.local.json"):
+        source_path = profile_path / filename
+        if source_path.is_file():
+            lines.append(f"{filename}: {count_entries(load_hooks(source_path))} entries")
+        else:
+            lines.append(f"{filename}: (not present)")
+
+    apm_counts = apm_counts_by_source(target)
+    if apm_counts:
+        for source in sorted(apm_counts):
+            lines.append(f"apm (_apm_source={source}): {apm_counts[source]} entries")
+    else:
+        lines.append("apm: (not present)")
+
+    return lines
+
+
 def write_output(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -120,7 +156,17 @@ def main() -> int:
     parser.add_argument("--target", required=True, type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--same-as", type=Path)
+    parser.add_argument("--list-sources", action="store_true", help="print the composition breakdown and exit")
     args = parser.parse_args()
+
+    if args.list_sources:
+        try:
+            for line in format_sources(args.profile_path, args.target):
+                print(line)
+        except Exception as error:
+            print(f"render_hooks.py: {error}", file=sys.stderr)
+            return 1
+        return 0
 
     try:
         data = render(args.profile_path, args.target)

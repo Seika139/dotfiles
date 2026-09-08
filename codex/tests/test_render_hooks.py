@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mise.scripts.render_hooks import render
+from mise.scripts.render_hooks import format_sources, render
 
 
 class RenderHooksTest(unittest.TestCase):
@@ -26,6 +26,21 @@ class RenderHooksTest(unittest.TestCase):
                 target.write_text(json.dumps(target_content), encoding="utf-8")
 
             return render(profile_path, target)
+
+    def list_sources_with(self, base=None, local=None, target_content=None):
+        with tempfile.TemporaryDirectory() as temp:
+            profile_path = Path(temp) / "profile"
+            profile_path.mkdir()
+            if base is not None:
+                (profile_path / "hooks.base.json").write_text(json.dumps(base), encoding="utf-8")
+            if local is not None:
+                (profile_path / "hooks.local.json").write_text(json.dumps(local), encoding="utf-8")
+
+            target = Path(temp) / "hooks.json"
+            if target_content is not None:
+                target.write_text(json.dumps(target_content), encoding="utf-8")
+
+            return format_sources(profile_path, target)
 
     def test_base_only(self):
         base = {"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "echo hi"}]}]}}
@@ -128,6 +143,40 @@ class RenderHooksTest(unittest.TestCase):
 
             result = render(profile_path, target)
         self.assertEqual(result, base)
+
+    def test_list_sources_all_present(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        local = {"hooks": {"Stop": [{"matcher": "local", "hooks": []}]}}
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": "ponytail"},
+                    {"matcher": "apm-b", "hooks": [], "_apm_source": "ponytail"},
+                    {"matcher": "apm-c", "hooks": [], "_apm_source": "other-pkg"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(base=base, local=local, target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: 1 entries",
+                "apm (_apm_source=other-pkg): 1 entries",
+                "apm (_apm_source=ponytail): 2 entries",
+            ],
+        )
+
+    def test_list_sources_none_present(self):
+        lines = self.list_sources_with()
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: (not present)",
+                "apm: (not present)",
+            ],
+        )
 
 
 if __name__ == "__main__":
