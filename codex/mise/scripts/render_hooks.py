@@ -5,8 +5,10 @@
 """Render Codex hooks.json from profile-managed JSON fragments.
 
 Merges <profile>/hooks.base.json + <profile>/hooks.local.json, and preserves
-any `_apm_source` entries already present in the deploy target (so that
-`apm install -g` written hooks are not dropped when we regenerate the file).
+every matcher group already present in the deploy target (e.g. hooks an
+`apm install -g` package writes directly into the deploy target), so
+regenerating the file doesn't drop it. Exact duplicates between sources are
+deduped by `merge_hooks`.
 """
 
 from __future__ import annotations
@@ -55,29 +57,36 @@ def load_hooks(path: Path) -> dict[str, list[Any]]:
 
 
 def load_apm_entries(target: Path) -> dict[str, list[Any]]:
-    """Extract `_apm_source` matcher groups from an existing deploy target.
+    """Return every matcher group already present in an existing deploy target.
+
+    A group here may duplicate something hooks.base.json/hooks.local.json
+    also declares (harmless: `merge_hooks`'s dedup collapses it), or it may
+    have been written by something outside this profile (e.g. `apm install
+    -g` deploying a package's own hooks fragment straight into the deploy
+    target). Either way it's preserved verbatim so regenerating the file
+    doesn't drop it. Packages are not expected to tag what they write, so
+    this is not a tag lookup.
 
     Symlinks are followed rather than skipped: legacy deployments pointed
     `target` at a profile-managed hooks.json into which `apm install -g`
-    had already written `_apm_source` entries, and those must survive the
-    first `mise run link` after migration. If the symlink target does not
-    exist or is not valid JSON, treat it as empty and continue.
+    had already written entries, and those must survive the first
+    `mise run link` after migration. If the symlink target does not exist,
+    treat it as empty and continue. A target that fails to parse as JSON is
+    also treated as empty (e.g. a dangling symlink). A target that parses
+    but has a malformed hooks structure is likewise treated as empty, but
+    warns on stderr first: silently dropping it would erase every
+    externally-managed hook the target currently holds, not just the
+    malformed part.
     """
     if not target.is_file():
         return {}
     try:
-        hooks = load_hooks(target)
-    except (ValueError, json.JSONDecodeError):
+        return load_hooks(target)
+    except json.JSONDecodeError:
         return {}
-
-    apm_hooks: dict[str, list[Any]] = {}
-    for event, matcher_groups in hooks.items():
-        if not isinstance(matcher_groups, list):
-            continue
-        kept = [group for group in matcher_groups if isinstance(group, dict) and "_apm_source" in group]
-        if kept:
-            apm_hooks[event] = kept
-    return apm_hooks
+    except ValueError as error:
+        print(f"render_hooks.py: warning: ignoring malformed {target}: {error}", file=sys.stderr)
+        return {}
 
 
 def merge_hooks_with_attribution(
@@ -153,12 +162,14 @@ def format_sources(profile_path: Path, target: Path) -> list[str]:
 
     apm_counts: dict[str, int] = {}
     for group in contributed["apm"]:
-        source = _render_source_label(group.get("_apm_source", "unknown"))
-        apm_counts[source] = apm_counts.get(source, 0) + 1
+        # Packages are not expected to tag what they write; only report a
+        # `_apm_source` breakdown for the groups that happen to carry one.
+        label = f"_apm_source={_render_source_label(group['_apm_source'])}" if "_apm_source" in group else "untracked by profile"
+        apm_counts[label] = apm_counts.get(label, 0) + 1
 
     if apm_counts:
-        for source in sorted(apm_counts):
-            lines.append(f"apm (_apm_source={source}): {apm_counts[source]} entries")
+        for label in sorted(apm_counts):
+            lines.append(f"apm ({label}): {apm_counts[label]} entries")
     else:
         lines.append("apm: (not present)")
 

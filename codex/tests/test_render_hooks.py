@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import os
 import tempfile
@@ -56,7 +58,9 @@ class RenderHooksTest(unittest.TestCase):
             {"hooks": {"Stop": [{"matcher": "base", "hooks": []}, {"matcher": "local", "hooks": []}]}},
         )
 
-    def test_preserves_apm_source_entries_from_existing_target(self):
+    def test_preserves_tagged_external_entries_from_existing_target(self):
+        # An `_apm_source` tag is incidental now: preservation doesn't look
+        # for it, but a tagged group must still survive like any other.
         base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
         target_content = {
             "hooks": {
@@ -79,13 +83,63 @@ class RenderHooksTest(unittest.TestCase):
             },
         )
 
+    def test_preserves_untagged_external_entries_from_existing_target(self):
+        # The real `apm install -g` (e.g. DietrichGebert/ponytail) writes
+        # hooks straight into the deploy target without any `_apm_source`
+        # tag. Preservation must work on content diff alone, not tag lookup.
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "base", "hooks": []},
+                    {"matcher": "external", "hooks": []},
+                ]
+            }
+        }
+        result = self.render_with(base=base, target_content=target_content)
+        self.assertEqual(
+            result,
+            {
+                "hooks": {
+                    "Stop": [
+                        {"matcher": "base", "hooks": []},
+                        {"matcher": "external", "hooks": []},
+                    ]
+                }
+            },
+        )
+
+    def test_removed_base_entry_still_in_target_is_preserved_as_external(self):
+        # Known limitation, pinned by this test: render() preserves every
+        # existing target entry unconditionally, so an entry dropped from
+        # hooks.base.json/hooks.local.json survives as long as a stale
+        # target still has it. Delete the target file before `mise run
+        # link` to actually clear it.
+        target_content = {"hooks": {"Stop": [{"matcher": "removed-from-base", "hooks": []}]}}
+        result = self.render_with(base={"hooks": {}}, target_content=target_content)
+        self.assertEqual(result, {"hooks": {"Stop": [{"matcher": "removed-from-base", "hooks": []}]}})
+
+    def test_malformed_target_warns_and_falls_back_to_base(self):
+        # A structurally invalid target (as opposed to a dangling symlink or
+        # unparsable JSON) must not silently erase every externally-managed
+        # hook it holds; it should warn and fall back to base/local only.
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        target_content = {"hooks": {"Stop": "not-a-list"}}
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            result = self.render_with(base=base, target_content=target_content)
+        self.assertEqual(result, base)
+        self.assertIn("malformed", stderr.getvalue())
+
     def test_skips_exact_duplicate_entries(self):
         base = {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}}
         local = {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}}
         result = self.render_with(base=base, local=local)
         self.assertEqual(result, {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}})
 
-    def test_symlink_target_preserves_apm_source(self):
+    def test_symlink_target_external_entries_are_harvested(self):
+        # Legacy deployments point `target` at a symlink; entries must be
+        # read by following it, not skipped because it isn't a plain file.
         base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
         target_content = {
             "hooks": {
@@ -164,6 +218,28 @@ class RenderHooksTest(unittest.TestCase):
                 "hooks.local.json: 1 entries",
                 "apm (_apm_source=other-pkg): 1 entries",
                 "apm (_apm_source=ponytail): 2 entries",
+            ],
+        )
+
+    def test_list_sources_labels_untagged_external_entries(self):
+        base = {"hooks": {"Stop": [{"matcher": "base", "hooks": []}]}}
+        target_content = {
+            "hooks": {
+                "Stop": [
+                    {"matcher": "base", "hooks": []},
+                    {"matcher": "external", "hooks": []},
+                    {"matcher": "apm-a", "hooks": [], "_apm_source": "ponytail"},
+                ]
+            }
+        }
+        lines = self.list_sources_with(base=base, target_content=target_content)
+        self.assertEqual(
+            lines,
+            [
+                "hooks.base.json: 1 entries",
+                "hooks.local.json: (not present)",
+                "apm (_apm_source=ponytail): 1 entries",
+                "apm (untracked by profile): 1 entries",
             ],
         )
 
