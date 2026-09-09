@@ -220,18 +220,22 @@ add_path() {
     return 1
   fi
 
-  # 引数をエスケープ解除
-  local dir
-  dir=$(echo -e "$1" | sed 's/\\//g')
+  local dir="$1"
 
   if [[ ! -d "$dir" ]]; then
     error "add_path : $dir is not a valid directory" >&2
     return 1
   fi
 
+  # 相対パスの絶対化と末尾スラッシュの除去を兼ねる
+  dir=$(CDPATH= cd -- "$dir" && pwd) || {
+    error "add_path : failed to resolve $dir" >&2
+    return 1
+  }
+
   case ":$PATH:" in
-  *":$1:"*) ;;
-  *) export PATH="$1:${PATH}" ;;
+  *":$dir:"*) ;;
+  *) export PATH="$dir:${PATH}" ;;
   esac
 
   [[ "${BDOTDIR_SHELL_IS_INTERACTIVE}" == "1" ]] && echo "Added to PATH: $dir"
