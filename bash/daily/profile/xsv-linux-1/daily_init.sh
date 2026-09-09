@@ -197,8 +197,12 @@ update_ccusage() {
   fi
 }
 
-printf "%b%s%b\n" "\\033[38;5;214m" "=== beads (bd) ===" "\\033[0m"
+emphasize_line() {
+  printf "%b%s%b\n" "\\033[38;5;214m" "=== $1 ===" "\\033[0m"
+}
+
+emphasize_line "beads (bd)"
 update_bd
 
-printf "%b%s%b\n" "\\033[38;5;214m" "=== ccusage ===" "\\033[0m"
+emphasize_line "ccusage"
 update_ccusage

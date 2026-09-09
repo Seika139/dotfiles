@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+emphasize_line() {
+  printf "%b%s%b\n" "\\033[38;5;214m" "=== $1 ===" "\\033[0m"
+}
+
 # --with-apt オプションで apt update/upgrade も実行する
 WITH_APT=false
 for arg in "$@"; do
@@ -9,12 +13,12 @@ for arg in "$@"; do
 done
 
 if "$WITH_APT"; then
-  printf "%b%s%b\n" "\\033[38;5;214m" "=== apt update && upgrade (mise 本体含む) ===" "\\033[0m"
+  emphasize_line "apt update && upgrade (mise 本体含む)"
   sudo apt update && sudo apt upgrade -y
 fi
 
 # mise 管理のツール
-printf "%b%s%b\n" "\\033[38;5;214m" "=== mise ===" "\\033[0m"
+emphasize_line "mise"
 MISE_UPGRADE_TIMEOUT="${MISE_UPGRADE_TIMEOUT:-300}"
 timeout "$MISE_UPGRADE_TIMEOUT" mise upgrade || {
   rc=$?
@@ -26,7 +30,7 @@ timeout "$MISE_UPGRADE_TIMEOUT" mise upgrade || {
 }
 
 # Volta 管理のツール（volta list から動的に取得）
-printf "%b%s%b\n" "\\033[38;5;214m" "=== volta ===" "\\033[0m"
+emphasize_line "volta"
 
 # volta install 1 件あたりの最大待ち時間（秒）。
 # codex は native バイナリ 233MB のダウンロードがあるため、遅い回線でも完了できる程度に余裕を持たせる。
@@ -92,7 +96,7 @@ else
 fi
 
 # uv 本体（pipx 経由でインストール）
-printf "%b%s%b\n" "\\033[38;5;214m" "=== uv ===" "\\033[0m"
+emphasize_line "uv"
 PIPX_UPGRADE_TIMEOUT="${PIPX_UPGRADE_TIMEOUT:-180}"
 timeout "$PIPX_UPGRADE_TIMEOUT" pipx upgrade uv || {
   rc=$?
@@ -103,8 +107,21 @@ timeout "$PIPX_UPGRADE_TIMEOUT" pipx upgrade uv || {
   fi
 }
 
+if command -v apm >/dev/null 2>&1; then
+  emphasize_line "apm"
+  APM_UPGRADE_TIMEOUT="${APM_UPGRADE_TIMEOUT:-180}"
+  timeout "$APM_UPGRADE_TIMEOUT" apm self-update || {
+    rc=$?
+    if [ "$rc" -eq 124 ]; then
+      printf "%s\n" "apm self-update: ${APM_UPGRADE_TIMEOUT}秒でタイムアウトしました。"
+    else
+      printf "%s\n" "apm self-update: 失敗しました (exit ${rc})。"
+    fi
+  }
+fi
+
 if ! "$WITH_APT"; then
-  printf "\n%b%s%b\n" "\\033[38;5;214m" "=== apt ===" "\\033[0m"
+  emphasize_line "apt"
   printf "%b%s%b%s\n" "\\033[33m" "⚠  apt のアップデートはスキップしました（mise 本体含む）。" "\\033[0m" "実行する場合:"
   printf "%b%s%b\n" "\\033[36m" "  sudo apt update && sudo apt upgrade -y" "\\033[0m"
 fi
