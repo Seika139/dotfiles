@@ -66,8 +66,8 @@ APM_BASE="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-base"{print $2}'
 APM_OVERLAY="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-overlay"{print $2}')"
 DECLARED_SORTED="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="apm-merged"{print $2}' | sort -u)"
 DEPLOYED_FILES="$(printf "%s\n" "$INSPECT_OUT" | awk -F'\t' '$1=="deployed"{print $2}')"
-DECLARED_SKILLS_CLAUDE="$(printf "%s\n" "$DEPLOYED_FILES" | sed -n 's#^\.claude/skills/##p' | sort -u)"
-DECLARED_SKILLS_AGENTS="$(printf "%s\n" "$DEPLOYED_FILES" | sed -n 's#^\.agents/skills/##p' | sort -u)"
+DECLARED_SKILLS_CLAUDE="$(printf "%s\n" "$DEPLOYED_FILES" | sed -n 's#^\.claude/skills/##p' | cut -d/ -f1 | sort -u)"
+DECLARED_SKILLS_AGENTS="$(printf "%s\n" "$DEPLOYED_FILES" | sed -n 's#^\.agents/skills/##p' | cut -d/ -f1 | sort -u)"
 
 # declared package を primitive 種別で分類する。
 # instructions (例: commit-message) は ~/.claude/rules/ に、agents は ~/.claude/agents/
