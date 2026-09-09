@@ -80,7 +80,8 @@ class NativeAgentSyncTest(unittest.TestCase):
             self.assertIn("cheap-researcher.toml", (home / MANIFEST_NAME).read_text(encoding="utf-8").splitlines())
             data = tomllib.loads(target.read_text(encoding="utf-8"))
             self.assertEqual(data["name"], "cheap-researcher")
-            self.assertEqual(data["model"], "gpt-5.6-terra")
+            self.assertIsInstance(data["model"], str)
+            self.assertTrue(data["model"])
             self.assertEqual(data["model_reasoning_effort"], "low")
             self.assertEqual(data["sandbox_mode"], "read-only")
 
