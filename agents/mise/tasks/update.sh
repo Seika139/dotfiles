@@ -7,21 +7,19 @@
 #USAGE flag "-v --verbose" help="詳細なログを表示する"
 
 # ---------------------------------------------------------------------------
-# 設計: `apm update` には `-g` フラグが無く、project-local モードでしか動かない。
-# profile dir で走らせると harness 検出が走り、profile dir に
-# `.claude/` `.codex/` `.gemini/` `.github/` 等の deploy artifact が生成される
-# (= dotfiles 汚染)。
+# 設計:
+# profile の apm.yml を user scope (~/.apm/) に同期したうえで、
+# `apm update -g` により dependency graph を最新 ref に再解決する。
 #
-# 解決: `apm install -g --refresh` を使う。
-#   --refresh : 永続キャッシュを無視して upstream を再 fetch
-#               (== apm update 相当の「最新 ref を取りに行く」効果)
-#   -g        : ~/.apm/apm.yml ベースの user-scope 動作 (profile dir を汚染しない)
+# `apm update -g` は ~/.apm/apm.yml / apm.lock.yaml を対象にするため、
+# profile dir に .claude/ .codex/ 等の deploy artifact を生成しない。
+#
 #
 # 流れ:
-#   1. profile/apm.yml を ~/.apm/apm.yml にシンク
-#   2. ~/.apm/apm.lock.yaml をバックアップ (削除はしない。stale file 回収に必要)
-#   3. apm install -g --refresh --force
-#   4. 新規生成 lock を profile/ にコピーバック (commit 対象)
+#   1. profile/apm.yml [+ private overlay] -> ~/.apm/apm.yml
+#   2. 既存 ~/.apm/apm.lock.yaml をバックアップして保持 (stale deployed file の回収情報を維持)
+#   3. apm update -g -y --force を2回実行
+#   4. 更新された lock を profile/ にコピーバック
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
@@ -32,11 +30,6 @@ PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 PRIVATE_PATH="${ROOT_DIR}/$PROFILES_DIR/private"
 APM_HOME="${HOME}/.apm"
-
-VERBOSE_FLAG=""
-if [ "${usage_verbose:-false}" = "true" ]; then
-  VERBOSE_FLAG="--verbose"
-fi
 
 PRIVATE_YML="$PRIVATE_PATH/apm.yml"
 PRIVATE_LOCK="$PRIVATE_PATH/apm.lock.yaml"
@@ -106,14 +99,22 @@ fi
 
 # Step 3: apm install -g --refresh --force で最新 ref を再解決 + 既存ファイルも上書き deploy
 #
-# --force の意義: 「locally-authored files on collision」(内容が食い違うファイル) を
-# 上書き許可する。--refresh は明示的な再解決なので上書きが正しい挙動。
+# NOTE:
+# 現行 APM では、mutable ref の親 package が更新された際、1回目で親の SHA が更新され、
+# 2回目で新しい親 manifest に追加された transitive dependency が検出されるケースがある。
 #
-# 注意: --force は同時に「deploy despite critical security findings」も意味する。
-# 自前 catalog (Caromaf/agent-package-basic) なので security findings は self-induced と
-# 判断して許容。サードパーティ catalog を入れる際は要検討。
-printf "%s\n" "   📦 Running: apm install -g --refresh --force${VERBOSE_FLAG:+ $VERBOSE_FLAG}"
-apm install -g --refresh --force $VERBOSE_FLAG
+# OpenAPM 仕様上は1回で transitive deps まで再解決されるべきなので、これは APM resolver の収束問題に対する workaround。
+UPDATE_ARGS=(-g -y --force)
+
+if [ "${usage_verbose:-false}" = "true" ]; then
+  UPDATE_ARGS+=(--verbose)
+fi
+
+printf "%s\n" "   📦 Updating APM dependencies (pass 1/2)..."
+apm update "${UPDATE_ARGS[@]}"
+
+printf "%s\n" "   📦 Updating APM dependencies (pass 2/2)..."
+apm update "${UPDATE_ARGS[@]}"
 
 # Step 4: 新規生成 lock を profile/ にコピーバック
 #   private overlay 有効時は profiles/private/apm.lock.yaml (gitignored) に書く。
