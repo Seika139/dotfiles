@@ -29,6 +29,7 @@ status_line = [
 status_line_use_colors = true
 
 [features]
+fast_mode = false
 
 [features.multi_agent_v2]
 hide_spawn_agent_metadata = false
