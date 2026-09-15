@@ -228,7 +228,7 @@ add_path() {
   fi
 
   # 相対パスの絶対化と末尾スラッシュの除去を兼ねる
-  dir=$(CDPATH= cd -- "$dir" && pwd) || {
+  dir=$(CDPATH='' cd -- "$dir" && pwd) || {
     error "add_path : failed to resolve $dir" >&2
     return 1
   }
