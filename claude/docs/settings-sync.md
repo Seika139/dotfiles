@@ -58,10 +58,15 @@ dotfiles/profiles/<host>/settings.local.json (秘匿、gitignored)
 
 `recover` 時の split / `link` 時の merge は、以下の分類に従う。
 
+```text
+local    = LOCAL_KEYS ∪ LOCAL_ENV_KEYS ∪ 非 portable な marketplace ∪ provenance
+portable = SOURCE (~/.claude/settings.json) から local を引いたもの
+```
+
 | 分類                | 行き先                         | キー                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `hooks`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_ENABLE_TELEMETRY`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS` |
-| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | トップレベル: `awsAuthRefresh`, `otelHeadersHelper`<br>env: `AWS_PROFILE`, `AWS_REGION`, `CREDENTIAL_PROCESS_PATH`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_RESOURCE_ATTRIBUTES`, `SLACK_WEBHOOK_URL`                                                                                                                                                                                                                                                                                                                  |
+| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `advisorModel`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `model`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_ENABLE_TELEMETRY`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS`<br>`hooks`: 既存 `settings.local.json` に無いイベント名 (provenance で判定) |
+| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | トップレベル: `awsAuthRefresh`, `otelHeadersHelper`<br>env: `AWS_PROFILE`, `AWS_REGION`, `CREDENTIAL_PROCESS_PATH`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_RESOURCE_ATTRIBUTES`, `SLACK_WEBHOOK_URL`<br>`hooks`: 既存 `settings.local.json` に既にあるイベント名 (provenance で判定)                                                                                                                                                                                                                                                                                                                  |
 
 #### 分類の判定基準
 
@@ -70,7 +75,32 @@ dotfiles/profiles/<host>/settings.local.json (秘匿、gitignored)
   - 非公開の識別子 (`ccwb-prod-apne-1` AWS プロファイル名、リージョン)
   - 組織情報 (`OTEL_RESOURCE_ATTRIBUTES` の `department=...`)
   - Webhook シークレット
+  - マシン固有の絶対パス (`hooks` の `command` に含まれる `C:\Users\<username>\...` 等)
 - それ以外は **PORTABLE**
+
+#### `hooks` は provenance (由来ベース) で分類する
+
+`hooks` はトップレベルのキー名ホワイトリストだけでは分類できない。`~/.claude/settings.json` (マージ済みの SOURCE) には `hooks.PreToolUse` のようにイベント名単位でキーが並ぶだけで、それが元々 `settings.json` 由来か `settings.local.json` 由来かの情報は残っていない。マシン固有の絶対パスを含むイベントと含まないイベントが混在することもあり (`PreToolUse` は絶対パスを含まないが LOCAL に置きたい、等)、内容 (絶対パスの有無) で判定する方式も採用しない。
+
+そこで「既存の `settings.local.json` に既にあるキーは local に留める」を 4 番目の判定ソースとして使う。トップレベルキー `K` について、`recover` 実行前の `settings.local.json` (`existing_local`) と `SOURCE` を比較する。
+
+- `existing_local[K]` と `SOURCE[K]` が**両方オブジェクト**なら、`existing_local[K]` のサブキーのうち `SOURCE[K]` にも存在するものだけを local に振り分ける。これが `hooks` のイベント名単位 (`PreToolUse` / `SessionStart` 等) の分類になる。`env` の変数名単位の分類も同じ仕組みの上に成り立っており、`LOCAL_ENV_KEYS` ホワイトリストと provenance の union で決まる。
+- それ以外 (配列・スカラー、または型が食い違う場合) は `K` を丸ごと local に振り分ける。
+
+provenance は**「行き先」を決めるだけで「存在」を作らない**: `SOURCE` に存在しないキーは `existing_local` にあっても出力に復活させない。素朴に「既存 local を丸ごと union する」実装だと、`~/.claude/` から意図的に削除した hook が復活し、続く `link` で押し戻されてしまうため、`SOURCE` にあるキーだけを対象にする。
+
+`LOCAL_KEYS` (`awsAuthRefresh` 等) と marketplace 系 (`extraKnownMarketplaces` / `enabledPlugins`) は既に専用ロジックがあるため provenance の対象外 (二重判定を避ける)。
+
+provenance は**一方向ラチェット**である。あるキーが一度 `settings.local.json` に入ると、`SOURCE` に存在し続ける限り永久に local のままになる。local から portable に戻す仕組みは無く、誤分類は `settings.local.json` を手編集して該当キーを取り除く以外に修正手段が無い。
+
+**同一の hooks イベント名を `settings.json` と `settings.local.json` の両方に置いてはならない**。`link.sh` の `jq -s '.[0] * .[1]'` は配列を右辺 (local) で丸ごと置換するため、同じイベント名 (例: `PreToolUse`) が両ファイルにあると、`link` 実行時に git 管理側の配列は `~/.claude/settings.json` に届かず、続く `recover` では provenance によりそのイベント名がそのまま local 判定され続ける。結果として `settings.json` 側のコミット済み内容が警告もエラーもなく消える (データロス)。同じ懸念は `env` の変数名にも当てはまる。
+
+#### 書き込み前の安全ガード
+
+provenance は既存 `settings.local.json` を参照する自己参照的な仕組みのため、参照先が無い/不足している状態 (`settings.local.json` は `.gitignore` の対象で、git clone 直後は必ず不在) では保護が働かない。この状態で `recover` すると `hooks` 全体が portable 判定に戻り、マシン固有の絶対パスが公開リポジトリの `settings.json` にコミットされ得る。分類ルール自体は変えず、書き込み直前の最後の防波堤として `recover-settings.sh` に 2 つのガードを置いている。
+
+- **ガード A (中断)**: 書き込み予定の `settings.json` (PORTABLE_JSON) の文字列値に、このマシンの実際のホームディレクトリ (POSIX 形式・Windows 形式の両方) が含まれていたら、エラーメッセージを出して非ゼロで終了する。書き込み・バックアップ・`link` 呼び出しには到達しない。パスの「形」(`/Users/` や `/home/` のような汎用パターン) では判定しない。移植可能な絶対パス (`/usr/bin/...` 等) を誤検知するため、必ず「このマシンの実際の `$HOME`」で照合する。
+- **ガード B (警告)**: provenance が local に振り分けたサブキーが、コミット済み `settings.json` の同名キーと衝突していたら警告を出す。中断はしない。上記の「同一イベント名を両方に置いてはならない」制約への違反を検知するためのもの。
 
 #### 絶対パスを含むキーは LOCAL
 
