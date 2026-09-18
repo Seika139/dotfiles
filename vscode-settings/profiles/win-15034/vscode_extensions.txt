@@ -14,10 +14,10 @@ editorconfig.editorconfig
 ernststavroblofeld.php-types
 esbenp.prettier-vscode
 foxundermoon.shell-format
-github.copilot
-github.copilot-chat
 github.vscode-github-actions
+golang.go
 hbenl.vscode-test-explorer
+hediet.vscode-drawio
 ics.japanese-proofreading
 ivory-lab.jenkinsfile-support
 jackiotyu.git-worktree-manager
@@ -57,8 +57,6 @@ nicolasvuillamy.vscode-groovy-lint
 njpwerner.autodocstring
 oderwat.indent-rainbow
 openai.chatgpt
-redhat.vscode-yaml
-ritwickdey.liveserver
 rogalmic.bash-debug
 secanis.jenkinsfile-support
 sgryjp.japanese-word-handler
@@ -74,6 +72,7 @@ tomoki1207.pdf
 unity.unity-debug
 usernamehw.errorlens
 visualstudiotoolsforunity.vstuc
+vscode-icons-team.vscode-icons
 vue.volar
 waderyan.gitblame
 wmaurer.change-case

@@ -16,9 +16,8 @@ editorconfig.editorconfig
 ernststavroblofeld.php-types
 esbenp.prettier-vscode
 foxundermoon.shell-format
-github.copilot
-github.copilot-chat
 github.vscode-github-actions
+golang.go
 hashicorp.terraform
 hbenl.vscode-test-explorer
 ics.japanese-proofreading
@@ -27,6 +26,7 @@ janisdd.vscode-edit-csv
 jebbs.plantuml
 littlefoxteam.vscode-python-test-adapter
 mads-hartmann.bash-ide-vscode
+marp-team.marp-vscode
 mechatroner.rainbow-csv
 mehedidracula.php-namespace-resolver
 ms-azuretools.vscode-containers
@@ -52,6 +52,7 @@ oderwat.indent-rainbow
 openai.chatgpt
 persoderlind.vscode-phpcbf
 rogalmic.bash-debug
+rvben.rumdl
 sgryjp.japanese-word-handler
 shakram02.bash-beautify
 shardulm94.trailing-spaces
