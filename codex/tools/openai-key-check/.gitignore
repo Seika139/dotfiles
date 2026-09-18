@@ -1,0 +1,4 @@
+# Local build outputs. Source, tests, module files, and documentation remain tracked.
+/openai-key-check
+/openai-key-check.exe
+/dist/
