@@ -115,13 +115,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "diffEditor.ignoreTrimWhitespace": false
   },
-  "markdownlint.config": {
-    "md014": false,
-    "md024": false,
-    "md025": false,
-    "md033": false,
-    "md036": false
-  },
+  "markdownlint.configFile": "${userHome}/dotfiles/vscode-settings/extension-config/.markdownlint-cli2.jsonc",
   // ↑ markdown
   "[shellscript]": {
     "editor.defaultFormatter": "foxundermoon.shell-format",

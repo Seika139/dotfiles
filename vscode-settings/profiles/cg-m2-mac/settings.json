@@ -68,16 +68,7 @@
     "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
   },
   "markdownlint.run": "onSave",
-  "markdownlint.config": {
-    "default": true,
-    "MD010": {
-      "code_blocks": false
-    },
-    "MD014": false,
-    "MD024": false,
-    "MD033": false,
-    "MD036": false
-  },
+  "markdownlint.configFile": "${userHome}/dotfiles/vscode-settings/extension-config/.markdownlint-cli2.jsonc",
   "[shellscript]": {
     "editor.defaultFormatter": "foxundermoon.shell-format",
     "editor.formatOnSave": true
@@ -170,10 +161,7 @@
   "makefile.configureOnOpen": true,
   "remote.autoForwardPortsSource": "hybrid",
   "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
-  "git-worktree-manager.worktreeCopyPatterns": [
-    "CLAUDE.md",
-    ".claude/"
-  ],
+  "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
   // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
   "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
   "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
@@ -196,5 +184,6 @@
   "python.terminal.activateEnvironment": false,
   "cursor.general.disableHttp2": true,
   "cursor.general.disableHttp1SSE": true,
-  "terminal.integrated.initialHint": false
+  "terminal.integrated.initialHint": false,
+  "claudeCode.preferredLocation": "panel"
 }
