@@ -24,8 +24,8 @@ exclude = [".cursor/", "node_modules/**", "worklog/**"]
 
 [MD010]
 # タブをスペースの代わりに使用することを禁じる、ただしコードブロック内は許可
-spaces-per-tab = 4 # default は 4
-code-blocks = false # default は false
+spaces-per-tab = 4                   # default は 4
+code-blocks = false                  # default は false
 ignore-code-languages = ["makefile"] # default は none
 
 [MD025]
