@@ -28,9 +28,6 @@ spaces-per-tab = 4 # default は 4
 code-blocks = false # default は false
 ignore-code-languages = ["makefile"] # default は none
 
-[MD013]
-line-length = 100000
-
 [MD025]
 # フロントマターがある md ファイルではフロントマターと本文の見出しの重複しうるが、それで警告が出ないようにするための設定
 front-matter-title = ''
