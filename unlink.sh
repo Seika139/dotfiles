@@ -88,6 +88,15 @@ main() {
     fi
   done
   unset codex_linked_files file abs_path
+
+  # rumdl 設定のシンボリックリンクを削除する (install.sh セクション 1-1 に対応)
+  rumdl_config_path="${HOME}/.config/rumdl/rumdl.toml"
+  rumdl_config_source="${DOTFILES_ROOT}/vscode-settings/extension-config/.rumdl.toml"
+  if [[ -L "${rumdl_config_path}" && $(readlink "${rumdl_config_path}") = "${rumdl_config_source}" ]]; then
+    echo "Removing rumdl symlink: ${rumdl_config_path}"
+    rm "${rumdl_config_path}"
+  fi
+  unset rumdl_config_path rumdl_config_source
 }
 
 main "$@"

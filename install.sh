@@ -143,7 +143,16 @@ done
 unset files_to_link file
 
 #-------------------------------------
-# 1-1. link files (.ssh/config)
+# 1-1. link rumdl config
+#-------------------------------------
+
+rumdl_config_dir="${HOME}/.config/rumdl"
+mkdir -p "${rumdl_config_dir}"
+ln -sfnv "${ROOT}/vscode-settings/extension-config/.rumdl.toml" "${rumdl_config_dir}/rumdl.toml"
+unset rumdl_config_dir
+
+#-------------------------------------
+# 1-2. link files (.ssh/config)
 # .ssh/config.secret は .gitignore の対象なので、存在しない場合は作る
 # 元々あった .ssh/config が消されないように dotfiles/.ssh 内に保存する
 #-------------------------------------
