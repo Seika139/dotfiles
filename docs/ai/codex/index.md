@@ -26,13 +26,15 @@ Anthropic の Claude Code, Google の Gemini CLI のように、OpenAI でも Co
 <https://developers.openai.com/codex/cli>
 
 ```bash
-# npm または Homebrew でインストール
-npm install -g @openai/codex
-brew install codex
+# dotfiles の mise global config から Codex CLI を導入
+cd "$HOME/dotfiles"
+bash install.sh
 
-# codex コマンドが実行可能になる
+# codex コマンドの確認
 codex --help
 ```
+
+Node.js と Codex CLI の mise 設定は [mise による Node.js と Codex CLI の管理](../../javascript/mise.md) を参照。
 
 ターミナルで利用する場合は、環境変数 `OPENAI_API_KEY` に API KEY を設定する。
 export コマンドで環境変数にセットしておくと、環境変数として永続化されるが、他のセッションからも利用される可能性があるので注意。
