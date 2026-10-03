@@ -71,6 +71,7 @@ Cygames
 Cysharp
 datapoints
 dateutil
+davidanson
 delenv
 deletable
 Demucs
@@ -80,6 +81,7 @@ direnv
 dockercompose
 Doesnt
 Dont
+dorzey
 DOTENV
 dotenvx
 dotfiles

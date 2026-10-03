@@ -1,65 +1,41 @@
 # Windows で Codex を利用する場合
 
-codex コマンドを実行すると、WSL のセットアップを促される。
+Windows では Codex CLI の実行環境として WSL2 を使う方法を案内します。Codex CLI は dotfiles の選択済み mise profile により Node.js とともに導入されます。
 
-```bash
-$ codex
+Windows 上で直接 `codex` を実行すると、WSL のセットアップを促される場合があります。
 
- For best performance, run Codex in Windows Subsystem for Linux (WSL2)
-
-> 1. Exit and install WSL2
-  2. Continue anyway
+```text
+For best performance, run Codex in Windows Subsystem for Linux (WSL2)
 ```
 
-最初は Windows 上で直接 codex を使っていたが、mcp の起動や notify の実行が wsl から実行されていて、設定ファイルに記載したものが Windows 上で実行されなくて困った。
-したがって WSL2 をインストールして利用することを推奨する。
+Windows 上で直接実行する場合は [OpenAI のドキュメント](https://developers.openai.com/codex/windows) を参照してください。WSL2 が未導入なら [wsl.md](../../windows/wsl.md) の手順で導入します。この警告を無視して Windows 上で直接実行する場合は `~/.codex/config.toml` に以下の設定を追加することで回避できます。
 
-詳細は [OpenAI のドキュメント](https://developers.openai.com/codex/windows) を参照すべし。
+```toml
+windows_wsl_setup_acknowledged = true
+```
 
-> ※ これを無視して Windows 上で直接実行する場合は `~/.codex/config.toml` に以下の設定を追加する。
->
-> ```toml
-> windows_wsl_setup_acknowledged = true
-> ```
+## WSL 上で Codex を利用する
 
-wsl2 がインストールされていない場合は [wsl.md](../../windows/wsl.md) を参考にインストールする。
+WSL 内に dotfiles をセットアップし、`bash/daily/.env` で `DAILY_PROFILE=wsl-ubuntu` を選択して `install.sh` を実行します。Ubuntu では mise が未導入なら install.sh が apt 経由で導入を試み、その後、選択profileから Node.js と Codex CLI をインストールします。
 
-codex を利用して作業する場合は Windows のファイルシステム /mnt/c/ ではなく wsl 上にリポジトリをクローンして作業する方が動作が早いのでおすすめ。（らしい）
-
-## wsl 上で codex を利用する
-
-既に volta が利用可能になっているが、これは [claude_with_wsl.md](../claude/claude_with_wsl.md) を参考にして wsl 上に volta をインストールしたため。
+なお、codex を利用して作業する場合は Windows のファイルシステム（`/mnt/c/` 配下）ではなく WSL 上にリポジトリをクローンして作業する方が動作が速いとされている。
 
 ```bash
-$ wsl # wsl を起動する
-
-volta install node@22
-
-# Codex CLI をグローバルにインストール
-volta install @openai/codex
-
-# Codex を実行
+codex --version
 codex
 ```
 
-これで wsl 上で codex コマンドが実行できるようになる。
+`node` または `codex` が意図しない実行ファイルを指す場合は、WSL で `command -v node` と `command -v codex` を実行して PATH 上の場所を確認してください。mise 管理の実行ファイルが選ばれない場合は、mise の Bash 初期化と Windows PATH から混入した旧 shim の順序を確認してください。
 
-## serena を利用するには
+## Serena を利用するには
 
-wsl 上で pipx を経由して uv をインストールする
+WSL 上で pipx を経由して uv をインストールします。
 
 ```bash
 sudo apt update
 sudo apt install -y pipx python3-venv
-
-# PATH を通す（初回のみ）
 /usr/bin/pipx ensurepath
-
-# シェル再読み込み
-source ~/.bashrc  # もしくは source ~/.zshrc
-
-# 動作確認
-pipx --version
+source ~/.bashrc
 pipx install uv
 uv --version
 uvx --version

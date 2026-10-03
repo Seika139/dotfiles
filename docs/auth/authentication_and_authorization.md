@@ -4,32 +4,15 @@
 アクセス制御を構成する要素として、認証（Authentication）と認可（Authorization）がある。
 **認証** とは、サービス提供者に対してアクセスしようとする主体が主張する身元（Identity）が正当であることを確認することであり、**認可** とは、その主体が特定のリソースにアクセスする権限を持っているかどうかを確認することである。
 
-※ 特に、認証は「○○認証」という用語が多いが、実際にその用語が指すのは認証の方法や手段であり、並列に扱う概念ではない場合があることに注意する。
+※ 認証は「○○認証」という用語で語られることが多いが、実際にその用語が指すのは認証の方法や手段であり、以下で述べる「認証情報（credentials）の種類」「トークンの形式」「トークンの提示方法」のいずれかに分類できることが多い。
 
-<!-- 初回と二回目以降
-○○認証 -->
+認証・認可を支える情報（credentials）は、大きく以下のように分類できる。
 
-<!--
-
-認証・認可情報（credentials）
-│
-├─ username + password
-│    └─ Basic Auth
-│
-├─ API Key
-│
-└─ Access Token
-     │
-     ├─ Opaque Token
-     └─ JWT
-          ↑ tokenの「形式」
-
-Access Tokenをどう提示するか
-     │
-     ├─ Bearer
-     └─ DPoP
-          ↑ tokenの「使い方」
- -->
+- ユーザー名 + パスワード（[Basic認証](#basic認証) で使用）
+- API Key
+- Access Token
+  - **形式**（トークンをどう表現するか）: Opaque Token、[JWT](#jwtjson-web-token) など（[トークン形式の種類](#トークン形式の種類) を参照）
+  - **提示方法**（トークンをどう送るか）: [Bearer Token](#bearer-token)、DPoP など
 
 ## 認証
 
@@ -365,8 +348,8 @@ sequenceDiagram
 
 ---
 
-その説明は後述する OAuth 2.0 や OpenID Connect（OIDC）で行う。
-その説明にも備えて、ここではユーザーとサーバーに加えて OP（OpenID Provider）が登場する。
+OAuth 2.0 / OpenID Connect（OIDC）を用いた具体的な認可コードフロー（Authorization Code Flow）や、SAML・SSO・PKCE といった関連トピックは別ドキュメントで扱う。
+OP（OpenID Provider）については以降の文章中で言及するが、以降の図では認証サーバーとして簡略化して描く。
 
 ※ OIDC や OAuth、SAML など文脈によって、認証・認可を提供する側のサービスと利用する側のサービスの呼び方が異なるのでややこしい。が IdP / SP は他の文脈でも比較的一貫して使われる（ことが多いように感じる）。
 
@@ -405,116 +388,41 @@ JWKS は以下のように複数の公開鍵を含んだ JSON 形式のデータ
 Relying Party は kid を用いて JWKS から対応する公開鍵を取得し、署名の検証を行う。
 複数の公開鍵を公開しているメリットとして、鍵のローテーションが容易になる点が挙げられる。新しい鍵を追加しても、古い鍵で署名されたトークンは引き続き検証可能である。
 
-**JWK と JWKS**
+### Bearer Token
 
-**kidによる鍵の選択**
+Bearer Token は、Access Token を HTTP リクエストの `Authorization` ヘッダーに `Authorization: Bearer <token>` という形式で付与することで、そのトークンの正当な保持者（bearer）であることを示す提示方法である。
+OAuth 2.0 や OpenID Connect（OIDC）などの認証・認可プロトコルで広く使用される。
 
-<!-- ここからは下書き -->
-
-```mermaid
-sequenceDiagram
-actor U as User
-participant RP as Relying Party（RP）
-participant OP as OpenID Provider（OP）
-participant JWKS as JWKS Endpoint
-
-note over U,JWKS: JWT の発行（ログイン）
-U->>OP: POST /login<br>id, password
-OP-->>OP: id / password を検証
-OP-->>OP: 暗号鍵で署名した JWT を発行
-OP-->>U: JWT を返す
-
-Note over U,JWKS: JWT の検証
-U->>OP: リクエストのヘッダーに JWT を付与して送信
-OP->>JWKS: 公開鍵を取得
-JWKS-->>OP: 公開鍵を返す
-OP-->>OP: 公開鍵でJWTの署名を検証
-alt JWT の署名が無効
-OP-->>U: 401 Unauthorized
-else JWT の署名が有効
-  OP-->>OP: JWT の exp / iss / aud を検証して有効性を確認
-  OP-->>U: 200 OK
-end
-
-Note over U,OP: JWT の検証
-U->>RP: RPのサービスを使いたいです
-RP-->U: OP の認可エンドポイントへのリダイレクト
-U->>OP: POST /login<br>id, password
-OP-->>OP: id / password を検証
-alt 認証失敗
-  OP-->>U: 401 Unauthorized
-else 認証成功
-  OP-->>U: RP の callback URL へリダイレクト<br>Authorization Code を付与
-  U->>RP: RP の callback URL へリダイレクト<br>Authorization Code を送信
-  RP->>OP: Authorization Code を OP のトークンエンドポイントへ送信
-  OP->>OP: 秘密鍵で署名した ID トークンを生成
-  OP-->>RP: ID トークンを返す
-  RP->JWKS: 公開鍵一覧を取得
-  JWKS-->>RP: 公開鍵一覧を返す
-  RP-->>RP: ID トークンの kid に対応する公開鍵を選択
-  RP-->>RP: 選択した公開鍵で ID トークンの署名を検証
-  RP-->>RP: ID トークンの exp / iss / aud を検証して有効性を確認
-  alt ID トークンが無効
-    RP-->>U: 401 Unauthorized
-  else ID トークンが有効
-    RP-->>U: 200 OK（RP のサービスを表示）
-  end
-end
-```
-
----
-
- <!--
-
-公開鍵暗号方式とは別で
-OAuth 2.0 → OIDC の順で説明するのがよさそう。 OIDC とセットで SAML、 SSO も説明する。
-OAuth 2.1 もさらに説明する。 PKCE などの拡張も含まれる。
-
-  PASETO
-  DPoP
-  Opaque
-  -->
-
-Bearer Token は、HTTPリクエストのヘッダーにトークンを付与することで認証を行う方式である。
-Bearer Token は、OAuth 2.0 や OpenID Connect（OIDC）などの認証・認可プロトコルで使用される。
-
-この方式では、サーバーはトークンを検証することでユーザーの認証を行い、必要に応じて認可情報を取得する。トークンは通常、一定の有効期限を持ち、有効期限が切れると再度認証が必要となる。
+「Bearer」という名前が示すとおり、このトークンは提示できた者を無条件に正当な保持者とみなす（トークン自体に保持者を縛る仕組みがない）。
+そのため、トークンが盗まれると盗んだ第三者も正規のリクエストとして扱われてしまう。この弱点への対策として、盗まれたトークン単体では悪用できないように送信者を鍵で紐づける **DPoP**（Demonstrating Proof of Possession）という提示方法も存在する。
 
 ```mermaid
 sequenceDiagram
 
-participant B as Browser
-participant S as Server
+participant Cl as Client
+participant Sv as Server
 
-B->>S: サーバーに id と pw を POST
-S-->>S: id と pw を検証
-S-->>S: id と pw が正しい場合、暗号鍵で署名した JWT を生成
-S-->>B: JWT を返す
+Note over Cl,Sv: ログインしてアクセストークンを取得
+Cl->>Sv: POST /login<br>id, password
+Sv-->>Sv: id / password を検証
+Sv-->>Cl: 200 OK<br>Access Token（JWTなど）を返す
+
+Note over Cl,Sv: 以降のリクエストはトークンをBearerとして提示
+Cl->>Sv: GET /resource<br>Authorization: Bearer <token>
+Sv-->>Sv: トークンの署名 / 有効期限を検証
+
+alt トークンが無効
+    Sv-->>Cl: 401 Unauthorized
+else トークンが有効
+    Sv-->>Cl: 200 OK
+end
 ```
 
 ### トークン形式の種類
 
-トークンにはいくつかの形式があり、代表的なものとして以下がある。
+トークンには [JWT](#jwtjson-web-token) 以外にも以下のような形式がある。
 
-#### JWT（JSON Web Token）
-
-JWT（JSON Web Token）はトークン認証などで用いられるトークンの形式（規格）である。
-つまり、認証以外でも、認可や情報のやり取りなどに使用されることがあるし、JWT以外の形式のトークンも存在する。
-
-#### PASETO
-
-#### SAML Assertion
-
-<!--
-SAML
-OIDC
-OAuth2.0
-MFA
-JWT
-JWKs
-OP
-SSO
-PKCE
-nonce
-IdP と SP
--->
+- **JWT（JSON Web Token）**: 前述のとおり、ヘッダー・ペイロード・署名から構成される自己完結型のトークン形式
+- **PASETO**: JWT の設計上の弱点（`alg: none` を許容できてしまう点など）を踏まえて設計された、より安全性を重視したトークン形式
+- **SAML Assertion**: SAML（Security Assertion Markup Language）でやり取りされる、XML ベースのトークン形式
+- **Opaque Token**: サーバー側で管理する不透明な識別子で、クライアント自身はその中身を解釈できない形式のトークン

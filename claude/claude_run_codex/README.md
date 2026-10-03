@@ -23,7 +23,7 @@ Claude CodeとOpenAI Codex CLIを連携させるスキルです。
 ### 必要なツール
 
 - [tmux](https://github.com/tmux/tmux) - ターミナルマルチプレクサ
-- [OpenAI Codex CLI](https://github.com/openai/codex) - `npm install -g @openai/codex`
+- [OpenAI Codex CLI](https://github.com/openai/codex) - dotfiles の mise global config で管理します。導入手順は [mise による Node.js と Codex CLI の管理](../../docs/javascript/mise.md) を参照してください。
 - [Claude Code](https://claude.ai/code) - `npm install -g @anthropic-ai/claude-code`
 
 ## インストール

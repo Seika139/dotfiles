@@ -7,11 +7,11 @@
 > brew: `brew install --cask claude-code`
 
 Windows 上に Claude がインストールされていると Ubuntu 上で claude コマンドを実行したときに以下のようなエラーになる。
-これは Windows 側（Volta の shim）を WSL(Ubuntu) から直接実行していて、先頭行が cmd ... になっているため WSL では cmd が見つからずエラーになっているから。
+これは Windows 側の CLI shim を WSL(Ubuntu) から直接実行していて、先頭行が cmd ... になっているため WSL では cmd が見つからずエラーになっているから。Windows 側の shim が Windows PATH 経由で WSL に混ざる場合も同様です。
 
 ```plain
 user-name@xxxx:~/programs/framework$ claude
-/mnt/c/Users/user-name/AppData/Local/Volta/bin/claude: line 1: cmd: command not found
+/mnt/c/Users/user-name/AppData/Local/.../claude: line 1: cmd: command not found
 ```
 
 修正の方針は以下のどちらか
@@ -22,16 +22,14 @@ user-name@xxxx:~/programs/framework$ claude
 今回は後者を選択した。
 
 ```bash
-# ubuntu 上に volta, node をインストールする
-$ curl https://get.volta.sh | bash
-$ exec $SHELL -l
-$ volta -v
-2.0.2
-$ volta install node
-$ node -v
-v22.19.0
+# dotfiles を WSL のホームディレクトリに配置し、mise 設定を適用する
+cd "$HOME/dotfiles"
+# install 前に bash/daily/.env で DAILY_PROFILE=wsl-ubuntu を設定する
+bash install.sh
+# mise profile から導入された Node.js を確認する
+node --version
 # claude をインストールする
-$ npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code
 ```
 
 ## 環境の設定
