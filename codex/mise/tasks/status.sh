@@ -137,6 +137,8 @@ if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ]
         print_cyan "mise run pull_config --prof \"$PROFILE\""$'\n'
         print_yellow "         re-render profile config: "
         print_cyan "mise run link --prof \"$PROFILE\""$'\n'
+        print_yellow "         compare with rendered profile config: "
+        print_cyan "diff \"$config_target\" <(\"$render_script\" --profile-path \"$PROFILE_PATH\" --output /dev/stdout)"$'\n'
       fi
     else
       print_yellow "   ❌ $config_target does not exist. Run: mise run link --prof \"$PROFILE\""$'\n'
