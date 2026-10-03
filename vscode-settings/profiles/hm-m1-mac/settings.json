@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "all",
-  "editor.accessibilitySupport": "on",
+  "editor.accessibilitySupport": "auto",
   "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
   "editor.rulers": [40, 80, 88, 120, 160, 200], // 垂直ルーラーの表示
   // workbench
@@ -262,22 +262,6 @@
       "text": "良い Subject の例: `Config\\Database` のリトライポリシー適用漏れを修正 / PHP標準Exception使用箇所を `ExceptionBase` に変更"
     }
   ],
-  "accessibility.signals.onDebugBreak": {
-    "announcement": "off",
-    "sound": "off"
-  },
-  "accessibility.signals.noInlayHints": {
-    "announcement": "off",
-    "sound": "off"
-  },
-  "accessibility.signals.chatResponseReceived": {
-    "sound": "off"
-  },
-  "accessibility.signals.taskFailed": {
-    "sound": "off",
-    "announcement": "off"
-  },
-  "accessibility.signalOptions.volume": 0,
   "makefile.configureOnOpen": true,
   "window.zoomLevel": -0.85,
   "terminal.integrated.detectLocale": "auto",
