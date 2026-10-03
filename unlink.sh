@@ -22,7 +22,7 @@ main() {
   fi
   unset ans1
 
-  # $HOME のシンボリックリンクを削除する (install.sh セクション 1, 2 に対応)
+  # $HOME のシンボリックリンクを削除する
   linked_files=(
     ".bash_logout"
     ".bash_profile"
@@ -43,7 +43,30 @@ main() {
   done
   unset linked_files file abs_path
 
-  # $HOME/.ssh のシンボリックリンクを削除する (install.sh セクション 1-1 に対応)
+  mise_config_root="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/mise}"
+  mise_profile_link="${mise_config_root}/conf.d/dotfiles-profile.toml"
+  mise_profile_target=""
+  if [[ -L "${mise_profile_link}" ]]; then
+    mise_profile_target="$(readlink "${mise_profile_link}")"
+    case "${mise_profile_target}" in
+    "${DOTFILES_ROOT}"/mise/profiles/*.toml)
+      mise_profile_target_name="${mise_profile_target#"${DOTFILES_ROOT}/mise/profiles/"}"
+      if [[ "${mise_profile_target_name}" != */* && "${mise_profile_target_name}" =~ ^[A-Za-z0-9_-]+\.toml$ ]]; then
+        echo_yellow "Removing mise profile symlink: ${mise_profile_link}"
+        rm "${mise_profile_link}"
+      fi
+      ;;
+    esac
+  fi
+  mise_legacy_link="${mise_config_root}/conf.d/dotfiles-managed.toml"
+  mise_legacy_source="${DOTFILES_ROOT}/mise/global.toml"
+  if [[ -L "${mise_legacy_link}" && "$(readlink "${mise_legacy_link}")" == "${mise_legacy_source}" ]]; then
+    echo_yellow "Removing legacy mise symlink: ${mise_legacy_link}"
+    rm "${mise_legacy_link}"
+  fi
+  unset mise_config_root mise_profile_link mise_profile_target mise_profile_target_name mise_legacy_link mise_legacy_source
+
+  # $HOME/.ssh のシンボリックリンクを削除する
   if ! command grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
     ssh_linked_files=(
       ".ssh/config"
@@ -89,7 +112,7 @@ main() {
   done
   unset codex_linked_files file abs_path
 
-  # rumdl 設定のシンボリックリンクを削除する (install.sh セクション 1-1 に対応)
+  # rumdl 設定のシンボリックリンクを削除する
   rumdl_config_path="${HOME}/.config/rumdl/rumdl.toml"
   rumdl_config_source="${DOTFILES_ROOT}/vscode-settings/extension-config/.rumdl.toml"
   if [[ -L "${rumdl_config_path}" && $(readlink "${rumdl_config_path}") = "${rumdl_config_source}" ]]; then

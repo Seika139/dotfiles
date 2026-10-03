@@ -1,0 +1,11 @@
+[tools]
+node = "latest"
+"npm:@openai/codex" = "latest"
+"npm:aws-cdk" = "2.1010.0"
+"npm:@dotenvx/dotenvx" = "1.51.4"
+"npm:@google/clasp" = "3.0.3-alpha"
+"npm:@github/copilot" = "1.0.50"
+"npm:ccusage" = "20.0.14"
+"npm:typescript" = "5.5.4"
+"npm:webpack" = "4.1.1"
+"npm:webpack-cli" = "2.0.11"

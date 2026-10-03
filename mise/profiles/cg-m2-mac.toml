@@ -1,0 +1,6 @@
+[tools]
+node = "latest"
+"npm:@dotenvx/dotenvx" = "latest"
+"npm:@github/copilot" = "latest"
+"npm:aws-cdk" = "latest"
+pnpm = "latest"

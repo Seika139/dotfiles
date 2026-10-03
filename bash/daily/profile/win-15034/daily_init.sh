@@ -4,10 +4,9 @@ emphasize_line() {
   printf "%b%s%b\n" "\\033[38;5;214m" "=== $1 ===" "\\033[0m"
 }
 
-if command -v volta &>/dev/null; then
-  emphasize_line "volta"
-  volta install node@latest @openai/codex@latest
-fi
+MISE_UPGRADE_STATUS=0
+emphasize_line "mise profile tools"
+(cd "$HOME" && mise upgrade node 'npm:@openai/codex' 'npm:aws-cdk' 'npm:@dotenvx/dotenvx' 'npm:@google/clasp' 'npm:@github/copilot' 'npm:ccusage' 'npm:typescript' 'npm:webpack' 'npm:webpack-cli') || MISE_UPGRADE_STATUS=$?
 
 (
   cd "${DOTPATH}" || true
@@ -32,3 +31,5 @@ fi
     git pull origin main
   fi
 )
+
+exit "$MISE_UPGRADE_STATUS"

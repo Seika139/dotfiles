@@ -1,0 +1,11 @@
+[tools]
+node = "latest"
+npm = "latest"
+"npm:@dotenvx/dotenvx" = "latest"
+"npm:@github/copilot" = "latest"
+"npm:@openai/codex" = "latest"
+"npm:aws-cdk" = "latest"
+"npm:ccusage" = "latest"
+"npm:difit" = "latest"
+"npm:markdownlint-cli2" = "latest"
+pnpm = "latest"

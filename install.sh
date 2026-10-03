@@ -143,7 +143,100 @@ done
 unset files_to_link file
 
 #-------------------------------------
-# 1-1. link rumdl config
+# 1-1. link the selected mise profile
+#-------------------------------------
+
+MISE_PROFILE_LINKED=false
+MISE_PROFILE_STATUS=1
+MISE_PROFILE_NAME="default"
+MISE_PROFILE_ENV="${ROOT}/bash/daily/.env"
+MISE_PROFILE_ENV_COUNT=0
+MISE_PROFILE_ENV_INVALID=false
+if [[ -f "${MISE_PROFILE_ENV}" ]]; then
+  while IFS= read -r profile_line || [[ -n "${profile_line}" ]]; do
+    profile_line="${profile_line%$'\r'}"
+    [[ "${profile_line}" =~ ^[[:space:]]*$ || "${profile_line}" =~ ^[[:space:]]*# ]] && continue
+    if [[ "${profile_line}" == *DAILY_PROFILE* ]]; then
+      if [[ "${profile_line}" =~ ^[[:space:]]*DAILY_PROFILE=([A-Za-z0-9_-]+)[[:space:]]*$ ]]; then
+        MISE_PROFILE_ENV_COUNT=$((MISE_PROFILE_ENV_COUNT + 1))
+        MISE_PROFILE_NAME="${BASH_REMATCH[1]}"
+      else
+        MISE_PROFILE_ENV_INVALID=true
+      fi
+    fi
+  done <"${MISE_PROFILE_ENV}"
+fi
+if [[ "${MISE_PROFILE_ENV_COUNT}" -gt 1 || "${MISE_PROFILE_ENV_INVALID}" == "true" ]]; then
+  MISE_PROFILE_NAME="__invalid__"
+elif [[ "${MISE_PROFILE_ENV_COUNT}" -eq 0 ]]; then
+  MISE_PROFILE_NAME="default"
+fi
+
+if [[ ! "${MISE_PROFILE_NAME}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+  echo_yellow "⚠️  DAILY_PROFILE が不正です。mise profile は変更・導入しません: ${MISE_PROFILE_NAME}"
+elif [[ ! -f "${ROOT}/mise/profiles/${MISE_PROFILE_NAME}.toml" || -L "${ROOT}/mise/profiles/${MISE_PROFILE_NAME}.toml" ]]; then
+  echo_yellow "⚠️  mise profile が見つからないか通常ファイルではありません。mise profile は変更・導入しません: ${MISE_PROFILE_NAME}"
+else
+  MISE_CONFIG_ROOT="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/mise}"
+  MISE_PROFILE_LINK="${MISE_CONFIG_ROOT}/conf.d/dotfiles-profile.toml"
+  MISE_PROFILE_SOURCE="${ROOT}/mise/profiles/${MISE_PROFILE_NAME}.toml"
+  MISE_LEGACY_LINK="${MISE_CONFIG_ROOT}/conf.d/dotfiles-managed.toml"
+  MISE_LEGACY_SOURCE="${ROOT}/mise/global.toml"
+  mkdir -p "${MISE_CONFIG_ROOT}/conf.d"
+
+  MISE_OWNED_PROFILE_LINK=false
+  if [[ -L "${MISE_PROFILE_LINK}" ]]; then
+    MISE_PROFILE_LINK_TARGET="$(readlink "${MISE_PROFILE_LINK}")"
+    case "${MISE_PROFILE_LINK_TARGET}" in
+    "${ROOT}"/mise/profiles/*.toml)
+      MISE_PROFILE_LINK_TARGET_NAME="${MISE_PROFILE_LINK_TARGET#"${ROOT}/mise/profiles/"}"
+      if [[ "${MISE_PROFILE_LINK_TARGET_NAME}" != */* && "${MISE_PROFILE_LINK_TARGET_NAME}" =~ ^[A-Za-z0-9_-]+\.toml$ ]]; then
+        MISE_OWNED_PROFILE_LINK=true
+      fi
+      ;;
+    esac
+  fi
+
+  if [[ -e "${MISE_PROFILE_LINK}" || -L "${MISE_PROFILE_LINK}" ]]; then
+    if [[ "${MISE_OWNED_PROFILE_LINK}" == "true" ]]; then
+      if [[ "$(readlink "${MISE_PROFILE_LINK}")" != "${MISE_PROFILE_SOURCE}" ]]; then
+        if ! ln -sfn "${MISE_PROFILE_SOURCE}" "${MISE_PROFILE_LINK}"; then
+          echo_yellow "⚠️  mise profile の切り替えに失敗しました。"
+        elif [[ -L "${MISE_PROFILE_LINK}" && "$(readlink "${MISE_PROFILE_LINK}")" == "${MISE_PROFILE_SOURCE}" ]]; then
+          MISE_PROFILE_LINKED=true
+        else
+          echo_yellow "⚠️  mise profile の切り替え先を確認できません。"
+        fi
+      else
+        MISE_PROFILE_LINKED=true
+      fi
+    else
+      echo_yellow "⚠️  ${MISE_PROFILE_LINK} はdotfiles所有のprofileリンクではないため、上書きしません。"
+    fi
+  elif ln -s "${MISE_PROFILE_SOURCE}" "${MISE_PROFILE_LINK}"; then
+    if [[ -L "${MISE_PROFILE_LINK}" && "$(readlink "${MISE_PROFILE_LINK}")" == "${MISE_PROFILE_SOURCE}" ]]; then
+      MISE_PROFILE_LINKED=true
+    else
+      echo_yellow "⚠️  mise profile のリンク先を確認できません。"
+    fi
+  else
+    echo_yellow "⚠️  mise profile のリンクに失敗しました。"
+  fi
+
+  if [[ "${MISE_PROFILE_LINKED}" == "true" ]]; then
+    MISE_PROFILE_STATUS=0
+    # profileのリンク先確認後に限り、dotfilesが作成した旧globalリンクを片付ける。
+    if [[ -L "${MISE_LEGACY_LINK}" && "$(readlink "${MISE_LEGACY_LINK}")" == "${MISE_LEGACY_SOURCE}" ]] && ! rm "${MISE_LEGACY_LINK}"; then
+      echo_yellow "⚠️  旧miseリンクを削除できませんでした: ${MISE_LEGACY_LINK}"
+      MISE_PROFILE_STATUS=1
+    fi
+  fi
+  unset MISE_CONFIG_ROOT MISE_PROFILE_LINK MISE_PROFILE_SOURCE MISE_LEGACY_LINK MISE_LEGACY_SOURCE MISE_OWNED_PROFILE_LINK MISE_PROFILE_LINK_TARGET MISE_PROFILE_LINK_TARGET_NAME
+fi
+unset MISE_PROFILE_ENV MISE_PROFILE_ENV_COUNT MISE_PROFILE_ENV_INVALID profile_line
+
+#-------------------------------------
+# 1-2. link rumdl config
 #-------------------------------------
 
 rumdl_config_dir="${HOME}/.config/rumdl"
@@ -152,7 +245,7 @@ ln -sfnv "${ROOT}/vscode-settings/extension-config/.rumdl.toml" "${rumdl_config_
 unset rumdl_config_dir
 
 #-------------------------------------
-# 1-2. link files (.ssh/config)
+# 1-3. link files (.ssh/config)
 # .ssh/config.secret は .gitignore の対象なので、存在しない場合は作る
 # 元々あった .ssh/config が消されないように dotfiles/.ssh 内に保存する
 #-------------------------------------
@@ -557,3 +650,16 @@ if [[ "$(uname)" == "Linux" ]]; then
 
   unset LINUX_TOOLS
 fi
+
+# mise が利用可能になった後、選択profileに定義したツールを初回導入する。
+if [[ "${MISE_PROFILE_STATUS}" -ne 0 ]]; then
+  echo_yellow "⚠️  mise profile の設定をスキップしたため、profile tools は導入しませんでした。"
+elif [[ "${MISE_PROFILE_LINKED}" == "true" ]]; then
+  if command -v mise >/dev/null 2>&1; then
+    (cd "${HOME}" && mise install) || exit $?
+  else
+    echo_yellow "⚠️  mise が見つかりません。mise を導入後、ホームディレクトリで mise install を実行してください。"
+    exit 1
+  fi
+fi
+unset MISE_PROFILE_LINKED MISE_PROFILE_NAME MISE_PROFILE_STATUS
