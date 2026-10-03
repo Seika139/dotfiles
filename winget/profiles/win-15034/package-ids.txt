@@ -4,7 +4,6 @@ Docker.DockerDesktop
 Git.Git
 Google.Chrome
 Logitech.OptionsPlus
-Volta.Volta
 Amazon.AWSCLI
 Python.Launcher
 Canonical.Ubuntu.2404

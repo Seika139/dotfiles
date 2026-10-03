@@ -30,8 +30,12 @@ quiet = true
 hide = true
 shell = "bash -c"
 run = """
-if ! command -v winget >/dev/null 2>&1; then
-  echo "❌ Error: winget command not found. Please install Winget." >&2
+winget_cmd() {
+  cmd.exe //d //c "%LOCALAPPDATA%/Microsoft/WindowsApps/winget.exe" "$@"
+}
+
+if ! winget_cmd --version >/dev/null; then
+  echo "❌ Error: winget command is not available. Please install or repair App Installer / Winget." >&2
   exit 1
 fi
 """
@@ -77,11 +81,15 @@ usage = '''
 flag "--prof <prof>" help="プロファイル名"
 '''
 run = '''
+winget_cmd() {
+  cmd.exe //d //c "%LOCALAPPDATA%/Microsoft/WindowsApps/winget.exe" "$@"
+}
+
 PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
 printf "🦄  Dumping current winget packages to profile: \033[36m$PROFILE\033[0m\n"
 printf "⚠️ 「インストールされているパッケージはどのソースからも利用できません」という警告が出る場合がありますが、無視して構いません。\n"
 mkdir -p "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE"
-winget export -o "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
+winget_cmd export -o "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
 printf "\n✅  Dumped current packages to \033[36m%s\033[36m\n" "{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.EXPORT_JSON}}"
 '''
 
@@ -93,6 +101,10 @@ usage = '''
 flag "--prof <prof>" help="プロファイル名"
 '''
 run = """
+winget_cmd() {
+  cmd.exe //d //c "%LOCALAPPDATA%/Microsoft/WindowsApps/winget.exe" "$@"
+}
+
 PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
 mise run check --prof "$PROFILE"
 EXPORT_PATH="{{config_root}}/{{env.PROFILES_DIR}}/$PROFILE/{{env.PACKAGE_IDS}}"
@@ -108,7 +120,7 @@ printf "%s\n\n" "  UAC を出さないように実行する場合は、Git Bash 
 packages=$(cat "$EXPORT_PATH")
 for package in $packages; do
   printf "  winget upgrade --accept-source-agreements --accept-package-agreements --id \"$package\"\n"
-  winget upgrade --accept-source-agreements --accept-package-agreements --id "$package"
+  winget_cmd upgrade --accept-source-agreements --accept-package-agreements --id "$package"
 done
 """
 
@@ -127,4 +139,10 @@ echo "  winget upgrade --accept-source-agreements --accept-package-agreements --
 hide = true
 quiet = true
 shell = "bash -c"
-run = "winget update --include-unknown"
+run = """
+winget_cmd() {
+  cmd.exe //d //c "%LOCALAPPDATA%/Microsoft/WindowsApps/winget.exe" "$@"
+}
+
+winget_cmd update --include-unknown
+"""
