@@ -76,7 +76,6 @@ codex/profiles/<profile>/config.base.toml
 
 ```toml
 network_access = true
-model = "gpt-5.6-terra"
 model_reasoning_effort = "xhigh"
 ```
 

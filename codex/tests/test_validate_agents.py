@@ -8,7 +8,6 @@ from mise.scripts.validate_agents import validate
 VALID = """
 name = "example"
 description = "An example agent"
-model = "gpt-5.6"
 model_reasoning_effort = "medium"
 developer_instructions = "Review without changing files."
 sandbox_mode = "workspace-write"
