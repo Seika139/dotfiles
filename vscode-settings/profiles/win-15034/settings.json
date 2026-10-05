@@ -304,25 +304,9 @@
   // shell-format を最新の 7.2.8 にするとフォーマットできない問題があるので、7.2.5 に据え置きにするための設定
   // https://github.com/foxundermoon/vs-shell-format/issues/396
   "extensions.autoUpdate": "onlyEnabledExtensions",
-  "claudeCode.disableLoginPrompt": true,
   "[php]": {
     "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
   },
-  // この設定がないと wsl 上の vs code で claude code 拡張機能が動かなかった
-  "claudeCode.environmentVariables": [
-    {
-      "name": "CLAUDE_CODE_USE_BEDROCK",
-      "value": "true"
-    },
-    {
-      "name": "ANTHROPIC_MODEL",
-      "value": "global.anthropic.claude-opus-4-6-v1"
-    },
-    {
-      "name": "AWS_REGION",
-      "value": "us-east-1"
-    }
-  ],
   "claudeCode.preferredLocation": "panel",
   "security.allowedUNCHosts": ["wsl.localhost"],
   // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
