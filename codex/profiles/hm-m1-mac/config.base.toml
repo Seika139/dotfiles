@@ -1,5 +1,6 @@
 model_reasoning_effort = "medium"
 hide_agent_reasoning = true
+service_tier = "default"
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
@@ -31,3 +32,23 @@ tool_namespace = "agents"
 
 [sandbox_workspace_write]
 network_access = true
+
+[desktop]
+preventSleepWhileRunning = true
+keepRemoteControlAwakeWhilePluggedIn = true
+followUpQueueMode = "queue"
+dock-icon-preference = "codex-system"
+conversationDetailMode = "STEPS_COMMANDS"
+show-context-window-usage = true
+enabled-reasoning-efforts = [
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "ultra",
+  "persistent",
+  "max",
+]
+
+[desktop.open-in-target-preferences]
+global = "vscode"
