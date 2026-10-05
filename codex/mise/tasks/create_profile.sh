@@ -34,6 +34,12 @@ mkdir -p "$PROFILE_PATH"
 cat >"$PROFILE_PATH/config.base.toml" <<'EOF'
 model_reasoning_effort = "high"
 hide_agent_reasoning = true
+
+[features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 3
+
+[sandbox_workspace_write]
 network_access = true
 
 EOF

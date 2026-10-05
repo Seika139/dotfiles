@@ -75,9 +75,17 @@ codex/profiles/<profile>/config.base.toml
 例:
 
 ```toml
-network_access = true
 model_reasoning_effort = "xhigh"
+
+[features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 3
+
+[sandbox_workspace_write]
+network_access = true
 ```
+
+全 profile は Multi-Agent V2 を有効にし、同時 thread 数を3に設定します。この上限にはメイン session が含まれるため、メイン session と子 agent 2つまでが同時に動きます。V1 用の `[agents].max_depth` と `[agents].max_concurrent_threads_per_session` は設定しません。設定を使う端末では対象 profile を選択して `mise run link` を実行してください。`config.local.toml` で同じキーを定義すると、その端末では local 側の値が優先されます。
 
 `config.local.toml` は git 管理しないローカル設定です。
 

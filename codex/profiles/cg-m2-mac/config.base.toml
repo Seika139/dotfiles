@@ -1,10 +1,11 @@
-model_reasoning_effort = "medium"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "xhigh"
 hide_agent_reasoning = true
-network_access = true
 
 [agents]
-max_concurrent_threads_per_session = 4
-max_depth = 1
+enabled = true
+default_subagent_model = "gpt-6-luna"
+default_subagent_reasoning_effort = "low"
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
@@ -32,5 +33,29 @@ network_access = true
 fast_mode = false
 
 [features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 3
 hide_spawn_agent_metadata = false
 tool_namespace = "agents"
+
+[desktop]
+preventSleepWhileRunning = true
+keepRemoteControlAwakeWhilePluggedIn = true
+conversationDetailMode = "STEPS_COMMANDS"
+default-service-tier = "priority"
+followUpQueueMode = "queue"
+appearanceTheme = "dark"
+dock-icon-preference = "codex-system"
+show-context-window-usage = true
+enabled-reasoning-efforts = [
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "ultra",
+  "persistent",
+  "max",
+]
+
+[desktop.open-in-target-preferences]
+global = "vscode"

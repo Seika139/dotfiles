@@ -1,12 +1,6 @@
 model_reasoning_effort = "medium"
 hide_agent_reasoning = true
-network_access = true
-personality = "pragmatic"
 windows_wsl_setup_acknowledged = true
-
-[agents]
-max_concurrent_threads_per_session = 4
-max_depth = 1
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
@@ -31,5 +25,10 @@ status_line_use_colors = true
 fast_mode = false
 
 [features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 3
 hide_spawn_agent_metadata = false
 tool_namespace = "agents"
+
+[sandbox_workspace_write]
+network_access = true

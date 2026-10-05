@@ -13,7 +13,7 @@
 | コードレビュー                                           | `code-reviewer`         |
 | セキュリティレビュー                                     | `security-reviewer`     |
 
-調査担当と reviewer は読み取り専用です。`sandbox_mode = "read-only"` は filesystem の強制境界ですが、agent ごとの network 強制設定はサポートを確認できていないため、`cheap-researcher` の instructions で外部ネットワークと workspace 外の情報源へのアクセスを禁止します。各 profile の `max_threads = 4` と `max_depth = 1` は過剰な並列実行と再帰を防ぎます。
+調査担当と reviewer は読み取り専用です。`sandbox_mode = "read-only"` は filesystem の強制境界ですが、agent ごとの network 強制設定はサポートを確認できていないため、`cheap-researcher` の instructions で外部ネットワークと workspace 外の情報源へのアクセスを禁止します。全 profile で Multi-Agent V2 を有効にし、`[features.multi_agent_v2].max_concurrent_threads_per_session = 3` を設定します。この上限は root を含むため、root + 子 agent 2つまでが同時に動きます。V1 用の `[agents].max_depth` と `[agents].max_concurrent_threads_per_session` は設定しません。profile の共通設定を使う端末では、対象 profile を選択して `mise run link` を実行してください。V2 では深い再委譲の階層を thread 数で制限できないため、再委譲の制御は各 agent の instructions とメインセッションの delegate policy によります。
 
 この package は APM の agent integration を使いません。APM の共通 agent Markdown を最小限の Codex TOML に変換するだけでは、Codex native の `model`、`model_reasoning_effort`、sandbox/approval semantics を忠実に保持できません。また `Agent(...)`、`EnterWorktree`、Claude 固有の tool 指示は portable ではありません。そのため Codex 用の名前、モデル、推論強度、developer instructions をここで明示管理します。
 

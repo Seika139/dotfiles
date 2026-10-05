@@ -9,6 +9,7 @@ VALID = """
 name = "example"
 description = "An example agent"
 model_reasoning_effort = "medium"
+model = "gpt-6-luna"
 developer_instructions = "Review without changing files."
 sandbox_mode = "workspace-write"
 """
@@ -23,6 +24,10 @@ class ValidateAgentsTest(unittest.TestCase):
 
     def test_accepts_valid_definition(self):
         self.assertEqual(self.validate_text(VALID), [])
+
+    def test_accepts_max_reasoning_effort(self):
+        text = VALID.replace('model_reasoning_effort = "medium"', 'model_reasoning_effort = "max"')
+        self.assertEqual(self.validate_text(text), [])
 
     def test_rejects_empty_required_strings(self):
         errors = self.validate_text(VALID.replace('description = "An example agent"', 'description = ""'))

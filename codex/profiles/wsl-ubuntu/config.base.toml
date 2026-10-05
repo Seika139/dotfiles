@@ -1,5 +1,4 @@
 model_reasoning_effort = "xhigh"
-personality = "pragmatic"
 service_tier = "default"
 notify = [
   "bash",
@@ -7,10 +6,6 @@ notify = [
   "CODEX_NOTIFY_CHANNEL=slack CODEX_NOTIFY_DEBUG_LOG=\"$HOME/dotfiles/codex/profiles/wsl-ubuntu/notify.log\" exec \"$HOME/dotfiles/codex/notify.sh\" \"$@\"",
   "codex-notify",
 ]
-
-[agents]
-max_concurrent_threads_per_session = 4
-max_depth = 1
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
@@ -38,5 +33,7 @@ status_line_use_colors = true
 fast_mode = false
 
 [features.multi_agent_v2]
+enabled = true
+max_concurrent_threads_per_session = 3
 hide_spawn_agent_metadata = false
 tool_namespace = "agents"

@@ -7,7 +7,7 @@ from pathlib import Path
 
 REQUIRED = {"name", "description", "developer_instructions", "model", "model_reasoning_effort"}
 READ_ONLY = {"architecture-reviewer", "cheap-researcher", "code-reviewer", "security-reviewer"}
-ALLOWED_REASONING_EFFORTS = {"minimal", "low", "medium", "high", "xhigh"}
+ALLOWED_REASONING_EFFORTS = {"minimal", "low", "medium", "high", "xhigh", "max"}
 ALLOWED_SANDBOX_MODES = {"read-only", "workspace-write", "danger-full-access"}
 
 
