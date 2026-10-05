@@ -10,7 +10,7 @@
 #
 #   settings.json: dotfiles の settings.json + settings.local.json を jq で
 #                  deep merge し、~/.claude/settings.json に実ファイルとして書き出す。
-#                  CCWB の物理書き換えと共存するため symlink にしない。
+#                  秘匿値を別ファイルに分離して merge するため symlink にしない。
 #   settings.local.json: Claude Code が読まないため ~/.claude/ には配置しない。
 #                        既存 symlink があれば削除する。
 #   CLAUDE.md / custom-config: 従来通り symlink。

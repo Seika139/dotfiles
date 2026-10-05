@@ -6,8 +6,8 @@
 #MISE quiet=true
 
 # ---------------------------------------------------------------------------
-# CCWB (Claude Code with Bedrock 認証ヘルパー) が ~/.claude/settings.json を
-# 物理書き換えするため、dotfiles との同期は双方向同期モデルで行う。
+# dotfiles は public リポジトリなので秘匿値を commit できない。
+# そのため ~/.claude/settings.json との同期は双方向同期モデルで行う。
 # 詳細は claude/docs/settings-sync.md を参照。
 #
 #   recover (このスクリプト): ~/.claude/settings.json -> dotfiles の 2 ファイルに split
@@ -66,7 +66,7 @@ REPO_LOCAL="${PROFILE_PATH}/settings.local.json"
 # 前提チェック
 # ---------------------------------------------------------------------------
 if [ ! -e "$TARGET" ]; then
-  printf "⚠️  %s が存在しません。先に CCWB の初期化または mise run link を実行してください。\n" "$TARGET" >&2
+  printf "⚠️  %s が存在しません。先に mise run link を実行してください。\n" "$TARGET" >&2
   exit 1
 fi
 
@@ -101,8 +101,8 @@ fi
 #   provenance は「行き先」を決めるだけで「存在」を作らない: SOURCE に無いキーは
 #   existing_local にあっても復活させない (~/.claude/ から削除された hook 等)。
 #   LOCAL_KEYS / marketplace 系のキーは専用ロジックが既にあるため provenance の対象外。
-LOCAL_KEYS='["awsAuthRefresh", "otelHeadersHelper"]'
-LOCAL_ENV_KEYS='["AWS_PROFILE", "AWS_REGION", "CREDENTIAL_PROCESS_PATH", "OTEL_EXPORTER_OTLP_ENDPOINT", "OTEL_RESOURCE_ATTRIBUTES", "SLACK_WEBHOOK_URL"]'
+LOCAL_KEYS='[]'
+LOCAL_ENV_KEYS='["SLACK_WEBHOOK_URL"]'
 
 # extraKnownMarketplaces / enabledPlugins は marketplace 単位のホワイトリストで分類:
 #   - PORTABLE_MARKETPLACES に含まれる marketplace (= 公開 OK) -> settings.json

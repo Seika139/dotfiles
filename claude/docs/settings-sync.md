@@ -2,8 +2,8 @@
 
 ## 概要
 
-CCWB (Claude Code with Bedrock 認証ヘルパー) を導入したマシンでは、`~/.claude/settings.json` を CCWB が物理書き換えするため、従来の symlink 一本運用は破綻する。
-本ドキュメントは、これを回避しつつ「公開可能な設定は git 履歴で追跡 / 秘匿すべき内容は gitignored」の二層構造を維持する設計を定義する。
+dotfiles リポジトリは public のため、秘匿すべき値を commit できず、従来の symlink 一本運用では秘匿値を置く場所がない。
+本ドキュメントは、「公開可能な設定は git 履歴で追跡 / 秘匿すべき内容は gitignored」の二層構造を維持する設計を定義する。
 
 対象プロファイル: `cg-m2-mac` / `win-15034` / `wsl-ubuntu`。
 
@@ -18,17 +18,16 @@ CCWB (Claude Code with Bedrock 認証ヘルパー) を導入したマシンで�
 
 dotfiles で編集すれば直接 `~/.claude/` に反映され、明快だった。
 
-### 衝突の発生
+### symlink 一本運用をやめた理由
 
-CCWB の認証ヘルパー (`credential-process --force-init` 等) は `~/.claude/settings.json` を **実ファイルとして上書き**する。symlink は破壊され、dotfiles 側との接続が切れる。
+Claude Code は **`~/.claude/settings.local.json` を読まない**。`--setting-sources` ヘルプに登場する `local` スコープは **プロジェクト下の `.claude/settings.local.json`** を指し、ユーザー全体の `~/.claude/settings.local.json` は対象外。
 
-さらに調査の結果、Claude Code は **`~/.claude/settings.local.json` を読んでいない** ことが判明した。`--setting-sources` ヘルプに登場する `local` スコープは **プロジェクト下の `.claude/settings.local.json`** を指し、ユーザー全体の `~/.claude/settings.local.json` は対象外。
-
-つまり認証必須項目 (`awsAuthRefresh`, `env.AWS_PROFILE` 等) を `~/.claude/settings.local.json` に書いても Claude Code は読まず、認証が通らない。
+つまり秘匿値を `~/.claude/settings.local.json` に分けて置いても Claude Code は読まず、設定が反映されない。
 
 ### dotfiles リポジトリは PUBLIC
 
 本リポジトリは public 公開のため、クローズドな情報を git にコミットできない制約がある。
+symlink 一本運用では `~/.claude/settings.json` の全内容が git 管理下に入るため、秘匿値を置けない。
 
 ## 設計方針
 
@@ -45,9 +44,7 @@ dotfiles/profiles/<host>/settings.local.json (秘匿、gitignored)
              ▼                       │
          ~/.claude/settings.json (Claude Code が読む唯一の原本)
              ▲
-             │ [CCWB が物理書き換え]
-             │
-         CCWB credential-process / --force-init
+             │ [手元で変更]
 ```
 
 - **`~/.claude/settings.json`** は実ファイル運用。symlink にしない。
@@ -65,15 +62,12 @@ portable = SOURCE (~/.claude/settings.json) から local を引いたもの
 
 | 分類                | 行き先                         | キー                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `advisorModel`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `model`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_ENABLE_TELEMETRY`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS`<br>`hooks`: 既存 `settings.local.json` に無いイベント名 (provenance で判定) |
-| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | トップレベル: `awsAuthRefresh`, `otelHeadersHelper`<br>env: `AWS_PROFILE`, `AWS_REGION`, `CREDENTIAL_PROCESS_PATH`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_RESOURCE_ATTRIBUTES`, `SLACK_WEBHOOK_URL`<br>`hooks`: 既存 `settings.local.json` に既にあるイベント名 (provenance で判定)                                                                                                                                                                                                                                                                                                                  |
+| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `advisorModel`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `model`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS`<br>`hooks`: 既存 `settings.local.json` に無いイベント名 (provenance で判定) |
+| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | env: `SLACK_WEBHOOK_URL`<br>`hooks`: 既存 `settings.local.json` に既にあるイベント名 (provenance で判定)                                                                                                                                                                                                                                                                                                                  |
 
 #### 分類の判定基準
 
 - 公開リポジトリにコミットしたくない値は **LOCAL**
-  - 非公開の URL (`telemetry.ccwb.cyg.ninja`)
-  - 非公開の識別子 (`ccwb-prod-apne-1` AWS プロファイル名、リージョン)
-  - 組織情報 (`OTEL_RESOURCE_ATTRIBUTES` の `department=...`)
   - Webhook シークレット
   - マシン固有の絶対パス (`hooks` の `command` に含まれる `C:\Users\<username>\...` 等)
 - それ以外は **PORTABLE**
@@ -89,7 +83,7 @@ portable = SOURCE (~/.claude/settings.json) から local を引いたもの
 
 provenance は**「行き先」を決めるだけで「存在」を作らない**: `SOURCE` に存在しないキーは `existing_local` にあっても出力に復活させない。素朴に「既存 local を丸ごと union する」実装だと、`~/.claude/` から意図的に削除した hook が復活し、続く `link` で押し戻されてしまうため、`SOURCE` にあるキーだけを対象にする。
 
-`LOCAL_KEYS` (`awsAuthRefresh` 等) と marketplace 系 (`extraKnownMarketplaces` / `enabledPlugins`) は既に専用ロジックがあるため provenance の対象外 (二重判定を避ける)。
+`LOCAL_KEYS` (現在は空配列) と marketplace 系 (`extraKnownMarketplaces` / `enabledPlugins`) は既に専用ロジックがあるため provenance の対象外 (二重判定を避ける)。
 
 provenance は**一方向ラチェット**である。あるキーが一度 `settings.local.json` に入ると、`SOURCE` に存在し続ける限り永久に local のままになる。local から portable に戻す仕組みは無く、誤分類は `settings.local.json` を手編集して該当キーを取り除く以外に修正手段が無い。
 
@@ -101,17 +95,6 @@ provenance は既存 `settings.local.json` を参照する自己参照的な仕�
 
 - **ガード A (中断)**: 書き込み予定の `settings.json` (PORTABLE_JSON) の文字列値に、このマシンの実際のホームディレクトリ (POSIX 形式・Windows 形式の両方) が含まれていたら、エラーメッセージを出して非ゼロで終了する。書き込み・バックアップ・`link` 呼び出しには到達しない。パスの「形」(`/Users/` や `/home/` のような汎用パターン) では判定しない。移植可能な絶対パス (`/usr/bin/...` 等) を誤検知するため、必ず「このマシンの実際の `$HOME`」で照合する。
 - **ガード B (警告)**: provenance が local に振り分けたサブキーが、コミット済み `settings.json` の同名キーと衝突していたら警告を出す。中断はしない。上記の「同一イベント名を両方に置いてはならない」制約への違反を検知するためのもの。
-
-#### 絶対パスを含むキーは LOCAL
-
-`awsAuthRefresh` / `otelHeadersHelper` / `env.CREDENTIAL_PROCESS_PATH` は値に絶対パス (`/Users/<username>/...` 等) を含む。Claude Code の認証フェーズで必要なキーだが、`~/.claude/settings.json` (実ファイル) には `link` 時に LOCAL 側からマージされるため、認証は問題なく通る。
-
-LOCAL に置く理由:
-
-- ユーザー名がパスに含まれるため、別マシン (異なる username) に dotfiles を持ち越すと壊れる。git にコミットすると persona が露出するリスクもある。
-- 認証ヘルパーのインストール先 (`~/claude-code-with-bedrock/...`) はマシンごとに変わりうる。
-
-CCWB のドキュメント上「上書き禁止」のキーだが、`recover` で取り込んだ値をそのまま `link` で書き戻す本設計では値を改変しないため、CCWB の意図には反しない。
 
 #### `extraKnownMarketplaces` / `enabledPlugins` は marketplace ホワイトリスト
 
@@ -133,22 +116,11 @@ PORTABLE_MARKETPLACES=["claude-plugins-official", "openai-codex"]
 
 ホワイトリストに新しい公開 OK な marketplace を追加するときは、`recover-settings.sh` の `PORTABLE_MARKETPLACES` 変数を編集する。
 
-#### CCWB 手順書の「上書き禁止」リストとの関係
-
-CCWB の手順書は次を「上書きしないでください」と指定している:
-
-- 環境変数: `CLAUDE_CODE_USE_BEDROCK`, `AWS_REGION`, `AWS_PROFILE`, `CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_*`
-- 設定: `awsAuthRefresh`, `otelHeadersHelper`
-
-これらの値は **CCWB が中央配布する**ため、dotfiles 側で勝手に違う値を書くと組織方針に追従できなくなる。本設計では「**値は変えず、置き場所を分類する**」のみで、CCWB の意図に反しない。
-
-`recover` で取り込んだ値を git にコミットすれば、CCWB の中央値変更が**履歴として追跡可能**になる副次的メリットも得られる。
-
 ## タスクの責任分界
 
 ### `mise run recover`
 
-外部（CCWB 等）が書き換えた `~/.claude/settings.json` を dotfiles に取り込む。
+`~/.claude/settings.json` を手元で変更した後に、その内容を dotfiles に取り込む。
 
 ```text
 ~/.claude/settings.json (実ファイル)
@@ -186,7 +158,7 @@ dotfiles/.../settings.local.json
 `~/.claude/settings.json` が dotfiles の最新マージ結果と一致しているかを判定する。
 
 - **一致**: 整合状態。問題なし。
-- **不一致**: 外部書き換え or dotfiles 編集後 `link` 未実行。`recover` か `link` を促すメッセージを出す。
+- **不一致**: 手元での変更 or dotfiles 編集後 `link` 未実行。`recover` か `link` を促すメッセージを出す。
 - `CLAUDE.md` 等の symlink は従来通り存在確認。
 
 ### `mise run check` / `mise run check_env`
@@ -215,39 +187,25 @@ git add claude/profiles/cg-m2-mac/settings.json
 git commit
 ```
 
-### シナリオ B: CCWB が `~/.claude/settings.json` を書き換えた
+### シナリオ B: `~/.claude/settings.json` を手元で変更した
 
-`credential-process --force-init` 実行後や、CCWB の中央配布値が更新された後:
+`/config` や手動編集などで `~/.claude/settings.json` を直接変更した後:
 
 ```bash
 mise run status   # ドリフト検出
 mise run recover  # split して dotfiles に取り込み + link で再生成
 git diff
-git commit        # 必要なら中央値変更を履歴に残す
+git commit
 ```
 
 ### シナリオ C: 新マシンセットアップ
 
 ```bash
 git clone <dotfiles>
-~/claude-code-with-bedrock/bin/credential-process --force-init  # CCWB 初期化
-mise run recover   # CCWB が書いた settings.json を dotfiles に取り込み
-mise run link      # 必要に応じて
+mise run link      # settings.json と settings.local.json を merge して ~/.claude/settings.json を生成
 ```
 
-## 制約と注意
-
-### 他マシンへ profile を持ち越せない
-
-`awsAuthRefresh` / `otelHeadersHelper` / `env.CREDENTIAL_PROCESS_PATH` に**ユーザー名を含む絶対パス**が入る。`hm-m1-mac` (個人 Mac) や `wsl-ubuntu` でユーザー名が違うと壊れる。プロファイル単位で分離する現設計を維持する限り問題ないが、profile 共有は不可。
-
-### CCWB 再インストール時の挙動
-
-CCWB のインストーラは `~/.claude/settings.json` を `settings.json.bak.<timestamp>` に退避してから書き換える。新方針では実ファイル運用なので symlink 破壊は発生しない。`recover` で再取り込みすれば整合状態に戻る。
-
-### `~/.claude/ccwb-overrides.yaml`
-
-モデル選択や token 上限のユーザー上書きは CCWB の overrides yaml で行う仕様。dotfiles 側で symlink 化するかは未決定。秘匿性は低いので公開可能な範囲で symlink 化が望ましいが、本設計のスコープ外。
+`settings.local.json` は gitignored のため clone 直後は存在しない。秘匿値が必要なら別途 `claude/profiles/<host>/settings.local.json` を用意してから `link` を実行する。
 
 ## 関連ファイル
 

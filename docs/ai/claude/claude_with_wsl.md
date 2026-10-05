@@ -34,26 +34,7 @@ npm install -g @anthropic-ai/claude-code
 
 ## 環境の設定
 
-Slack の `ai活用_coding` チャンネルなどを参考に、Amazon Bedrock で Claude を使うための環境変数を設定する。
-Opus4.1 の調子が悪いので Opus4 を使うようにした。
-
-`~/.bashrc` に以下を追加した。
-
-```bash
-# Claude の環境変数を設定する
-source "$HOME/bash/claude_envs.sh"
-```
-
-`~/bash/claude_envs.sh` に Windows 側で使っているのと同じ環境変数を設定する。
-
-```bash
-export AWS_REGION="us-east-1"
-export CLAUDE_CODE_USE_BEDROCK="1"
-export ANTHROPIC_MODEL="global.anthropic.claude-opus-4-6-v1"
-export ANTHROPIC_SMALL_FAST_MODEL="us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-export AWS_ACCESS_KEY_ID="******"
-export AWS_SECRET_ACCESS_KEY="******"
-```
+WSL 側で `claude` を起動し、画面の案内に従ってログインする。環境変数の設定は不要。
 
 動作確認成功
 

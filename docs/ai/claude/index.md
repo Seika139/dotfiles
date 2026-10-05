@@ -12,9 +12,7 @@
 export ANTHROPIC_API_KEY='your-api-key-here'
 ```
 
-ただし、社内のPoCでは [エンタープライズデプロイメント概要 - Anthropic](https://docs.anthropic.com/ja/docs/claude-code/third-party-integrations) の Amazon Bedrock を利用するため、`ANTHROPIC_API_KEY` の代わりに `ANTHROPIC_ENTERPRISE_API_KEY` を設定する必要がある。
-具体的には Slack の ai活用\_coding チャンネルのCanvasに記載されているが、そこに書かれている環境変数を読み込む必要がある。
-自分の場合は [10_claude_envs.bash](../../../bash/private/10_claude_envs.bash) が bash 起動時に読み込まれるようになっている。
+ログインして使う場合は、`claude` を起動して画面の案内に従うだけでよく、`ANTHROPIC_API_KEY` は不要。
 
 ## settings.json
 
@@ -29,9 +27,9 @@ export ANTHROPIC_API_KEY='your-api-key-here'
 ```json
 {
   "permissions": {
-    "allow": ["Bash(npm run lint)", "Bash(npm run test:*)", "Read(~/.zshrc)"],
+    "allow": ["Bash(npm run lint)", "Bash(npm run test *)", "Read(~/.zshrc)"],
     "deny": [
-      "Bash(curl:*)",
+      "Bash(curl *)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./secrets/**)"
