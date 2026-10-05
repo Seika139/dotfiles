@@ -8,6 +8,16 @@ suz() {
   (cd "$HOME/programs/tools/zipper/" && mise run decrypt "${tgt}")
 }
 
+szip-staged() {
+  tgt=$(abs_path "$*")
+  (cd "$HOME/programs/tools/zipper/" && mise run encrypt "${tgt}" --git-diff staged)
+}
+
+szip-worktree() {
+  tgt=$(abs_path "$*")
+  (cd "$HOME/programs/tools/zipper/" && mise run encrypt "${tgt}" --git-diff worktree)
+}
+
 repo-preset() {
   # See: repo-preset/README.md
   tgt=$(abs_path "$*")
