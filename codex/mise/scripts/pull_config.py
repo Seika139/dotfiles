@@ -32,7 +32,6 @@ def split_runtime(
 
     for key, base_value in base.items():
         if key not in runtime:
-            new_base[key] = base_value
             continue
 
         runtime_value = runtime[key]
