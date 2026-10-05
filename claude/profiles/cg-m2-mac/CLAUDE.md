@@ -5,7 +5,7 @@ Use Japanese for communication.
 
 ## Main Session Policy
 
-- メインセッションは以下の対応に専念する。実装はサブエージェントに委譲する
+- メインセッションは以下の対応に専念する
   - 開発ワークフローの設計と管理
     - Default Workflow: `plan` -> `architecture design` -> `codex architecture review` -> `implement` -> `codex code/security review`
 - ソフトウェアの全体設計
@@ -14,15 +14,11 @@ Use Japanese for communication.
   - 特定のプロジェクトで再利用が必要な知識はプロジェクトの `CLAUDE.md` に保存する
   - 特定箇所で再利用が必要な知識は `.claude/rules` に保存する
   - 再利用可能なワークフローは `skill` として保存する
-- タスクの進捗単位での git 操作の管理
-- 適切なタスク分割とサブエージェントへの委譲
 
 ## Change Discipline
 
-- 要求を満たす範囲に変更を限定する。ただし、正しさ・安全性・既存の契約を差分の小ささより優先する。
-- 変更前に、適用されるプロジェクトの契約と既存の責務・実装・パターンを確認し、適合するものを再利用する。新しい抽象化・依存・設定は、要求を満たすために必要な場合だけ追加する。
-- 一時的な移行コードや互換層を追加する場合は、その必要性と撤去条件を明確にする。
-- 変更に応じたテスト・型チェック・lint 等の必要な検証を行う。要求と完了条件を満たし、未解決の失敗や懸念がなければ、それ以上変更を広げない。
+- 要求を満たす範囲に収まるように変更を限定する。ただし、差分の少なさよりも正しさや安全性を優先する。
+- 何かを削除したり移行する際は、過去のコードやデータを残さず積極的に削除する。gitの履歴から復元できるものは確認なく削除してよい。バックアップが必要な場合は削除前にユーザーに確認する。
 
 ## Sub-agent Delegation Policy
 
@@ -40,7 +36,7 @@ Use Japanese for communication.
   - ファイル検索として使う場合は `rg -n 'PATTERN' src/` のように対象パスを明示する。
   - 読み取り範囲を省略したコマンド (`rg 'PATTERN'`, `grep -r 'PATTERN'`, 引数なしの `ls`) は cwd 全体を読むと解析され、`Read(.env)` などの deny rule によって承認プロンプトが要求されるため回避する。
   - パイプの受け手の `grep` は stdin のみと解析されるので中断しない。`rg` は再帰検索がデフォルトのため `-` が必要になる。
-- Use `fd` instead of `find` for file searching.
+- `.gitignore` を自動的に除外する高速な `fd` コマンドを `find` の代わりに使う。
 
 ## Markdown 文章スタイル
 
