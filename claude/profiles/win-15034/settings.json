@@ -44,6 +44,7 @@
         "hooks": [
           {
             "command": "bash \"$HOME/dotfiles/claude/notify_slack.sh\" Claude",
+            "timeout": 30,
             "type": "command"
           }
         ],
@@ -55,6 +56,7 @@
         "hooks": [
           {
             "command": "cd \"$CLAUDE_PROJECT_DIR\" && mise tasks ls 2>/dev/null | grep -q '^format' && mise run format >/dev/null 2>&1 || true",
+            "timeout": 30,
             "type": "command"
           }
         ],
@@ -66,10 +68,12 @@
         "hooks": [
           {
             "command": "bash \"$HOME/dotfiles/claude/notify_stop_windows.sh\" Claude",
+            "timeout": 30,
             "type": "command"
           },
           {
             "command": "bash \"$HOME/dotfiles/claude/notify_slack.sh\" Claude",
+            "timeout": 30,
             "type": "command"
           }
         ],
