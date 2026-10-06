@@ -15,4 +15,8 @@ dependencies:
     - DietrichGebert/ponytail#main
     - mattpocock/skills#main
     - nanaism/yomiyasu/skills/yomiyasu#main
-  mcp: []
+  mcp:
+    - name: atlassian
+      registry: false
+      transport: http
+      url: https://mcp.atlassian.com/v2/mcp
