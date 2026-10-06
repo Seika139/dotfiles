@@ -15,5 +15,5 @@ dependencies:
     - DietrichGebert/ponytail#main
     - mattpocock/skills#main
     - vercel-labs/skills#main
-    - nanaism/yomiyasu/skills/yomiyasu#main
+    - nanaism/yomiyasu#main
   mcp: []

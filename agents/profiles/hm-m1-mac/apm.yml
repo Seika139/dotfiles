@@ -14,5 +14,5 @@ dependencies:
     - Caromaf/agent-package-basic#main
     - DietrichGebert/ponytail#main
     - mattpocock/skills#main
-    - nanaism/yomiyasu/skills/yomiyasu#main
+    - nanaism/yomiyasu#main
   mcp: []
