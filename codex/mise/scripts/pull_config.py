@@ -150,8 +150,9 @@ def main() -> int:
     if local_backup is not None:
         print(f"   local config backup: {local_path} -> {local_backup}")
 
-    print(f"✅ Updated {base_path}")
-    print(f"✅ Updated {local_path}")
+    # Keep CLI output compatible with legacy Windows consoles (e.g. cp932).
+    print(f"Updated {base_path}")
+    print(f"Updated {local_path}")
     print("   Promote new keys by adding them to config.base.toml manually.")
     return 0
 

@@ -17,7 +17,6 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-
 BARE_KEY_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 VOLATILE_TOP_LEVEL_KEYS = {"hooks"}
 
@@ -34,7 +33,48 @@ def merge_dict(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]
 
 
 def drop_volatile_state(data: dict[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in data.items() if key not in VOLATILE_TOP_LEVEL_KEYS}
+    return {
+        key: value for key, value in data.items() if key not in VOLATILE_TOP_LEVEL_KEYS
+    }
+
+
+def config_diff_lines(actual: dict[str, Any], expected: dict[str, Any]) -> list[str]:
+    """Describe semantic TOML changes without reporting formatting or order."""
+    lines: list[str] = []
+
+    def add_value(prefix: str, marker: str, value: Any) -> None:
+        if isinstance(value, dict) and value:
+            for key, child in value.items():
+                add_value(f"{prefix}.{quote_key(str(key))}", marker, child)
+        elif isinstance(value, dict):
+            lines.append(f"{marker} {prefix} = {{}}")
+        else:
+            lines.append(f"{marker} {prefix} = {format_value(value)}")
+
+    def compare_table(old: dict[str, Any], new: dict[str, Any], prefix: str) -> None:
+        for key in old.keys() | new.keys():
+            label = f"{prefix}.{quote_key(str(key))}" if prefix else quote_key(str(key))
+            if key not in new:
+                add_value(label, "-", old[key])
+            elif key not in old:
+                add_value(label, "+", new[key])
+            elif isinstance(old[key], dict) and isinstance(new[key], dict):
+                compare_table(old[key], new[key], label)
+            elif (
+                isinstance(old[key], list)
+                and isinstance(new[key], list)
+                and len(old[key]) == len(new[key])
+                and all(isinstance(item, dict) for item in old[key] + new[key])
+            ):
+                for index, (old_item, new_item) in enumerate(zip(old[key], new[key])):
+                    compare_table(old_item, new_item, f"{label}[{index}]")
+            elif old[key] != new[key]:
+                lines.append(
+                    f"~ {label}: {format_value(old[key])} -> {format_value(new[key])}"
+                )
+
+    compare_table(actual, expected, "")
+    return sorted(lines)
 
 
 def quote_key(key: str) -> str:
@@ -55,7 +95,9 @@ def format_value(value: Any) -> str:
     if isinstance(value, list):
         return "[" + ", ".join(format_value(item) for item in value) + "]"
     if isinstance(value, dict):
-        items = ", ".join(f"{quote_key(str(k))} = {format_value(v)}" for k, v in value.items())
+        items = ", ".join(
+            f"{quote_key(str(k))} = {format_value(v)}" for k, v in value.items()
+        )
         return "{ " + items + " }"
     if isinstance(value, (dt.datetime, dt.date, dt.time)):
         return value.isoformat()
@@ -161,13 +203,22 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--print-sources", action="store_true")
     parser.add_argument("--same-as", type=Path)
+    parser.add_argument(
+        "--diff-with", type=Path, help="print semantic changes from this TOML file"
+    )
     args = parser.parse_args()
 
     try:
-        if args.same_as is not None:
+        if args.same_as is not None or args.diff_with is not None:
             merged, _sources = load_profile_config(args.profile_path)
-            actual = load_source(args.same_as)
-            return 0 if drop_volatile_state(merged) == drop_volatile_state(actual) else 10
+            comparison_path = args.same_as or args.diff_with
+            actual = drop_volatile_state(load_source(comparison_path))
+            expected = drop_volatile_state(merged)
+            if args.same_as is not None:
+                return 0 if expected == actual else 10
+            for line in config_diff_lines(actual, expected):
+                print(line)
+            return 0
         content, sources = render(args.profile_path)
     except Exception as error:
         print(f"render_config.py: {error}", file=sys.stderr)

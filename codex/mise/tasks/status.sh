@@ -133,12 +133,14 @@ if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ]
         printf "%s" "   ⚠️  "
         print_dim "$config_target"
         print_yellow " differs from rendered profile config"$'\n'
+        print_yellow "         changed config keys (runtime -> rendered profile):"$'\n'
+        "$render_script" --profile-path "$PROFILE_PATH" --diff-with "$config_target"
         print_yellow "         import runtime changes: "
         print_cyan "mise run pull_config --prof \"$PROFILE\""$'\n'
         print_yellow "         re-render profile config: "
         print_cyan "mise run link --prof \"$PROFILE\""$'\n'
         print_yellow "         compare with rendered profile config: "
-        print_cyan "diff \"$config_target\" <(\"$render_script\" --profile-path \"$PROFILE_PATH\" --output /dev/stdout)"$'\n'
+        print_cyan "\"$render_script\" --profile-path \"$PROFILE_PATH\" --diff-with \"$config_target\""$'\n'
       fi
     else
       print_yellow "   ❌ $config_target does not exist. Run: mise run link --prof \"$PROFILE\""$'\n'
