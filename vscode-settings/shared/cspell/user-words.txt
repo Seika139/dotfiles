@@ -364,6 +364,7 @@ termius
 Tesseract
 textlint
 textlintrc
+tfstate
 timedelta
 timesheet
 timesheets
