@@ -62,7 +62,11 @@ gll() {
 
 # git の不要なブランチを削除する
 grm() {
-  local default_branch repo_root default_worktree branch worktree_path status
+  local default_branch repo_root default_worktree default_commit default_tree
+  local custom_merge_drivers custom_merge_driver_status
+  local branch branch_commit branch_current_commit merge_tree worktree_listing worktree_info
+  local worktree_path worktree_realpath current_working_directory worktree_locked
+  local worktree_info_tail worktree_count worktree_status delete_mode status
 
   default_branch=$(git rev-parse --abbrev-ref origin/HEAD | sed 's/origin\///') || return 1
   repo_root=$(git rev-parse --show-toplevel) || return 1
@@ -86,19 +90,136 @@ grm() {
   echo_yellow "git -C ${default_worktree} remote prune origin" &&
     git -C "${default_worktree}" remote prune origin || return 1
 
+  default_commit=$(git -C "${default_worktree}" rev-parse --verify "refs/remotes/origin/${default_branch}^{commit}") || return 1
+  default_tree=$(git -C "${default_worktree}" rev-parse --verify "${default_commit}^{tree}") || return 1
+  current_working_directory=$(pwd -P) || return 1
+
+  # Custom merge drivers can produce results merge-tree cannot safely predict.
+  if custom_merge_drivers=$(git -C "${default_worktree}" config --get-regexp '^merge\..*\.driver$' 2>/dev/null); then
+    custom_merge_driver_status=0
+  else
+    custom_merge_driver_status=$?
+    if [[ "${custom_merge_driver_status}" -ne 1 ]]; then
+      echo_yellow "git -C ${default_worktree} config --get-regexp '^merge\\..*\\.driver$' failed"
+      return 1
+    fi
+    custom_merge_drivers=""
+  fi
+
   status=0
   while IFS= read -r branch; do
     [[ -n "${branch}" ]] || continue
 
-    worktree_path=$(
-      git worktree list --porcelain |
-        awk -v branch="refs/heads/${branch}" '
-          /^worktree / { path = substr($0, 10) }
-          /^branch / && substr($0, 8) == branch { print path; exit }
-        '
+    branch_commit=$(git -C "${default_worktree}" rev-parse --verify "refs/heads/${branch}^{commit}") || {
+      echo_yellow "Skipping ${branch}: cannot resolve its local commit"
+      status=1
+      continue
+    }
+
+    if git -C "${default_worktree}" merge-base --is-ancestor "${branch_commit}" "${default_commit}"; then
+      delete_mode="normal"
+    elif [[ -n "${custom_merge_drivers}" ]]; then
+      echo_yellow "Skipping ${branch}: squash merge detection is disabled by a configured custom merge driver"
+      status=1
+      continue
+    # A clean merge whose tree equals origin's tree adds no content to the default branch.
+    elif merge_tree=$(git -C "${default_worktree}" merge-tree --write-tree --no-messages "${default_commit}" "${branch_commit}" 2>/dev/null) && [[ "${merge_tree}" == "${default_tree}" ]]; then
+      delete_mode="squash"
+    else
+      echo_yellow "Skipping ${branch}: its changes are not fully reflected in origin/${default_branch}"
+      status=1
+      continue
+    fi
+
+    worktree_listing=$(git -C "${default_worktree}" worktree list --porcelain) || {
+      echo_yellow "Skipping ${branch}: cannot inspect worktrees"
+      status=1
+      continue
+    }
+    worktree_info=$(
+      awk -v target="refs/heads/${branch}" '
+        function save_match() {
+          if (matches) {
+            count++
+            if (count == 1) {
+              first_path = path
+              first_locked = locked
+            }
+          }
+        }
+        /^worktree / { path = substr($0, 10); matches = 0; locked = 0 }
+        /^branch / && substr($0, 8) == target { matches = 1 }
+        /^locked( |$)/ && matches { locked = 1 }
+        /^$/ {
+          save_match()
+          matches = 0
+        }
+        END {
+          save_match()
+          if (count > 0) {
+            printf "%s\t%d\t%d\n", first_path, first_locked, count
+          }
+        }
+      ' <<<"${worktree_listing}"
     )
 
-    if [[ -n "${worktree_path}" ]]; then
+    if [[ -n "${worktree_info}" ]]; then
+      worktree_path=${worktree_info%%$'\t'*}
+      worktree_info_tail=${worktree_info#*$'\t'}
+      worktree_locked=${worktree_info_tail%%$'\t'*}
+      worktree_count=${worktree_info_tail##*$'\t'}
+
+      if [[ "${worktree_count}" -gt 1 ]]; then
+        echo_yellow "Skipping ${branch}: it is checked out in multiple worktrees"
+        status=1
+        continue
+      fi
+
+      if [[ "${worktree_locked}" == "1" ]]; then
+        echo_yellow "Skipping ${branch}: its worktree is locked (${worktree_path})"
+        status=1
+        continue
+      fi
+
+      if [[ "${worktree_path}" == "${default_worktree}" || ! -d "${worktree_path}" ]]; then
+        echo_yellow "Skipping ${branch}: its worktree cannot be safely removed (${worktree_path})"
+        status=1
+        continue
+      fi
+
+      if ! worktree_realpath=$(CDPATH='' cd -- "${worktree_path}" 2>/dev/null && pwd -P); then
+        echo_yellow "Skipping ${branch}: cannot resolve its worktree path (${worktree_path})"
+        status=1
+        continue
+      fi
+      if [[ "${current_working_directory}" == "${worktree_realpath}" || "${current_working_directory}" == "${worktree_realpath%/}/"* ]]; then
+        echo_yellow "Skipping ${branch}: its worktree contains the current directory (${worktree_path})"
+        status=1
+        continue
+      fi
+
+      if ! worktree_status=$(git -C "${worktree_path}" status --porcelain --untracked-files=all); then
+        echo_yellow "Skipping ${branch}: cannot inspect worktree status (${worktree_path})"
+        status=1
+        continue
+      fi
+      if [[ -n "${worktree_status}" ]]; then
+        echo_yellow "Skipping ${branch}: its worktree has changes or untracked files (${worktree_path})"
+        status=1
+        continue
+      fi
+
+      if ! branch_current_commit=$(git -C "${default_worktree}" rev-parse --verify "refs/heads/${branch}^{commit}"); then
+        echo_yellow "Skipping ${branch}: its local ref changed before worktree removal"
+        status=1
+        continue
+      fi
+      if [[ "${branch_current_commit}" != "${branch_commit}" ]]; then
+        echo_yellow "Skipping ${branch}: its local ref changed before worktree removal"
+        status=1
+        continue
+      fi
+
       echo_yellow "git -C ${default_worktree} worktree remove ${worktree_path}"
       git -C "${default_worktree}" worktree remove "${worktree_path}" || {
         status=1
@@ -106,8 +227,25 @@ grm() {
       }
     fi
 
-    echo_yellow "git -C ${default_worktree} branch -d ${branch}"
-    git -C "${default_worktree}" branch -d "${branch}" || status=1
+    if ! branch_current_commit=$(git -C "${default_worktree}" rev-parse --verify "refs/heads/${branch}^{commit}"); then
+      echo_yellow "Skipping ${branch}: its local ref changed before branch deletion"
+      status=1
+      continue
+    fi
+    if [[ "${branch_current_commit}" != "${branch_commit}" ]]; then
+      echo_yellow "Skipping ${branch}: its local ref changed before branch deletion"
+      status=1
+      continue
+    fi
+
+    if [[ "${delete_mode}" == "squash" ]]; then
+      # A ref update can still race the OID check; branch -D preserves Git's other-worktree checkout guard.
+      echo_yellow "git -C ${default_worktree} branch -D ${branch}"
+      git -C "${default_worktree}" branch -D "${branch}" || status=1
+    else
+      echo_yellow "git -C ${default_worktree} branch -d ${branch}"
+      git -C "${default_worktree}" branch -d "${branch}" || status=1
+    fi
   done < <(
     git -C "${default_worktree}" for-each-ref \
       --format='%(refname:short)%09%(upstream:track)' refs/heads |
