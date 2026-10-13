@@ -126,6 +126,7 @@ fukushima
 FUNCTAB
 futaba
 gacha
+Gebert
 genai
 Genemon
 getenv
@@ -214,6 +215,7 @@ mysqldef
 mysqldump
 mysqli
 mysqlnd
+nanaism
 NAPT
 Nasca
 ndarray
@@ -421,4 +423,5 @@ xhigh
 xhprof
 xlarge
 yamllintignore
+yomiyasu
 zizmor
