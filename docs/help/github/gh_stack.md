@@ -88,11 +88,11 @@ gh stack init --base feature/base auth-layer
 gh stack add [flags] [branch]
 ```
 
-| flags              | 説明                                                                     |
-| :----------------- | :----------------------------------------------------------------------- |
+| flags              | 説明                                                                                                 |
+| :----------------- | :--------------------------------------------------------------------------------------------------- |
 | -A,--all           | すべての変更をステージする（追跡されていないファイルを含む）。`-m` が必須で、`-u` とは併用できない。 |
-| -u,--update        | 追跡対象のみのファイルをステージする。`-m` が必須で、`-A` とは併用できない。                                     |
-| -m,--message <msg> | ブランチを作成する前に、このメッセージを含むコミットを作成すること。 |
+| -u,--update        | 追跡対象のみのファイルをステージする。`-m` が必須で、`-A` とは併用できない。                         |
+| -m,--message <msg> | ブランチを作成する前に、このメッセージを含むコミットを作成すること。                                 |
 
 **例**
 
@@ -124,6 +124,32 @@ gh stack submit [flags]
 ```bash
 # スタックの PR を作成または更新する
 gh stack submit
+```
+
+### link
+
+PR やブランチを bottom から top の順に指定し、GitHub 上の Stack に link する。
+既存の open PR は再利用し、PR のないブランチは remote に push して、正しい base chain で PR を作成する。
+既存 PR の base が stack の順序と合わない場合は修正する。
+ローカルの `gh-stack` 追跡情報は作成・変更しない。
+既存 Stack に追加する場合は先頭に Stack number を指定し、残りの引数を末尾へ追加する。
+
+```bash
+gh stack link [flags] <stack-number | branch-or-pr> <branch-or-pr> [...]
+```
+
+| flags             | 説明                                                                                                            |
+| :---------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `--base <branch>` | 新規 Stack の最下位 PR の base branch。既定値はリポジトリの default branch。既存 Stack への追加時は無視される。 |
+| `--open`          | 新規・既存 PR を ready for review にする。                                                                      |
+| `--remote <name>` | branch を push する remote。既定値は自動検出。                                                                  |
+
+```bash
+# 既存 PR の上に feature-ui ブランチを追加して Stack に link する
+gh stack link https://github.com/owner/repo/pull/10 feature-ui
+
+# stack #7 の末尾に feature-ui ブランチを追加する
+gh stack link 7 feature-ui
 ```
 
 ### sync
