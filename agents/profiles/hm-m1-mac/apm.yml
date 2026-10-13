@@ -13,6 +13,7 @@ dependencies:
   apm:
     - Caromaf/agent-package-basic#main
     - DietrichGebert/ponytail#main
+    - github/gh-stack#main
     - mattpocock/skills#main
     - nanaism/yomiyasu#main
   mcp: []

@@ -13,7 +13,8 @@ dependencies:
   apm:
     - Caromaf/agent-package-basic#main
     - DietrichGebert/ponytail#main
+    - github/gh-stack#main
     - mattpocock/skills#main
-    - vercel-labs/skills#main
     - nanaism/yomiyasu#main
+    - vercel-labs/skills#main
   mcp: []
