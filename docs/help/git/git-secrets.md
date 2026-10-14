@@ -17,7 +17,6 @@
 
 ```bash
 command -v git-secrets
-git secrets --version  # なければ `mise install` 後に再確認
 ```
 
 ## パターンの登録・確認・削除
