@@ -8,5 +8,12 @@
   "includePaths": ["mise.toml", "mise/profiles/*.toml"],
   "mise": {
     "managerFilePatterns": ["mise/profiles/*.toml"]
-  }
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    }
+  ]
 }
