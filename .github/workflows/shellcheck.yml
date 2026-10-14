@@ -7,12 +7,14 @@ name: ShellCheck
     paths:
       - "**/*.sh"
       - "**/*.bash"
+      - "mise.toml"
       - ".github/workflows/shellcheck.yml"
   pull_request:
     branches: [main]
     paths:
       - "**/*.sh"
       - "**/*.bash"
+      - "mise.toml"
       - ".github/workflows/shellcheck.yml"
 
 permissions:
@@ -21,11 +23,13 @@ permissions:
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
+    env:
+      MISE_ENABLE_TOOLS: shellcheck
     steps:
       - uses: actions/checkout@v6
 
       - name: Install ShellCheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
+        uses: jdx/mise-action@v5
 
       - name: Run ShellCheck
         run: |
