@@ -7,12 +7,14 @@ name: ShellCheck
     paths:
       - "**/*.sh"
       - "**/*.bash"
+      - "mise.toml"
       - ".github/workflows/shellcheck.yml"
   pull_request:
     branches: [main]
     paths:
       - "**/*.sh"
       - "**/*.bash"
+      - "mise.toml"
       - ".github/workflows/shellcheck.yml"
 
 permissions:
@@ -21,14 +23,74 @@ permissions:
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
+    env:
+      MISE_NO_CONFIG: "1"
     steps:
       - uses: actions/checkout@v6
 
+      - name: Prepare isolated mise directories
+        run: |
+          mise_workspace="$RUNNER_TEMP/mise-workspace"
+          mise_data_dir="$RUNNER_TEMP/mise-data"
+          mkdir -p "$mise_workspace" "$mise_data_dir"
+          {
+            printf 'MISE_TRUSTED_CONFIG_PATHS=%s\n' "$mise_workspace"
+            printf 'MISE_DATA_DIR=%s\n' "$mise_data_dir"
+          } >> "$GITHUB_ENV"
+
+      - name: Read ShellCheck version from mise.toml
+        id: shellcheck-version
+        run: |
+          shellcheck_version="$(python3 -I - mise.toml <<'PY'
+          import re
+          import sys
+          import tomllib
+
+          with open(sys.argv[1], "rb") as config_file:
+              config = tomllib.load(config_file)
+
+          tools = config.get("tools")
+          version = tools.get("shellcheck") if isinstance(tools, dict) else None
+          pattern = r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+          if not isinstance(version, str) or re.fullmatch(pattern, version) is None:
+              raise SystemExit("mise.toml [tools].shellcheck must be an exact numeric x.y.z version")
+
+          print(version)
+          PY
+          )"
+          printf 'version=%s\n' "$shellcheck_version" >> "$GITHUB_OUTPUT"
+
       - name: Install ShellCheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
+        uses: jdx/mise-action@v5
+        with:
+          working_directory: ${{ runner.temp }}/mise-workspace
+          install_args: aqua:koalaman/shellcheck@${{ steps.shellcheck-version.outputs.version }}
+          cache: false
+          env: false
+          export_path: false
+          add_shims_to_path: false
+
+      - name: Add installed ShellCheck to PATH
+        env:
+          SHELLCHECK_VERSION: ${{ steps.shellcheck-version.outputs.version }}
+        run: |
+          shellcheck_path="$(mise which shellcheck --tool "aqua:koalaman/shellcheck@${SHELLCHECK_VERSION}")"
+          case "$shellcheck_path" in
+            "$MISE_DATA_DIR"/*) ;;
+            *) printf 'ShellCheck was not installed under MISE_DATA_DIR: %s\n' "$shellcheck_path" >&2; exit 1 ;;
+          esac
+          dirname "$shellcheck_path" >> "$GITHUB_PATH"
 
       - name: Run ShellCheck
+        env:
+          SHELLCHECK_VERSION: ${{ steps.shellcheck-version.outputs.version }}
         run: |
+          shellcheck_path="$(command -v shellcheck)"
+          case "$shellcheck_path" in
+            "$MISE_DATA_DIR"/*) ;;
+            *) printf 'ShellCheck resolved outside MISE_DATA_DIR: %s\n' "$shellcheck_path" >&2; exit 1 ;;
+          esac
+          shellcheck --version | grep -Fx "version: $SHELLCHECK_VERSION"
           # bash/mise.toml の仕様に合わせてチェックを実行する
           shellcheck -x -P SCRIPTDIR ./install.sh ./unlink.sh ./.bash_logout ./bash/.bash_profile ./bash/.bashenv ./bash/.bashrc
           # bash ディレクトリ以下のすべての .sh, .bash ファイルを再帰的にチェックする
