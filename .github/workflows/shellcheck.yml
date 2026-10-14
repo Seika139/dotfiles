@@ -11,11 +11,6 @@ name: ShellCheck
       - ".github/workflows/shellcheck.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "**/*.sh"
-      - "**/*.bash"
-      - "mise.toml"
-      - ".github/workflows/shellcheck.yml"
 
 permissions:
   contents: read
