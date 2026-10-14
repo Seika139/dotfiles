@@ -1,4 +1,4 @@
 [tools]
-node = "latest"
-pnpm = "latest"
-"npm:@openai/codex" = "latest"
+node = "26.11.1"
+pnpm = "12.10.1"
+"npm:@openai/codex" = "0.160.1"

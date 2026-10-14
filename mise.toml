@@ -2,18 +2,18 @@
 minimum_release_age = "7d"
 
 [tools]
-"aqua:awslabs/git-secrets" = { version = "latest", os = ["linux", "macos"] }
-dprint = "latest"
-markdownlint-cli2 = "latest"
-node = "latest"
-pnpm = "latest"
-python = "latest"
-rumdl = "latest"
-shfmt = "latest"
-shellcheck = "latest"
-taplo = "latest"
-uv = "latest"
-yamllint = "latest"
+"aqua:awslabs/git-secrets" = { version = "1.3.0", os = ["linux", "macos"] }
+dprint = "0.60.1"
+markdownlint-cli2 = "0.23.3"
+node = "26.11.1"
+pnpm = "12.10.1"
+python = "3.15.0"
+rumdl = "0.2.78"
+shfmt = "3.14.1"
+shellcheck = "0.11.0"
+taplo = "0.10.0"
+uv = "0.13.0"
+yamllint = "1.38.0"
 
 [tasks.dot-init]
 description = "dotfile mise管理の初期化（タスクに実行権限を付与、依存同期など）"
