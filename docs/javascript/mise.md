@@ -17,7 +17,7 @@
 
 設定は `mise/profiles/<DAILY_PROFILE>.toml` にあります。`.env` では `DAILY_PROFILE=値` の形式だけが有効です。値は英数字、`_`、`-` で構成し、引用符、`export`、inline comment、重複行は拒否します。`install.sh` は `.env` を実行せずに値を読み取ります。対応する通常ファイルが存在するときだけ `${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}/conf.d/dotfiles-profile.toml` にリンクし、ホームディレクトリで `mise install` を実行します。未知のprofile、無効値、既存ユーザー設定ファイル、dotfiles以外のsymlinkは上書きせず、profile toolsも導入しません。
 
-Daily更新はMac/Windowsでは従来の Volta 更新対象に限って `mise upgrade` を実行します。WSL Ubuntuでは従来どおりmiseの全ツールをホームディレクトリで更新します。WSLのprofileはNode.js/npmと登録CLIを `latest` で追跡します。
+Daily更新はMac/Windowsでは従来の Volta 更新対象に限って `mise upgrade` を実行します。WSL Ubuntuでは従来どおりmiseの全ツールをホームディレクトリで更新します。各 TOML に記載するツールのバージョンは固定値で、`mise upgrade` はマニフェストの値を変更しません。Renovate は毎週月曜日の設定時間帯にバージョン更新のプルリクエストを作成し、リリースから7日以上経過したバージョンを候補にします。
 
 ## プロファイルの切り替え
 
