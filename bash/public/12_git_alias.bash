@@ -64,7 +64,7 @@ gll() {
 grm() {
   local default_branch repo_root default_worktree default_commit default_tree
   local custom_merge_drivers custom_merge_driver_status
-  local branch branch_commit branch_current_commit merge_tree worktree_listing worktree_info
+  local branch branch_commit branch_current_commit branch_tree default_commit_trees merge_tree worktree_listing worktree_info
   local worktree_path worktree_realpath current_working_directory worktree_locked
   local worktree_info_tail worktree_count worktree_status delete_mode status
 
@@ -124,6 +124,16 @@ grm() {
       continue
     # A clean merge whose tree equals origin's tree adds no content to the default branch.
     elif merge_tree=$(git -C "${default_worktree}" merge-tree --write-tree --no-messages "${default_commit}" "${branch_commit}" 2>/dev/null) && [[ "${merge_tree}" == "${default_tree}" ]]; then
+      delete_mode="squash"
+    # A squash/rebase merge leaves no ancestor relationship, and the default branch
+    # may have moved on since, so the merge-tree check above can miss it. Instead,
+    # look for a commit in origin's history whose tree exactly matches the branch's.
+    # The trees are captured into a variable rather than piped to grep directly:
+    # under `pipefail`, grep -q's early exit can SIGPIPE `git log` and surface its
+    # (non-zero) exit code instead of grep's.
+    elif branch_tree=$(git -C "${default_worktree}" rev-parse --verify "${branch_commit}^{tree}") &&
+      default_commit_trees=$(git -C "${default_worktree}" log --format=%T "${default_commit}") &&
+      grep -qxF "${branch_tree}" <<<"${default_commit_trees}"; then
       delete_mode="squash"
     else
       echo_yellow "Skipping ${branch}: its changes are not fully reflected in origin/${default_branch}"

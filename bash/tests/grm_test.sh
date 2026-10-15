@@ -94,6 +94,22 @@ create_squash_candidate() {
   git -C "${REPO}" worktree add "${worktree_path}" "${branch}" >/dev/null
 }
 
+# squash merge 後に default branch がさらに進み、merge-tree の一致判定が
+# 崩れるケース。tree 履歴探索による squash 検知のフォールバックを検証する。
+create_squash_then_advanced_candidate() {
+  local branch="$1" file="$2" worktree_path="$3"
+  new_branch "${branch}" "${file}" "${branch}"
+  git -C "${REPO}" switch main >/dev/null
+  git -C "${REPO}" merge --squash "${branch}" >/dev/null
+  git -C "${REPO}" commit -m "squash ${branch}" >/dev/null
+  printf '%s\n' "advanced" >>"${REPO}/${file}"
+  git -C "${REPO}" add "${file}"
+  git -C "${REPO}" commit -m "advance ${file} after squash" >/dev/null
+  git -C "${REPO}" push origin main >/dev/null
+  git -C "${REPO}" push origin --delete "${branch}" >/dev/null
+  git -C "${REPO}" worktree add "${worktree_path}" "${branch}" >/dev/null
+}
+
 git init --bare --initial-branch=main "${ORIGIN}" >/dev/null
 git clone "${ORIGIN}" "${REPO}" >/dev/null 2>&1
 git -C "${REPO}" config user.name "grm test"
@@ -112,6 +128,8 @@ git -C "${REPO}" commit -m "squash squash" >/dev/null
 git -C "${REPO}" push origin main >/dev/null
 git -C "${REPO}" push origin --delete squash >/dev/null
 git -C "${REPO}" worktree add "${TEST_ROOT}/wt-squash" squash >/dev/null
+
+create_squash_then_advanced_candidate squash-then-advanced squash-then-advanced.txt "${TEST_ROOT}/wt-squash-then-advanced"
 
 new_branch unmerged unmerged.txt unmerged
 git -C "${REPO}" switch main >/dev/null
@@ -146,6 +164,8 @@ assert_branch_exists normal absent
 assert_worktree_exists "${TEST_ROOT}/wt-normal" absent
 assert_branch_exists squash absent
 assert_worktree_exists "${TEST_ROOT}/wt-squash" absent
+assert_branch_exists squash-then-advanced absent
+assert_worktree_exists "${TEST_ROOT}/wt-squash-then-advanced" absent
 assert_branch_exists unmerged present
 assert_worktree_exists "${TEST_ROOT}/wt-unmerged" present
 assert_branch_exists dirty present
