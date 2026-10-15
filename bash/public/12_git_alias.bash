@@ -61,10 +61,14 @@ gll() {
 }
 
 # git の不要なブランチを削除する
+# 対象は upstream が [gone] のブランチと、upstream が無い/default branch を追跡している
+# ブランチ (後者は作成直後のブランチを守るため、reflog に commit の痕跡があり、
+# 同名の remote ブランチが残っていないものに限る)。
 grm() {
   local default_branch repo_root default_worktree default_commit default_tree
   local custom_merge_drivers custom_merge_driver_status
-  local branch branch_commit branch_current_commit merge_tree worktree_listing worktree_info
+  local candidate_kind branch_reflog
+  local branch branch_commit branch_current_commit branch_tree branch_merge_base default_commit_trees merge_tree worktree_listing worktree_info
   local worktree_path worktree_realpath current_working_directory worktree_locked
   local worktree_info_tail worktree_count worktree_status delete_mode status
 
@@ -107,7 +111,7 @@ grm() {
   fi
 
   status=0
-  while IFS= read -r branch; do
+  while IFS=$'\t' read -r branch candidate_kind; do
     [[ -n "${branch}" ]] || continue
 
     branch_commit=$(git -C "${default_worktree}" rev-parse --verify "refs/heads/${branch}^{commit}") || {
@@ -115,6 +119,21 @@ grm() {
       status=1
       continue
     }
+
+    if [[ "${candidate_kind}" == "local" ]]; then
+      # A remote branch of the same name means the work may still be in flight.
+      if git -C "${default_worktree}" show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+        echo_yellow "Skipping ${branch}: origin/${branch} still exists"
+        continue
+      fi
+      # A branch that was only just created is an ancestor of origin too, so require
+      # a commit in its reflog. Captured into a variable to avoid SIGPIPE under pipefail.
+      branch_reflog=$(git -C "${default_worktree}" reflog show --format=%gs "refs/heads/${branch}" 2>/dev/null) || branch_reflog=""
+      if ! grep -q '^\(commit\|cherry-pick\)' <<<"${branch_reflog}"; then
+        echo_yellow "Skipping ${branch}: no commits recorded on it, so it may be newly created"
+        continue
+      fi
+    fi
 
     if git -C "${default_worktree}" merge-base --is-ancestor "${branch_commit}" "${default_commit}"; then
       delete_mode="normal"
@@ -124,6 +143,20 @@ grm() {
       continue
     # A clean merge whose tree equals origin's tree adds no content to the default branch.
     elif merge_tree=$(git -C "${default_worktree}" merge-tree --write-tree --no-messages "${default_commit}" "${branch_commit}" 2>/dev/null) && [[ "${merge_tree}" == "${default_tree}" ]]; then
+      delete_mode="squash"
+    # A squash/rebase merge leaves no ancestor relationship, and the default branch
+    # may have moved on since, so the merge-tree check above can miss it. Instead,
+    # look for a commit whose tree exactly matches the branch's, restricted to the
+    # commits origin gained after the branch diverged (merge_base..default): a
+    # branch that merely undoes older work recreates a pre-fork tree, which must
+    # not count as merged. Known limitation: a squash merge that the default branch
+    # later reverted still matches. The trees are captured into a variable rather
+    # than piped to grep directly: under `pipefail`, grep -q's early exit can
+    # SIGPIPE `git log` and surface its (non-zero) exit code instead of grep's.
+    elif branch_tree=$(git -C "${default_worktree}" rev-parse --verify "${branch_commit}^{tree}") &&
+      branch_merge_base=$(git -C "${default_worktree}" merge-base "${branch_commit}" "${default_commit}") &&
+      default_commit_trees=$(git -C "${default_worktree}" log --format=%T "${branch_merge_base}..${default_commit}") &&
+      grep -qxF "${branch_tree}" <<<"${default_commit_trees}"; then
       delete_mode="squash"
     else
       echo_yellow "Skipping ${branch}: its changes are not fully reflected in origin/${default_branch}"
@@ -248,8 +281,12 @@ grm() {
     fi
   done < <(
     git -C "${default_worktree}" for-each-ref \
-      --format='%(refname:short)%09%(upstream:track)' refs/heads |
-      awk -F '\t' '$2 == "[gone]" { print $1 }'
+      --format='%(refname:short)%09%(upstream)%09%(upstream:track)' refs/heads |
+      awk -F '\t' -v default_branch="${default_branch}" -v default_upstream="refs/remotes/origin/${default_branch}" '
+        $1 == default_branch { next }
+        $3 == "[gone]" { print $1 "\tgone"; next }
+        $2 == "" || $2 == default_upstream { print $1 "\tlocal" }
+      '
   )
 
   return "${status}"
