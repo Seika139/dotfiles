@@ -110,6 +110,28 @@ create_squash_then_advanced_candidate() {
   git -C "${REPO}" worktree add "${worktree_path}" "${branch}" >/dev/null
 }
 
+# upstream が [gone] にならないブランチ (upstream 解除済み) をマージ済みにする。
+create_unpushed_merged_candidate() {
+  local branch="$1" file="$2" worktree_path="$3"
+  new_branch "${branch}" "${file}" "${branch}"
+  merge_normally_and_delete_remote "${branch}" "${worktree_path}"
+  git -C "${REPO}" branch --unset-upstream "${branch}"
+}
+
+# origin/main を追跡したまま作業しマージしたブランチ (worktree 付き)。
+create_tracking_main_candidate() {
+  local branch="$1" file="$2" worktree_path="$3"
+  git -C "${REPO}" switch main >/dev/null
+  git -C "${REPO}" switch -c "${branch}" origin/main >/dev/null 2>&1
+  printf '%s\n' "${branch}" >"${REPO}/${file}"
+  git -C "${REPO}" add "${file}"
+  git -C "${REPO}" commit -m "add ${file}" >/dev/null
+  git -C "${REPO}" switch main >/dev/null
+  git -C "${REPO}" merge --no-ff "${branch}" -m "merge ${branch}" >/dev/null
+  git -C "${REPO}" push origin main >/dev/null
+  git -C "${REPO}" worktree add "${worktree_path}" "${branch}" >/dev/null
+}
+
 git init --bare --initial-branch=main "${ORIGIN}" >/dev/null
 git clone "${ORIGIN}" "${REPO}" >/dev/null 2>&1
 git -C "${REPO}" config user.name "grm test"
@@ -130,6 +152,22 @@ git -C "${REPO}" push origin --delete squash >/dev/null
 git -C "${REPO}" worktree add "${TEST_ROOT}/wt-squash" squash >/dev/null
 
 create_squash_then_advanced_candidate squash-then-advanced squash-then-advanced.txt "${TEST_ROOT}/wt-squash-then-advanced"
+
+# upstream が無い/origin/main 追跡のマージ済みブランチは、commit の痕跡があれば削除する。
+create_unpushed_merged_candidate unpushed unpushed.txt "${TEST_ROOT}/wt-unpushed"
+create_tracking_main_candidate tracking-main tracking-main.txt "${TEST_ROOT}/wt-tracking-main"
+
+# 作成直後 (commit なし) のブランチは origin/main の祖先でも消さない。
+git -C "${REPO}" switch main >/dev/null
+git -C "${REPO}" branch fresh main
+git -C "${REPO}" worktree add "${TEST_ROOT}/wt-fresh" fresh >/dev/null 2>&1
+
+# 同名の remote ブランチが残っているブランチは作業中の可能性があるので消さない。
+new_branch remote-alive remote-alive.txt remote-alive
+git -C "${REPO}" switch main >/dev/null
+git -C "${REPO}" merge --no-ff remote-alive -m "merge remote-alive" >/dev/null
+git -C "${REPO}" push origin main >/dev/null
+git -C "${REPO}" branch --unset-upstream remote-alive
 
 new_branch unmerged unmerged.txt unmerged
 git -C "${REPO}" switch main >/dev/null
@@ -166,6 +204,14 @@ assert_branch_exists squash absent
 assert_worktree_exists "${TEST_ROOT}/wt-squash" absent
 assert_branch_exists squash-then-advanced absent
 assert_worktree_exists "${TEST_ROOT}/wt-squash-then-advanced" absent
+assert_branch_exists unpushed absent
+assert_worktree_exists "${TEST_ROOT}/wt-unpushed" absent
+assert_branch_exists tracking-main absent
+assert_worktree_exists "${TEST_ROOT}/wt-tracking-main" absent
+assert_branch_exists fresh present
+assert_worktree_exists "${TEST_ROOT}/wt-fresh" present
+assert_branch_exists remote-alive present
+assert_branch_exists main present
 assert_branch_exists unmerged present
 assert_worktree_exists "${TEST_ROOT}/wt-unmerged" present
 assert_branch_exists dirty present
