@@ -132,6 +132,23 @@ create_tracking_main_candidate() {
   git -C "${REPO}" worktree add "${worktree_path}" "${branch}" >/dev/null
 }
 
+# main の変更を取り消すだけの未マージブランチ (upstream [gone])。
+# tree が fork 前の main と一致するが、squash 済みと誤認して消してはいけない。
+create_revert_branch_candidate() {
+  local branch="$1" file="$2" worktree_path="$3"
+  git -C "${REPO}" switch main >/dev/null
+  printf '%s\n' "${branch}" >"${REPO}/${file}"
+  git -C "${REPO}" add "${file}"
+  git -C "${REPO}" commit -m "add ${file}" >/dev/null
+  git -C "${REPO}" push origin main >/dev/null
+  git -C "${REPO}" switch -c "${branch}" >/dev/null
+  git -C "${REPO}" revert --no-edit HEAD >/dev/null
+  git -C "${REPO}" push -u origin "${branch}" >/dev/null
+  git -C "${REPO}" push origin --delete "${branch}" >/dev/null
+  git -C "${REPO}" switch main >/dev/null
+  git -C "${REPO}" worktree add "${worktree_path}" "${branch}" >/dev/null
+}
+
 git init --bare --initial-branch=main "${ORIGIN}" >/dev/null
 git clone "${ORIGIN}" "${REPO}" >/dev/null 2>&1
 git -C "${REPO}" config user.name "grm test"
@@ -168,6 +185,9 @@ git -C "${REPO}" switch main >/dev/null
 git -C "${REPO}" merge --no-ff remote-alive -m "merge remote-alive" >/dev/null
 git -C "${REPO}" push origin main >/dev/null
 git -C "${REPO}" branch --unset-upstream remote-alive
+
+# main の変更を取り消す未マージブランチは、tree が過去の main と一致しても消さない。
+create_revert_branch_candidate revert-branch revert-branch.txt "${TEST_ROOT}/wt-revert-branch"
 
 new_branch unmerged unmerged.txt unmerged
 git -C "${REPO}" switch main >/dev/null
@@ -211,6 +231,8 @@ assert_worktree_exists "${TEST_ROOT}/wt-tracking-main" absent
 assert_branch_exists fresh present
 assert_worktree_exists "${TEST_ROOT}/wt-fresh" present
 assert_branch_exists remote-alive present
+assert_branch_exists revert-branch present
+assert_worktree_exists "${TEST_ROOT}/wt-revert-branch" present
 assert_branch_exists main present
 assert_branch_exists unmerged present
 assert_worktree_exists "${TEST_ROOT}/wt-unmerged" present
