@@ -1,4 +1,6 @@
 {
+  "advisorModel": "fable",
+  "agentPushNotifEnabled": true,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -144,6 +146,7 @@
       "Bash(gh api *delete*)"
     ]
   },
+  "remoteControlAtStartup": false,
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "command": "~/dotfiles/claude/status_line.sh",
