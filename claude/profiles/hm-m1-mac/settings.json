@@ -75,6 +75,19 @@
         "matcher": "task|Task"
       }
     ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT.split(String.fromCharCode(92)).join('/'), 'hooks/ponytail-activate.js'))\"",
+            "statusMessage": "Loading ponytail mode...",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -86,6 +99,19 @@
         "matcher": ""
       }
     ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "command": "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT.split(String.fromCharCode(92)).join('/'), 'hooks/ponytail-subagent.js'))\"",
+            "statusMessage": "Loading ponytail mode...",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -94,19 +120,21 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT.split(String.fromCharCode(92)).join('/'), 'hooks/ponytail-mode-tracker.js'))\"",
+            "statusMessage": "Tracking ponytail mode...",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
       }
     ]
   },
-  "mcpServers": {
-    "second-brain": {
-      "args": [
-        "-m",
-        "server.mcp_stdio"
-      ],
-      "command": "/Users/suzukikenichi/programs/second-brain/.venv/bin/python",
-      "cwd": "/Users/suzukikenichi/programs/second-brain"
-    }
-  },
+  "model": "sonnet",
   "outputStyle": "Explanatory",
   "permissions": {
     "allow": [
@@ -136,6 +164,7 @@
       "Bash(gh api *delete*)"
     ]
   },
+  "remoteControlAtStartup": false,
   "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
