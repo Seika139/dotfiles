@@ -63,6 +63,19 @@
         "matcher": "Edit|Write|NotebookEdit"
       }
     ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/ponytail-activate.js'))\"",
+            "statusMessage": "Loading ponytail mode...",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -74,8 +87,35 @@
         ],
         "matcher": ""
       }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/ponytail-subagent.js'))\"",
+            "statusMessage": "Loading ponytail mode...",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/ponytail-mode-tracker.js'))\"",
+            "statusMessage": "Tracking ponytail mode...",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
     ]
   },
+  "model": "sonnet",
   "permissions": {
     "allow": [
       "Bash(mkdir *)",
