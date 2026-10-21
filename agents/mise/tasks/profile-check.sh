@@ -3,6 +3,7 @@
 #MISE description="指定プロファイルが存在するかを確認し、なければエラーを返す"
 #MISE depends=["check_env"]
 #MISE quiet=true
+#MISE hide=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 
 set -euo pipefail

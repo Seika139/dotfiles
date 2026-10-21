@@ -1,8 +1,9 @@
 #!/bin/bash
 
-#MISE description="利用可能なプロファイル一覧を表示"
+#MISE description="利用可能なプロファイル一覧を表示する"
 #MISE depends=["check_env"]
 #MISE quiet=true
+#MISE hide=true
 
 set -euo pipefail
 
