@@ -1,6 +1,6 @@
 [tools]
 node = "26.11.1"
-npm = "12.2.0"
+npm = "12.2.1"
 "npm:@dotenvx/dotenvx" = "2.34.2"
 "npm:@github/copilot" = "1.0.95"
 "npm:@openai/codex" = "0.160.1"
