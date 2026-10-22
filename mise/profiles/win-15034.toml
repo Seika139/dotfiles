@@ -2,7 +2,7 @@
 node = "26.11.1"
 "npm:@openai/codex" = "0.162.1"
 "npm:aws-cdk" = "2.1144.0"
-"npm:@dotenvx/dotenvx" = "2.34.2"
+"npm:@dotenvx/dotenvx" = "2.36.0"
 "npm:@google/clasp" = "3.4.1"
 "npm:@github/copilot" = "1.0.98"
 "npm:ccusage" = "20.0.34"

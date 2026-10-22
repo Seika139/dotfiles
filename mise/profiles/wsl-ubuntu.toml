@@ -1,7 +1,7 @@
 [tools]
 node = "26.11.1"
 npm = "12.2.1"
-"npm:@dotenvx/dotenvx" = "2.34.2"
+"npm:@dotenvx/dotenvx" = "2.36.0"
 "npm:@github/copilot" = "1.0.98"
 "npm:@openai/codex" = "0.162.1"
 "npm:aws-cdk" = "2.1144.0"
