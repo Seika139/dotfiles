@@ -64,7 +64,12 @@ if [ "${#skill_names[@]}" -eq 0 ]; then
   exit 0
 fi
 
-mapfile -t skill_names < <(printf '%s\n' "${skill_names[@]}" | LC_ALL=C sort -u)
+sorted_skill_names=()
+while IFS= read -r skill_name; do
+  [ -n "$skill_name" ] || continue
+  sorted_skill_names+=("$skill_name")
+done < <(printf '%s\n' "${skill_names[@]}" | LC_ALL=C sort -u)
+skill_names=("${sorted_skill_names[@]}")
 
 candidates=()
 for name in "${skill_names[@]}"; do
