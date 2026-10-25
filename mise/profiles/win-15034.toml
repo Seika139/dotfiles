@@ -1,6 +1,6 @@
 [tools]
 node = "26.12.0"
-"npm:@openai/codex" = "0.162.1"
+"npm:@openai/codex" = "0.163.0"
 "npm:aws-cdk" = "2.1145.0"
 "npm:@dotenvx/dotenvx" = "2.38.0"
 "npm:@google/clasp" = "3.4.1"
