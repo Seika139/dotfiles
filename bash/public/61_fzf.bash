@@ -275,7 +275,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   mapfile -t selected < <(
     select_multi "$(fd --max-depth 2 .)" \
       --preview-window 'right,60%,wrap' \
-      --preview 'printf "\033[1;33m── 選択対象a ──\033[0m\n"
+      --preview 'printf "\033[1;33m── 選択対象 ──\033[0m\n"
         printf "  %s\n" {+}
         printf "\n\033[1;36m── ファイル/ディレクトリ ──\033[0m\n"
         if [[ -f {} ]]; then
