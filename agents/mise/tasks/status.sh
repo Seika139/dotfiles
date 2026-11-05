@@ -150,6 +150,17 @@ list_actual() {
   fi
 }
 
+# Claude Desktop keeps synchronization metadata under ~/.claude/skills/synced.
+# It is not a skill package unless the directory itself contains a SKILL.md.
+list_actual_claude_skills() {
+  local dir="$HOME/.claude/skills" actual
+  actual="$(list_actual "$dir")"
+  if [ -d "$dir/synced" ] && [ ! -f "$dir/synced/SKILL.md" ]; then
+    actual="$(printf "%s\n" "$actual" | grep -Fxv 'synced' || true)"
+  fi
+  printf "%s\n" "$actual" | grep -v '^$' || true
+}
+
 # rules/ と commands/ は package 名 = `<name>.md` (file) なので比較用に拡張子を剥がす
 # (skills/ は dir 名 = package 名で一致するため list_actual で足りる)
 list_actual_flat_md() {
@@ -288,7 +299,7 @@ print_actual() {
 }
 
 printf "\n🌐 Skills (declared vs actual):\n"
-print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS_CLAUDE" "$(list_actual "$HOME/.claude/skills")"
+print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS_CLAUDE" "$(list_actual_claude_skills)"
 
 # agents skills は APM cross-tool 配備先だが、非 APM の peer tool (agmsg) も同居する。
 # external を actual から除いて APM の drift だけを比較し、external は別枠で可視化する。
