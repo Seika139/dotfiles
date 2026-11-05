@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #MISE description="指定プロファイルの apm.yml を ~/.apm/apm.yml にシンクし、APM packages を user scope (~/.claude/skills, ~/.codex/skills 等) に install する"
-#MISE depends=["apm-available", "uv-available", "check"]
+#MISE depends=["apm-available", "uv-available", "profile-check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 #USAGE flag "-f --force" help="ローカル編集を上書きして強制デプロイする (security gate を無効化するので通常用途では使わない)"
