@@ -14,6 +14,7 @@ dependencies:
     - Caromaf/agent-package-basic#main
     - DietrichGebert/ponytail#main
     - github/gh-stack/skills/gh-stack#main
+    - Seika139/.github/.agents/skills/github-settings-terraform#codex/github-settings-terraform-skill
     - mattpocock/skills/skills/productivity/grilling#main
     - mattpocock/skills/skills/productivity/grill-me#main
     - mattpocock/skills/skills/in-progress/loop-me#main
