@@ -39,6 +39,7 @@ Brotli
 BUILDKIT
 buildx
 BYBIT
+caffeinate
 cand
 Caromof
 caty
@@ -86,6 +87,7 @@ DOTENV
 dotenvx
 dotfiles
 DOTPATH
+dpkg
 drilldown
 drilldowns
 ecpu
@@ -181,6 +183,7 @@ keepalive
 kenichi
 Koebon
 laravel
+launchpadlib
 letsencrypt
 levelname
 libpq
