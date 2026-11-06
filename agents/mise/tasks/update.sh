@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #MISE description="指定プロファイルの apm dependencies を最新 ref に再解決 + user scope に再 deploy (lock 更新)"
-#MISE depends=["apm-available", "uv-available", "check"]
+#MISE depends=["apm-available", "uv-available", "profile-check"]
 #MISE quiet=true
 #USAGE flag "--prof <prof>" help="プロファイル名"
 #USAGE flag "-v --verbose" help="詳細なログを表示する"

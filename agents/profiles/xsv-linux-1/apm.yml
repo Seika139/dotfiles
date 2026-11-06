@@ -13,8 +13,23 @@ dependencies:
   apm:
     - Caromaf/agent-package-basic#main
     - DietrichGebert/ponytail#main
-    - github/gh-stack#main
-    - mattpocock/skills#main
+    - github/gh-stack/skills/gh-stack#main
+    - Seika139/.github/.agents/skills/github-settings-terraform#main
+    - mattpocock/skills/skills/productivity/grilling#main
+    - mattpocock/skills/skills/productivity/grill-me#main
+    - mattpocock/skills/skills/in-progress/loop-me#main
+    - mattpocock/skills/skills/in-progress/writing-fragments#main
+    - mattpocock/skills/skills/engineering/grill-with-docs#main
+    - mattpocock/skills/skills/engineering/domain-modeling#main
+    - mattpocock/skills/skills/engineering/to-spec#main
+    - mattpocock/skills/skills/engineering/to-tickets#main
+    - mattpocock/skills/skills/engineering/triage#main
+    - mattpocock/skills/skills/engineering/wayfinder#main
+    - mattpocock/skills/skills/engineering/research#main
+    - mattpocock/skills/skills/engineering/prototype#main
+    - mattpocock/skills/skills/engineering/improve-codebase-architecture#main
+    - mattpocock/skills/skills/engineering/codebase-design#main
+    - mattpocock/skills/skills/engineering/setup-matt-pocock-skills#main
     - nanaism/yomiyasu#main
-    - vercel-labs/skills#main
+    - vercel-labs/skills/skills/find-skills#main
   mcp: []
