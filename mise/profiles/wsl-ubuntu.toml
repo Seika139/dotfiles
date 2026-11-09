@@ -1,4 +1,10 @@
+[settings]
+auto_update = true
+
 [tools]
+"aqua:peteretelej/tree" = "1.3.0"
+go = "1.27.3"
+"go:github.com/awslabs/diagram-as-code/cmd/awsdac" = "0.22.4"
 node = "26.12.1"
 npm = "12.2.1"
 "npm:@dotenvx/dotenvx" = "2.38.2"
