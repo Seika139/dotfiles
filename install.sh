@@ -657,6 +657,7 @@ if [[ "${MISE_PROFILE_STATUS}" -ne 0 ]]; then
 elif [[ "${MISE_PROFILE_LINKED}" == "true" ]]; then
   if command -v mise >/dev/null 2>&1; then
     (cd "${HOME}" && mise install) || exit $?
+    mise -C "${ROOT}" run setup-pre-commit || exit $?
   else
     echo_yellow "⚠️  mise が見つかりません。mise を導入後、ホームディレクトリで mise install を実行してください。"
     exit 1

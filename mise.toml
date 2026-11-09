@@ -3,6 +3,7 @@ minimum_release_age = "7d"
 
 [tools]
 "aqua:awslabs/git-secrets" = { version = "1.3.0", os = ["linux", "macos"] }
+pre-commit = "4.7.0"
 dprint = "0.64.3"
 markdownlint-cli2 = "0.24.0"
 node = "26.12.1"
@@ -22,6 +23,7 @@ UV_PYTHON_SEARCH_PATH = { value = "{{tools.python.path}}/bin", tools = true }
 [tasks.dot-init]
 description = "dotfile mise管理の初期化（タスクに実行権限を付与、依存同期など）"
 quiet = true
+depends = ["setup-pre-commit"]
 run = [
   "test -d mise/tasks && chmod +x mise/tasks/*.sh",
   "bash mise/tasks/initialize.sh",
