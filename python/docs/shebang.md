@@ -65,11 +65,11 @@ python3 系で最も新しいバージョンで起動する
 
 ### Windows
 
-windows の Python ランチャーで実行する場合は Python ランチャーが仮想的に解釈してくれる。
+Windows の Python ランチャー（`py`）はシェバン行を仮想的に解釈して Python のバージョンを選んでくれるが、mise で Python を管理している環境にはランチャーを入れていないので、この動作は働かない。Python のバージョンは `mise exec python@3.9 -- python [ファイル名]` のように指定して実行する（詳細は [windows.md](start_python/windows.md) を参照）。
 
 ## Mac Windows Linux どの環境でも動くようにする
 
-Windows で解釈できるのは下記の 3 パターン。一番上の書き方が最も柔軟にどこでも使えるらしい。
+Windows の Python ランチャーで解釈できるのは下記の 3 パターン。一番上の書き方が最も柔軟にどこでも使えるらしい。
 
 ```python
 #!/usr/bin/env python

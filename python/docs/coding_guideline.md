@@ -1,5 +1,7 @@
 # Python Coding Guideline
 
+**Warning**: このガイドラインは少し前の時代の標準的な設定に基づいている。最近の自分のトレンドは Astral 社の uv と mise を使った設定なので、このドキュメントは過去の遺物だと考えて良い。
+
 > この引用部分はドキュメントにする際に削除する。
 > Python を使用するプロジェクトにおいて、下記のようなガイドラインを共有し、チームのコード品質を向上させたいという意志で作成したドキュメント。
 
@@ -93,7 +95,7 @@ E501 line too long (X > 120 characters)
 ```
 
 についてはすべてを修正しなくてよい。
-基本的に black フォーマッタによって１行あたりの文字数が 88 文字適切に改行がなされるはずであり、それでも 88 文字を超えた方がおさまりがよいと black が判断しているからである。
+基本的に black フォーマッタによって 1 行あたりの文字数が 88 文字適切に改行がなされるはずであり、それでも 88 文字を超えた方がおさまりがよいと black が判断しているからである。
 もちろん 88 文字を超えないように手動でコードを修正できればなおよい。
 
 #### mypy
@@ -151,17 +153,14 @@ Visual Studio Code でコードを書く場合は次の拡張機能を使用す�
 
 ```json
 {
-     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        }
-    },
-    "isort.args": [
-        "--profile",
-        "black"
-    ],
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "isort.args": ["--profile", "black"]
 }
 ```
 
@@ -185,14 +184,14 @@ Visual Studio Code でコードを書く場合は次の拡張機能を使用す�
 
 **Windows**
 
-Windows の Python ランチャーを利用してコードをフォーマットする。
+mise で管理している Python を `python -m` で実行してコードをフォーマットする。
 
 ```bash
-py -m autopep8 -i --aggressive --aggressive [filepath]
-py -m isort [filepath]
-py -m black [filepath]
-py -m flake8 [filepath]
-py -m mypy --install-types --non-interactive --show-traceback --strict [filepath]
+python -m autopep8 -i --aggressive --aggressive [filepath]
+python -m isort [filepath]
+python -m black [filepath]
+python -m flake8 [filepath]
+python -m mypy --install-types --non-interactive --show-traceback --strict [filepath]
 ```
 
 **mac / Linux**
