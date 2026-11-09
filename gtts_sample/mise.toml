@@ -97,7 +97,7 @@ shell = "bash -c"
 quiet = true
 run = '''
 printf "\033[33m%s\033[0m\n" "Clearing ruff cache..."
-uv run ruff cache clear
+uv run ruff clean
 '''
 
 ########################
