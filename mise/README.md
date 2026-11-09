@@ -44,6 +44,12 @@ PC ごとに、グローバルへ入れる mise のツールとバージョン�
 
 対象 PC のプロファイルの `[tools]` に追記します。別の PC に同じツールを入れたい場合は、その PC のプロファイルにも書きます。Python や Go のようにプロファイルへ書かず、`~/.config/mise/config.toml` に直接書かれているツールもあるため、実際に有効な定義は `mise config ls` で確認してください。
 
+### hm-m1-mac の Python と uv
+
+`hm-m1-mac.toml` では Python 本体と Python CLI を mise で管理し、uv はプロジェクトのパッケージと仮想環境を管理します。`UV_PYTHON_PREFERENCE=only-system`、`UV_PYTHON_DOWNLOADS=never`、`UV_PYTHON_SEARCH_PATH` により、uv はmiseの Python だけを選び、自動ダウンロードは行いません。Python が必要なプロジェクトは `mise.toml` に使用する Python バージョンを指定してください。
+
+既存の `automation/.venv` は Homebrew Python 3.13、`gtts_sample/.venv` は Homebrew Python 3.14 を参照しています。これらの仮想環境をmiseの Python で作り直すまでは、Homebrew の Python 3.13 と 3.14 を残します。`gtts_sample/mise.toml` は Python 3.11.6 を指定していますが `uv.lock` は 3.14 以上を要求するため、仮想環境を作り直すときに指定を揃えてください。
+
 ## tasks/
 
 `mise/tasks/` 配下のシェルスクリプトは、ファイル名から拡張子を除いた名前のタスクになります。設定の記述は、スクリプト先頭の `#MISE` と `#USAGE` コメントで行います。
