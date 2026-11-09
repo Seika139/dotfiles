@@ -18,10 +18,10 @@ dotfiles 内で Python を利用した便利なスクリプト群を管理する
 
 ## パッケージ管理の方針
 
-Python のバージョン管理は Windows では自前の Python ランチャーを使用し、それ以外の OS では pyenv を使用します。
+Python のバージョン管理は Windows では mise を使用し、それ以外の OS では pyenv を使用します。
 プロジェクトのパッケージ管理は共通して poetry を使用します。
 
-※ Windows の Python ランチャーとは何ぞやという方は、[こちら](../docs/start_python/windows.md)を参照してください。
+※ Windows での mise による Python の管理については、[こちら](../docs/start_python/windows.md)を参照してください。
 
 ## 導入
 

@@ -4,11 +4,11 @@
 
 ## pyenv
 
-Python のバージョン管理は Windows では自前の Python ランチャーを使用するので、pyenv のセットアップは不要です。
+Python のバージョン管理は Windows では mise を使用するので、pyenv のセットアップは不要です。先に mise をインストールしてください。
 
 ## プロジェクトのセットアップ
 
-- pyenv を使用して所定の python バージョンのインストール
+- mise を使用して所定の python バージョンのインストール
 - poetry を使用してパッケージのインストール
 
 を行います。
