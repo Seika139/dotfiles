@@ -21,7 +21,7 @@ for arg in "$@"; do
 done
 
 print_blue "formatting Markdown files"$'\n'
-dprint fmt
+dprint fmt --allow-no-files
 rumdl check --fix .
 markdownlint-cli2 --fix
 
