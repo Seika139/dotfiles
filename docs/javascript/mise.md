@@ -6,14 +6,14 @@
 
 `bash/daily/.env` の `DAILY_PROFILE` が選択元です。未設定なら `default` を使います。`.active-profile` はテーマ等に使う別設定です。
 
-| DAILY_PROFILE | 管理するツール |
-| --- | --- |
-| `default` | mise 管理ツールなし |
-| `cg-m2-mac` | Node.js、dotenvx、GitHub Copilot、AWS CDK、pnpm |
-| `hm-m1-mac` | Node.js、Codex CLI |
-| `win-15034` | Node.js、Codex CLI、AWS CDK、dotenvx、clasp、GitHub Copilot、ccusage、TypeScript、webpack |
-| `wsl-ubuntu` | Node.js、npm、dotenvx、GitHub Copilot、Codex CLI、AWS CDK、ccusage、difit、markdownlint-cli2、pnpm |
-| `xsv-linux-1` | mise 管理ツールなし（ccusage は従来どおり pnpm 管理） |
+| DAILY_PROFILE | 管理するツール                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| `default`     | mise 管理ツールなし                                                                                |
+| `cg-m2-mac`   | Node.js、dotenvx、GitHub Copilot、AWS CDK、pnpm                                                    |
+| `hm-m1-mac`   | Node.js、Codex CLI                                                                                 |
+| `win-15034`   | Node.js、Codex CLI、AWS CDK、dotenvx、clasp、GitHub Copilot、ccusage、TypeScript、webpack          |
+| `wsl-ubuntu`  | Node.js、npm、dotenvx、GitHub Copilot、Codex CLI、AWS CDK、ccusage、difit、markdownlint-cli2、pnpm |
+| `xsv-linux-1` | mise 管理ツールなし（ccusage は従来どおり pnpm 管理）                                              |
 
 設定は `mise/profiles/<DAILY_PROFILE>.toml` にあります。`.env` では `DAILY_PROFILE=値` の形式だけが有効です。値は英数字、`_`、`-` で構成し、引用符、`export`、inline comment、重複行は拒否します。`install.sh` は `.env` を実行せずに値を読み取ります。対応する通常ファイルが存在するときだけ `${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}/conf.d/dotfiles-profile.toml` にリンクし、ホームディレクトリで `mise install` を実行します。未知のprofile、無効値、既存ユーザー設定ファイル、dotfiles以外のsymlinkは上書きせず、profile toolsも導入しません。
 

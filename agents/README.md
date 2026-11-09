@@ -154,11 +154,11 @@ agmsg は `~/.agents/skills/<cmd>/` に入り APM の配備先と同居するが
 
 ## APM の責務範囲
 
-| APM が引き受ける                                                       | APM が引き受けない (= 各ツール側 `link.sh` の責務として残る)    |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------- |
-| skills / agents / instructions の各ツールへの展開                      | `settings.json` (Claude Code) / `config.toml` (Codex)           |
-| バージョン pin (`apm.lock.yaml`) と再現性                              | `CLAUDE.md` / `AGENTS.md` / `rules/` の配置                     |
-| security scan (hidden Unicode 等)                                      | プロファイル選択 (`~/dotfiles/.active-profile` または `--prof`) |
+| APM が引き受ける                                  | APM が引き受けない (= 各ツール側 `link.sh` の責務として残る)    |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| skills / agents / instructions の各ツールへの展開 | `settings.json` (Claude Code) / `config.toml` (Codex)           |
+| バージョン pin (`apm.lock.yaml`) と再現性         | `CLAUDE.md` / `AGENTS.md` / `rules/` の配置                     |
+| security scan (hidden Unicode 等)                 | プロファイル選択 (`~/dotfiles/.active-profile` または `--prof`) |
 
 ## 参考
 

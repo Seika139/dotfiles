@@ -16,7 +16,7 @@ echo_yellow() {
 }
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../public/12_git_alias.bash
+# shellcheck source=bash/public/12_git_alias.bash
 source "${TEST_DIR}/../public/12_git_alias.bash"
 
 pass_count=0

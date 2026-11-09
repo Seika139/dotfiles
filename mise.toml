@@ -12,6 +12,7 @@ rumdl = "0.2.79"
 shfmt = "3.14.1"
 shellcheck = "0.11.0"
 taplo = "0.10.0"
+uv = "0.13.6" # yamllint の lock sidecar に uv >=0.12.10 が必要。
 yamllint = { version = "1.38.0", python = "3.14" }                          # Python 3.15 にすると動作しないため 3.14 を指定している。PyYAML が 3.15 向けの wheel を出したら、この指定は外せます。
 
 [tasks.dot-init]

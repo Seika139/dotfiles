@@ -69,15 +69,15 @@ lock の該当 package に `deployed_files:` が無ければ「認識失敗」�
 
 ## 3. 配備モデル (target 別、skills と大きく異なる)
 
-| Target       | instructions 配備先                        | 機構                                                                                                    |
-| ------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| **claude**   | `~/.claude/rules/<n>.md`                   | `apm install` で file 配備。`applyTo` → `paths:` に自動変換                                             |
+| Target       | instructions 配備先                        | 機構                                                                                                                                                                                                                   |
+| ------------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **claude**   | `~/.claude/rules/<n>.md`                   | `apm install` で file 配備。`applyTo` → `paths:` に自動変換                                                                                                                                                            |
 | **cursor**   | (**user-scope では配備されない**)          | **user-scope 非対応** (install -g 出力の non-supported に "cursor (instructions)" が入る)。実測でも `~/.cursor/rules/` は dir 自体が存在せず lock の配備行も 0 件。`.mdc` + `globs:` 変換は project-local install の話 |
-| **copilot**  | `.github/instructions/<n>.instructions.md` | ただし **user-scope では非対応** (install -g 出力で "copilot (prompts, instructions)" が non-supported) |
-| **windsurf** | `~/.codeium/windsurf/...`                  | user-scope では instructions 非対応                                                                     |
-| **codex**    | `AGENTS.md` に統合                         | **`apm compile` 必須** (install では配備されない)                                                       |
-| **gemini**   | `GEMINI.md` に統合                         | **`apm compile` 必須**                                                                                  |
-| **opencode** | `AGENTS.md` に統合                         | `apm compile` 必須                                                                                      |
+| **copilot**  | `.github/instructions/<n>.instructions.md` | ただし **user-scope では非対応** (install -g 出力で "copilot (prompts, instructions)" が non-supported)                                                                                                                |
+| **windsurf** | `~/.codeium/windsurf/...`                  | user-scope では instructions 非対応                                                                                                                                                                                    |
+| **codex**    | `AGENTS.md` に統合                         | **`apm compile` 必須** (install では配備されない)                                                                                                                                                                      |
+| **gemini**   | `GEMINI.md` に統合                         | **`apm compile` 必須**                                                                                                                                                                                                 |
+| **opencode** | `AGENTS.md` に統合                         | `apm compile` 必須                                                                                                                                                                                                     |
 
 ### 重要な含意
 
