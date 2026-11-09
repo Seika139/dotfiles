@@ -107,3 +107,5 @@ bash mise/scripts/repo-preset/tests/lib_test.sh
 - `install.sh`、`unlink.sh`: プロファイルのリンクを作成・削除する
 - `mise.toml`、`mise.lock`: dotfiles リポジトリ自身のツールとタスク
 - `repo-preset/`: `repo-preset-install` が導入する素材
+
+`mise.lock` と、それが参照する `.mise/locks/` の sidecar は一緒に Git 管理します。lockfile の形式によっては古い mise で読み込めないため、エラーが出た場合は mise を更新してください。
