@@ -70,7 +70,20 @@ mkdir -p "$PROFILE_PATH/custom-config"
 
 cat >"$PROFILE_PATH/hooks.base.json" <<'EOF'
 {
-  "hooks": {}
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"$HOME/dotfiles/codex/mise/scripts/block_downloads.sh\"; result=$?; if [ \"$result\" -eq 0 ]; then exit 0; else exit 2; fi",
+            "commandWindows": "$ErrorActionPreference = 'Stop'; try { $guardDir = Join-Path $env:USERPROFILE 'dotfiles/codex/mise/scripts'; Set-Location $guardDir; $pythonPath = $null; foreach ($candidateName in @('python3', 'python')) { $candidate = Get-Command $candidateName -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($null -eq $candidate) { continue }; try { & $candidate.Source -I -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' *> $null; if ($LASTEXITCODE -eq 0) { $pythonPath = $candidate.Source; break } } catch { continue } }; if ($null -eq $pythonPath) { [Console]::Error.WriteLine('Codex prompt blocked: Python 3.11+ is unavailable in Codex PATH.'); exit 2 }; & $pythonPath -I (Join-Path $guardDir 'block_downloads.py'); if ($LASTEXITCODE -eq 0) { exit 0 } } catch { [Console]::Error.WriteLine('Codex prompt blocked: could not start the Downloads guard.') }; [Console]::Error.WriteLine('Codex prompt blocked: Downloads guard returned non-zero status.'); exit 2",
+            "statusMessage": "Checking Downloads location"
+          }
+        ]
+      }
+    ]
+  }
 }
 EOF
 

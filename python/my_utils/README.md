@@ -6,7 +6,7 @@ dotfiles 内で Python を利用した便利なスクリプト群を管理する
 
 ## docs 内のファイルについて
 
-[./docs](./docs/) 内のファイルは他プロジェクトにコピーしやすいような状態にしておくため、他プロジェクトへのコピー用ではないドキュメントは [../docs/poetry.md](../docs/poetry.md) に配置する。
+[./docs](./docs/) 内のファイルは他プロジェクトにコピーしやすいような状態にしておき、他プロジェクトへのコピー用ではないドキュメントは [../docs](../docs/) に配置します。
 
 ## パッケージ管理
 
@@ -21,7 +21,7 @@ dotfiles 内で Python を利用した便利なスクリプト群を管理する
 Python のバージョン管理は Windows では mise を使用し、それ以外の OS では pyenv を使用します。
 プロジェクトのパッケージ管理は共通して poetry を使用します。
 
-※ Windows での mise による Python の管理については、[こちら](../docs/start_python/windows.md)を参照してください。
+※ Windows での mise による Python の管理については、[Windows 開発環境のセットアップ手順](./docs/setup/dev_windows.md)を参照してください。
 
 ## 導入
 

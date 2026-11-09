@@ -120,6 +120,18 @@ args = ["-y", "mcp-remote", "https://developers.openai.com/mcp"]
 
 旧構成では `~/.codex/hooks.json` が `profiles/<profile>/hooks.json` への symlink だったため、この変更を pull した直後は symlink がリンク切れ（リンク先のファイルが存在しない状態）になり、apm 由来のエントリは生成時に収穫できません。移行初回は `mise run link` の後に `../agents` で `mise run update` を実行して apm エントリを再生成してください。
 
+### Downloads からのプロンプトをブロックする
+
+全 profile の UserPromptSubmit hook は、セッションの作業ディレクトリがOSで解決したDownloadsまたはその配下なら、モデルへ送る前にプロンプトを拒否します。Windows Known Folder、Linux の user-dirs.dirs、macOS の ~/Downloads を参照し、WSL では Linux 側と Windows 側の保存先を確認します。WSL で Windows 側の保存先を確認できない場合や、Linux の `XDG_DOWNLOAD_DIR` がホーム自体を指す場合も、判定不能として拒否します。
+
+Unix系 profile は `PATH` から `python3`、次に `python` を探して Python 3.11 以上で実行します。Windows profile は PowerShell から同じ順で解決します。Codexの起動環境からPythonを見つけられない場合もプロンプトを拒否するため、GUIからCodexを使う場合はその起動環境の `PATH` にPythonを含めてください。
+
+`win-15034` profile のhook commandはPowerShell構文です。CodexのWindows hook実行シェルにPowerShellが設定されていることを前提とします。
+
+このhookは、Downloadsを作業ディレクトリにしたセッションからのプロンプトをブロックします。起動時に `AGENTS.md` が読み込まれていても、そのプロンプトはモデルへ送られません。Downloads以外の場所から起動して別の場所にあるファイルを読ませるケースや、OS設定上のDownloads以外にブラウザの保存先を変更したケースは対象外です。拒否された場合は、信頼できるプロジェクトディレクトリから新しいCodexセッションを開始してください。
+
+profile を `mise run link` で反映したあと、Codex の `/hooks` で追加された hook を確認して信頼してください。以前の試作版hookをすでに反映していた場合は、生成済みの `~/.codex/hooks.json` から `block_downloads.py` を直接実行する旧 `UserPromptSubmit` entry を削除してから `mise run link` を実行してください。rendererは生成済みファイルの既存entryを保持します。
+
 ## よく使うコマンド
 
 profile の状態確認:

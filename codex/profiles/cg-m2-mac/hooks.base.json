@@ -1,1 +1,15 @@
-{}
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/bash \"$HOME/dotfiles/codex/mise/scripts/block_downloads.sh\"; result=$?; if [ \"$result\" -eq 0 ]; then exit 0; else exit 2; fi",
+            "statusMessage": "Checking Downloads location"
+          }
+        ]
+      }
+    ]
+  }
+}
