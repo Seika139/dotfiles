@@ -5,8 +5,8 @@
 # 値は keychain から都度取得するため、このファイルにトークン実体は残らない。
 # gh が未インストール / 未ログインの環境では何もしない。
 #
-# bash/.bashrc は public → private の順に読むため、brew shellenv が走る前にこのファイルが
-# 評価される。command -v gh では見つからないので、想定パスを順に探索する。
+# bash/.bashrc は public → private の順に読み、brew shellenv と mise activate より先に
+# このファイルが評価されるため、Homebrew と mise の実体パスも探索する。
 __gh_bin=""
 for __cand in \
   "$(command -v gh 2>/dev/null)" \
@@ -20,9 +20,33 @@ for __cand in \
   fi
 done
 
+__gh_token=""
 if [[ -n "${__gh_bin}" ]]; then
   __gh_token="$("${__gh_bin}" auth token 2>/dev/null)"
-  [[ -n "${__gh_token}" ]] && export GITHUB_TOKEN="${__gh_token}"
-  unset __gh_token
 fi
-unset __gh_bin __cand
+
+if [[ -z "${__gh_token}" ]]; then
+  __mise_bin=""
+  for __cand in \
+    "$(command -v mise 2>/dev/null)" \
+    /opt/homebrew/bin/mise \
+    /usr/local/bin/mise \
+    "$HOME/.local/bin/mise"; do
+    if [[ -n "${__cand}" && -x "${__cand}" ]]; then
+      __mise_bin="${__cand}"
+      break
+    fi
+  done
+
+  if [[ -n "${__mise_bin}" ]]; then
+    __mise_gh_dir="$("${__mise_bin}" -C "$HOME" where gh 2>/dev/null)"
+    if [[ -n "${__mise_gh_dir}" && -x "${__mise_gh_dir}/bin/gh" ]]; then
+      __gh_bin="${__mise_gh_dir}/bin/gh"
+      __gh_token="$("${__gh_bin}" auth token 2>/dev/null)"
+    fi
+  fi
+fi
+
+[[ -n "${__gh_token}" ]] && export GITHUB_TOKEN="${__gh_token}"
+unset __gh_token
+unset __gh_bin __mise_bin __mise_gh_dir __cand
