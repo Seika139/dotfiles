@@ -3,46 +3,46 @@ name = "gtts-sample"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 dependencies = ["gtts>=2.5.4"]
 
 [dependency-groups]
-dev = ["mypy>=1.18.2", "ruff>=0.14.3"]
+dev = ["mypy>=1.19.1", "ruff>=0.17.0"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py315"
 preview = true
 
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-  "A001",
-  "C408",
-  "C901",
-  "COM812",
-  "CPY001",
-  "D100",
-  "D101",
-  "D102",
-  "D103",
-  "D105",
-  "D107",
-  "D415",
-  "EM101",
-  "EM102",
-  "FBT001",
-  "PLR0911",
-  "PLR0914",
-  "PLR0915",
-  "PLR2004",
-  "PLR6301",
-  "T201",
-  "TC001",
-  "TC002",
-  "TC003",
-  "TRY003",
-  "RUF001",
+  "builtin-variable-shadowing",
+  "unnecessary-collection-call",
+  "complex-structure",
+  "missing-trailing-comma",
+  "missing-copyright-notice",
+  "undocumented-public-module",
+  "undocumented-public-class",
+  "undocumented-public-method",
+  "undocumented-public-function",
+  "undocumented-magic-method",
+  "undocumented-public-init",
+  "missing-terminal-punctuation",
+  "raw-string-in-exception",
+  "f-string-in-exception",
+  "boolean-type-hint-positional-argument",
+  "too-many-return-statements",
+  "too-many-locals",
+  "too-many-statements",
+  "magic-value-comparison",
+  "no-self-use",
+  "print",
+  "typing-only-first-party-import",
+  "typing-only-third-party-import",
+  "typing-only-standard-library-import",
+  "raise-vanilla-args",
+  "ambiguous-unicode-character-string",
 ]
 
 [tool.ruff.lint.isort]
@@ -53,6 +53,6 @@ known-first-party = ["mouse_emulator"]
 convention = "google"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.15"
 strict = true
 warn_unused_configs = true
