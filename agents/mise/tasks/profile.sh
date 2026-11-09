@@ -12,7 +12,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-# shellcheck source=mise/common.sh
+# shellcheck source=agents/mise/common.sh
 # shellcheck disable=SC1901
 source "${ROOT_DIR}/mise/common.sh"
 

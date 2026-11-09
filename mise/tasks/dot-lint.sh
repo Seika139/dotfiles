@@ -21,7 +21,7 @@ for arg in "$@"; do
 done
 
 print_blue "linting Markdown files"$'\n'
-dprint check
+dprint check --allow-no-files
 rumdl check .
 markdownlint-cli2
 
