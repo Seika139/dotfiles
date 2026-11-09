@@ -341,6 +341,7 @@ shellenv
 shfmt
 shfmtrc
 signingkey
+slidev
 smallint
 songdb
 Spilo
