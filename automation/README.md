@@ -6,7 +6,7 @@
 
 - macOS (Apple silicon) または Windows
 - macOS の場合: アクセシビリティでターミナルによるマウス/キーボード操作の許可
-- Python 3.12 以上
+- Python 3.15 以上
 - `mise`, `uv`
 
 ## セットアップ
