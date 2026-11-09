@@ -44,7 +44,7 @@ brew で poetry をインストール。
 
 ### Windows
 
-Windows では Python のバージョン管理に mise を使用する。詳細は [start_python/windows.md](start_python/windows.md) を参照。
+Windows では Python のバージョン管理に mise を使用する。詳細は [Windows 開発環境のセットアップ手順](../my_utils/docs/setup/dev_windows.md) を参照。
 
 ```bash
 python                            # デフォルトバージョンの Python を実行

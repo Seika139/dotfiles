@@ -65,7 +65,7 @@ python3 系で最も新しいバージョンで起動する
 
 ### Windows
 
-Windows の Python ランチャー（`py`）はシェバン行を仮想的に解釈して Python のバージョンを選んでくれるが、mise で Python を管理している環境にはランチャーを入れていないので、この動作は働かない。Python のバージョンは `mise exec python@3.9 -- python [ファイル名]` のように指定して実行する（詳細は [windows.md](start_python/windows.md) を参照）。
+Windows の Python ランチャー（`py`）はシェバン行を仮想的に解釈して Python のバージョンを選んでくれるが、mise で Python を管理している環境にはランチャーを入れていないので、この動作は働かない。Python のバージョンは `mise exec python@3.9 -- python [ファイル名]` のように指定して実行する（詳細は [Windows 開発環境のセットアップ手順](../my_utils/docs/setup/dev_windows.md) を参照）。
 
 ## Mac Windows Linux どの環境でも動くようにする
 
