@@ -65,7 +65,7 @@ codex_python() {
     if ! command -v "$candidate" >/dev/null 2>&1; then
       continue
     fi
-    if "$candidate" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
+    if "$candidate" -I -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
       command -v "$candidate"
       return 0
     fi
