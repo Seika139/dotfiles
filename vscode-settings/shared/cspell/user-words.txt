@@ -24,6 +24,7 @@ autoremove
 autouse
 awscc
 awsdac
+awslabs
 awslocal
 awsp
 axios
@@ -182,6 +183,8 @@ Karpathy
 keepalive
 kenichi
 Koebon
+kubectx
+kubens
 laravel
 launchpadlib
 letsencrypt
@@ -254,6 +257,7 @@ pathspec
 Patroni
 PDCA
 pecl
+peteretelej
 pgdata
 PGDATABASE
 PGHOST
