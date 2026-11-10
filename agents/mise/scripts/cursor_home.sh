@@ -117,11 +117,23 @@ cursor_home_validate_apm_paths() {
   fi
 }
 
+cursor_home_resolve_file_path() {
+  local file_path="$1"
+  local parent_dir="${file_path%/*}"
+  local file_name="${file_path##*/}"
+
+  [[ "${file_path}" == */* ]] || parent_dir="."
+  parent_dir="$(cd -- "${parent_dir}" 2>/dev/null && pwd -P)" || return 1
+  printf '%s/%s\n' "${parent_dir}" "${file_name}"
+}
+
 cursor_home_materialize_mcp() {
   local source_file="$1"
   local target_dir="$2"
   local target_file="${target_dir}/mcp.json"
   local link_target
+  local resolved_link_target
+  local resolved_source_file
   local temporary
 
   [[ -e "${source_file}" || -L "${source_file}" ]] || return 0
@@ -131,7 +143,12 @@ cursor_home_materialize_mcp() {
   fi
   if [[ -L "${target_file}" ]]; then
     link_target="$(readlink "${target_file}")"
-    if [[ "${link_target}" != "${source_file}" ]]; then
+    if [[ "${link_target}" != /* ]]; then
+      link_target="${target_dir}/${link_target}"
+    fi
+    resolved_link_target="$(cursor_home_resolve_file_path "${link_target}")" || resolved_link_target=""
+    resolved_source_file="$(cursor_home_resolve_file_path "${source_file}")" || resolved_source_file=""
+    if [[ "${resolved_link_target}" != "${resolved_source_file}" ]]; then
       printf '⚠️  Cursor MCP config points elsewhere; leaving it untouched: %s\n' "${link_target}"
       return 1
     fi
@@ -201,12 +218,19 @@ cursor_home_commit_staging() {
 ensure_dotfiles_cursor_home() {
   local dotfiles_root="$1"
   local home_dir="$2"
-  local source_dir="${dotfiles_root}/.cursor"
+  local source_dir
   local target_dir="${home_dir}/.cursor"
   local current_target
+  local resolved_target
   local staging_dir=""
   local backup_path
   local suffix=0
+
+  if ! dotfiles_root="$(cd -- "${dotfiles_root}" 2>/dev/null && pwd -P)"; then
+    printf '⚠️  dotfiles root is not an accessible directory: %s\n' "$1"
+    return 1
+  fi
+  source_dir="${dotfiles_root}/.cursor"
 
   if [[ ! -d "${source_dir}" || -L "${source_dir}" ]]; then
     printf '⚠️  dotfiles Cursor config is not a real directory: %s\n' "${source_dir}"
@@ -215,7 +239,11 @@ ensure_dotfiles_cursor_home() {
 
   if [[ -L "${target_dir}" ]]; then
     current_target="$(readlink "${target_dir}")"
-    if [[ "${current_target}" != "${source_dir}" ]]; then
+    if [[ "${current_target}" != /* ]]; then
+      current_target="${target_dir%/*}/${current_target}"
+    fi
+    resolved_target="$(cd -- "${current_target}" 2>/dev/null && pwd -P)" || resolved_target=""
+    if [[ "${resolved_target}" != "${source_dir}" ]]; then
       printf '⚠️  %s points elsewhere; leaving it untouched: %s\n' "${target_dir}" "${current_target}"
       return 2
     fi

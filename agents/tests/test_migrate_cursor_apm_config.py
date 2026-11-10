@@ -210,6 +210,194 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
             self.assertEqual(set(servers), {"atlassian", "serena"})
             self.assertEqual(hooks_path.read_bytes(), original_hooks)
 
+    def test_shell_helper_migrates_legacy_cursor_link_with_noncanonical_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "dotfiles"
+            root_alias = Path(directory) / "dotfiles-link"
+            home = Path(directory) / "home"
+            source_cursor = root / ".cursor"
+            target_cursor = home / ".cursor"
+            for path in (
+                source_cursor,
+                root / "agents" / "mise" / "scripts",
+                root / "claude" / "mise" / "scripts",
+            ):
+                path.mkdir(parents=True, exist_ok=True)
+            home.mkdir()
+            subprocess.run(
+                [BASH, "-c", 'ln -s "$1" "$2"', "link-dotfiles", bash_path(root), bash_path(root_alias)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            (root / "agents" / "mise" / "scripts" / "migrate_cursor_apm_config.py").symlink_to(SCRIPT_PATH)
+            (root / "claude" / "mise" / "scripts" / "run_python.sh").symlink_to(
+                ROOT_DIR / "claude" / "mise" / "scripts" / "run_python.sh"
+            )
+            self._write_json(source_cursor / "mcp.json", {"mcpServers": {"serena": {"command": "source"}}})
+            subprocess.run(
+                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", bash_path(source_cursor), bash_path(target_cursor)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+
+            command = [
+                BASH,
+                "-c",
+                'source "$1"; ensure_dotfiles_cursor_home "$2/agents/.." "$3"',
+                "test-cursor-home",
+                bash_path(HELPER_PATH),
+                bash_path(root_alias),
+                bash_path(home),
+            ]
+            result = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+
+            self.assertEqual(
+                result.returncode,
+                0,
+                "stdout:\n{}\nstderr:\n{}".format(result.stdout, result.stderr),
+            )
+            self.assertTrue(target_cursor.is_dir())
+            self.assertFalse(target_cursor.is_symlink())
+            self.assertEqual(
+                json.loads((target_cursor / "mcp.json").read_text(encoding="utf-8"))["mcpServers"]["serena"]["command"],
+                "source",
+            )
+            backups = list(home.glob(".cursor.legacy-link.*"))
+            self.assertEqual(len(backups), 1)
+            self.assertTrue(backups[0].is_symlink())
+
+    def test_shell_helper_keeps_unrelated_cursor_symlink_untouched(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "dotfiles"
+            home = Path(directory) / "home"
+            elsewhere = Path(directory) / "other-cursor"
+            source_cursor = root / ".cursor"
+            target_cursor = home / ".cursor"
+            source_cursor.mkdir(parents=True)
+            home.mkdir()
+            elsewhere.mkdir()
+            subprocess.run(
+                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", bash_path(elsewhere), bash_path(target_cursor)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            original_target = os.readlink(target_cursor)
+
+            result = subprocess.run(
+                [
+                    BASH,
+                    "-c",
+                    'source "$1"; ensure_dotfiles_cursor_home "$2" "$3"',
+                    "test-cursor-home",
+                    bash_path(HELPER_PATH),
+                    bash_path(root),
+                    bash_path(home),
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+
+            self.assertEqual(result.returncode, 2)
+            self.assertTrue(target_cursor.is_symlink())
+            self.assertEqual(os.readlink(target_cursor), original_target)
+
+    def test_shell_helper_migrates_relative_cursor_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "dotfiles"
+            home = Path(directory) / "home"
+            source_cursor = root / ".cursor"
+            target_cursor = home / ".cursor"
+            for path in (
+                source_cursor,
+                root / "agents" / "mise" / "scripts",
+                root / "claude" / "mise" / "scripts",
+            ):
+                path.mkdir(parents=True, exist_ok=True)
+            home.mkdir()
+            (root / "agents" / "mise" / "scripts" / "migrate_cursor_apm_config.py").symlink_to(SCRIPT_PATH)
+            (root / "claude" / "mise" / "scripts" / "run_python.sh").symlink_to(
+                ROOT_DIR / "claude" / "mise" / "scripts" / "run_python.sh"
+            )
+            subprocess.run(
+                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", "../dotfiles/.cursor", bash_path(target_cursor)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+
+            result = subprocess.run(
+                [
+                    BASH,
+                    "-c",
+                    'source "$1"; ensure_dotfiles_cursor_home "$2" "$3"',
+                    "test-cursor-home",
+                    bash_path(HELPER_PATH),
+                    bash_path(root),
+                    bash_path(home),
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+
+            self.assertEqual(
+                result.returncode,
+                0,
+                "stdout:\n{}\nstderr:\n{}".format(result.stdout, result.stderr),
+            )
+            self.assertTrue(target_cursor.is_dir())
+            self.assertFalse(target_cursor.is_symlink())
+
+    def test_shell_helper_keeps_dangling_cursor_symlink_untouched(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "dotfiles"
+            home = Path(directory) / "home"
+            source_cursor = root / ".cursor"
+            target_cursor = home / ".cursor"
+            source_cursor.mkdir(parents=True)
+            home.mkdir()
+            subprocess.run(
+                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", "../missing-cursor", bash_path(target_cursor)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            original_target = os.readlink(target_cursor)
+
+            result = subprocess.run(
+                [
+                    BASH,
+                    "-c",
+                    'source "$1"; ensure_dotfiles_cursor_home "$2" "$3"',
+                    "test-cursor-home",
+                    bash_path(HELPER_PATH),
+                    bash_path(root),
+                    bash_path(home),
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+
+            self.assertEqual(result.returncode, 2)
+            self.assertTrue(target_cursor.is_symlink())
+            self.assertFalse(target_cursor.exists())
+            self.assertEqual(os.readlink(target_cursor), original_target)
+
     def test_shell_helper_materializes_legacy_mcp_link_and_runs_migration(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "dotfiles"
