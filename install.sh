@@ -638,6 +638,7 @@ elif [[ "${MISE_PROFILE_LINKED}" == "true" ]]; then
     if ! dotfiles_load_mise_environment "${HOME}"; then
       exit 1
     fi
+    (cd "${ROOT}" && mise run setup-pre-commit) || exit $?
   else
     echo_yellow "⚠️  mise が見つかりません。mise を導入後、ホームディレクトリで mise install を実行してください。"
     exit 1
