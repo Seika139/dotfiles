@@ -4,6 +4,52 @@
 # ref : http://kurokawh.blogspot.com/2012/07/linuxcygwin-ssh-agent.html
 # ref : https://himadatanode.hatenablog.com/entry/20160823/p14
 
+# Windows (Git Bash) で 1Password が導入済みなら、1Password の SSH エージェントを標準にする
+# 1Password のエージェントは名前付きパイプ上にあり、Windows 標準の OpenSSH だけが接続できる
+# Git 同梱の ssh / ssh-add / ssh-agent は使わないため、冒頭の判定より前に処理する
+case "$(uname -s)" in
+MINGW* | MSYS*)
+  _op_ssh_dir="/c/Windows/System32/OpenSSH"
+  _op_found=
+  if [ -f "${_op_ssh_dir}/ssh.exe" ] && [ -f "${_op_ssh_dir}/ssh-add.exe" ]; then
+    for _op_base in "${PROGRAMFILES}" "${PROGRAMW6432}" "${LOCALAPPDATA}"; do
+      [ -n "${_op_base}" ] || continue
+      if [ -d "$(cygpath -u "${_op_base}")/1Password" ]; then
+        _op_found=1
+        break
+      fi
+    done
+  fi
+
+  if [ -n "${_op_found}" ]; then
+    # MSYS のソケット (Git 同梱 ssh-agent のもの) は Windows 標準の ssh-add を壊すので外す
+    # VS Code などが転送したそれ以外のソケットは残す
+    case "${SSH_AUTH_SOCK}" in
+    /tmp/ssh-* | "${HOME}"/.ssh/agent/*)
+      unset SSH_AUTH_SOCK SSH_AGENT_PID
+      ;;
+    esac
+
+    # core.sshCommand (~/.gitconfig.local) より GIT_SSH_COMMAND が優先される
+    export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-C:/Windows/System32/OpenSSH/ssh.exe -o IdentitiesOnly=no}"
+
+    # 子プロセスの bash スクリプトに影響しないよう、関数ではなく対話シェルの alias にする
+    case $- in
+    *i*)
+      for _op_cmd in ssh ssh-add scp sftp ssh-keygen; do
+        # shellcheck disable=SC2139
+        alias "${_op_cmd}=C:/Windows/System32/OpenSSH/${_op_cmd}.exe"
+      done
+      ;;
+    esac
+
+    unset _op_ssh_dir _op_found _op_base _op_cmd
+    return 0
+  fi
+  unset _op_ssh_dir _op_found _op_base
+  ;;
+esac
+
 # 既に有効なSSHエージェントがある場合は何もしない（例: VS Code の転送）
 if [ -S "${SSH_AUTH_SOCK}" ] && ssh-add -l >/dev/null 2>&1; then
   return 0
