@@ -31,8 +31,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **agents**
+  - Claude / Cursor の既存設定を検出・移行し、プロファイルごとの agent / skill / hook の導入・同期を管理する機能を追加
+- **codex**
+  - Codex の native agent を同期する仕組みを追加し、役割ごとの委譲に対応
+  - Downloads またはその配下を作業ディレクトリとするセッションの prompt 送信を拒否する hook を追加
+- **mise**
+  - Volta で管理していた Node.js ツールを mise へ移行し、Go、Python、各種 CLI ツールもマシンごとの profile で管理する構成を追加
+  - 既存の Git リポジトリに lint / format、mise タスク、pre-commit などを選択して導入する `mise run repo-preset-install` を追加
+- **Chrome**
+  - 広告表示を手動で隠し、広告によるスクロールなどの操作制限を解除する拡張機能を追加
+- **pre-commit**
+  - 末尾空白、ファイル末尾、マージ競合マーカー、ステージ済みファイルの secret scan を行う hook を追加
 - **bash**
   - `daily_init.sh` の `update_bd` に hold 機構を追加。v1.2.1 が stable としてタグされ DB を未サポート schema へ勝手に移行した事故の再発防止として、`~/.local/state/bd-update.hold` に指定した最小バージョン以上の stable リリースが出るまで bd 更新を保留し、解除時は Seika139/alev へ通知 issue を作成する
+
+### Changed
+
+- **automation / gtts_sample**
+  - Python の最低対応バージョンを 3.15 に変更
+
+### Fixed
+
+- **agents / bash**
+  - Windows での設定リンク作成と Cursor の設定移行時のパス処理を修正
+  - `grm` が squash merge 済みのブランチも検出できるようにし、未コミット変更のある、ロック中、または現在のディレクトリを含む worktree の削除を防止
 
 ## [0.12.0] - 2026-06-18
 
