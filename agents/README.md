@@ -35,6 +35,10 @@ dotfiles/agents/
 
 `~/.claude/commands` も対象に含める。prompt primitive を全廃した後もこの dir は空のまま残すべきで、symlink にしてはいけない。**APM が stale 回収 (`remove_stale_deployed_files()`) のために書き込む先**であり、かつ **agmsg (非 APM peer tool) が slash command を生成する先**でもあるためである。
 
+`~/.cursor` も実ディレクトリにする。Cursor の user-scope hooks と agents を APM が管理するため、ルート全体を dotfiles へ symlink すると APM が hook 設定の安全検査で停止する。`install.sh` と APM install/update task は従来の `~/.cursor -> ~/dotfiles/.cursor` だけを退避可能な symlink として移行し、6 GB 以上になり得る ignored runtime data は子項目ごとの symlink で保持する。移行時には APM 管理先の `agents` / `skills` / `commands` / `rules`、`hooks.json` / `apm-hooks.json`、`mcp.json` をホーム側へコピーして実体化する。APM が設定を書き込む JSON ファイルを symlink にすると拒否されるためである。`mcp.json` は移行時やその後の install/update 前に dotfiles 側から不足する `mcpServers` 名だけを補い、同じ名前の既存ホーム設定は優先する。以後、APM と利用者のホーム設定が正本となり、既存エントリの変更・削除は dotfiles から同期しない。新しいサーバーを dotfiles 側から追加すると、次の install/update で不足分が補完される。移行時には APM 所有記録と内容が完全に一致する旧 Claude 形式 Ponytail hooks だけを Cursor 設定から除去する。他のフックや編集済みエントリは保持する。`unlink.sh` は実ディレクトリと APM 配備物を残し、dotfiles を指す子 symlink だけを解除する。移行前のルートリンクは `~/.cursor.legacy-link.<日時>.<PID>` に残し、問題があれば新しい `~/.cursor` を退避した後にそのリンクを `~/.cursor` へ戻して旧 dotfiles view を復元できる。
+
+Cursor と Claude を併用する全 profile（`hm-m1-mac`、`cg-m2-mac`、`win-15034`、`wsl-ubuntu`、`xsv-linux-1`）では、ponytail hooks を Cursor ネイティブではなく Claude 設定経由で読み込むため、Cursor の `Settings > Agents > Third-Party Imports > Include Third-Party Plugins, Skills, and Other Configs` を有効にしておく。
+
 ### 2. consumer manifest は dotfiles で版管理
 
 `profiles/<machine>/apm.yml` で「このマシンに何を install するか」だけを宣言する。パッケージ本体は書かない。

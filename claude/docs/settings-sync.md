@@ -152,6 +152,7 @@ dotfiles/.../settings.local.json
 - `settings.json` 系は **マージ書き出し方式**（symlink ではない）。
 - `CLAUDE.md` / `commands` / `skills` / `rules` / `custom-config` は引き続き **symlink**。
 - `~/.claude/settings.local.json` の symlink は **削除**（Claude Code が読まない）。
+- APM が user settings に配備する Ponytail hook は plugin runtime 外で実行されるため、hook command 内でだけ APM package root を設定する。全 hook 共通の `env.CLAUDE_PLUGIN_ROOT` には設定しない。
 
 ### `mise run status`
 

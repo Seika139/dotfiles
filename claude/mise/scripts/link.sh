@@ -118,6 +118,11 @@ else
   fi
 fi
 
+# APM copies Ponytail hooks into settings.json without a plugin runtime context.
+# Supply the package root inside those Ponytail processes and preserve its owner sidecar.
+bash "${MISE_CONFIG_ROOT}/mise/scripts/run_python.sh" \
+  "${MISE_CONFIG_ROOT}/mise/scripts/normalize_ponytail_hooks.py" --claude-dir "$CLAUDE_DIR"
+
 # ---------------------------------------------------------------------------
 # settings.local.json: Claude Code が読まないため ~/.claude/ には配置しない
 # 旧運用の symlink が残っていたら削除する

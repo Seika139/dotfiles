@@ -1,0 +1,55 @@
+---
+name: Agent Hook Tests
+
+"on":
+  push:
+    branches: [main]
+    paths:
+      - "agents/mise/scripts/cursor_home.sh"
+      - "agents/mise/scripts/load_mise_environment.sh"
+      - "agents/mise/scripts/migrate_cursor_apm_config.py"
+      - "agents/mise/tasks/install.sh"
+      - "agents/mise/tasks/update.sh"
+      - "agents/tests/test_migrate_cursor_apm_config.py"
+      - "agents/tests/test_install_bootstrap.py"
+      - "install.sh"
+      - "claude/mise/scripts/run_python.sh"
+      - "claude/mise/scripts/normalize_ponytail_hooks.py"
+      - "claude/mise/scripts/link.sh"
+      - "claude/mise/tests/**"
+      - ".github/workflows/agent-hook-tests.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "26.12.1"
+
+      - name: Run hook tests
+        shell: bash
+        run: >-
+          python -m unittest
+          agents.tests.test_migrate_cursor_apm_config
+          agents.tests.test_install_bootstrap
+          claude.mise.tests.test_normalize_ponytail_hooks
+          claude.mise.tests.test_run_python
