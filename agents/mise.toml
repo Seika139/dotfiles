@@ -1,3 +1,7 @@
+[tools]
+# PyYAML が Python 3.15 向けの wheel を出すまで、スクリプト依存の pyyaml をビルドせずに済むよう 3.14 を指定している。ルートの mise.toml の yamllint / pre-commit と同じ理由。
+python = "3.14"
+
 [env]
 PROFILES_DIR = "profiles"
 # WSL 環境なら true になる

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S uv run --script
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.10,<3.15"
 # dependencies = ["pyyaml>=6.0"]
 # ///
 """apm.yml (+ optional private overlay) を解析し、status 表示用のフィールドを抽出する。
