@@ -141,15 +141,6 @@ done
 
 unset files_to_link file
 
-# APM writes user-scope Cursor hooks and agents, so ~/.cursor itself must be a
-# real directory. Preserve ignored Cursor runtime data through child symlinks.
-# shellcheck disable=SC1091
-source "${ROOT}/agents/mise/scripts/cursor_home.sh"
-if ! ensure_dotfiles_cursor_home "${ROOT}" "${HOME}"; then
-  echo "Cursor directory setup failed; stopping before the remaining install steps."
-  exit 1
-fi
-
 #-------------------------------------
 # 1-1. link the selected mise profile
 #-------------------------------------
@@ -527,36 +518,7 @@ echo 'finish loading'
 echo ''
 
 #-------------------------------------
-# 5. setup Claude settings
-#-------------------------------------
-
-if [ ! -d "${ROOT}/claude/" ]; then
-  error "dotfiles/claude/ ディレクトリが存在しません。dotfiles を正しくクローンしたか確認してください。"
-  exit 1
-elif command -v mise &>/dev/null; then
-  # dotfiles/claude/ が存在し mise コマンドが利用可能な場合は mise を利用して claude の設定を行う
-  info "mise コマンドを利用して Claude の設定を行います"
-  (
-    cd "${ROOT}/claude/" || {
-      error "No such directory: ${ROOT}/claude/"
-      exit 1
-    }
-    mise trust -a
-    mise run check_env
-    info "🚀 mise.local.toml が存在しない場合に 'Error task failed' と表示されますが問題ありません"
-    mise run link
-  )
-else
-  # mise が利用できない場合は従来のスクリプトを利用して claude の設定を行う
-  info "mise コマンドが見つからないため、従来のスクリプトを利用して Claude の設定を行います"
-  [ -n "$(detect_wsl)" ] && is_wsl=true || is_wsl=false
-  # mise.local.toml が存在しない場合に作成する
-  IS_WSL=$is_wsl bash "${ROOT}/claude/mise/scripts/check_env.sh"
-  IS_WSL=$is_wsl bash "${ROOT}/claude/mise/scripts/link.sh"
-fi
-
-#-------------------------------------
-# 6. upgrade homebrew (if OSX)
+# 5. upgrade homebrew (if OSX)
 #-------------------------------------
 
 # フォーミュラがインストール済みの場合はアップデートを行い、未インストールの場合はインストールを行う
@@ -599,7 +561,7 @@ if command -v brew >/dev/null 2>&1; then
 fi
 
 #-------------------------------------
-# 7. install CLI tools (if Linux)
+# 6. install CLI tools (if Linux)
 #-------------------------------------
 
 if [[ "$(uname)" == "Linux" ]]; then
@@ -659,15 +621,67 @@ if [[ "$(uname)" == "Linux" ]]; then
   unset LINUX_TOOLS
 fi
 
+#-------------------------------------
+# 7. install mise profile tools
+#-------------------------------------
+
 # mise が利用可能になった後、選択profileに定義したツールを初回導入する。
 if [[ "${MISE_PROFILE_STATUS}" -ne 0 ]]; then
   echo_yellow "⚠️  mise profile の設定をスキップしたため、profile tools は導入しませんでした。"
 elif [[ "${MISE_PROFILE_LINKED}" == "true" ]]; then
   if command -v mise >/dev/null 2>&1; then
     (cd "${HOME}" && mise install) || exit $?
+    # mise install does not update this shell's PATH. Load the selected tools
+    # explicitly, including Python needed by the setup steps below.
+    # shellcheck disable=SC1091
+    source "${ROOT}/agents/mise/scripts/load_mise_environment.sh"
+    if ! dotfiles_load_mise_environment "${HOME}"; then
+      exit 1
+    fi
   else
     echo_yellow "⚠️  mise が見つかりません。mise を導入後、ホームディレクトリで mise install を実行してください。"
     exit 1
   fi
 fi
+
+# APM writes user-scope Cursor hooks and agents, so ~/.cursor itself must be a
+# real directory. Defer its Python-backed migration until the selected mise
+# tools are installed and available in PATH. A mise install failure above leaves
+# the legacy Cursor link untouched.
+# shellcheck disable=SC1091
+source "${ROOT}/agents/mise/scripts/cursor_home.sh"
+if ! ensure_dotfiles_cursor_home "${ROOT}" "${HOME}"; then
+  echo "Cursor directory setup failed; stopping before the remaining install steps."
+  exit 1
+fi
+
+#-------------------------------------
+# 8. setup Claude settings
+#-------------------------------------
+
+if [ ! -d "${ROOT}/claude/" ]; then
+  error "dotfiles/claude/ ディレクトリが存在しません。dotfiles を正しくクローンしたか確認してください。"
+  exit 1
+elif command -v mise &>/dev/null; then
+  # dotfiles/claude/ が存在し mise コマンドが利用可能な場合は mise を利用して claude の設定を行う
+  info "mise コマンドを利用して Claude の設定を行います"
+  (
+    cd "${ROOT}/claude/" || {
+      error "No such directory: ${ROOT}/claude/"
+      exit 1
+    }
+    mise trust -a
+    mise run check_env
+    info "🚀 mise.local.toml が存在しない場合に 'Error task failed' と表示されますが問題ありません"
+    mise run link
+  )
+else
+  # mise が利用できない場合は従来のスクリプトを利用して Claude の設定を行う
+  info "mise コマンドが見つからないため、従来のスクリプトを利用して Claude の設定を行います"
+  [ -n "$(detect_wsl)" ] && is_wsl=true || is_wsl=false
+  # mise.local.toml が存在しない場合に作成する
+  IS_WSL=$is_wsl bash "${ROOT}/claude/mise/scripts/check_env.sh"
+  IS_WSL=$is_wsl bash "${ROOT}/claude/mise/scripts/link.sh"
+fi
+
 unset MISE_PROFILE_LINKED MISE_PROFILE_NAME MISE_PROFILE_STATUS

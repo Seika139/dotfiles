@@ -6,10 +6,13 @@ name: Agent Hook Tests
     branches: [main]
     paths:
       - "agents/mise/scripts/cursor_home.sh"
+      - "agents/mise/scripts/load_mise_environment.sh"
       - "agents/mise/scripts/migrate_cursor_apm_config.py"
       - "agents/mise/tasks/install.sh"
       - "agents/mise/tasks/update.sh"
       - "agents/tests/test_migrate_cursor_apm_config.py"
+      - "agents/tests/test_install_bootstrap.py"
+      - "install.sh"
       - "claude/mise/scripts/run_python.sh"
       - "claude/mise/scripts/normalize_ponytail_hooks.py"
       - "claude/mise/scripts/link.sh"
@@ -47,5 +50,6 @@ jobs:
         run: >-
           python -m unittest
           agents.tests.test_migrate_cursor_apm_config
+          agents.tests.test_install_bootstrap
           claude.mise.tests.test_normalize_ponytail_hooks
           claude.mise.tests.test_run_python
