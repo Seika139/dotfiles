@@ -37,6 +37,14 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
     def _write_json(self, path, value):
         path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
+    def _symlink_directory_or_skip(self, target, link_path):
+        try:
+            link_path.symlink_to(target, target_is_directory=True)
+        except OSError as error:
+            if os.name == "nt" and getattr(error, "winerror", None) == 1314:
+                self.skipTest("Windows symlink privilege is unavailable")
+            raise
+
     def test_mcp_merge_adds_only_missing_servers_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -224,25 +232,13 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
             ):
                 path.mkdir(parents=True, exist_ok=True)
             home.mkdir()
-            subprocess.run(
-                [BASH, "-c", 'ln -s "$1" "$2"', "link-dotfiles", bash_path(root), bash_path(root_alias)],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-            )
+            self._symlink_directory_or_skip(root, root_alias)
             (root / "agents" / "mise" / "scripts" / "migrate_cursor_apm_config.py").symlink_to(SCRIPT_PATH)
             (root / "claude" / "mise" / "scripts" / "run_python.sh").symlink_to(
                 ROOT_DIR / "claude" / "mise" / "scripts" / "run_python.sh"
             )
             self._write_json(source_cursor / "mcp.json", {"mcpServers": {"serena": {"command": "source"}}})
-            subprocess.run(
-                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", bash_path(source_cursor), bash_path(target_cursor)],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-            )
+            self._symlink_directory_or_skip(source_cursor, target_cursor)
 
             command = [
                 BASH,
@@ -285,13 +281,7 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
             source_cursor.mkdir(parents=True)
             home.mkdir()
             elsewhere.mkdir()
-            subprocess.run(
-                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", bash_path(elsewhere), bash_path(target_cursor)],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-            )
+            self._symlink_directory_or_skip(elsewhere, target_cursor)
             original_target = os.readlink(target_cursor)
 
             result = subprocess.run(
@@ -330,13 +320,7 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
             (root / "claude" / "mise" / "scripts" / "run_python.sh").symlink_to(
                 ROOT_DIR / "claude" / "mise" / "scripts" / "run_python.sh"
             )
-            subprocess.run(
-                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", "../dotfiles/.cursor", bash_path(target_cursor)],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-            )
+            self._symlink_directory_or_skip(Path("../dotfiles/.cursor"), target_cursor)
 
             result = subprocess.run(
                 [
@@ -369,13 +353,7 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
             target_cursor = home / ".cursor"
             source_cursor.mkdir(parents=True)
             home.mkdir()
-            subprocess.run(
-                [BASH, "-c", 'ln -s "$1" "$2"', "link-cursor", "../missing-cursor", bash_path(target_cursor)],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-            )
+            self._symlink_directory_or_skip(Path("../missing-cursor"), target_cursor)
             original_target = os.readlink(target_cursor)
 
             result = subprocess.run(
