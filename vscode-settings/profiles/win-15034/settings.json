@@ -303,7 +303,7 @@
   },
   // shell-format を最新の 7.2.8 にするとフォーマットできない問題があるので、7.2.5 に据え置きにするための設定
   // https://github.com/foxundermoon/vs-shell-format/issues/396
-  "extensions.autoUpdate": "onlyEnabledExtensions",
+  "extensions.autoUpdate": "on",
   "[php]": {
     "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
   },
