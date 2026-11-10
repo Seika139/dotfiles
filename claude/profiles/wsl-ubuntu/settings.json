@@ -88,7 +88,7 @@
       "PowerShell(New-Item *)",
       "PowerShell(Get-Content *)"
     ],
-    "defaultMode": "acceptEdits",
+    "defaultMode": "auto",
     "deny": [
       "Bash(sudo *)",
       "Bash(rm -rf *)",
