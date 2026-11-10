@@ -2,6 +2,7 @@ import io
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -16,6 +17,20 @@ HELPER_PATH = ROOT_DIR / "agents" / "mise" / "scripts" / "cursor_home.sh"
 SPEC = importlib.util.spec_from_file_location("migrate_cursor_apm_config", SCRIPT_PATH)
 MIGRATOR = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MIGRATOR)
+BASH = shutil.which("bash") or "bash"
+
+
+def bash_path(path):
+    if os.name != "nt":
+        return str(path)
+    result = subprocess.run(
+        [BASH, "-c", 'cygpath -u "$1"', "cygpath", str(path)],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    return result.stdout.strip()
 
 
 class MigrateCursorApmConfigTest(unittest.TestCase):
@@ -229,20 +244,24 @@ class MigrateCursorApmConfigTest(unittest.TestCase):
             )
 
             command = [
-                "bash",
+                BASH,
                 "-c",
                 'source "$1"; ensure_dotfiles_cursor_home "$2" "$3"',
                 "test-cursor-home",
-                str(HELPER_PATH),
-                str(root),
-                str(home),
+                bash_path(HELPER_PATH),
+                bash_path(root),
+                bash_path(home),
             ]
-            subprocess.run(
+            result = subprocess.run(
                 command,
-                check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
+            )
+            self.assertEqual(
+                result.returncode,
+                0,
+                "stdout:\n{}\nstderr:\n{}".format(result.stdout, result.stderr),
             )
 
             self.assertFalse((target_cursor / "mcp.json").is_symlink())
