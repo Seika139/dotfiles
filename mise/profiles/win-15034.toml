@@ -24,4 +24,3 @@ uv = "0.13.7"
 [env]
 UV_PYTHON_PREFERENCE = "only-system"
 UV_PYTHON_DOWNLOADS = "never"
-
