@@ -10,6 +10,8 @@
 2. `git config --global init.templatedir` を設定した上でテンプレートディレクトリに `git secrets --install` 済みのフックを配置し、今後 `git init` / `git clone` するすべてのリポジトリに pre-commit フックを自動配布する(全体 default)。
 3. 検出したい正規表現は追跡対象外の `~/.gitconfig.local` の `[secrets]` セクションに書く。
 
+dotfiles リポジトリでは `mise run setup-pre-commit` が必要な `pre-commit` / `git-secrets` を mise から導入し、`.pre-commit-config.yaml` を検証して pre-commit hook をインストールする。`install.sh` と `mise run dot-init` からもこの task が実行される。コミット時の hook は stage 済みの内容をスキャンするが、検出には `secrets.patterns` または `secrets.providers` の登録が必要であり、AWS の標準パターンは自動登録しない。
+
 3 層設計の詳細な理由や `core.hooksPath` 方式との比較は [pre-commit / pre-push](pre-commit-pre-push.md) に譲る。
 このページでは git-secrets というツール自体の操作コマンドをチートシートとしてまとめる。
 
