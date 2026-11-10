@@ -26,6 +26,12 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# APM writes Cursor hooks under ~/.cursor, which must be a real directory.
+# Keep the symlink migration ahead of manifest and lockfile changes.
+# shellcheck source=agents/mise/scripts/cursor_home.sh
+source "${ROOT_DIR}/mise/scripts/cursor_home.sh"
+ensure_dotfiles_cursor_home "${ROOT_DIR}/.." "${HOME}"
+
 PROFILE="${usage_prof:-${DEFAULT_AGENTS_PROFILE:-}}"
 PROFILE_PATH="${ROOT_DIR}/$PROFILES_DIR/$PROFILE"
 PRIVATE_PATH="${ROOT_DIR}/$PROFILES_DIR/private"
@@ -115,6 +121,10 @@ apm update "${UPDATE_ARGS[@]}"
 
 printf "%s\n" "   📦 Updating APM dependencies (pass 2/2)..."
 apm update "${UPDATE_ARGS[@]}"
+
+# APM copies Ponytail hooks into Claude settings without a plugin runtime context.
+bash "${ROOT_DIR}/../claude/mise/scripts/run_python.sh" \
+  "${ROOT_DIR}/../claude/mise/scripts/normalize_ponytail_hooks.py" --claude-dir "${HOME}/.claude"
 
 # Step 4: 新規生成 lock を profile/ にコピーバック
 #   private overlay 有効時は profiles/private/apm.lock.yaml (gitignored) に書く。

@@ -69,7 +69,7 @@
       {
         "hooks": [
           {
-            "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/ponytail-activate.js'))\"",
+            "command": "node -e \"const p=require('path'),o=require('os');process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules','DietrichGebert','ponytail');require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-activate.js'))\"",
             "statusMessage": "Loading ponytail mode...",
             "timeout": 5,
             "type": "command"
@@ -94,7 +94,7 @@
       {
         "hooks": [
           {
-            "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/ponytail-subagent.js'))\"",
+            "command": "node -e \"const p=require('path'),o=require('os');process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules','DietrichGebert','ponytail');require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-subagent.js'))\"",
             "statusMessage": "Loading ponytail mode...",
             "timeout": 5,
             "type": "command"
@@ -107,7 +107,7 @@
       {
         "hooks": [
           {
-            "command": "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT.replaceAll(String.fromCharCode(92), '/'), 'hooks/ponytail-mode-tracker.js'))\"",
+            "command": "node -e \"const p=require('path'),o=require('os');process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules','DietrichGebert','ponytail');require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-mode-tracker.js'))\"",
             "statusMessage": "Tracking ponytail mode...",
             "timeout": 5,
             "type": "command"

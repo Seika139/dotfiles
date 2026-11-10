@@ -120,7 +120,6 @@ fi
 files_to_link=(
   ".bash_logout"
   ".bash_profile"
-  ".cursor"
   ".gitconfig"
   ".gitignore_global"
   ".gitmessage"
@@ -141,6 +140,15 @@ for file in "${files_to_link[@]}"; do # [@] で全ての要素にアクセス
 done
 
 unset files_to_link file
+
+# APM writes user-scope Cursor hooks and agents, so ~/.cursor itself must be a
+# real directory. Preserve ignored Cursor runtime data through child symlinks.
+# shellcheck disable=SC1091
+source "${ROOT}/agents/mise/scripts/cursor_home.sh"
+if ! ensure_dotfiles_cursor_home "${ROOT}" "${HOME}"; then
+  echo "Cursor directory setup failed; stopping before the remaining install steps."
+  exit 1
+fi
 
 #-------------------------------------
 # 1-1. link the selected mise profile

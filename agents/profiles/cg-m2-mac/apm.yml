@@ -12,7 +12,9 @@ includes: auto
 dependencies:
   apm:
     - Caromaf/agent-package-basic#main
-    - DietrichGebert/ponytail#main
+    - git: DietrichGebert/ponytail
+      ref: main
+      targets: [claude, codex, gemini, copilot]
     - github/gh-stack/skills/gh-stack#main
     - mattpocock/skills/skills/productivity/grilling#main
     - mattpocock/skills/skills/productivity/grill-me#main

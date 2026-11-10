@@ -26,7 +26,6 @@ main() {
   linked_files=(
     ".bash_logout"
     ".bash_profile"
-    ".cursor"
     ".gitconfig"
     ".gitconfig.local"
     ".gitignore_global"
@@ -42,6 +41,27 @@ main() {
     fi
   done
   unset linked_files file abs_path
+
+  # .cursor is a real directory after install. Remove only symlinks that point
+  # into dotfiles, leaving APM-owned files and the directory itself in place.
+  cursor_home="${HOME}/.cursor"
+  if [[ -L "${cursor_home}" && "$(readlink "${cursor_home}")" == "${DOTFILES_ROOT}/.cursor" ]]; then
+    echo_yellow "Removing legacy Cursor symlink: ${cursor_home}"
+    rm "${cursor_home}"
+  elif [[ -d "${cursor_home}" && ! -L "${cursor_home}" ]]; then
+    while IFS= read -r -d '' cursor_entry; do
+      if [[ -L "${cursor_entry}" ]]; then
+        cursor_target="$(readlink "${cursor_entry}")"
+        case "${cursor_target}" in
+        "${DOTFILES_ROOT}/.cursor/"*)
+          echo_yellow "Removing Cursor symlink: ${cursor_entry}"
+          rm "${cursor_entry}"
+          ;;
+        esac
+      fi
+    done < <(find "${cursor_home}" -mindepth 1 -maxdepth 1 -print0)
+  fi
+  unset cursor_home cursor_entry cursor_target
 
   mise_config_root="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/mise}"
   mise_profile_link="${mise_config_root}/conf.d/dotfiles-profile.toml"
