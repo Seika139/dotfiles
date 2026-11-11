@@ -2,6 +2,7 @@ aaron-bond.better-comments
 alefragnani.bookmarks
 annsk.alignment
 anthropic.claude-code
+astro-build.astro-vscode
 batisteo.vscode-django
 bmewburn.vscode-intelephense-client
 bradlc.vscode-tailwindcss
@@ -81,6 +82,7 @@ naumovs.color-highlight
 njpwerner.autodocstring
 onecentlin.laravel-blade
 openai.chatgpt
+openai.codex-audio
 oxc.oxc-vscode
 peakchen90.open-html-in-browser
 pranaygp.vscode-css-peek
@@ -106,6 +108,7 @@ timonwong.shellcheck
 tobiah.unity-tools
 tomoki1207.pdf
 tomoki1207.vscode-input-sequence
+unifiedjs.vscode-mdx
 visualstudiotoolsforunity.vstuc
 vscode-icons-team.vscode-icons
 vue.volar
