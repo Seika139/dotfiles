@@ -137,6 +137,83 @@ class RenderHooksTest(unittest.TestCase):
         result = self.render_with(base=base, local=local)
         self.assertEqual(result, {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}})
 
+    def test_profile_ponytail_hooks_replace_stale_apm_and_direct_commands(self):
+        hook_files = {
+            "SessionStart": ("ponytail-activate.js", "startup|resume|clear|compact"),
+            "UserPromptSubmit": ("ponytail-mode-tracker.js", None),
+            "SubagentStart": ("ponytail-subagent.js", None),
+            "PreToolUse": ("ponytail-subagent.js", "Agent"),
+        }
+        local_hooks = {}
+        target_hooks = {}
+        for event, (hook_file, matcher) in hook_files.items():
+            command = (
+                "node -e \"const p=require('path'),o=require('os');"
+                "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
+                "'DietrichGebert','ponytail');"
+                f"require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/{hook_file}'))\""
+            )
+            group = {"hooks": [{"type": "command", "command": command, "timeout": 5}]}
+            if matcher is not None:
+                group["matcher"] = matcher
+            local_hooks[event] = [group]
+
+            direct = f'node "C:\\Users\\someone\\.codex\\hooks\\ponytail\\hooks\\{hook_file}"'
+            apm = (
+                "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
+                ".split(String.fromCharCode(92)).join('/'), 'hooks/"
+                f"{hook_file}'))\""
+            )
+            for stale_command in (direct, apm):
+                stale_group = {
+                    "hooks": [{"type": "command", "command": stale_command, "timeout": 15}]
+                }
+                if matcher is not None:
+                    stale_group["matcher"] = matcher
+                target_hooks.setdefault(event, []).append(stale_group)
+
+        target_hooks["Stop"] = [{"hooks": [{"type": "command", "command": "custom-stop-hook"}]}]
+        result = self.render_with(
+            local={"hooks": local_hooks},
+            target_content={"hooks": target_hooks},
+        )
+        self.assertEqual(result["hooks"], {**local_hooks, "Stop": target_hooks["Stop"]})
+
+    def test_list_sources_excludes_profile_replaced_ponytail_hooks(self):
+        command = (
+            "node -e \"const p=require('path'),o=require('os');"
+            "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
+            "'DietrichGebert','ponytail');"
+            "require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-mode-tracker.js'))\""
+        )
+        apm = (
+            "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
+            ".split(String.fromCharCode(92)).join('/'), 'hooks/ponytail-mode-tracker.js'))\""
+        )
+        local = {
+            "hooks": {
+                "UserPromptSubmit": [
+                    {"hooks": [{"type": "command", "command": command}]}
+                ]
+            }
+        }
+        target = {
+            "hooks": {
+                "UserPromptSubmit": [
+                    {"hooks": [{"type": "command", "command": apm}]}
+                ],
+                "Stop": [{"hooks": [{"type": "command", "command": "custom-stop-hook"}]}],
+            }
+        }
+        self.assertEqual(
+            self.list_sources_with(local=local, target_content=target),
+            [
+                "hooks.base.json: (not present)",
+                "hooks.local.json: 1 entries",
+                "apm (untracked by profile): 1 entries",
+            ],
+        )
+
     def test_symlink_target_external_entries_are_harvested(self):
         # Legacy deployments point `target` at a symlink; entries must be
         # read by following it, not skipped because it isn't a plain file.

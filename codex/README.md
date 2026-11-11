@@ -110,13 +110,13 @@ args = ["-y", "mcp-remote", "https://developers.openai.com/mcp"]
 `config.toml` の 2 ファイル単純合成とは違い、hooks.json は「自分で管理する内容」と「外部 (apm など) が書き込む内容」を役割分担する設計です。
 
 - `hooks.base.json` / `hooks.local.json` には、**自分で管理したい hook だけ**を書きます。apm など外部由来の内容はここに書きません。
-- `mise run link` を実行すると、`render_hooks.py` は `hooks.base.json` + `hooks.local.json` の内容に加えて、**その時点で `~/.codex/hooks.json` に入っているエントリを出自に関わらずすべてそのまま残し**た上で書き直します。つまり `~/.codex/hooks.json` は「自分で管理する分」と「前回までに外部が書き込んだ分」を毎回引き継ぎながら再生成される、蓄積型の生成ファイルです。
+- `mise run link` を実行すると、`render_hooks.py` は `hooks.base.json` + `hooks.local.json` の内容に加えて、**その時点で `~/.codex/hooks.json` に入っている外部エントリを引き継いで**書き直します。profile が同じイベントの Ponytail hook を管理している場合は、古い APM 登録が二重起動しないよう、その Ponytail hook だけ引き継ぎ対象から除きます。
 
 `hooks.base.json` は git 管理する共有設定、`hooks.local.json` は git 管理しないローカル設定です。
 
-`../agents` にて `mise run update` が実行する `apm install -g --refresh --force` は `~/.codex/hooks.json` に**タグ無しで**直接エントリを書き込みます（例: `DietrichGebert/ponytail`）。`render_hooks.py` はタグを見るのではなく、再生成時点で既存の `~/.codex/hooks.json` に入っているエントリを（`hooks.base.json` / `hooks.local.json` の内容と合わせて）そのまま残すため、apm など外部が書き込んだ hook を消してしまうことはありません。そのため `hooks.base.json` / `hooks.local.json` に apm 由来のエントリを手動でコピーしてはいけません（次の `apm install -g` で二重に書き込まれ、`~/.codex/hooks.json` の中身が重複します）。
+`../agents` にて `mise run update` が実行する `apm install -g --refresh --force` は `~/.codex/hooks.json` に**タグ無しで**直接エントリを書き込みます（例: `DietrichGebert/ponytail`）。通常の外部 hook は生成時に保持されますが、profile が同じイベントで管理する Ponytail hook は旧 APM 登録を除いて profile 側の設定を使います。外部 hook を `hooks.base.json` / `hooks.local.json` に手動でコピーしないでください。Ponytail の Windows 登録はこの例外として `hooks.local.json` に置き、`CLAUDE_PLUGIN_ROOT` を hook プロセス内で設定します。
 
-この「そのまま残す」動作には制約があります。`~/.codex/hooks.json` に既に入っているエントリは、その出自（apm か過去の `hooks.base.json` か）に関わらず無条件に残り続けるため、`hooks.base.json` / `hooks.local.json` からエントリを削除しても `mise run link` だけでは反映されません。完全に消したい場合は `~/.codex/hooks.json` を削除してから `mise run link` を実行してください。
+通常の外部 hook は、`~/.codex/hooks.json` に既に入っている限り出自を問わず残ります。そのため `hooks.base.json` / `hooks.local.json` から通常 hook を削除しても `mise run link` だけでは消えません。完全に消したい場合は `~/.codex/hooks.json` を削除してから `mise run link` を実行してください。
 
 旧構成では `~/.codex/hooks.json` が `profiles/<profile>/hooks.json` への symlink だったため、この変更を pull した直後は symlink がリンク切れ（リンク先のファイルが存在しない状態）になり、apm 由来のエントリは生成時に収穫できません。移行初回は `mise run link` の後に `../agents` で `mise run update` を実行して apm エントリを再生成してください。
 
