@@ -2,6 +2,7 @@ alefragnani.bookmarks
 alexcvzz.vscode-sqlite
 anthropic.claude-code
 argylewolflabs.vscode-groovy
+astro-build.astro-vscode
 bierner.markdown-mermaid
 bmewburn.vscode-intelephense-client
 christian-kohler.path-intellisense
@@ -57,6 +58,7 @@ nicolasvuillamy.vscode-groovy-lint
 njpwerner.autodocstring
 oderwat.indent-rainbow
 openai.chatgpt
+openai.codex-audio
 rogalmic.bash-debug
 secanis.jenkinsfile-support
 sgryjp.japanese-word-handler
@@ -69,6 +71,7 @@ tamasfe.even-better-toml
 timonwong.shellcheck
 tobiah.unity-tools
 tomoki1207.pdf
+unifiedjs.vscode-mdx
 unity.unity-debug
 usernamehw.errorlens
 visualstudiotoolsforunity.vstuc

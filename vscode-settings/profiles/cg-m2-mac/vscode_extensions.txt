@@ -1,6 +1,7 @@
 alefragnani.bookmarks
 alexcvzz.vscode-sqlite
 anthropic.claude-code
+astro-build.astro-vscode
 bierner.markdown-mermaid
 bmewburn.vscode-intelephense-client
 christian-kohler.path-intellisense
@@ -50,6 +51,7 @@ neilbrayfield.php-docblocker
 njpwerner.autodocstring
 oderwat.indent-rainbow
 openai.chatgpt
+openai.codex-audio
 persoderlind.vscode-phpcbf
 rogalmic.bash-debug
 rvben.rumdl
@@ -63,6 +65,7 @@ streetsidesoftware.code-spell-checker
 tamasfe.even-better-toml
 timonwong.shellcheck
 tomoki1207.pdf
+unifiedjs.vscode-mdx
 usernamehw.errorlens
 vscode-icons-team.vscode-icons
 waderyan.gitblame
