@@ -70,6 +70,7 @@ streetsidesoftware.code-spell-checker
 tamasfe.even-better-toml
 timonwong.shellcheck
 tobiah.unity-tools
+tombi-toml.tombi
 tomoki1207.pdf
 unifiedjs.vscode-mdx
 unity.unity-debug

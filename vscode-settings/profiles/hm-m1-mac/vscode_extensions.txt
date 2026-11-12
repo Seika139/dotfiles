@@ -106,6 +106,7 @@ tamasfe.even-better-toml
 terrastruct.d2
 timonwong.shellcheck
 tobiah.unity-tools
+tombi-toml.tombi
 tomoki1207.pdf
 tomoki1207.vscode-input-sequence
 unifiedjs.vscode-mdx

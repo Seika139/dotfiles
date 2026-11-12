@@ -345,9 +345,11 @@ shellenv
 shfmt
 shfmtrc
 signingkey
+skillspector
 slidev
 smallint
 songdb
+spector
 Spilo
 sqlalchemy
 sqlfluff
@@ -380,6 +382,7 @@ timesheet
 timesheets
 tinyint
 tmpfs
+tombi
 tomllib
 toplevel
 toset

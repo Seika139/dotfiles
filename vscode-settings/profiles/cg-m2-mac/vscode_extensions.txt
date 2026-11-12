@@ -64,6 +64,7 @@ sqlfluff.vscode-sqlfluff
 streetsidesoftware.code-spell-checker
 tamasfe.even-better-toml
 timonwong.shellcheck
+tombi-toml.tombi
 tomoki1207.pdf
 unifiedjs.vscode-mdx
 usernamehw.errorlens
