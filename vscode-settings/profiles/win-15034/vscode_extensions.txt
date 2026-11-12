@@ -1,5 +1,6 @@
 alefragnani.bookmarks
 alexcvzz.vscode-sqlite
+antfu.slidev
 anthropic.claude-code
 argylewolflabs.vscode-groovy
 astro-build.astro-vscode
@@ -67,7 +68,6 @@ shardulm94.trailing-spaces
 shd101wyy.markdown-preview-enhanced
 slightc.pip-manager
 streetsidesoftware.code-spell-checker
-tamasfe.even-better-toml
 timonwong.shellcheck
 tobiah.unity-tools
 tombi-toml.tombi

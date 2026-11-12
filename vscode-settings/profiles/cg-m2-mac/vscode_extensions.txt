@@ -1,5 +1,6 @@
 alefragnani.bookmarks
 alexcvzz.vscode-sqlite
+antfu.slidev
 anthropic.claude-code
 astro-build.astro-vscode
 bierner.markdown-mermaid
@@ -62,7 +63,6 @@ shd101wyy.markdown-preview-enhanced
 shevaua.phpcs
 sqlfluff.vscode-sqlfluff
 streetsidesoftware.code-spell-checker
-tamasfe.even-better-toml
 timonwong.shellcheck
 tombi-toml.tombi
 tomoki1207.pdf

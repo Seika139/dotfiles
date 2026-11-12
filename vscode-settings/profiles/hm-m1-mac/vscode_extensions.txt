@@ -1,6 +1,7 @@
 aaron-bond.better-comments
 alefragnani.bookmarks
 annsk.alignment
+antfu.slidev
 anthropic.claude-code
 astro-build.astro-vscode
 batisteo.vscode-django
@@ -102,7 +103,6 @@ shd101wyy.markdown-preview-enhanced
 sourcegraph.cody-ai
 streetsidesoftware.code-spell-checker
 tabnine.tabnine-vscode
-tamasfe.even-better-toml
 terrastruct.d2
 timonwong.shellcheck
 tobiah.unity-tools

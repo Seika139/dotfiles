@@ -332,6 +332,8 @@
   },
   "redhat.telemetry.enabled": true,
   "vsicons.dontShowNewVersionMessage": true,
+  "[toml]": { "editor.defaultFormatter": "tombi-toml.tombi" },
+  "tombi.path": "~/AppData/Local/mise/installs/tombi/1.11.2/tombi.exe",
   "hediet.vscode-drawio.resizeImages": null
   // "terminal.integrated.shellIntegration.enabled": false // 要るか要らないか判定中
 }

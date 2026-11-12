@@ -97,6 +97,7 @@ Eeuo
 elasticloadbalancingv
 elbv
 elbv2
+elevenlabs
 elif
 Embedder
 endraw
@@ -145,6 +146,7 @@ Googlability
 GOPATH
 grayscale
 groovylint
+gsap
 gsed
 gsub
 gtts
@@ -159,6 +161,7 @@ Hotswap
 htmlcov
 httpx
 huggingface
+hyperframes
 imgur
 infty
 ingestor
@@ -418,6 +421,7 @@ vercel
 virtualenv
 vitest
 Vixengo
+voicevox
 vuetify
 wada
 webfactory
