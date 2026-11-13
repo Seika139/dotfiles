@@ -1,3 +1,4 @@
+aaaaronzhou.nginx-config-formatter-vscode-extension
 aaron-bond.better-comments
 alefragnani.bookmarks
 annsk.alignment
@@ -50,6 +51,7 @@ k--kato.docomment
 kevinrose.vsc-python-indent
 kleber-swf.unity-code-snippets
 koehlma.markdown-math
+llvm-vs-code-extensions.vscode-clangd
 mads-hartmann.bash-ide-vscode
 marp-team.marp-vscode
 mechatroner.rainbow-csv
@@ -65,6 +67,7 @@ ms-dotnettools.vscode-dotnet-runtime
 ms-python.black-formatter
 ms-python.debugpy
 ms-python.isort
+ms-python.mypy-type-checker
 ms-python.python
 ms-python.vscode-pylance
 ms-python.vscode-python-envs
@@ -76,6 +79,8 @@ ms-toolsai.vscode-jupyter-slideshow
 ms-vscode-remote.remote-containers
 ms-vscode-remote.remote-ssh
 ms-vscode-remote.remote-ssh-edit
+ms-vscode.cmake-tools
+ms-vscode.cpp-devtools
 ms-vscode.cpptools
 ms-vscode.makefile-tools
 ms-vscode.remote-explorer
@@ -111,6 +116,9 @@ tombi-toml.tombi
 tomoki1207.pdf
 tomoki1207.vscode-input-sequence
 unifiedjs.vscode-mdx
+vadimcn.vscode-lldb
+visualstudioexptteam.intellicode-api-usage-examples
+visualstudioexptteam.vscodeintellicode
 visualstudiotoolsforunity.vstuc
 vscode-icons-team.vscode-icons
 vue.volar
