@@ -19,6 +19,7 @@ ernststavroblofeld.php-types
 esbenp.prettier-vscode
 foxundermoon.shell-format
 github.vscode-github-actions
+github.vscode-pull-request-github
 golang.go
 hashicorp.terraform
 hbenl.vscode-test-explorer
@@ -69,6 +70,7 @@ tomoki1207.pdf
 unifiedjs.vscode-mdx
 usernamehw.errorlens
 vscode-icons-team.vscode-icons
+vue.volar
 waderyan.gitblame
 wmaurer.change-case
 yzane.markdown-pdf
