@@ -6,8 +6,11 @@
 
 # 現在有効な VSCode 設定ファイルのパスを特定する関数
 get_vscode_settings_path() {
-  local scoop_path="/c/Users/$USER/scoop/persist/vscode/data/user-data/User/settings.json"
-  local normal_path="/c/Users/$USER/AppData/Roaming/Code/User/settings.json"
+  # Git Bash では $USER が空で $USERNAME だけのことがある
+  local user="${USER:-${USERNAME:-}}"
+  [ -n "$user" ] || { echo "ユーザー名を特定できません (USER/USERNAME が空)" >&2; return 1; }
+  local scoop_path="/c/Users/$user/scoop/persist/vscode/data/user-data/User/settings.json"
+  local normal_path="/c/Users/$user/AppData/Roaming/Code/User/settings.json"
 
   # 1. 実行中のプロセスから判定
   local running_path
@@ -27,8 +30,10 @@ get_vscode_settings_path() {
       echo "$normal_path"
     fi
   else
-    echo "VSCode is not installed or not in PATH"
+    echo "VSCode is not installed or not in PATH" >&2
+    return 1
   fi
 }
 
-dirname "$(get_vscode_settings_path)"
+settings_path="$(get_vscode_settings_path)" || exit 1
+dirname "$settings_path"

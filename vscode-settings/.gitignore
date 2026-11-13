@@ -1,1 +1,4 @@
 mise.local.toml
+settings.local.json
+/settings.json
+settings.local.json.bak-*

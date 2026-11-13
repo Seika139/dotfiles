@@ -1,94 +1,19 @@
 {
-  // workbench
-  "workbench.activityBar.orientation": "vertical",
-  "workbench.editor.revealIfOpen": true,
-  "workbench.editor.wrapTabs": false,
-  "workbench.iconTheme": "vscode-icons",
-  "workbench.colorTheme": "Dark Modern",
-  // explorer
-  "explorer.confirmDragAndDrop": false,
-  "explorer.openEditors.sortOrder": "alphabetical",
-  // window
-  "window.zoomLevel": -1.5,
-  "window.commandCenter": true,
-  // cSpell の userWords は dotfiles 配下の共有辞書ファイルに切り出して管理する。
-  // 辞書本体: vscode-settings/shared/cspell/user-words.txt
-  "cSpell.customDictionaries": {
-    "dotfiles-shared": {
-      "name": "dotfiles-shared",
-      "path": "${userHome}/dotfiles/vscode-settings/shared/cspell/user-words.txt",
-      "addWords": true,
-      "scope": "user"
-    },
-    "dotfiles-private": {
-      "name": "dotfiles-private",
-      "path": "${userHome}/dotfiles/vscode-settings/private/cspell/user-words.txt",
-      "addWords": true,
-      "scope": "user"
-    }
-  },
-  "editor.formatOnSave": false,
-  "trailing-spaces.trimOnSave": true,
-  "git.autofetch": true,
-  "git.confirmSync": false,
-  "github.copilot.enable": {
-    "*": true,
-    "plaintext": false,
-    "markdown": true,
-    "scminput": false
-  },
-  "github.copilot.nextEditSuggestions.enabled": true,
-  "github.copilot.chat.commitMessageGeneration.instructions": [
-    { "text": "日本語で書く。" },
-    { "text": "Subject は50文字以内（全角約25文字目安）に収める。" },
-    {
-      "text": "NEVER use Conventional Commits prefixes. Do NOT start with feat:, fix:, docs:, chore:, refactor:, etc."
-    },
-    { "text": "gitmoji や絵文字は使わない。" },
-    {
-      "text": "変更内容を直接記述する。日本語の場合は動詞で終える: 「〜を追加、〜を修正、〜に変更、〜を削除」など"
-    },
-    {
-      "text": "コード参照（クラス名・設定キー・ファイル名等）はバッククォートで囲む。"
-    },
-    { "text": "Subject の末尾にピリオド（。）を付けない。" },
-    {
-      "text": "Body は変更の理由や背景を説明する。ただし、Subjectだけで十分な場合は省略する。"
-    },
-    { "text": "Subject と Body は空行で分離する。" },
-    {
-      "text": "Body の箇条書きは - を使う。what と why を説明し、how は書かない。最大でも72文字になるように端的に書く。"
-    },
-    {
-      "text": "良い Subject の例: `Config\\Database` のリトライポリシー適用漏れを修正 / PHP標準Exception使用箇所を `ExceptionBase` に変更"
-    }
-  ],
-  "[markdown]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
-  },
-  "markdownlint.run": "onSave",
-  "markdownlint.configFile": "${userHome}/dotfiles/vscode-settings/extension-config/.markdownlint-cli2.jsonc",
-  "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format",
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "database-client.autoSync": true,
-  "sqlfluff.dialect": "mysql",
-  "sqlfluff.linter.run": "onSave",
-  "sqlfluff.format.enabled": true,
-  "[sql]": {
-    "editor.defaultFormatter": "dorzey.vscode-sqlfluff",
-    "editor.formatOnSave": true
+  "[dockercompose]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   },
   "[dockerfile]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
-  "[javascript]": {
+  "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "[typescript]": {
+  "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
@@ -104,25 +29,20 @@
     "prettier.trailingComma": "none",
     "editor.formatOnSave": true
   },
-  /**
-   * @description jsonc 用の設定
-   * esbenp.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
-   * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
-   */
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[markdown]": {
     "editor.formatOnSave": true,
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none",
-    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
   },
-  "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
-  // ↑ jsonc の問題対応はここまで
-  "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
     "editor.formatOnSave": true
   },
-  "[css]": {
+  "[sql]": {
+    "editor.defaultFormatter": "dorzey.vscode-sqlfluff",
+    "editor.formatOnSave": true
+  },
+  "[toml]": { "editor.defaultFormatter": "tombi-toml.tombi" },
+  "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
@@ -134,59 +54,49 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "diffEditor.ignoreTrimWhitespace": false,
-  "git.blame.statusBarItem.enabled": false,
-  "files.watcherExclude": {
-    "": true
-  },
-  "files.exclude": {
-    "**/.git": false
-  },
-  "intelephense.stubs": ["redis", "standard", "pcre", "date"],
-  "intelephense.environment.includePaths": ["vendor/jetbrains/phpstorm-stubs"],
-  "git.suggestSmartCommit": false,
+  "claudeCode.preferredLocation": "panel",
+  "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
+  "cursor.general.disableHttp1SSE": true,
+  "cursor.general.disableHttp2": true,
+  "database-client.autoSync": true,
+  "editor.formatOnSave": false,
+  "explorer.openEditors.sortOrder": "alphabetical",
   "files.associations": {
     "*.md": "markdown",
     "*.yml": "yaml"
   },
-  // テキスト校正くん
-  "japanese-proofreading.textlint.ひらく漢字": false,
-  "japanese-proofreading.textlint.外来語カタカナ表記": false,
-  "japanese-proofreading.textlint.全角文字と半角文字の間": false,
-  "japanese-proofreading.textlint.丸かっこ（）": false,
-  "japanese-proofreading.textlint.助詞の連続": false,
-  "japanese-proofreading.textlint.技術用語": false,
-  "vsicons.dontShowNewVersionMessage": true,
-  "gitlens.views.commits.files.layout": "tree",
-  "makefile.configureOnOpen": true,
-  "remote.autoForwardPortsSource": "hybrid",
-  "cursor.cpp.disabledLanguages": ["plaintext", "scminput"],
+  "files.exclude": {
+    "**/.git": false
+  },
+  "files.watcherExclude": {
+    "": true
+  },
   "git-worktree-manager.worktreeCopyPatterns": ["CLAUDE.md", ".claude/"],
-  // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
-  "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
-  "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
-  "terminal.integrated.profiles.linux": {
-    // Linux でターミナルを開くときに bash を login シェルで開く設定
-    // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
-    "bash": { "path": "bash", "icon": "terminal-bash", "args": ["-l"] }
+  "git.blame.statusBarItem.enabled": false,
+  "git.suggestSmartCommit": false,
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "scminput": false
   },
-  "terminal.integrated.defaultProfile.linux": "bash",
+  "gitlens.views.commits.files.layout": "tree",
+  "intelephense.environment.includePaths": ["vendor/jetbrains/phpstorm-stubs"],
+  "intelephense.stubs": ["redis", "standard", "pcre", "date"],
+  "japanese-proofreading.textlint.助詞の連続": false,
+  "makefile.configureOnOpen": true,
+  "markdownlint.configFile": "${userHome}/dotfiles/vscode-settings/extension-config/.markdownlint-cli2.jsonc",
+  "markdownlint.run": "onSave",
+  "security.promptForLocalFileProtocolHandling": false,
+  "sqlfluff.dialect": "mysql",
+  "sqlfluff.format.enabled": true,
+  "sqlfluff.linter.run": "onSave",
   "terminal.integrated.enableBracketedPasteMode": false,
-  "terminal.integrated.tabs.title": "${sequence}",
-  "remote.containers.environment": {
-    "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
-    "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
-    "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
-  },
-  "[dockercompose]": {
-    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
-  },
-  "python.terminal.activateEnvironment": false,
-  "cursor.general.disableHttp2": true,
-  "cursor.general.disableHttp1SSE": true,
   "terminal.integrated.initialHint": false,
   "tombi.path": "~/.local/share/mise/installs/tombi/1.11.2/tombi-cli-1.11.2-aarch64-apple-darwin/tombi",
-  "[toml]": { "editor.defaultFormatter": "tombi-toml.tombi" },
-  "claudeCode.preferredLocation": "panel",
-  "security.promptForLocalFileProtocolHandling": false
+  "trailing-spaces.trimOnSave": true,
+  "window.commandCenter": true,
+  "window.zoomLevel": -1.5,
+  "workbench.activityBar.orientation": "vertical",
+  "workbench.editor.wrapTabs": false
 }

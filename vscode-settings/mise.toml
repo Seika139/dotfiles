@@ -2,7 +2,6 @@
 env_shell_expand = false
 
 [vars]
-config_files = "settings.json keybindings.json tasks.json snippets"
 vscode_path_mac = "$HOME/Library/Application Support/Code/User"
 vscode_path_win = "$(bash mise/tasks/vscode-path-win.sh)"
 cursor_path_mac = "$HOME/Library/Application Support/Cursor/User"
@@ -15,6 +14,15 @@ VSCODE_PATH = "{% if os() == 'windows' %}{{vars.vscode_path_win}}{% else %}{{var
 CURSOR_PATH = "{% if os() == 'windows' %}{{vars.cursor_path_win}}{% else %}{{vars.cursor_path_mac}}{% endif %}"
 AGY_PATH = "{% if os() == 'windows' %}{{vars.agy_path_win}}{% else %}{{vars.agy_path_mac}}{% endif %}"
 PROFILE_ROOT = "{{config_root}}/profiles"
+CONFIG_FILES = "settings.json keybindings.json tasks.json snippets"
+
+[tasks.permit]
+description = "mise タスクに権限を付与する"
+quiet = true
+run = [
+  "test -d mise/ && find mise/ -type f -name '*.sh' -exec chmod +x {} +",
+  "test -d mise/tasks/ && find mise/tasks/ -type f -name '*.sh' -exec chmod +x {} +",
+]
 
 [tasks.ensure_local_env]
 description = "mise.local.toml で環境変数が設定されているか確認する"
@@ -53,7 +61,7 @@ printf "PROFILE_ROOT           = \033[36m%s\033[0m\n" "{{env.PROFILE_ROOT}}"
 printf "VSCODE_PATH            = \033[36m$VSCODE_PATH\033[0m\n"
 printf "CURSOR_PATH            = \033[36m$CURSOR_PATH\033[0m\n"
 printf "AGY_PATH               = \033[36m$AGY_PATH\033[0m\n"
-printf "CONFIG_FILES           = \033[36m%s\033[0m\n" "{{vars.config_files}}"
+printf "CONFIG_FILES           = \033[36m%s\033[0m\n" "{{env.CONFIG_FILES}}"
 '''
 
 [tasks.dump]
@@ -74,46 +82,6 @@ mise run dump-extensions vscode
 mise run dump-extensions cursor
 mise run dump-extensions antigravity
 printf "✅ すべてのエクスポートが完了しました!\n"
-"""
-
-[tasks.dump-settings]
-description = "各種設定ファイルをエクスポートする"
-shell = "bash -c"
-hide = true
-depends = ["ensure_local_env"]
-usage = '''
-arg "[editor]" {
-  help "対象エディタ"
-  choices "vscode" "cursor" "antigravity"
-  default "vscode"
-}
-flag "--prof <prof>" help="プロファイル名"
-'''
-run = """
-EDITOR="${usage_editor:-vscode}"
-PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
-PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
-if [[ "$EDITOR" = "vscode" ]]; then
-  src_path="{{env.VSCODE_PATH}}"
-elif [[ "$EDITOR" = "cursor" ]]; then
-  src_path="{{env.CURSOR_PATH}}"
-elif [[ "$EDITOR" = "antigravity" ]]; then
-  src_path="{{env.AGY_PATH}}"
-else
-  printf "  ❌ 不明なエディタ: $EDITOR\n"
-  exit 1
-fi
-
-printf "🛠️  エディタ設定を \\033[36m${src_path}\\033[0m から \\033[36m%s\\033[0m にエクスポートします\n" "$PROFILE_DIR"
-mkdir -p "$PROFILE_DIR"
-for item in {{vars.config_files}}; do
-  if [ -f "$src_path/$item" ] || [ -d "$src_path/$item" ]; then
-    cp -r "$src_path/$item" "$PROFILE_DIR"
-    printf "  ✅ エクスポート完了: \\033[36m$src_path/$item -> %s/$item\\033[0m\n" "$PROFILE_DIR"
-  else
-    printf "  ⚠️  スキップ: \\033[36m%s\\033[0m が見つかりません\n" "$src_path/$item"
-  fi
-done
 """
 
 [tasks.dump-extensions]
@@ -190,84 +158,6 @@ mise run status-extensions
 printf "\n✅ すべての状態確認が完了しました!\n"
 """
 
-[tasks.status-settings]
-description = "各種設定ファイルの同期状態を確認する"
-shell = "bash -c"
-hide = true
-depends = ["ensure_local_env"]
-usage = '''
-flag "--prof <prof>" help="プロファイル名"
-'''
-run = '''
-PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
-
-normalize_path() {
-  local path="$1"
-  # バックスラッシュをスラッシュに変換
-  path="${path//\\\\/\/}"
-
-  # Windows形式のドライブ文字 (C:) を POSIX形式 (/c) に変換
-  if [[ "$path" =~ ^([A-Za-z]): ]]; then
-    local drive="${BASH_REMATCH[1],,}"  # 小文字化
-    path="/$drive${path:2}"
-  fi
-
-  # 連続するスラッシュを単一に（sed使用でより安全に）
-  path="$(echo "$path" | sed 's|//*|/|g')"
-
-  # 末尾のスラッシュを削除（ルートディレクトリでない場合）
-  if [[ "$path" != "/" ]]; then
-    path="${path%/}"
-  fi
-
-  echo "$path"
-}
-
-PROFILE_DIR="$(normalize_path "{{env.PROFILE_ROOT}}")/$PROFILE"
-
-# 環境変数を展開してから正規化
-VSCODE_PATH_EXPANDED="$(echo "{{env.VSCODE_PATH}}" | envsubst)"
-CURSOR_PATH_EXPANDED="$(echo "{{env.CURSOR_PATH}}" | envsubst)"
-AGY_PATH_EXPANDED="$(echo "{{env.AGY_PATH}}" | envsubst)"
-VSCODE_PATH_NORM="$(normalize_path "$VSCODE_PATH_EXPANDED")"
-CURSOR_PATH_NORM="$(normalize_path "$CURSOR_PATH_EXPANDED")"
-AGY_PATH_NORM="$(normalize_path "$AGY_PATH_EXPANDED")"
-
-for editor_path in "$VSCODE_PATH_NORM" "$CURSOR_PATH_NORM" "$AGY_PATH_NORM"; do
-  printf "\nSettings for\\033[36m %s\\033[0m\n" "${editor_path/ /\\ /}"
-  for item in {{vars.config_files}}; do
-    expected_src="$PROFILE_DIR/$item"
-    dest_file="$editor_path/$item"
-    if [ ! -e "$dest_file" ] && [ ! -L "$dest_file" ]; then
-      printf "  ❔ %s: Not exists\n" "$item"
-      elif [ -L "$dest_file" ]; then
-      actual_src=$(readlink "$dest_file")
-      if [ "$(normalize_path "$actual_src")" = "$(normalize_path "$expected_src")" ]; then
-        printf "  ✅ %s <- %s\n" "$item" "$actual_src"
-      else
-        printf "  ❌ %s: Linked to a different source: %s\n" "$item" "$actual_src"
-      fi
-    else
-      if [ -f "$dest_file" ] && [ -f "$expected_src" ]; then
-        if diff -q "$dest_file" "$expected_src" >/dev/null; then
-          printf "  ⚠️  %s: Same content but not a symlink\n" "$item"
-        else
-          printf "  🚨 %s: Different from profile\n" "$item"
-        fi
-        elif [ -d "$dest_file" ] && [ -d "$expected_src" ]; then
-        if diff -r -q "$dest_file" "$expected_src" >/dev/null 2>&1; then
-          printf "  ⚠️  %s: Same content but not a symlink\n" "$item"
-        else
-          printf "  🚨 %s: Different from profile\n" "$item"
-        fi
-      else
-        printf "  🚨 %s: Not a symlink and cannot compare contents\n" "$item"
-      fi
-    fi
-  done
-done
-'''
-
 [tasks.status-extensions]
 description = "拡張機能の同期状態を確認する"
 shell = "bash -c"
@@ -339,62 +229,6 @@ for editor in vscode cursor agy; do
 
   rm -f "$INSTALLED_EXTS" "$TO_INSTALL_EXTS" 2>/dev/null || true
 done
-"""
-
-[tasks.sync]
-description = "VS Code と Cursor の設定をプロファイルのシンボリックリンクとして同期し、拡張機能をインストールする"
-shell = "bash -c"
-depends = ["ensure_local_env"]
-run = """
-mise run sync-settings
-mise run sync-extensions
-"""
-
-[tasks.sync-settings]
-description = "VS Code と Cursor の設定をプロファイルのシンボリックリンクとして同期する"
-shell = "bash -c"
-hide = true
-depends = ["ensure_local_env"]
-usage = '''
-flag "--prof <prof>" help="プロファイル名"
-'''
-run = """
-PROFILE="${usage_prof:-${DEFAULT_PROFILE:-}}"
-PROFILE_DIR="{{env.PROFILE_ROOT}}/$PROFILE"
-
-if [ ! -d "$PROFILE_DIR" ]; then
-  echo "❌ プロファイルディレクトリが見つかりません: $PROFILE_DIR"
-  exit 1
-fi
-
-for editor_path in "{{env.VSCODE_PATH}}" "{{env.CURSOR_PATH}}" "{{env.AGY_PATH}}"; do
-  printf "\n設定適用先:\\033[36m %s\\033[0m\n" "$(echo $editor_path | sed 's/ /\\\\ /g')"
-  if [ ! -d "$editor_path" ]; then
-    mkdir -p "$editor_path"
-  fi
-
-  for item in {{vars.config_files}}; do
-    src_item=$(realpath "$PROFILE_DIR/$item" 2>/dev/null || echo "")
-    dest_item="$editor_path/$item"
-    if [ -z "$src_item" ] || [ ! -e "$src_item" ]; then
-      printf "  ⚠️  スキップ: \\033[36m%s\\033[0m が見つかりません\n" "$PROFILE_DIR/$item"
-      elif [ -e "$dest_item" ] && ! [ -L "$dest_item" ]; then
-      printf "  既存のファイル/ディレクトリを発見: \\033[36m%s\\033[0m (シンボリックリンクでない)\n" "$dest_item"
-      if diff -r -q "$src_item" "$dest_item" >/dev/null 2>&1; then
-        printf "  ✅ 内容が同一です。シンボリックリンクに置き換えます: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item"
-        rm -rf "$dest_item"
-        ln -snf "$src_item" "$dest_item"
-      else
-        printf "  ❌ 競合: 手動で解決してから再実行してください\n"
-        printf "     プロファイル: \\033[36m%s\\033[0m != 既存: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item" "$dest_item"
-      fi
-    else
-      ln -snf "$src_item" "$dest_item"
-      printf "  ✅ リンク完了: \\033[36m%s\\033[0m\n" "$PROFILE_DIR/$item"
-    fi
-  done
-done
-printf "\n✅ 設定ファイルの同期が完了しました！\n"
 """
 
 [tasks.sync-extensions]
@@ -475,4 +309,4 @@ printf "\n✅ 拡張機能の同期が完了しました！\n"
 description = "現在有効な VSCode 設定ファイルのパスを特定する"
 shell = "bash -c"
 quiet = true
-run = 'bash mise/tasks/vscode-path-win.sh'
+run = "bash mise/tasks/vscode-path-win.sh"

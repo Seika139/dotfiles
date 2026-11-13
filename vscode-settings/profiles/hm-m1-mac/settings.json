@@ -1,157 +1,9 @@
 {
-  "editor.formatOnSave": true,
-  "editor.renderWhitespace": "all",
-  "editor.accessibilitySupport": "auto",
-  "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
-  "editor.rulers": [40, 80, 88, 120, 160, 200], // 垂直ルーラーの表示
-  // workbench
-  "workbench.editorAssociations": {
-    "*.ipynb": "jupyter-notebook"
-  },
-  "workbench.editor.revealIfOpen": true,
-  "workbench.editor.wrapTabs": false,
-  "workbench.iconTheme": "vscode-icons",
-  "workbench.colorTheme": "Dark Modern",
-  // explorer
-  "explorer.confirmDragAndDrop": false,
-  "explorer.confirmPasteNative": false,
-  "explorer.openEditors.sortOrder": "alphabetical",
-  // git
-  "git.autofetch": true,
-  "git.confirmSync": false,
-  "git.suggestSmartCommit": false,
-  // python
-  "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit",
-      "source.fixAll": "explicit"
-    }
-  },
-  "python.analysis.typeCheckingMode": "standard",
-  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
-  "python.languageServer": "Default",
-  "python.terminal.activateEnvironment": false,
-  "black-formatter.args": ["--line-length=88"],
-  "editor.bracketPairColorization.enabled": true,
-  "editor.guides.bracketPairs": "active",
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none",
+  "[csharp]": {
     "editor.formatOnSave": true
   },
-  "[jsonl]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none",
-    "editor.formatOnSave": true
-  },
-  /**
-   * @description jsonc 用の設定
-   * esbenp.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
-   * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
-   */
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none",
-    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
-  },
-  "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
-  // ↑ jsonc の問題対応はここまで
-  "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "markdown-pdf.styles": [
-    "~/pro-main/vscode-help/src/markdown/markdown-pdf.css"
-  ],
-  "markdown-pdf.displayHeaderFooter": false,
-  "todohighlight.keywords": [
-    {
-      "text": "TODO :",
-      "color": "red",
-      "border": "1px solid red",
-      "borderRadius": "2px", //NOTE: using borderRadius along with `border` or you will see nothing change
-      "backgroundColor": "rgba(0,0,0,.2)"
-    },
-    {
-      "text": "NOTE :",
-      "color": "#fff",
-      "backgroundColor": "#4c26"
-    }
-  ],
-  "diffEditor.ignoreTrimWhitespace": false,
-  "tabnine.experimentalAutoImports": true,
-  "files.insertFinalNewline": true, // 最終行は改行にする
-  // code-runner : https://murabitoleg.com/vscode-runner/
-  // "code-runner.clearPreviousOutput": true,
-  "code-runner.runInTerminal": true,
-  // 言語認識の関連付け
-  "files.associations": {
-    "*.txt": "Markdown",
-    "*.jslib": "javascript",
-    "*.conf": "nginx",
-    "nginx.conf": "nginx",
-    "*.jsonc": "jsonc"
-  },
-  // emmet
-  "emmet.variables": {
-    "lang": "ja"
-  },
-  "emmet.includeLanguages": {
-    "vue-html": "html"
-  },
-  "emmet.triggerExpansionOnTab": true, // これをオンにしないと ctrl + e が効かない
-  // cSpell の userWords は dotfiles 配下の共有辞書ファイルに切り出して管理する。
-  // 辞書本体: vscode-settings/shared/cspell/user-words.txt
-  "cSpell.customDictionaries": {
-    "dotfiles-shared": {
-      "name": "dotfiles-shared",
-      "path": "${userHome}/dotfiles/vscode-settings/shared/cspell/user-words.txt",
-      "addWords": true,
-      "scope": "user"
-    },
-    "dotfiles-private": {
-      "name": "dotfiles-private",
-      "path": "${userHome}/dotfiles/vscode-settings/private/cspell/user-words.txt",
-      "addWords": true,
-      "scope": "user"
-    }
-  },
-  "[html]": {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-  },
-  "files.exclude": {
-    "**/.git": false,
-    "**/*.meta": true,
-    "**/*.out": true
-  },
-  "search.exclude": {
-    "**/.git": true,
-    "**/node_modules": true
-  },
-  // テキスト校正くん
-  "japanese-proofreading.textlint.丸かっこ（）": false,
-  "japanese-proofreading.textlint.全角文字と半角文字の間": false,
-  "japanese-proofreading.textlint.外来語カタカナ表記": false,
-  "japanese-proofreading.textlint.ひらく漢字": false,
-  "japanese-proofreading.textlint.助詞の連続": false,
-  "japanese-proofreading.textlint.技術用語": false,
-  // yaml
-  "[yaml]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml",
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2,
-    "editor.autoIndent": "keep",
-    "gitlens.codeLens.scopes": ["document"],
-    "editor.quickSuggestions": {
-      "other": true,
-      "comments": false,
-      "strings": true
-    }
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
   },
   // docker-compose.yml
   "[dockercompose]": {
@@ -168,21 +20,150 @@
   "[dockerfile]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"
   },
-  "[css]": {
-    "editor.defaultFormatter": "vscode.css-language-features"
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
   },
-  "markdown.marp.themes": [
-    "/Users/suzukikenichi/knowledges/reading_books/test.css"
-  ],
+  "[html]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none",
+    "editor.formatOnSave": true
+  },
+  "[jsonl]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none",
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    }
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "gitlens.codeLens.scopes": ["document"],
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    }
+  },
+  "agq.pinnedModels": ["MODEL_PLACEHOLDER_M37"],
+  "black-formatter.args": ["--line-length=88"],
+  // code-runner : https://murabitoleg.com/vscode-runner/
+  // "code-runner.clearPreviousOutput": true,
+  "code-runner.runInTerminal": true,
+  "color-picker-universal.avoidDuplicate": true,
+  "diffEditor.codeLens": true,
+  "docker.extension.enableComposeLanguageServer": false,
+  "editor.acceptSuggestionOnEnter": "off", // エンターキーでの補完を無効にする
+  "editor.accessibilitySupport": "auto",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.renderWhitespace": "all",
+  "editor.rulers": [40, 80, 88, 120, 160, 200], // 垂直ルーラーの表示
+  "emmet.includeLanguages": {
+    "vue-html": "html"
+  },
+  "emmet.triggerExpansionOnTab": true, // これをオンにしないと ctrl + e が効かない
+  "emmet.variables": {
+    "lang": "ja"
+  },
+  "explorer.confirmPasteNative": false,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.tsx": "${capture}.ts",
+    "tsconfig.json": "tsconfig.*.json",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock",
+    "*.cs": "${capture}.designer.cs,${capture}.g.cs,${capture}.generated.cs,${capture}.run.json,${capture}.settings.json,${capture}.settings.*.json",
+    "*.csproj": "${capture}.csproj.user",
+    "*.json": "${capture}.Development.json",
+    "*.cshtml": "${capture}.cshtml.cs,${capture}.cshtml.css",
+    "*.razor": "${capture}.razor.cs,${capture}.razor.css",
+    "*.resx": "${capture}.Designer.cs",
+    "*.xaml": "${capture}.xaml.cs",
+    "*.sqlite": "${capture}.${extname}-*",
+    "*.db": "${capture}.${extname}-*",
+    "*.sqlite3": "${capture}.${extname}-*",
+    "*.db3": "${capture}.${extname}-*",
+    "*.sdb": "${capture}.${extname}-*",
+    "*.s3db": "${capture}.${extname}-*"
+  },
+  "explorer.openEditors.sortOrder": "alphabetical",
+  // 言語認識の関連付け
+  "files.associations": {
+    "*.txt": "Markdown",
+    "*.jslib": "javascript",
+    "*.conf": "nginx",
+    "nginx.conf": "nginx",
+    "*.jsonc": "jsonc"
+  },
+  "files.exclude": {
+    "**/.git": false,
+    "**/*.meta": true,
+    "**/*.out": true
+  },
+  "files.insertFinalNewline": true, // 最終行は改行にする
+  "geminicodeassist.displayInlineContextHint": false,
+  "git.suggestSmartCommit": false,
+  "github.copilot.enable": {
+    "*": true,
+    "markdown": true,
+    "scminput": true,
+    "plaintext": true
+  },
+  "japanese-proofreading.textlint.助詞の連続": false,
+  "jupyter.interactiveWindow.textEditor.executeSelection": true,
+  "makefile.configureOnOpen": true,
+  "markdown-pdf.displayHeaderFooter": false,
   "notebook.cellToolbarLocation": {
     "default": "right",
     "jupyter-notebook": "left"
   },
+  "omnisharp.monoPath": "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono",
+  "omnisharp.path": "latest",
+  "omnisharp.useGlobalMono": "always",
+  "omnisharp.useModernNet": false,
+  "python.analysis.typeCheckingMode": "standard",
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
+  "python.languageServer": "Default",
   "redhat.telemetry.enabled": true,
-  "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
+  "search.exclude": {
+    "**/.git": true,
+    "**/node_modules": true
   },
+  "security.workspace.trust.untrustedFiles": "open",
   "shellcheck.customArgs": ["-x"],
+  "tabnine.experimentalAutoImports": true,
+  "terminal.integrated.defaultProfile.osx": "bash",
+  "terminal.integrated.detectLocale": "auto",
+  "terminal.integrated.gpuAcceleration": "off",
   "terminal.integrated.profiles.osx": {
     "bash": {
       "path": "bash",
@@ -209,106 +190,26 @@
       "path": "/bin/dash"
     }
   },
-  "terminal.integrated.defaultProfile.osx": "bash",
-  "terminal.integrated.gpuAcceleration": "off",
   "terminal.integrated.unicodeVersion": "11",
-  "terminal.integrated.tabs.title": "${sequence}",
-  "vsicons.dontShowNewVersionMessage": true,
-  "[vue]": {
-    "editor.defaultFormatter": "Vue.volar"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[csharp]": {
-    "editor.formatOnSave": true
-  },
-  "omnisharp.path": "latest",
-  "omnisharp.monoPath": "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono",
-  "omnisharp.useGlobalMono": "always",
-  "omnisharp.useModernNet": false,
-  "editor.formatOnPaste": true,
-  "jupyter.interactiveWindow.textEditor.executeSelection": true,
-  "security.workspace.trust.untrustedFiles": "open",
-  "github.copilot.enable": {
-    "*": true,
-    "markdown": true,
-    "scminput": true,
-    "plaintext": true
-  },
-  "github.copilot.nextEditSuggestions.enabled": true,
-  "github.copilot.chat.commitMessageGeneration.instructions": [
-    { "text": "日本語で書く。" },
-    { "text": "Subject は50文字以内（全角約25文字目安）に収める。" },
+  "terraform.languageServer.enable": true,
+  "todohighlight.keywords": [
     {
-      "text": "NEVER use Conventional Commits prefixes. Do NOT start with feat:, fix:, docs:, chore:, refactor:, etc."
-    },
-    { "text": "gitmoji や絵文字は使わない。" },
-    {
-      "text": "変更内容を直接記述する。日本語の場合は動詞で終える: 「〜を追加、〜を修正、〜に変更、〜を削除」など"
+      "text": "TODO :",
+      "color": "red",
+      "border": "1px solid red",
+      "borderRadius": "2px", //NOTE: using borderRadius along with `border` or you will see nothing change
+      "backgroundColor": "rgba(0,0,0,.2)"
     },
     {
-      "text": "コード参照（クラス名・設定キー・ファイル名等）はバッククォートで囲む。"
-    },
-    { "text": "Subject の末尾にピリオド（。）を付けない。" },
-    {
-      "text": "Body は変更の理由や背景を説明する。ただし、Subjectだけで十分な場合は省略する。"
-    },
-    { "text": "Subject と Body は空行で分離する。" },
-    {
-      "text": "Body の箇条書きは - を使う。what と why を説明し、how は書かない。最大でも72文字になるように端的に書く。"
-    },
-    {
-      "text": "良い Subject の例: `Config\\Database` のリトライポリシー適用漏れを修正 / PHP標準Exception使用箇所を `ExceptionBase` に変更"
+      "text": "NOTE :",
+      "color": "#fff",
+      "backgroundColor": "#4c26"
     }
   ],
-  "makefile.configureOnOpen": true,
   "window.zoomLevel": -0.85,
-  "terminal.integrated.detectLocale": "auto",
-  "docker.extension.enableComposeLanguageServer": false,
-  "diffEditor.codeLens": true,
-  "[github-actions-workflow]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml"
-  },
-  "geminicodeassist.displayInlineContextHint": false,
-  "remote.autoForwardPortsSource": "hybrid",
-  "color-picker-universal.avoidDuplicate": true,
-  // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
-  "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
-  "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
-  "terminal.integrated.profiles.linux": {
-    // Linux でターミナルを開くときに bash を login シェルで開く設定
-    // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
-    "bash": { "path": "bash", "icon": "terminal-bash", "args": ["-l"] }
-  },
-  "terminal.integrated.defaultProfile.linux": "bash",
-  "remote.containers.environment": {
-    "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
-    "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
-    "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
-  },
-  "terraform.languageServer.enable": true,
-  "agq.pinnedModels": ["MODEL_PLACEHOLDER_M37"],
-  "explorer.fileNesting.patterns": {
-    "*.ts": "${capture}.js",
-    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
-    "*.jsx": "${capture}.js",
-    "*.tsx": "${capture}.ts",
-    "tsconfig.json": "tsconfig.*.json",
-    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock",
-    "*.cs": "${capture}.designer.cs,${capture}.g.cs,${capture}.generated.cs,${capture}.run.json,${capture}.settings.json,${capture}.settings.*.json",
-    "*.csproj": "${capture}.csproj.user",
-    "*.json": "${capture}.Development.json",
-    "*.cshtml": "${capture}.cshtml.cs,${capture}.cshtml.css",
-    "*.razor": "${capture}.razor.cs,${capture}.razor.css",
-    "*.resx": "${capture}.Designer.cs",
-    "*.xaml": "${capture}.xaml.cs",
-    "*.sqlite": "${capture}.${extname}-*",
-    "*.db": "${capture}.${extname}-*",
-    "*.sqlite3": "${capture}.${extname}-*",
-    "*.db3": "${capture}.${extname}-*",
-    "*.sdb": "${capture}.${extname}-*",
-    "*.s3db": "${capture}.${extname}-*"
+  "workbench.editor.wrapTabs": false,
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
   },
   "yaml.disableSchemaDetection": [
     "**/.github/workflows/*.yml",

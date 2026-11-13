@@ -1,69 +1,99 @@
 {
-  // ↓ cSpell
-  // cSpell の userWords は dotfiles 配下の共有辞書ファイルに切り出して管理する。
-  // 辞書本体: vscode-settings/shared/cspell/user-words.txt
-  "cSpell.customDictionaries": {
-    "dotfiles-shared": {
-      "name": "dotfiles-shared",
-      "path": "${userHome}/dotfiles/vscode-settings/shared/cspell/user-words.txt",
-      "addWords": true,
-      "scope": "user"
-    },
-    "dotfiles-private": {
-      "name": "dotfiles-private",
-      "path": "${userHome}/dotfiles/vscode-settings/private/cspell/user-words.txt",
-      "addWords": true,
-      "scope": "user"
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[dockercompose]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript][typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "files.eol": "\n"
+  },
+  "[javascriptreact][typescriptreact]": {
+    "editor.tabSize": 2,
+    "files.eol": "\n"
+  },
+  // https://prettier.io/docs/options#print-width によるとデフォルトの80がいいとのこと
+  // "prettier.printWidth": 120,
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none"
+  },
+  "[jsonl]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "none"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "diffEditor.ignoreTrimWhitespace": false
+  },
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  // うまくいかないので一旦あきらめる
+  // "[php]": {
+  //   "editor.defaultFormatter": "persoderlind.vscode-phpcbf",
+  //   "editor.formatOnSave": true
+  // },
+  // "phpcbf.executablePath": "${workspaceFolder}/vendor/bin/phpcbf",
+  // "phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
+  // "phpcs.standard": "PSR12",
+  // "phpcbf.standard": "PSR12",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
     }
   },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
+    "files.eol": "\n"
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
+  },
+  "[toml]": { "editor.defaultFormatter": "tombi-toml.tombi" },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "autoDocstring.docstringFormat": "numpy",
+  "autoDocstring.startOnNewLine": true,
+  "bashBeautify.tabSize": 4,
   "cSpell.enabledFileTypes": {
     "groovy": true,
     "ini": true
   },
-  // ↑ cSpell
-  // ↓ git
-  "git.confirmSync": false,
-  "git.enableSmartCommit": true,
-  "git.autofetch": true,
-  "git.inputValidation": true,
-  "git.inputValidationSubjectLength": 50,
-  "git.inputValidationLength": 72,
-  "github-enterprise.uri": "https://github.com/enterprises/cygamesinc",
-  "github.copilot.chat.localeOverride": "ja",
-  "github.copilot.enable": {
-    "markdown": true,
-    "textEditor": true,
-    "chat": true
-  },
-  "github.copilot.nextEditSuggestions.enabled": true,
-  "github.copilot.chat.commitMessageGeneration.instructions": [
-    { "text": "日本語で書く。" },
-    { "text": "Subject は50文字以内（全角約25文字目安）に収める。" },
-    {
-      "text": "NEVER use Conventional Commits prefixes. Do NOT start with feat:, fix:, docs:, chore:, refactor:, etc."
-    },
-    { "text": "gitmoji や絵文字は使わない。" },
-    {
-      "text": "変更内容を直接記述する。日本語の場合は動詞で終える: 「〜を追加、〜を修正、〜に変更、〜を削除」など"
-    },
-    {
-      "text": "コード参照（クラス名・設定キー・ファイル名等）はバッククォートで囲む。"
-    },
-    { "text": "Subject の末尾にピリオド（。）を付けない。" },
-    {
-      "text": "Body は変更の理由や背景を説明する。ただし、Subjectだけで十分な場合は省略する。"
-    },
-    { "text": "Subject と Body は空行で分離する。" },
-    {
-      "text": "Body の箇条書きは - を使う。what と why を説明し、how は書かない。最大でも72文字になるように端的に書く。"
-    },
-    {
-      "text": "良い Subject の例: `Config\\Database` のリトライポリシー適用漏れを修正 / PHP標準Exception使用箇所を `ExceptionBase` に変更"
-    }
+  "cSpell.userWords": [
+    "dont",
+    "sqlfluff"
   ],
-  "gitlens.graph.minimap.enabled": false,
-  // ↑ git
-  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "chat.tools.terminal.autoApprove": {
+    "make": true,
+    "poetry": true
+  },
+  "claudeCode.preferredLocation": "panel",
+  "database-client.autoSync": true,
+  "diffEditor.renderSideBySide": true,
+  "editor.formatOnSave": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.rulers": [40, 80, 88, 120, 160, 200],
+  "editor.tabCompletion": "on",
+  // shell-format を最新の 7.2.8 にするとフォーマットできない問題があるので、7.2.5 に据え置きにするための設定
+  // https://github.com/foxundermoon/vs-shell-format/issues/396
+  "extensions.autoUpdate": "on",
   // これをオンにしなくてもデフォルトで Git Bash に login した状態でターミナルが開く
   // VSCode 内でパスがおかしい（C:\Users が C\x3a\Users になるとか、ssh-agent がおかしい）ときはインタープリタの切り替えをすると直ることがおおいっぽい
   // とにかく 2025.05 時点で ssh-agent の調子がおかしい（毎回 pull するときに ssh-agent のパスワードを聞かれる）のと、
@@ -82,134 +112,19 @@
   "files.exclude": {
     "**/.git": false
   },
-  // ↓ editor
-  "editor.formatOnSave": true,
-  "editor.guides.bracketPairs": "active",
-  "editor.tabCompletion": "on",
-  "editor.rulers": [40, 80, 88, 120, 160, 200],
-  // ↑ editor
-  // ↓ workbench
-  "workbench.colorTheme": "Dark Modern",
-  "workbench.colorCustomizations": {
-    "editorRuler.foreground": "#6666"
-  },
-  "workbench.editor.revealIfOpen": true,
-  "workbench.editor.wrapTabs": true,
-  "workbench.editor.limit.value": 40,
-  "workbench.iconTheme": "vscode-icons",
-  // "workbench.editor.tabSizing": "shrink",
-  // ↑ workbench
-  "remote.SSH.remotePlatform": {
-    "gallop_local": "linux"
-  },
-  "autoDocstring.docstringFormat": "numpy",
-  "autoDocstring.startOnNewLine": true,
-  // editor.rulers のレンダリングが表示される値に調整している
-  // zoomLevel を -2.5 より小さくするとターミナルの文字がつぶれて見えるようになる
-  "window.zoomLevel": -2.452,
-  "window.customTitleBarVisibility": "windowed",
-  "diffEditor.ignoreTrimWhitespace": false,
-  "explorer.confirmDragAndDrop": false,
-  // ↓ markdown
-  "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "diffEditor.ignoreTrimWhitespace": false
-  },
-  "markdownlint.configFile": "${userHome}/dotfiles/vscode-settings/extension-config/.markdownlint-cli2.jsonc",
-  // ↑ markdown
-  "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format",
-    "files.eol": "\n"
-  },
-  "shellcheck.enable": true,
-  // ↓ php
-  // うまくいかないので一旦あきらめる
-  // "[php]": {
-  //   "editor.defaultFormatter": "persoderlind.vscode-phpcbf",
-  //   "editor.formatOnSave": true
-  // },
-  // "phpcbf.executablePath": "${workspaceFolder}/vendor/bin/phpcbf",
-  // "phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
-  // "phpcs.standard": "PSR12",
-  // "phpcbf.standard": "PSR12",
-  // ↑ php
-  // ↓ python
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit"
-    }
-  },
-  "isort.args": ["--profile", "black"],
-  "python.analysis.typeCheckingMode": "basic",
-  "python.terminal.activateEnvironment": false,
-  // ↑ python
-  "[csharp]": {
-    "editor.defaultFormatter": "ms-dotnettools.csharp"
-  },
-  "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "omnisharp.useModernNet": true,
-  // https://prettier.io/docs/options#print-width によるとデフォルトの80がいいとのこと
-  // "prettier.printWidth": 120,
-  // ↓ json
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none"
-  },
-  "[jsonl]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none"
-  },
-  /**
-   * @description jsonc 用の設定
-   * esbenp.prettier-vscode が jsonc において、勝手に trailingComma を追加してしまう問題がある
-   * そこで、jsonc では以下の項目によって本ファイルの設定を prettier に使わせるように強制する
-   */
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "prettier.endOfLine": "lf",
-    "prettier.trailingComma": "none",
-    "prettier.useEditorConfig": false // プロジェクトに .editorconfig があっても無視する
-  },
-  "prettier.requireConfig": false, // プロジェクトに .prettierrc がなくても動作させる
-  // ↑ jsonc の問題対応はここまで
-  // ↑ json
-  // ↓ javascript
-  "[javascript][typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.tabSize": 2,
-    "files.eol": "\n"
-  },
-  "[javascriptreact][typescriptreact]": {
-    "editor.tabSize": 2,
-    "files.eol": "\n"
-  },
-  // ↑ javascript
-  "[dockerfile]": {
-    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
-  },
-  "japanese-proofreading.textlint.ひらく漢字": false,
-  "japanese-proofreading.textlint.外来語カタカナ表記": false,
-  "japanese-proofreading.textlint.かっこ類と隣接する文字の間のスペースの有無": false,
-  "bashBeautify.tabSize": 4,
-  // ↓ trailing spaces
   "files.trimTrailingWhitespace": true,
-  "security.workspace.trust.untrustedFiles": "open",
-  "chat.tools.terminal.autoApprove": {
-    "make": true,
-    "poetry": true
+  "git.enableSmartCommit": true,
+  "git.inputValidation": true,
+  "git.inputValidationLength": 72,
+  "git.inputValidationSubjectLength": 50,
+  "github.copilot.chat.localeOverride": "ja",
+  "github.copilot.enable": {
+    "markdown": true,
+    "textEditor": true,
+    "chat": true
   },
-  "diffEditor.renderSideBySide": true,
-  "remote.autoForwardPortsSource": "hybrid",
+  "gitlens.graph.minimap.enabled": false,
+  "hediet.vscode-drawio.resizeImages": null,
   "intelephense.stubs": [
     "apache",
     "bcmath",
@@ -284,56 +199,36 @@
     "memcached",
     "apcu"
   ],
-  "japanese-proofreading.textlint.全角文字と半角文字の間": false,
-  "japanese-proofreading.textlint.丸かっこ（）": false,
-  "japanese-proofreading.textlint.技術用語": false,
-  "database-client.autoSync": true,
-  // ↓ sqlfluff(VSCode SQL formatter and linter 拡張機能とは別で CLI のインストールも必要)
+  "isort.args": ["--profile", "black"],
+  "japanese-proofreading.textlint.かっこ類と隣接する文字の間のスペースの有無": false,
+  "markdownlint.configFile": "${userHome}/dotfiles/vscode-settings/extension-config/.markdownlint-cli2.jsonc",
+  "omnisharp.useModernNet": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "redhat.telemetry.enabled": true,
+  "security.allowedUNCHosts": ["wsl.localhost"],
+  "security.promptForLocalFileProtocolHandling": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  "shellcheck.enable": true,
+  // sqlfluff(VSCode SQL formatter and linter 拡張機能とは別で CLI のインストールも必要)
   "sqlfluff.dialect": "postgres",
+  "sqlfluff.format.enabled": true,
   "sqlfluff.format.languages": [
     "sql",
     "sql-bigquery",
     "jinja-sql",
     "snowflake-sql"
   ],
-  "sqlfluff.format.enabled": true,
-  "sqlfluff.executablePath": "/home/ken/.local/bin/sqlfluff",
-  "[sql]": {
-    "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
-  },
-  // shell-format を最新の 7.2.8 にするとフォーマットできない問題があるので、7.2.5 に据え置きにするための設定
-  // https://github.com/foxundermoon/vs-shell-format/issues/396
-  "extensions.autoUpdate": "on",
-  "[php]": {
-    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
-  },
-  "claudeCode.preferredLocation": "panel",
-  "security.allowedUNCHosts": ["wsl.localhost"],
-  // dotfiles 設定: DecContainer で自動的に dotfiles をクローンしてインストールする
-  "dotfiles.repository": "https://github.com/Seika139/dotfiles.git", // dotfiles リポジトリの URL を指定
-  "dotfiles.installCommand": "install.sh", // インストールコマンドを指定
-  "terminal.integrated.profiles.linux": {
-    // Linux でターミナルを開くときに bash を login シェルで開く設定
-    // Docker コンテナがデフォルトで非ログインシェルで開かれるのを回避する
-    "bash": { "path": "bash", "icon": "terminal-bash", "args": ["-l"] }
-  },
-  "terminal.integrated.defaultProfile.linux": "bash",
-  "terminal.integrated.tabs.title": "${sequence}",
-  "remote.containers.environment": {
-    "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
-    "GIT_USER_SIGNINGKEY": "${localEnv:GIT_USER_SIGNINGKEY}",
-    "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}"
-  },
-  "[yaml]": {
-    "editor.defaultFormatter": "redhat.vscode-yaml"
-  },
-  "[dockercompose]": {
-    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
-  },
-  "redhat.telemetry.enabled": true,
-  "vsicons.dontShowNewVersionMessage": true,
-  "[toml]": { "editor.defaultFormatter": "tombi-toml.tombi" },
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
   "tombi.path": "~/AppData/Local/mise/installs/tombi/1.11.2/tombi.exe",
-  "hediet.vscode-drawio.resizeImages": null
+  "window.customTitleBarVisibility": "windowed",
+  // editor.rulers のレンダリングが表示される値に調整している
+  // zoomLevel を -2.5 より小さくするとターミナルの文字がつぶれて見えるようになる
+  "window.zoomLevel": -2.452,
+  "workbench.colorCustomizations": {
+    "editorRuler.foreground": "#6666"
+  },
+  "workbench.editor.limit.value": 40,
+  "workbench.editor.wrapTabs": true
   // "terminal.integrated.shellIntegration.enabled": false // 要るか要らないか判定中
+  // "workbench.editor.tabSizing": "shrink",
 }
