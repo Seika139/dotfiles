@@ -41,3 +41,6 @@ __pycache__/
 
 # Cursor 関連のファイルを除外
 .cursor/
+
+*.zip
+
