@@ -121,7 +121,7 @@ else
     trap 'rm -f "$CLEANUP_LOCAL_INPUT"' EXIT
   fi
   ACTUAL=$(jq --sort-keys . "$SETTINGS_TARGET")
-  EXPECTED=$(jq -s --sort-keys '.[0] * .[1]' "$REPO_SETTINGS" "$LOCAL_INPUT")
+  EXPECTED=$(jq -s --sort-keys -f "${MISE_CONFIG_ROOT}/mise/scripts/merge-settings.jq" "$REPO_SETTINGS" "$LOCAL_INPUT")
   if [ "$ACTUAL" = "$EXPECTED" ]; then
     printf "%s\n" "   ✅ $SETTINGS_TARGET"
     printf "      (dotfiles 側の settings.json + settings.local.json のマージ結果と一致)\n"

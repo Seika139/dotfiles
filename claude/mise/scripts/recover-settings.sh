@@ -83,24 +83,31 @@ fi
 #   - 非公開情報 / Webhook シークレット
 #   - マシン固有の絶対パス
 #   - 既存 settings.local.json に既に存在するキー (= provenance。下記参照)
+#   - コミット済み settings.json に無い hooks エントリ (下記参照)
 # それ以外は PORTABLE (settings.json、git 管理)
 #
-#   local    = LOCAL_KEYS ∪ LOCAL_ENV_KEYS ∪ 非 portable な marketplace ∪ provenance
+#   local    = LOCAL_KEYS ∪ LOCAL_ENV_KEYS ∪ 非 portable な marketplace ∪ provenance ∪ 非 portable な hooks エントリ
 #   portable = SOURCE (~/.claude/settings.json) から local を引いたもの
 #
 # provenance (由来ベースの分類):
 #   キー名ホワイトリストだけでは、マージ済みの ~/.claude/settings.json (SOURCE) から
-#   どちらのファイル由来かを判別できないキー (例: hooks) を分類できない。
+#   どちらのファイル由来かを判別できないキーを分類できない。
 #   そこで「既存 settings.local.json に既にあるキーは local に留める」を 4 番目の
 #   判定ソースとして使う。トップレベルキー K について:
 #     - existing_local[K] と SOURCE[K] が両方オブジェクトなら
 #       -> SOURCE[K] にも存在するサブキーだけを local に振り分ける
-#        (hooks のイベント名単位、env の変数名単位の分類になる)
+#        (env の変数名単位の分類になる)
 #     - それ以外 (配列・スカラー・型が食い違う)
 #       -> K を丸ごと local に振り分ける
 #   provenance は「行き先」を決めるだけで「存在」を作らない: SOURCE に無いキーは
-#   existing_local にあっても復活させない (~/.claude/ から削除された hook 等)。
-#   LOCAL_KEYS / marketplace 系のキーは専用ロジックが既にあるため provenance の対象外。
+#   existing_local にあっても復活させない。
+#   LOCAL_KEYS / marketplace 系 / hooks は専用ロジックが既にあるため provenance の対象外。
+#
+# hooks (エントリ単位の分類):
+#   link は merge-settings.jq でイベントごとに portable + local を連結するため、
+#   SOURCE.hooks[E] の各エントリについて、コミット済み settings.json の hooks[E] に
+#   完全一致するエントリがあれば portable、それ以外はすべて local に振り分ける。
+#   空になったイベント / hooks オブジェクトは出力しない。
 LOCAL_KEYS='[]'
 LOCAL_ENV_KEYS='["SLACK_WEBHOOK_URL"]'
 
@@ -115,6 +122,13 @@ if [ -f "$REPO_LOCAL" ] && [ -s "$REPO_LOCAL" ]; then
   EXISTING_LOCAL_JSON=$(cat "$REPO_LOCAL")
 else
   EXISTING_LOCAL_JSON='{}'
+fi
+
+# hooks 分類とガードの入力: コミット済み settings.json (無ければ {} として扱う)
+if [ -f "$REPO_SETTINGS" ]; then
+  REPO_SETTINGS_JSON=$(cat "$REPO_SETTINGS")
+else
+  REPO_SETTINGS_JSON='{}'
 fi
 
 # ---------------------------------------------------------------------------
@@ -143,6 +157,15 @@ def provenance_decisions($source; $existing_local; $exclude_keys):
       {key: $k, mode: "whole"}
     end
   ];
+# hooks をエントリ単位で分類する。$want_portable が true なら settings.json の同一イベントに
+# 完全一致するエントリを、false ならそれ以外を残す。空のイベントは出力しない。
+def split_hooks($source; $repo_settings; $want_portable):
+  ($repo_settings.hooks // {}) as $rh |
+  [ ($source.hooks // {}) | to_entries[] |
+    ($rh[.key] // []) as $re |
+    {key, value: (.value | map(select(. as $x | ($re | any(. == $x)) == $want_portable)))} |
+    select((.value | length) > 0)
+  ] | from_entries;
 '
 
 LOCAL_JSON=$(echo "$SOURCE" | jq \
@@ -150,6 +173,7 @@ LOCAL_JSON=$(echo "$SOURCE" | jq \
   --argjson local_env_keys "$LOCAL_ENV_KEYS" \
   --argjson portable_marketplaces "$PORTABLE_MARKETPLACES" \
   --argjson existing_local "$EXISTING_LOCAL_JSON" \
+  --argjson repo_settings "$REPO_SETTINGS_JSON" \
   "
   ${JQ_PROVENANCE_DEF}
   . as \$source |
@@ -173,14 +197,14 @@ LOCAL_JSON=$(echo "$SOURCE" | jq \
     if (\$local_plugins | length) > 0 then {enabledPlugins: \$local_plugins} else {} end
   else {} end) as \$plugins_local |
   # provenance: 既存 settings.local.json に既にあるキーは local に留める
-  (provenance_decisions(\$source; \$existing_local; (\$local_keys + [\"extraKnownMarketplaces\", \"enabledPlugins\"]))) as \$decisions |
+  (provenance_decisions(\$source; \$existing_local; (\$local_keys + [\"extraKnownMarketplaces\", \"enabledPlugins\", \"hooks\"]))) as \$decisions |
   # env は LOCAL_ENV_KEYS ホワイトリストと provenance の union で判定
   ((\$decisions | map(select(.key == \"env\")))[0].subkeys // []) as \$env_provenance_keys |
   (if has(\"env\") then
     (\$local_env_keys + \$env_provenance_keys | unique) as \$env_local_keys_all |
     {env: (.env | to_entries | map(select(.key as \$k | \$env_local_keys_all | index(\$k))) | from_entries)}
   else {} end) as \$env_local |
-  # env 以外の provenance キー (hooks のイベント名単位分類等)
+  # env 以外の provenance キー
   (reduce (\$decisions[] | select(.key != \"env\")) as \$d ({};
     if \$d.mode == \"whole\" then
       . + {(\$d.key): \$source[\$d.key]}
@@ -188,7 +212,10 @@ LOCAL_JSON=$(echo "$SOURCE" | jq \
       . + {(\$d.key): (\$source[\$d.key] | to_entries | map(select(.key as \$sk | \$d.subkeys | index(\$sk))) | from_entries)}
     end
   )) as \$provenance_local |
-  \$top_local + \$env_local + \$mks_local + \$plugins_local + \$provenance_local
+  # hooks: settings.json の同一イベントに完全一致しないエントリ
+  (split_hooks(\$source; \$repo_settings; false)
+    | if length > 0 then {hooks: .} else {} end) as \$hooks_local |
+  \$top_local + \$env_local + \$mks_local + \$plugins_local + \$provenance_local + \$hooks_local
   ")
 
 PORTABLE_JSON=$(echo "$SOURCE" | jq \
@@ -196,6 +223,7 @@ PORTABLE_JSON=$(echo "$SOURCE" | jq \
   --argjson local_env_keys "$LOCAL_ENV_KEYS" \
   --argjson portable_marketplaces "$PORTABLE_MARKETPLACES" \
   --argjson existing_local "$EXISTING_LOCAL_JSON" \
+  --argjson repo_settings "$REPO_SETTINGS_JSON" \
   "
   ${JQ_PROVENANCE_DEF}
   . as \$source |
@@ -221,7 +249,7 @@ PORTABLE_JSON=$(echo "$SOURCE" | jq \
       else . end)
   ) as \$after_marketplace |
   # provenance: 既存 settings.local.json に既にあるキー (のサブキー) を除外
-  (provenance_decisions(\$source; \$existing_local; (\$local_keys + [\"extraKnownMarketplaces\", \"enabledPlugins\"]))) as \$decisions |
+  (provenance_decisions(\$source; \$existing_local; (\$local_keys + [\"extraKnownMarketplaces\", \"enabledPlugins\", \"hooks\"]))) as \$decisions |
   ((\$decisions | map(select(.key == \"env\")))[0].subkeys // []) as \$env_provenance_keys |
   (\$after_marketplace
     | (if has(\"env\") then
@@ -237,6 +265,9 @@ PORTABLE_JSON=$(echo "$SOURCE" | jq \
       if (\$remaining | length) > 0 then .[\$d.key] = \$remaining else del(.[\$d.key]) end
     end
   )
+  # hooks: settings.json の同一イベントに完全一致するエントリだけを残す
+  | split_hooks(\$source; \$repo_settings; true) as \$hooks_portable
+  | if (\$hooks_portable | length) > 0 then .hooks = \$hooks_portable else del(.hooks) end
   ")
 
 # ---------------------------------------------------------------------------
@@ -277,9 +308,10 @@ printf "\033[2m─────────────────────�
 # ---------------------------------------------------------------------------
 # provenance は既存 settings.local.json を参照する自己参照的な仕組みのため、
 # 参照先が無い/不足している状態 (git clone 直後は settings.local.json が
-# gitignore されており必ず不在) では保護が消え、hooks 全体が portable 判定に
-# 戻ってマシン固有の絶対パスが公開リポジトリにコミットされ得る。
-# ここでは分類ルールを変えず、書き込み直前の最後の防波堤として 2 つのガードを置く。
+# gitignore されており必ず不在) では保護が消え、マシン固有の値が公開リポジトリに
+# コミットされ得る。また hooks の分類はコミット済み settings.json を基準にするため、
+# link 前の古い ~/.claude/settings.json から recover すると portable なエントリが消え得る。
+# ここでは分類ルールを変えず、書き込み直前の最後の防波堤として 3 つのガードを置く。
 # 確認プロンプトは非対話では無条件に適用されるため、TTY 判定より前で検証する。
 
 # ガード A (abort): settings.json (公開予定) にこのマシンの実際のホームディレクトリ
@@ -290,8 +322,11 @@ printf "\033[2m─────────────────────�
 GUARD_HOME_POSIX="$HOME"
 if command -v cygpath &>/dev/null; then
   GUARD_HOME_WINDOWS="$(cygpath -w "$HOME" 2>/dev/null || true)"
+  # JSON では C:/Users/X 形式 (cygpath -m) で書かれることも多い
+  GUARD_HOME_MIXED="$(cygpath -m "$HOME" 2>/dev/null || true)"
 else
   GUARD_HOME_WINDOWS=""
+  GUARD_HOME_MIXED=""
 fi
 
 PORTABLE_STRINGS=$(echo "$PORTABLE_JSON" | jq -r '[.. | strings] | .[]')
@@ -301,6 +336,8 @@ if [ -n "$GUARD_HOME_POSIX" ] && printf '%s\n' "$PORTABLE_STRINGS" | grep -qF "$
   GUARD_A_HIT="$GUARD_HOME_POSIX"
 elif [ -n "$GUARD_HOME_WINDOWS" ] && printf '%s\n' "$PORTABLE_STRINGS" | grep -qF "$GUARD_HOME_WINDOWS"; then
   GUARD_A_HIT="$GUARD_HOME_WINDOWS"
+elif [ -n "$GUARD_HOME_MIXED" ] && printf '%s\n' "$PORTABLE_STRINGS" | grep -qF "$GUARD_HOME_MIXED"; then
+  GUARD_A_HIT="$GUARD_HOME_MIXED"
 fi
 
 if [ -n "$GUARD_A_HIT" ]; then
@@ -310,18 +347,11 @@ if [ -n "$GUARD_A_HIT" ]; then
   exit 1
 fi
 
-# ガード B (warn): provenance が local に振り分けたサブキーが、コミット済み
-# settings.json の同名キーと衝突していないかを警告する (中断はしない)。
-# link.sh の `jq -s '.[0] * .[1]'` は配列を右辺 (local) で丸ごと置換するため、
-# 同じ hooks イベント名が settings.json と settings.local.json の両方にあると、
-# link 時に git 管理側の内容が届かず、次の recover で警告もエラーもなく
-# settings.json から消える (データロス)。
-if [ -f "$REPO_SETTINGS" ]; then
-  REPO_SETTINGS_JSON=$(cat "$REPO_SETTINGS")
-else
-  REPO_SETTINGS_JSON='{}'
-fi
-
+# ガード B (warn): provenance が local に振り分けたサブキー (env の変数名等) が、
+# コミット済み settings.json の同名キーと衝突していないかを警告する (中断はしない)。
+# merge-settings.jq は hooks 以外を `.[0] * .[1]` で local 優先に上書きするため、
+# 同じ変数名が両方にあると link 時に git 管理側の値が届かず、次の recover で
+# 警告もエラーもなく settings.json から消える (データロス)。
 GUARD_B_WARNINGS=$(jq -rn \
   --argjson source "$SOURCE" \
   --argjson existing_local "$EXISTING_LOCAL_JSON" \
@@ -329,7 +359,7 @@ GUARD_B_WARNINGS=$(jq -rn \
   --argjson repo_settings "$REPO_SETTINGS_JSON" \
   "
   ${JQ_PROVENANCE_DEF}
-  (provenance_decisions(\$source; \$existing_local; (\$local_keys + [\"extraKnownMarketplaces\", \"enabledPlugins\"]))
+  (provenance_decisions(\$source; \$existing_local; (\$local_keys + [\"extraKnownMarketplaces\", \"enabledPlugins\", \"hooks\"]))
     | map(select(.mode == \"partial\"))) as \$partials |
   [ \$partials[] |
     .key as \$k |
@@ -342,6 +372,28 @@ GUARD_B_WARNINGS=$(jq -rn \
 
 if [ -n "$GUARD_B_WARNINGS" ]; then
   printf '%s\n' "$GUARD_B_WARNINGS" >&2
+fi
+
+# ガード C (abort): コミット済み settings.json の hooks エントリが SOURCE の同一イベントに
+# 完全一致で存在しなければ中断する。hooks はエントリ単位で settings.json を基準に分類する
+# ため、link 前の ~/.claude/settings.json や手元で編集したエントリから recover すると、
+# portable なエントリが settings.json から消える or local に流れる (データロス)。
+GUARD_C_EVENTS=$(jq -rn \
+  --argjson source "$SOURCE" \
+  --argjson repo_settings "$REPO_SETTINGS_JSON" \
+  '
+  ($source.hooks // {}) as $sh |
+  [ ($repo_settings.hooks // {}) | to_entries[] |
+    .key as $e | ($sh[$e] // []) as $se |
+    select(.value | any(. as $x | $se | any(. == $x) | not)) |
+    $e
+  ] | join(", ")
+  ')
+
+if [ -n "$GUARD_C_EVENTS" ]; then
+  printf "🚨 ガード C: settings.json (git管理) の hooks エントリが ~/.claude/settings.json に見つかりません: %s\n" "$GUARD_C_EVENTS" >&2
+  printf "    先に mise run link で ~/.claude/settings.json を再生成するか、settings.json と ~/.claude/settings.json を手動で揃えてから再実行してください。書き込み・link は実行せず中断します。\n" >&2
+  exit 1
 fi
 
 # ---------------------------------------------------------------------------

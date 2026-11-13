@@ -94,7 +94,8 @@ else
     trap 'rm -f "$CLEANUP_LOCAL_INPUT"' EXIT
   fi
 
-  MERGED=$(jq -s '.[0] * .[1]' "$REPO_SETTINGS" "$LOCAL_INPUT")
+  # hooks はイベント単位で portable + local を連結する (merge-settings.jq 参照)
+  MERGED=$(jq -s -f "${MISE_CONFIG_ROOT}/mise/scripts/merge-settings.jq" "$REPO_SETTINGS" "$LOCAL_INPUT")
 
   # 既存ファイルがあり symlink でも実ファイルでもなければバックアップ
   if [ -L "$SETTINGS_TARGET" ]; then

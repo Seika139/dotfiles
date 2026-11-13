@@ -16,6 +16,9 @@ name: Agent Hook Tests
       - "claude/mise/scripts/run_python.sh"
       - "claude/mise/scripts/normalize_ponytail_hooks.py"
       - "claude/mise/scripts/link.sh"
+      - "claude/mise/scripts/merge-settings.jq"
+      - "claude/mise/scripts/recover-settings.sh"
+      - "claude/mise/tasks/status.sh"
       - "claude/mise/tests/**"
       - ".github/workflows/agent-hook-tests.yml"
   pull_request:
@@ -53,3 +56,4 @@ jobs:
           agents.tests.test_install_bootstrap
           claude.mise.tests.test_normalize_ponytail_hooks
           claude.mise.tests.test_run_python
+          claude.mise.tests.test_settings_merge

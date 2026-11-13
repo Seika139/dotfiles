@@ -56,14 +56,14 @@ dotfiles/profiles/<host>/settings.local.json (秘匿、gitignored)
 `recover` 時の split / `link` 時の merge は、以下の分類に従う。
 
 ```text
-local    = LOCAL_KEYS ∪ LOCAL_ENV_KEYS ∪ 非 portable な marketplace ∪ provenance
+local    = LOCAL_KEYS ∪ LOCAL_ENV_KEYS ∪ 非 portable な marketplace ∪ provenance ∪ 非 portable な hooks エントリ
 portable = SOURCE (~/.claude/settings.json) から local を引いたもの
 ```
 
-| 分類                | 行き先                         | キー                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `advisorModel`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `model`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS`<br>`hooks`: 既存 `settings.local.json` に無いイベント名 (provenance で判定) |
-| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | env: `SLACK_WEBHOOK_URL`<br>`hooks`: 既存 `settings.local.json` に既にあるイベント名 (provenance で判定)                                                                                                                                                                                                                                                                                                                                                               |
+| 分類                | 行き先                         | キー                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **PORTABLE (公開)** | dotfiles `settings.json`       | トップレベル: `attribution`, `advisorModel`, `defaultMode`, `enabledPlugins`, `extraKnownMarketplaces`, `model`, `outputStyle`, `permissions`, `skipDangerousModePermissionPrompt`, `statusLine`<br>env: `ANTHROPIC_*MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SMALL_FAST_MODEL`, `API_TIMEOUT_MS`, `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `___CLAUDE_CODE_MAX_OUTPUT_TOKENS`<br>`hooks`: コミット済み `settings.json` の同一イベントに完全一致するエントリ |
+| **LOCAL (秘匿)**    | dotfiles `settings.local.json` | env: `SLACK_WEBHOOK_URL`<br>`hooks`: 上記以外のすべてのエントリ (`~/.claude/` 側で追加・編集されたものを含む)                                                                                                                                                                                                                                                                                                                                                            |
 
 #### 分類の判定基準
 
@@ -72,29 +72,45 @@ portable = SOURCE (~/.claude/settings.json) から local を引いたもの
   - マシン固有の絶対パス (`hooks` の `command` に含まれる `C:\Users\<username>\...` 等)
 - それ以外は **PORTABLE**
 
-#### `hooks` は provenance (由来ベース) で分類する
+#### `hooks` はエントリ単位で分類する
 
-`hooks` はトップレベルのキー名ホワイトリストだけでは分類できない。`~/.claude/settings.json` (マージ済みの SOURCE) には `hooks.PreToolUse` のようにイベント名単位でキーが並ぶだけで、それが元々 `settings.json` 由来か `settings.local.json` 由来かの情報は残っていない。マシン固有の絶対パスを含むイベントと含まないイベントが混在することもあり (`PreToolUse` は絶対パスを含まないが LOCAL に置きたい、等)、内容 (絶対パスの有無) で判定する方式も採用しない。
+`hooks` はトップレベルのキー名ホワイトリストだけでは分類できない。`~/.claude/settings.json` (マージ済みの SOURCE) には `hooks.PreToolUse` のようにイベント名単位で配列が並ぶだけで、各エントリが元々 `settings.json` 由来か `settings.local.json` 由来かの情報は残っていない。内容 (絶対パスの有無) で判定する方式も採用しない。
 
-そこで「既存の `settings.local.json` に既にあるキーは local に留める」を 4 番目の判定ソースとして使う。トップレベルキー `K` について、`recover` 実行前の `settings.local.json` (`existing_local`) と `SOURCE` を比較する。
+そこで `link` と `recover` の両方をエントリ単位でそろえる。
 
-- `existing_local[K]` と `SOURCE[K]` が**両方オブジェクト**なら、`existing_local[K]` のサブキーのうち `SOURCE[K]` にも存在するものだけを local に振り分ける。これが `hooks` のイベント名単位 (`PreToolUse` / `SessionStart` 等) の分類になる。`env` の変数名単位の分類も同じ仕組みの上に成り立っており、`LOCAL_ENV_KEYS` ホワイトリストと provenance の union で決まる。
+- **merge (`link` / `status`)**: `mise/scripts/merge-settings.jq` で、hooks 以外は `.[0] * .[1]` (local 優先) で deep merge し、`hooks` だけはイベントごとに `settings.json` の配列、`settings.local.json` の配列の順に連結する。local 側のエントリのうち portable 側と完全一致するものは重複として除去する。`hooks` がオブジェクトでない、またはイベントの値が配列でない場合はエラーで中断する。
+- **split (`recover`)**: `SOURCE.hooks[E]` の各エントリについて、コミット済み `settings.json` の `hooks[E]` に完全一致するエントリがあれば portable、それ以外はすべて local に振り分ける。空になったイベントや空の `hooks` は出力しない。
+
+同じイベント名 (例: `Stop`) を `settings.json` と `settings.local.json` の両方に置いてよい。どちらの配列も `~/.claude/settings.json` に届き、`recover` でもエントリ単位で元のファイルに戻る。ただし `recover` 後の `link` で、イベント内のエントリ順が「portable、local」の順に並び替わることがある。
+
+この方式では、コミット済み `settings.json` に無い hook エントリはすべて local 行きになる (旧方式の「既存 `settings.local.json` に無いイベントは portable」とは既定が逆)。`/hooks` や `~/.claude/settings.json` の手編集で追加した hook は `settings.local.json` に取り込まれるため、公開したい hook は profile の `settings.json` を直接編集してから `mise run link` を実行する。
+
+#### `env` 等は provenance (由来ベース) で分類する
+
+hooks 以外で、マージ済みの SOURCE からはどちらのファイル由来かを判別できないキーは、「既存の `settings.local.json` に既にあるキーは local に留める」を判定ソースとして使う。トップレベルキー `K` について、`recover` 実行前の `settings.local.json` (`existing_local`) と `SOURCE` を比較する。
+
+- `existing_local[K]` と `SOURCE[K]` が**両方オブジェクト**なら、`existing_local[K]` のサブキーのうち `SOURCE[K]` にも存在するものだけを local に振り分ける。`env` の変数名単位の分類はこの仕組みの上に成り立っており、`LOCAL_ENV_KEYS` ホワイトリストと provenance の union で決まる。
 - それ以外 (配列・スカラー、または型が食い違う場合) は `K` を丸ごと local に振り分ける。
 
-provenance は**「行き先」を決めるだけで「存在」を作らない**: `SOURCE` に存在しないキーは `existing_local` にあっても出力に復活させない。素朴に「既存 local を丸ごと union する」実装だと、`~/.claude/` から意図的に削除した hook が復活し、続く `link` で押し戻されてしまうため、`SOURCE` にあるキーだけを対象にする。
+provenance は**「行き先」を決めるだけで「存在」を作らない**: `SOURCE` に存在しないキーは `existing_local` にあっても出力に復活させない。素朴に「既存 local を丸ごと union する」実装だと、`~/.claude/` から意図的に削除した設定が復活し、続く `link` で押し戻されてしまうため、`SOURCE` にあるキーだけを対象にする。
 
-`LOCAL_KEYS` (現在は空配列) と marketplace 系 (`extraKnownMarketplaces` / `enabledPlugins`) は既に専用ロジックがあるため provenance の対象外 (二重判定を避ける)。
+`LOCAL_KEYS` (現在は空配列)・marketplace 系 (`extraKnownMarketplaces` / `enabledPlugins`)・`hooks` は既に専用ロジックがあるため provenance の対象外 (二重判定を避ける)。
 
 provenance は**一方向ラチェット**である。あるキーが一度 `settings.local.json` に入ると、`SOURCE` に存在し続ける限り永久に local のままになる。local から portable に戻す仕組みは無く、誤分類は `settings.local.json` を手編集して該当キーを取り除く以外に修正手段が無い。
 
-**同一の hooks イベント名を `settings.json` と `settings.local.json` の両方に置いてはならない**。`link.sh` の `jq -s '.[0] * .[1]'` は配列を右辺 (local) で丸ごと置換するため、同じイベント名 (例: `PreToolUse`) が両ファイルにあると、`link` 実行時に git 管理側の配列は `~/.claude/settings.json` に届かず、続く `recover` では provenance によりそのイベント名がそのまま local 判定され続ける。結果として `settings.json` 側のコミット済み内容が警告もエラーもなく消える (データロス)。同じ懸念は `env` の変数名にも当てはまる。
+**同一の `env` 変数名を `settings.json` と `settings.local.json` の両方に置いてはならない**。hooks 以外は `.[0] * .[1]` で local が上書きするため、同じ変数名が両ファイルにあると `link` 実行時に git 管理側の値は `~/.claude/settings.json` に届かず、続く `recover` では provenance によりそのまま local 判定され続ける。結果として `settings.json` 側のコミット済み値が警告もエラーもなく消える (データロス)。
 
 #### 書き込み前の安全ガード
 
-provenance は既存 `settings.local.json` を参照する自己参照的な仕組みのため、参照先が無い/不足している状態 (`settings.local.json` は `.gitignore` の対象で、git clone 直後は必ず不在) では保護が働かない。この状態で `recover` すると `hooks` 全体が portable 判定に戻り、マシン固有の絶対パスが公開リポジトリの `settings.json` にコミットされ得る。分類ルール自体は変えず、書き込み直前の最後の防波堤として `recover-settings.sh` に 2 つのガードを置いている。
+provenance は既存 `settings.local.json` を参照する自己参照的な仕組みのため、参照先が無い/不足している状態 (`settings.local.json` は `.gitignore` の対象で、git clone 直後は必ず不在) では保護が働かない。また hooks の分類はコミット済み `settings.json` を基準にするため、`link` 前の古い `~/.claude/settings.json` から `recover` すると portable なエントリが失われ得る。分類ルール自体は変えず、書き込み直前の最後の防波堤として `recover-settings.sh` に 3 つのガードを置いている。いずれも確認プロンプトより前に評価するため、非対話モードでも効く。
 
-- **ガード A (中断)**: 書き込み予定の `settings.json` (PORTABLE_JSON) の文字列値に、このマシンの実際のホームディレクトリ (POSIX 形式・Windows 形式の両方) が含まれていたら、エラーメッセージを出して非ゼロで終了する。書き込み・バックアップ・`link` 呼び出しには到達しない。パスの「形」(`/Users/` や `/home/` のような汎用パターン) では判定しない。移植可能な絶対パス (`/usr/bin/...` 等) を誤検知するため、必ず「このマシンの実際の `$HOME`」で照合する。
-- **ガード B (警告)**: provenance が local に振り分けたサブキーが、コミット済み `settings.json` の同名キーと衝突していたら警告を出す。中断はしない。上記の「同一イベント名を両方に置いてはならない」制約への違反を検知するためのもの。
+- **ガード A (中断)**: 書き込み予定の `settings.json` (PORTABLE_JSON) の文字列値に、このマシンの実際のホームディレクトリ (POSIX 形式、`C:\Users\X` 形式、`C:/Users/X` 形式のいずれか) が含まれていたら、エラーメッセージを出して非ゼロで終了する。書き込み・バックアップ・`link` 呼び出しには到達しない。パスの「形」(`/Users/` や `/home/` のような汎用パターン) では判定しない。移植可能な絶対パス (`/usr/bin/...` 等) を誤検知するため、必ず「このマシンの実際の `$HOME`」で照合する。
+- **ガード B (警告)**: provenance が local に振り分けたサブキー (`env` の変数名等) が、コミット済み `settings.json` の同名キーと衝突していたら警告を出す。中断はしない。上記の「同一の `env` 変数名を両方に置いてはならない」制約への違反を検知するためのもの。
+- **ガード C (中断)**: コミット済み `settings.json` の hooks エントリのうち、`~/.claude/settings.json` の同一イベントに完全一致で存在しないものがあれば、該当イベント名を表示して非ゼロで終了する。`settings.json` を編集した後に `link` していない、または `~/.claude/` 側で portable な hook を編集・削除した場合に発生する。先に `mise run link` を実行するか、両ファイルを手動で揃えてから再実行する。
+
+#### 移行時の注意 (hooks のエントリ単位マージ導入)
+
+旧方式では、同じイベント名が両ファイルにあると `settings.local.json` の配列が `settings.json` の配列を丸ごと置換していた。新方式では両方の配列が連結されて実行されるため、そのような環境では `link` 後に `settings.json` 側の hook も動き始める。更新後は `mise run status` で `~/.claude/settings.json` との差分を確認し、意図しない hook が増えていないかを確かめる。
 
 #### `extraKnownMarketplaces` / `enabledPlugins` は marketplace ホワイトリスト
 
@@ -144,7 +160,7 @@ dotfiles の編集を `~/.claude/settings.json` に反映する。
 dotfiles/.../settings.json
 dotfiles/.../settings.local.json
     │
-    │ jq -s '.[0] * .[1]' で deep merge
+    │ jq -s -f merge-settings.jq で deep merge (hooks はイベント単位で連結)
     ▼
 ~/.claude/settings.json (実ファイル、書き出し)
 ```
@@ -211,6 +227,7 @@ mise run link      # settings.json と settings.local.json を merge して ~/.c
 ## 関連ファイル
 
 - `claude/mise/scripts/link.sh` — マージ書き出しと symlink 配置
+- `claude/mise/scripts/merge-settings.jq` — `link` / `status` 共通のマージロジック
 - `claude/mise/scripts/recover-settings.sh` — split と取り込み
 - `claude/mise.toml` — タスク定義
 - `claude/profiles/<host>/settings.json` — PORTABLE 設定（git 管理）
