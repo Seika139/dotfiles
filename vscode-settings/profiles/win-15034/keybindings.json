@@ -148,7 +148,7 @@
     "when": "!inputFocus && focusedView == 'workbench.scm'"
   },
   {
-    "key": "cmd+alt+n",
+    "key": "ctrl+alt+n",
     "command": "pr.checkoutByNumber"
   }
 ]

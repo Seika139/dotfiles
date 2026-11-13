@@ -242,5 +242,9 @@
     "key": "alt+cmd+s",
     "command": "workbench.action.toggleUnifiedSidebarFromKeyboard",
     "when": "!isAuxiliaryWindowFocusedContext"
+  },
+  {
+    "key": "cmd+alt+n",
+    "command": "pr.checkoutByNumber"
   }
 ]

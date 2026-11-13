@@ -210,5 +210,9 @@
     "key": "cmd+k alt+cmd+c",
     "command": "-copyFilePath",
     "when": "editorFocus"
+  },
+  {
+    "key": "cmd+alt+n",
+    "command": "pr.checkoutByNumber"
   }
 ]
