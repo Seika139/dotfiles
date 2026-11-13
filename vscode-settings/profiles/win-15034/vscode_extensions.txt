@@ -17,6 +17,7 @@ ernststavroblofeld.php-types
 esbenp.prettier-vscode
 foxundermoon.shell-format
 github.vscode-github-actions
+github.vscode-pull-request-github
 golang.go
 hbenl.vscode-test-explorer
 hediet.vscode-drawio
