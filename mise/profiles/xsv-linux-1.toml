@@ -2,3 +2,4 @@
 
 [tools]
 tombi = "1.11.2"
+"npm:@kilocode/cli" = "latest"
