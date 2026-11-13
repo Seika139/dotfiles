@@ -33,6 +33,7 @@ formulahendry.code-runner
 foxundermoon.shell-format
 geeksharp.openssl-configuration-file
 github.vscode-github-actions
+github.vscode-pull-request-github
 golang.go
 google.gemini-cli-vscode-ide-companion
 google.geminicodeassist
