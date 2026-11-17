@@ -6,6 +6,7 @@ argylewolflabs.vscode-groovy
 astro-build.astro-vscode
 bierner.markdown-mermaid
 bmewburn.vscode-intelephense-client
+charliermarsh.ruff
 christian-kohler.path-intellisense
 davidanson.vscode-markdownlint
 dbaeumer.vscode-eslint
@@ -36,9 +37,7 @@ ms-ceintl.vscode-language-pack-ja
 ms-dotnettools.csdevkit
 ms-dotnettools.csharp
 ms-dotnettools.vscode-dotnet-runtime
-ms-python.black-formatter
 ms-python.debugpy
-ms-python.isort
 ms-python.python
 ms-python.vscode-pylance
 ms-python.vscode-python-envs
@@ -47,15 +46,15 @@ ms-toolsai.jupyter-keymap
 ms-toolsai.jupyter-renderers
 ms-toolsai.vscode-jupyter-cell-tags
 ms-toolsai.vscode-jupyter-slideshow
-ms-vscode.powershell
-ms-vscode.remote-explorer
-ms-vscode.remote-server
-ms-vscode.test-adapter-converter
 ms-vscode-remote.remote-containers
 ms-vscode-remote.remote-ssh
 ms-vscode-remote.remote-ssh-edit
 ms-vscode-remote.remote-wsl
 ms-vscode-remote.vscode-remote-extensionpack
+ms-vscode.powershell
+ms-vscode.remote-explorer
+ms-vscode.remote-server
+ms-vscode.test-adapter-converter
 nicolasvuillamy.vscode-groovy-lint
 njpwerner.autodocstring
 oderwat.indent-rainbow

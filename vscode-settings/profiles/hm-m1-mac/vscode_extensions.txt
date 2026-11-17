@@ -64,9 +64,7 @@ ms-ceintl.vscode-language-pack-ja
 ms-dotnettools.csdevkit
 ms-dotnettools.csharp
 ms-dotnettools.vscode-dotnet-runtime
-ms-python.black-formatter
 ms-python.debugpy
-ms-python.isort
 ms-python.mypy-type-checker
 ms-python.python
 ms-python.vscode-pylance
