@@ -448,7 +448,7 @@ def cmd_sort(a):
 def cmd_diff(a):
     target = Path(a.target)
     if not target.is_file():
-        print(f"対象ファイルがありません: {target}")
+        print(f"対象ファイルがありません: '{target}'")
         return 1
     merged = parse_jsonc(render_profile(a.profile))
     cur = parse_jsonc(target.read_text(encoding="utf-8-sig"))

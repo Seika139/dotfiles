@@ -184,7 +184,7 @@ for editor in vscode cursor agy; do
   printf "\nExtensions for \\033[36m%s\\033[0m\n" "$editor"
 
   if [ ! -f "$ext_file" ]; then
-    printf "  ❔ No extensions file found at \\033[36m%s\\033[0m\n" "$ext_file"
+    printf "  ❔ No extensions file found at \\033[36m'%s'\\033[0m\n" "$ext_file"
     continue
   fi
 
@@ -223,7 +223,7 @@ for editor in vscode cursor agy; do
     read -p "  profile に書かれていない拡張機能を追記しますか？ (y/N): " confirm
     if [[ "$confirm" = "y" ]] || [[ "$confirm" = "Y" ]]; then
       $ext_cmd --list-extensions | sort -u | uniq > "$ext_file"
-      printf "  ✅ 拡張機能リストを更新しました: \\033[36m%s\\033[0m\n" "$ext_file"
+      printf "  ✅ 拡張機能リストを更新しました: \\033[36m'%s'\\033[0m\n" "$ext_file"
     fi
   fi
 

@@ -46,7 +46,7 @@ PROFILE_DIR="$(normalize_path "${PROFILE_ROOT:-}")/$PROFILE"
 
 for editor in "${EDITORS[@]}"; do
   editor_path="$(normalize_path "$(editor_path_for "$editor")")"
-  printf "\nSettings for\033[36m %s\033[0m\n" "${editor_path/ /\\ /}"
+  printf "\nSettings for\033[36m '%s'\033[0m\n" "$editor_path"
   for item in "${CONFIG_FILE_LIST[@]}"; do
     expected_src="$PROFILE_DIR/$item"
     dest_file="$editor_path/$item"
@@ -66,9 +66,9 @@ for editor in "${EDITORS[@]}"; do
     elif [ -L "$dest_file" ]; then
       actual_src=$(readlink "$dest_file")
       if [ "$(normalize_path "$actual_src")" = "$(normalize_path "$expected_src")" ]; then
-        printf "  ✅ %s <- %s\n" "$item" "$actual_src"
+        printf "  ✅ %s <- \033[36m'%s'\033[0m\n" "$item" "$actual_src"
       else
-        printf "  ❌ %s: Linked to a different source: %s\n" "$item" "$actual_src"
+        printf "  ❌ %s: Linked to a different source: \033[36m'%s'\033[0m\n" "$item" "$actual_src"
       fi
     else
       if [ -f "$dest_file" ] && [ -f "$expected_src" ]; then
