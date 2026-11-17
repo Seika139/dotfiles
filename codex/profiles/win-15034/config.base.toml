@@ -1,5 +1,4 @@
 hide_agent_reasoning = true
-windows_wsl_setup_acknowledged = true
 
 [tui]
 notifications = ["agent-turn-complete", "approval-requested"]
