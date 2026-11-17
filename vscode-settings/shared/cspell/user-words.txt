@@ -421,6 +421,7 @@ vercel
 virtualenv
 vitest
 Vixengo
+VOICEBOX
 voicevox
 vuetify
 wada
