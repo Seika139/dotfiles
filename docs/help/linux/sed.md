@@ -27,6 +27,23 @@ sed '3,6d' file                # 3 ~ 6行目を削除する
 sed '/pattern/s/foo/bar/' file # pattern に該当する行の foo を bar に置き換える
 ```
 
+## 特定の文字列を含む行を消す・書き換える
+
+```bash
+sed '/pattern/d' file             # pattern を含む行を削除する(標準出力に出すだけで file は変わらない)
+sed '/pattern/!d' file            # pattern を含まない行を削除する(含む行だけ残す)
+sed '/^$/d' file                  # 空行を削除する
+sed '/pattern/c\ text' file       # pattern を含む行を丸ごと text に書き換える
+sed '/pattern/s/foo/bar/g' file   # pattern を含む行の foo をすべて bar に書き換える
+sed 's/foo/bar/g' file            # 行を問わず foo をすべて bar に書き換える
+sed -i '/pattern/d' file          # file を直接書き換える(GNU版)
+sed -i '' '/pattern/d' file       # file を直接書き換える(BSD版 mac)
+```
+
+- `/` を含む文字列を扱うときは区切り文字を変えられる → `sed 's#/usr/bin#/opt/bin#' file`
+- `-i` は元に戻せないので、先に `-i` なしで結果を確認するか、バックアップ拡張子を指定する → `sed -i.bak '/pattern/d' file`
+- BSD版の `c` コマンドは前述の注意点と同じく改行の扱いが異なる。
+
 ## 注意点
 
 - c,a,i は続くバックスラッシュ `\` がなくても動くが先頭に空白文字を入れるときに必要になる。
