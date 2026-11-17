@@ -1,4 +1,3 @@
-model_reasoning_effort = "medium"
 hide_agent_reasoning = true
 service_tier = "default"
 
@@ -28,9 +27,6 @@ enabled = true
 max_concurrent_threads_per_session = 3
 hide_spawn_agent_metadata = false
 tool_namespace = "agents"
-
-[sandbox_workspace_write]
-network_access = true
 
 [desktop]
 preventSleepWhileRunning = true
