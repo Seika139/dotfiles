@@ -114,7 +114,7 @@ args = ["-y", "mcp-remote", "https://developers.openai.com/mcp"]
 
 `hooks.base.json` は git 管理する共有設定、`hooks.local.json` は git 管理しないローカル設定です。
 
-`../agents` にて `mise run update` が実行する `apm install -g --refresh --force` は `~/.codex/hooks.json` に**タグ無しで**直接エントリを書き込みます（例: `DietrichGebert/ponytail`）。通常の外部 hook は生成時に保持されますが、profile が同じイベントで管理する Ponytail hook は旧 APM 登録を除いて profile 側の設定を使います。外部 hook を `hooks.base.json` / `hooks.local.json` に手動でコピーしないでください。Ponytail の Windows 登録はこの例外として `hooks.local.json` に置き、`CLAUDE_PLUGIN_ROOT` を hook プロセス内で設定します。
+`../agents` にて `mise run update` が実行する `apm install -g --refresh --force` は `~/.codex/hooks.json` に**タグ無しで**直接エントリを書き込みます（例: `DietrichGebert/ponytail`）。通常の外部 hook は生成時に保持されますが、profile が同じイベントで管理する Ponytail hook は旧 APM 登録を除いて profile 側の設定を使います。外部 hook を `hooks.base.json` / `hooks.local.json` に手動でコピーしないでください。macOS profile の Ponytail hook は `$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/` 以下のスクリプトを直接起動します。Windows profile で独自登録する場合は `hooks.local.json` に置き、`CLAUDE_PLUGIN_ROOT` を hook プロセス内で設定します。
 
 通常の外部 hook は、`~/.codex/hooks.json` に既に入っている限り出自を問わず残ります。そのため `hooks.base.json` / `hooks.local.json` から通常 hook を削除しても `mise run link` だけでは消えません。完全に消したい場合は `~/.codex/hooks.json` を削除してから `mise run link` を実行してください。
 

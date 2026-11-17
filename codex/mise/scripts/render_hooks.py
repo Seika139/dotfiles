@@ -34,10 +34,14 @@ PONYTAIL_DIRECT_COMMAND = re.compile(
     r'(ponytail-(?:activate|mode-tracker|subagent)\.js)"$',
     re.IGNORECASE,
 )
+PONYTAIL_APM_COMMAND = re.compile(
+    r'^node "\$HOME/\.apm/apm_modules/DietrichGebert/ponytail/hooks/'
+    r'(ponytail-(?:activate|mode-tracker|subagent)\.js)"$'
+)
 
 
 def ponytail_hook_file(command: str) -> str | None:
-    """Identify current APM, normalized APM, and obsolete local Ponytail commands."""
+    """Identify current and legacy profile-managed Ponytail commands."""
     for hook_file in PONYTAIL_HOOK_FILES:
         raw = (
             "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
@@ -58,6 +62,9 @@ def ponytail_hook_file(command: str) -> str | None:
         if command in {raw, legacy, canonical}:
             return hook_file
     match = PONYTAIL_DIRECT_COMMAND.fullmatch(command)
+    if match:
+        return match.group(1)
+    match = PONYTAIL_APM_COMMAND.fullmatch(command)
     return match.group(1) if match else None
 
 

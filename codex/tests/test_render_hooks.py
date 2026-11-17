@@ -147,24 +147,30 @@ class RenderHooksTest(unittest.TestCase):
         local_hooks = {}
         target_hooks = {}
         for event, (hook_file, matcher) in hook_files.items():
-            command = (
-                "node -e \"const p=require('path'),o=require('os');"
-                "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
-                "'DietrichGebert','ponytail');"
-                f"require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/{hook_file}'))\""
-            )
+            command = f'node "$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/{hook_file}"'
             group = {"hooks": [{"type": "command", "command": command, "timeout": 5}]}
             if matcher is not None:
                 group["matcher"] = matcher
             local_hooks[event] = [group]
 
             direct = f'node "C:\\Users\\someone\\.codex\\hooks\\ponytail\\hooks\\{hook_file}"'
-            apm = (
+            raw_apm = (
                 "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
                 ".split(String.fromCharCode(92)).join('/'), 'hooks/"
                 f"{hook_file}'))\""
             )
-            for stale_command in (direct, apm):
+            legacy_apm = (
+                "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT"
+                ".replaceAll(String.fromCharCode(92), '/'), 'hooks/"
+                f"{hook_file}'))\""
+            )
+            canonical_apm = (
+                "node -e \"const p=require('path'),o=require('os');"
+                "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
+                "'DietrichGebert','ponytail');"
+                f"require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/{hook_file}'))\""
+            )
+            for stale_command in (direct, raw_apm, legacy_apm, canonical_apm, command):
                 stale_group = {
                     "hooks": [{"type": "command", "command": stale_command, "timeout": 15}]
                 }
@@ -173,11 +179,21 @@ class RenderHooksTest(unittest.TestCase):
                 target_hooks.setdefault(event, []).append(stale_group)
 
         target_hooks["Stop"] = [{"hooks": [{"type": "command", "command": "custom-stop-hook"}]}]
+        target_hooks["SessionStart"].append(
+            {"hooks": [{"type": "command", "command": "external-session-hook"}]}
+        )
         result = self.render_with(
             local={"hooks": local_hooks},
             target_content={"hooks": target_hooks},
         )
-        self.assertEqual(result["hooks"], {**local_hooks, "Stop": target_hooks["Stop"]})
+        self.assertEqual(
+            result["hooks"],
+            {
+                **local_hooks,
+                "SessionStart": [*local_hooks["SessionStart"], target_hooks["SessionStart"][-1]],
+                "Stop": target_hooks["Stop"],
+            },
+        )
 
     def test_list_sources_excludes_profile_replaced_ponytail_hooks(self):
         command = (
