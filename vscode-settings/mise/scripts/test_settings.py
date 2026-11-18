@@ -163,7 +163,11 @@ assert merged_equals(tmp, tgt2) and len(list((tmp / "profiles/p").glob("settings
 
 # 誤判定しない: .jpg や ${userHome} は機密ではない
 assert not S.is_sensitive("k", "https://example.com/a.jpg") and not S.is_sensitive("k", "${userHome}/x")
-assert S.is_sensitive("k", "~/foo") and S.is_sensitive("k", "C:\\Users\\a") and S.is_sensitive("OCHLO", 1)
+assert S.is_sensitive("k", "~/foo")
+assert S.is_sensitive("k", "C:\\Users\\a")
+assert S.is_sensitive("k", "/home/someone/config")
+assert S.is_sensitive("k", "https://service.internal")
+assert S.is_sensitive("github-enterprise.foo", 1)
 
 # --local は非機密キーも local に入れる
 tmp = fixture()

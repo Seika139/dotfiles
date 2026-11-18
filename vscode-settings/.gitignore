@@ -1,4 +1,5 @@
 mise.local.toml
 settings.local.json
+/profiles/*/sensitive-patterns.local.json
 /settings.json
 settings.local.json.bak-*
