@@ -9,6 +9,11 @@ dependencies = ["gtts>=2.5.4"]
 [dependency-groups]
 dev = ["mypy>=1.19.1", "ruff>=0.17.0"]
 
+[tool.mypy]
+python_version = "3.15"
+strict = true
+warn_unused_configs = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py315"
@@ -51,8 +56,3 @@ known-first-party = ["mouse_emulator"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.mypy]
-python_version = "3.15"
-strict = true
-warn_unused_configs = true

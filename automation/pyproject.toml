@@ -2,17 +2,13 @@
 name = "automation"
 version = "0.1.0"
 description = "Simple auto-clicker utilities for macOS / Windows"
-requires-python = ">=3.15"
 readme = "README.md"
+requires-python = ">=3.15"
 authors = [{ name = "Seika139", email = "tcoanzu@gmail.com" }]
 dependencies = ["pyautogui>=0.9.54", "pynput>=1.7.7"]
 
 [dependency-groups]
 dev = ["ruff>=0.14.2"]
-
-[tool.uv]
-# モジュール実行 (`python -m automation.xxx`) で使うためビルド/インストールはしない
-package = false
 
 [tool.ruff]
 line-length = 88
@@ -21,3 +17,7 @@ target-version = "py315"
 [tool.ruff.lint.isort]
 combine-as-imports = true
 known-first-party = ["automation"]
+
+[tool.uv]
+# モジュール実行 (`python -m automation.xxx`) で使うためビルド/インストールはしない
+package = false

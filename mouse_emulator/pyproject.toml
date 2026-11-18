@@ -2,39 +2,40 @@
 name = "mouse-emulator"
 version = "0.1.0"
 description = "Keyboard driven mouse automation for macOS"
-requires-python = ">=3.11"
 readme = "README.md"
+requires-python = ">=3.11"
 authors = [{ name = "mouse_emulator_team" }]
 dependencies = [
-  "pynput>=1.7.6",
-  "typer>=0.12.3",
-  "pydantic>=2.6.4",
-  "tabulate>=0.9.0",
-  "pyyaml>=6.0.2",
+  "mss>=9.0.1",
   "numpy>=1.26.4",
   "opencv-python-headless>=4.10.0.84",
-  "pytesseract>=0.3.13",
   "pillow>=12.3.0",
-  "mss>=9.0.1",
+  "pydantic>=2.6.4",
+  "pynput>=1.7.6",
+  "pytesseract>=0.3.13",
+  "pyyaml>=6.0.2",
+  "tabulate>=0.9.0",
+  "typer>=0.12.3",
 ]
+
+[project.scripts]
+auto-emulator = "auto_emulator.cli:app"
+mouse-emulator = "mouse_emulator.cli:app"
 
 [dependency-groups]
 dev = [
   "mypy>=1.18.2",
   "pytest>=9.0.3",
   "ruff>=0.14.2",
+  "types-Pillow>=10.2.0.20240822",
+  "types-PyYAML>=6.0.12.20240917",
   "types-pynput>=0.0.9",
   "types-tabulate>=0.9.0.20240106",
-  "types-PyYAML>=6.0.12.20240917",
-  "types-Pillow>=10.2.0.20240822",
 ]
 
-[project.scripts]
-mouse-emulator = "mouse_emulator.cli:app"
-auto-emulator = "auto_emulator.cli:app"
-
-[tool.uv]
-package = true
+[tool.mypy]
+python_version = "3.11"
+strict = true
 
 [tool.ruff]
 line-length = 88
@@ -73,8 +74,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
-  "S101",   # Allow use of assert statements in tests
-  "SLF001", # Allow use private members in tests
+  "S101",  # Allow use of assert statements in tests
+  "SLF001",  # Allow use private members in tests
 ]
 
 [tool.ruff.lint.isort]
@@ -84,6 +85,5 @@ known-first-party = ["mouse_emulator", "mouse_core", "auto_emulator"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.mypy]
-python_version = "3.11"
-strict = true
+[tool.uv]
+package = true

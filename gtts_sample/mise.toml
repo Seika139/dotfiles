@@ -61,7 +61,7 @@ description = "依存関係を最新のバージョンにアップグレード�
 shell = "bash -c"
 quiet = true
 depends = ["venv"]
-run = 'uv sync --upgrade'
+run = "uv sync --upgrade"
 
 ################
 # Code Quality #

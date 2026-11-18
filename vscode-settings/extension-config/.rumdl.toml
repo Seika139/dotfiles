@@ -4,13 +4,13 @@
 
 [global]
 disable = [
-  "MD013", # 行の長さは自由
-  "MD014", # 標準出力がないシェルコマンドの先頭に$をつけてもよい
-  "MD024", # 重複した見出しを許可
-  "MD033", # インラインHTMLタグを許可
-  "MD036", # 強調を見出しとして扱うことを許可
-  "MD041", # ファイルの最初の行は見出しである必要はない（frontmatter が先に来るため）
-  "MD060", # テーブルのパイプスタイルを許可
+  "MD013",  # 行の長さは自由
+  "MD014",  # 標準出力がないシェルコマンドの先頭に$をつけてもよい
+  "MD024",  # 重複した見出しを許可
+  "MD033",  # インラインHTMLタグを許可
+  "MD036",  # 強調を見出しとして扱うことを許可
+  "MD041",  # ファイルの最初の行は見出しである必要はない（frontmatter が先に来るため）
+  "MD060",  # テーブルのパイプスタイルを許可
 ]
 
 # .gitignore されているファイルを無視する
@@ -24,10 +24,10 @@ exclude = [".cursor/", "node_modules/**", "worklog/**"]
 
 [MD010]
 # タブをスペースの代わりに使用することを禁じる、ただしコードブロック内は許可
-spaces-per-tab = 4                   # default は 4
-code-blocks = false                  # default は false
-ignore-code-languages = ["makefile"] # default は none
+spaces-per-tab = 4  # default は 4
+code-blocks = false  # default は false
+ignore-code-languages = ["makefile"]  # default は none
 
 [MD025]
 # フロントマターがある md ファイルではフロントマターと本文の見出しの重複しうるが、それで警告が出ないようにするための設定
-front-matter-title = ''
+front-matter-title = ""

@@ -59,7 +59,7 @@ description = "依存関係を最新のバージョンにアップグレード�
 shell = "bash -c"
 quiet = true
 depends = ["venv"]
-run = 'uv sync --upgrade'
+run = "uv sync --upgrade"
 
 ################
 # Code Quality #
@@ -89,7 +89,7 @@ flag "-d --duration <seconds>" {
   default "1.0"
 }
 '''
-run = 'uv run python -m automation.auto_click -d ${usage_duration}'
+run = "uv run python -m automation.auto_click -d ${usage_duration}"
 
 [tasks.click-coords]
 description = "記録した複数座標・間隔を再生して連打します"
@@ -102,4 +102,4 @@ flag "-d --duration <seconds>" {
   default "1.0"
 }
 '''
-run = 'uv run python -m automation.auto_click_coordinates -d ${usage_duration}'
+run = "uv run python -m automation.auto_click_coordinates -d ${usage_duration}"
