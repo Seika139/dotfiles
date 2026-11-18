@@ -10,7 +10,11 @@
 2. `git config --global init.templatedir` を設定した上でテンプレートディレクトリに `git secrets --install` 済みのフックを配置し、今後 `git init` / `git clone` するすべてのリポジトリに pre-commit フックを自動配布する(全体 default)。
 3. 検出したい正規表現は追跡対象外の `~/.gitconfig.local` の `[secrets]` セクションに書く。
 
-dotfiles リポジトリでは `mise run setup-pre-commit` が必要な `pre-commit` / `git-secrets` を mise から導入し、`.pre-commit-config.yaml` を検証して pre-commit hook をインストールする。`install.sh` と `mise run dot-init` からもこの task が実行される。コミット時の hook は stage 済みの内容をスキャンするが、検出には `secrets.patterns` または `secrets.providers` の登録が必要であり、AWS の標準パターンは自動登録しない。
+dotfiles リポジトリでは `mise run setup-pre-commit` が必要な `pre-commit` / `git-secrets` を mise から導入し、`.pre-commit-config.yaml` を検証して pre-commit hook をインストールする。`install.sh` と `mise run dot-init` からもこの task が実行される。セットアップにはグローバル Git 設定に `secrets.patterns` または `secrets.providers` の登録が必要で、未登録の場合は中断する。hook 実行時にも同じグローバル設定を確認し、未設定 PC では scan を通さない。AWS の標準パターンは自動登録しない。
+
+各 PC の Git 設定は別々なので、同じ禁止ルールを使う PC ごとに `~/.gitconfig.local` の `[secrets]` へ同じ `secrets.patterns` または `secrets.providers` を登録し、その PC の各 clone で `mise run setup-pre-commit` を実行する。リポジトリローカルの `.git/config` にだけ登録しても hook は通らない。禁止パターンは VS Code の `settings.py` や `settings.local.json` からは読み込まれない。
+
+このリポジトリの `git-secrets` scan は pre-commit 時に実行され、push 時には再実行しない。通常は commit 時に検査済みの commit を push する運用とする。pre-push で新規送信 commit の内容を検査するには、その commit range を対象にした別の scan が必要である。
 
 3 層設計の詳細な理由や `core.hooksPath` 方式との比較は [pre-commit / pre-push](pre-commit-pre-push.md) に譲る。
 このページでは git-secrets というツール自体の操作コマンドをチートシートとしてまとめる。

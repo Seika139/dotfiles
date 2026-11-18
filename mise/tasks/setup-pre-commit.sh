@@ -12,6 +12,11 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! git config --global --includes --get-regexp '^secrets\.(patterns|providers)$' >/dev/null 2>&1; then
+  printf '%s\n' "git-secrets の禁止パターンが未登録です。各PCの ~/.gitconfig.local に同じ secrets.patterns または secrets.providers を登録してください。" >&2
+  exit 1
+fi
+
 mise install pre-commit python
 if [[ "${OS:-}" == "Windows_NT" ]]; then
   mise run install-git-secrets
@@ -20,9 +25,5 @@ else
 fi
 
 pre-commit validate-config
-
-if ! git config --get-regexp '^secrets\.(patterns|providers)$' >/dev/null 2>&1; then
-  printf '%s\n' "git-secrets の禁止パターンが未登録です。~/.gitconfig.local または \`git secrets --register-aws\` で登録してください。" >&2
-fi
 
 pre-commit install

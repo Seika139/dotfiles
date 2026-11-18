@@ -13,7 +13,7 @@ repos:
     hooks:
       - id: git-secrets-scan
         name: git-secrets scan
-        entry: git secrets --scan --cached --
+        entry: bash mise/scripts/git-secrets-scan.sh
         language: system
         pass_filenames: false
         stages: [pre-commit]

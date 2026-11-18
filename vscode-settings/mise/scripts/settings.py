@@ -280,7 +280,7 @@ def diff_dicts(merged, target):
 
 # ---------- pull (エディタの変更を各層へ書き戻す) ----------
 
-# 機密判定: 既定の一般パターン。PC 固有のパターンは profiles/<PC>/sensitive-patterns.local.json に置く。
+# 機密判定: settings.json のローカル振り分けに使う一般パターン。
 SENSITIVE_PATTERNS = [
     r"/Users/",
     r"/home/",
@@ -291,34 +291,6 @@ SENSITIVE_PATTERNS = [
 ]
 SENSITIVE_KEY_PREFIXES = ("github-enterprise",)
 _SENSITIVE_RE = re.compile("|".join(f"(?:{p})" for p in SENSITIVE_PATTERNS), re.IGNORECASE)
-
-
-def load_sensitive_patterns(profile):
-    """プロファイル固有の未追跡パターンを読み、個別にコンパイルする。"""
-    path = ROOT / "profiles" / profile / "sensitive-patterns.local.json"
-    try:
-        text = path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return []
-    except (OSError, UnicodeError):
-        raise SettingsError(f"{path.name} を読み込めません") from None
-
-    try:
-        patterns = json.loads(text)
-    except json.JSONDecodeError:
-        raise SettingsError(f"{path.name} の JSON が不正です") from None
-    if not isinstance(patterns, list):
-        raise SettingsError(f"{path.name} は正規表現文字列の配列で指定してください")
-
-    compiled = []
-    for index, pattern in enumerate(patterns, start=1):
-        if not isinstance(pattern, str) or not pattern:
-            raise SettingsError(f"{path.name} の {index} 番目は空でない文字列にしてください")
-        try:
-            compiled.append(re.compile(pattern, re.IGNORECASE))
-        except re.error:
-            raise SettingsError(f"{path.name} の {index} 番目の正規表現が不正です") from None
-    return compiled
 
 
 def _strings(v):
@@ -333,13 +305,10 @@ def _strings(v):
             yield from _strings(x)
 
 
-def is_sensitive(key, value, local_patterns=()):
+def is_sensitive(key, value):
     if key.lower().startswith(SENSITIVE_KEY_PREFIXES):
         return True
-    return any(
-        _SENSITIVE_RE.search(s) or any(pattern.search(s) for pattern in local_patterns)
-        for s in [key, *_strings(value)]
-    )
+    return any(_SENSITIVE_RE.search(s) for s in [key, *_strings(value)])
 
 
 def _fmt_value(value, indent, multiline):
@@ -367,7 +336,6 @@ def _new_entry(key, value):
 def pull(profile, target_text, dry_run=False, prune=False, to_local=False, now=None):
     """エディタの settings.json を各層へ書き戻す。戻り値は (表示行, {パス: 新テキスト}, バックアップ対象パス)。"""
     named = load_layers(profile)
-    local_patterns = load_sensitive_patterns(profile)
     dups = [p for p in find_problems(named) if p.startswith("重複キー")]
     if dups:
         raise SettingsError("\n".join(dups))
@@ -385,7 +353,7 @@ def pull(profile, target_text, dry_run=False, prune=False, to_local=False, now=N
         touched.add(i)
         report.append(f"更新: {label(i)}  {k}")
     for k in sorted(k for k in cur if k not in merged):
-        i = 2 if (to_local or is_sensitive(k, cur[k], local_patterns)) else 1
+        i = 2 if (to_local or is_sensitive(k, cur[k])) else 1
         layers[i].entries.append(_new_entry(k, cur[k]))
         layers[i].entries.sort(key=lambda e: e.key)
         touched.add(i)
