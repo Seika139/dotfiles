@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="lint（dprint + rumdl + markdownlint-cli2 + textlint + shfmt + shellcheck + taplo + yamllint）"
+#MISE description="lint（dprint + rumdl + markdownlint-cli2 + textlint + shfmt + shellcheck + tombi + yamllint）"
 #MISE quiet=true
 #USAGE flag "-t --textlint" {
 #USAGE   help "textlintも実行する場合はこのフラグを指定してください（時間がかかる場合があります）"
@@ -44,10 +44,13 @@ find "${shell_files[@]}" -type f \
   \( -name "*.sh" -o -name "*.bash" \) -print0 |
   xargs -0 shellcheck -x
 
-print_blue "linting toml with taplo"$'\n'
-RUST_LOG=warn taplo fmt --check --diff
-if [ -f "${HOME}/.codex/config.toml" ]; then
-  RUST_LOG=warn taplo fmt --check --diff -- "${HOME}/.codex/config.toml"
+print_blue "linting toml with tombi"$'\n'
+# 走査範囲を絞るため、git 管理下（未追跡含む・ignore 除く）の toml だけを渡す
+toml_files=()
+while IFS= read -r f; do toml_files+=("$f"); done < <(git ls-files -co --exclude-standard -- "*.toml")
+if [ "${#toml_files[@]}" -gt 0 ]; then
+  tombi format --check --diff "${toml_files[@]}"
+  tombi lint "${toml_files[@]}"
 fi
 
 print_blue "linting YAML files with yamllint"$'\n'

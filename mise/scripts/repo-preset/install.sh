@@ -321,8 +321,6 @@ if [[ -e "$mise_toml" ]] && ! ((force)); then
 else
   rp_merge_mise_toml "$mise_toml" "${comps[@]}"
   rp_generate_aggregate_tasks "${comps[@]}" >>"$mise_toml"
-  # 生成物末尾の連続空行を除去し、末尾を単一改行に正規化する
-  # （taplo fmt --check が末尾空行を差分検出して toml:lint が落ちるのを防ぐ）。
   rp_trim_trailing_blank_lines "$mise_toml"
 fi
 

@@ -388,7 +388,7 @@ rp_compose_dependabot() {
 }
 
 # ファイル末尾の連続する空行を取り除き、末尾を単一改行に正規化する。
-# fragment 連結で生じる余分な末尾空行が taplo fmt などの整形チェックで
+# fragment 連結で生じる余分な末尾空行が tombi format などの整形チェックで
 # 差分として検出されるのを防ぐ。
 rp_trim_trailing_blank_lines() {
   local file="$1"
