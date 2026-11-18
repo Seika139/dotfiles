@@ -184,6 +184,7 @@ JQUANTS
 Karpathy
 keepalive
 kenichi
+kilocode
 Koebon
 kubectx
 kubens
