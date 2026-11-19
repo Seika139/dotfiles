@@ -36,6 +36,7 @@ Volta は JavaScript/TypeScript 開発向けに、Node.js ランタイムと npm
 ### pnpm
 
 - `volta install pnpm@<version>` で pnpm をユーザー全体にインストールできます。
+
 - pnpm は `volta pin` に対応していないです
 
   ```bash

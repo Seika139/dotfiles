@@ -203,7 +203,9 @@ fans_to_target: FractionalRegion = field(
 ### 手順
 
 1. **対象 digit を含む画面のスクショ**を撮る (例: ファン数が "4" を含む)
+
 2. `overlay` で位置確認 → 該当 digit の pixel/fractional 座標を見繕う
+
 3. `extract` サブコマンドで切り出す (Pillow 手書き不要):
 
    ```bash

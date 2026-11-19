@@ -8,6 +8,7 @@ OmniSharp は、C#開発のためのクロスプラットフォーム開発ツ�
 Visual Studio Code（VS Code）や他のエディタで C#コードの補完、ナビゲーション、リファクタリング、デバッグなどの機能を提供します。
 
 - **役割**: OmniSharp は、C#コードの静的解析を行い、コード補完やエラー検出、リファクタリングなどの機能を提供します。Unity の C#スクリプトを VS Code で編集する際に使用されます。
+
 - **設定**: VS Code の設定ファイル（`settings.json`）で OmniSharp の設定を調整できます。例えば、特定の .NET SDK を使用するように設定ができます。
 
   ```json
@@ -82,8 +83,11 @@ Unity での開発に必要な設定を行います。
 OmniSharp は、VS Code で C#コードの補完やナビゲーション、リファクタリング、デバッグなどの機能を提供します。必要に応じて、VS Code の設定ファイル（`settings.json`）で OmniSharp の設定を調整します。
 
 1. VS Code を開きます。
+
 2. メニューから `File` > `Preferences` > `Settings` を選択します。
+
 3. 右上のアイコン（ファイルアイコン）をクリックして、`settings.json` を開きます。
+
 4. 以下の設定を追加します。
 
    ```json
