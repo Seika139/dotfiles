@@ -133,9 +133,28 @@ fi
 # - Claude: default で per-tool (~/.claude/skills/) に自動配備される (Claude 特別扱い)
 # - Codex/Gemini: cross-tool (~/.agents/skills/) を読む → cross-tool 配備のみで OK
 # - Cursor/Copilot: cross-tool 読み挙動は未検証だが、現状 skill 機能要求なしと判断
+# APM 0.36: manifest だけ先に更新された場合、lock drift だけ通常 install へ移行する。
 if [ -f "$TARGET_LOCK" ]; then
-  printf "%s\n" "   📦 Running: apm install -g --frozen${FORCE_FLAG:+ $FORCE_FLAG}${VERBOSE_FLAG:+ $VERBOSE_FLAG}"
-  apm install -g --frozen $FORCE_FLAG $VERBOSE_FLAG
+  PREFLIGHT_OUTPUT="$(mktemp -t apm-frozen.XXXXXX)"
+  trap 'rm -f "$PREFLIGHT_OUTPUT"' EXIT
+  printf "%s\n" "   🔎 Checking frozen lock compatibility..."
+  if apm install -g --frozen --dry-run $FORCE_FLAG $VERBOSE_FLAG >"$PREFLIGHT_OUTPUT" 2>&1; then
+    printf "%s\n" "   📦 Running: apm install -g --frozen${FORCE_FLAG:+ $FORCE_FLAG}${VERBOSE_FLAG:+ $VERBOSE_FLAG}"
+    apm install -g --frozen $FORCE_FLAG $VERBOSE_FLAG
+  else
+    PREFLIGHT_STATUS=$?
+    cat "$PREFLIGHT_OUTPUT"
+    if grep -Fq -- "--frozen: apm.lock.yaml is out of sync with apm.yml." "$PREFLIGHT_OUTPUT"; then
+      backup="$(mktemp "${TARGET_LOCK}.backup.$(date +%Y%m%d_%H%M%S).stale.XXXXXX")"
+      cp "$TARGET_LOCK" "$backup"
+      printf "%s\n" "   ⚠️  Lock is stale for the synced manifest; backing it up and retrying without --frozen: $backup"
+      apm install -g $FORCE_FLAG $VERBOSE_FLAG
+    else
+      exit "$PREFLIGHT_STATUS"
+    fi
+  fi
+  rm -f "$PREFLIGHT_OUTPUT"
+  trap - EXIT
 else
   printf "%s\n" "   📦 Running: apm install -g${FORCE_FLAG:+ $FORCE_FLAG}${VERBOSE_FLAG:+ $VERBOSE_FLAG} (no lock yet)"
   apm install -g $FORCE_FLAG $VERBOSE_FLAG

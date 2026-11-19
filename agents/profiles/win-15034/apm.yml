@@ -14,7 +14,11 @@ dependencies:
     - Caromaf/agent-package-basic#main
     - git: DietrichGebert/ponytail
       ref: main
+      path: skills
       targets: [claude, codex, gemini, copilot]
+    - git: Seika139/dotfiles
+      ref: main
+      path: agents/apm/ponytail-copilot-hooks
     - github/gh-stack/skills/gh-stack#main
     - mattpocock/skills/skills/productivity/grilling#main
     - mattpocock/skills/skills/productivity/grill-me#main
