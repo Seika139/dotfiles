@@ -231,17 +231,35 @@ sd() {
   fi
 }
 
-append_to_unique_sorted_file() {
+append_to_unique_sorted_file() (
   # ソートすべきファイルに対して値を追加するときに使う
-  if [ ! -e "$1" ]; then
-    echo "$1 には存在するファイルを指定してください"
-    return
+  # `#` でコメントアウトされている行はソートの対象外になる
+  set -o pipefail
+
+  if [[ ! -f "${1:-}" ]]; then
+    printf '%s\n' '第1引数には既存のファイルを指定してください' >&2
+    return 1
   fi
-  local file
-  file="$1"
+
+  local file="$1"
   shift
-  for item in "$@"; do
-    echo "$item" >>"$file"
-  done
-  sort -u "$file" -o "$file"
-}
+
+  local tmp_dir
+  tmp_dir=$(mktemp -d) || return 1
+  trap 'rm -rf -- "$tmp_dir"' EXIT
+
+  # 元のファイルの末尾に改行がなくても、追加分と別の行にする。
+  {
+    awk '1' <"$file" || return 1
+    if (($# > 0)); then
+      printf '%s\n' "$@" || return 1
+    fi
+  } >"$tmp_dir/input" || return 1
+
+  {
+    awk '/^#/' <"$tmp_dir/input" &&
+      awk '!/^#/' <"$tmp_dir/input" | sort -u
+  } >"$tmp_dir/output" || return 1
+
+  cat "$tmp_dir/output" >"$file"
+)
