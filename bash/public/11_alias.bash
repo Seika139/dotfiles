@@ -230,3 +230,18 @@ sd() {
     return 1
   fi
 }
+
+append_to_unique_sorted_file() {
+  # ソートすべきファイルに対して値を追加するときに使う
+  if [ ! -e "$1" ]; then
+    echo "$1 には存在するファイルを指定してください"
+    return
+  fi
+  local file
+  file="$1"
+  shift
+  for item in "$@"; do
+    echo "$item" >>"$file"
+  done
+  sort -u "$file" -o "$file"
+}
