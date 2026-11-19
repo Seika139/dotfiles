@@ -121,8 +121,10 @@ FASTSPRING
 fdfind
 Fernet
 ffprobe
+filemode
 FQCN
 Franken
+frankenphp
 Freeable
 frontmatter
 fukushima
@@ -186,8 +188,12 @@ keepalive
 kenichi
 kilocode
 Koebon
+kubeconfig
+kubeconform
 kubectx
+kubelet
 kubens
+kustomization
 laravel
 launchpadlib
 letsencrypt
@@ -244,6 +250,7 @@ Omni
 omnisharp
 ondelete
 oneline
+oneshot
 onupdate
 OOTD
 openclaw
@@ -313,6 +320,7 @@ pytz
 Qiita
 Quali
 QUIC
+rawdata
 readlink
 readwrite
 realpath
@@ -337,6 +345,7 @@ sdist
 Seika
 selectin
 selectinload
+semgrep
 senko
 Sercuit
 sessionmaker
