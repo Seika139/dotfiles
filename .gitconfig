@@ -81,5 +81,3 @@
 	conflictStyle = zdiff3
 [beads]
 	role = maintainer
-[safe]
-	directory = /home/ebi/actions-runner-video-studio/_work/video-studio/video-studio
