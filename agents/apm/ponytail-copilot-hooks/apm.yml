@@ -1,0 +1,5 @@
+name: ponytail-copilot-hooks
+version: 1.0.0
+description: Copilot hooks adapted from DietrichGebert/ponytail.
+target: copilot
+includes: auto

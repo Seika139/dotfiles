@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "node \"${PLUGIN_ROOT}/hooks/ponytail-activate.js\" || exit 0",
+        "powershell": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"${PLUGIN_ROOT}/hooks/ponytail-activate.js\" }",
+        "timeoutSec": 15
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "node \"${PLUGIN_ROOT}/hooks/ponytail-mode-tracker.js\" || exit 0",
+        "powershell": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"${PLUGIN_ROOT}/hooks/ponytail-mode-tracker.js\" }",
+        "timeoutSec": 15
+      }
+    ]
+  }
+}
