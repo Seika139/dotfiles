@@ -234,7 +234,20 @@ sd() {
 append_to_unique_sorted_file() (
   # ソートすべきファイルに対して値を追加するときに使う
   # `#` でコメントアウトされている行はソートの対象外になる
+  # -f をつけるとソート時に大文字小文字を区別しない
   set -o pipefail
+
+  local -a sort_options=(-u)
+  case "${1:-}" in
+  -f | --ignore-case)
+    sort_options+=(-f)
+    shift
+    ;;
+  esac
+
+  if [[ "${1:-}" == -- ]]; then
+    shift
+  fi
 
   if [[ ! -f "${1:-}" ]]; then
     printf '%s\n' '第1引数には既存のファイルを指定してください' >&2
@@ -248,7 +261,6 @@ append_to_unique_sorted_file() (
   tmp_dir=$(mktemp -d) || return 1
   trap 'rm -rf -- "$tmp_dir"' EXIT
 
-  # 元のファイルの末尾に改行がなくても、追加分と別の行にする。
   {
     awk '1' <"$file" || return 1
     if (($# > 0)); then
@@ -258,7 +270,7 @@ append_to_unique_sorted_file() (
 
   {
     awk '/^#/' <"$tmp_dir/input" &&
-      awk '!/^#/' <"$tmp_dir/input" | sort -u
+      awk '!/^#/' <"$tmp_dir/input" | sort "${sort_options[@]}"
   } >"$tmp_dir/output" || return 1
 
   cat "$tmp_dir/output" >"$file"
