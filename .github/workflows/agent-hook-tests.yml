@@ -14,7 +14,6 @@ name: Agent Hook Tests
       - "agents/tests/test_install_bootstrap.py"
       - "install.sh"
       - "claude/mise/scripts/run_python.sh"
-      - "claude/mise/scripts/normalize_ponytail_hooks.py"
       - "claude/mise/scripts/link.sh"
       - "claude/mise/scripts/merge-settings.jq"
       - "claude/mise/scripts/recover-settings.sh"
@@ -54,6 +53,5 @@ jobs:
           python -m unittest
           agents.tests.test_migrate_cursor_apm_config
           agents.tests.test_install_bootstrap
-          claude.mise.tests.test_normalize_ponytail_hooks
           claude.mise.tests.test_run_python
           claude.mise.tests.test_settings_merge
