@@ -8,7 +8,7 @@
 ## 設計方針
 
 - **mise 中心**: 依存ツールのバージョンは各コンポーネントの `mise.fragment.toml` の `[tools]` に集約し、導入時に 1 つの `mise.toml` へマージする。lint/format も mise タスクとして実行する。
-- **rust ベース優先**: dprint / rumdl / taplo / typos / shfmt など高速な rust 製ツールを優先採用する。node 依存 (markdownlint-cli2 / cspell / textlint) は `js` 基盤コンポーネント経由で導入する。
+- **rust ベース優先**: dprint / rumdl / tombi / typos / shfmt など高速な rust 製ツールを優先採用する。node 依存 (markdownlint-cli2 / cspell / textlint) は `js` 基盤コンポーネント経由で導入する。
 - **領域単位のコンポーネント**: python / markdown / toml / yaml / shell / spell / github などの領域ごとに分割し、必要なものだけを選ぶ。
 - **推移的依存の自動解決**: 各コンポーネントは `DEPENDS_ON` で他コンポーネントへの依存を宣言する。例えば `markdown` を選ぶと node/pnpm 基盤の `js` が自動で引き込まれる。
 
@@ -59,7 +59,7 @@ mise run repo-preset-install --components markdown --dry-run
 | `python`       | —                   | uv + ruff + mypy + pytest                                    |
 | `markdown`     | `js`                | dprint + rumdl + markdownlint-cli2                           |
 | `textlint`     | `markdown`, `js`    | 日本語文章の lint (opt-in)                                   |
-| `toml`         | —                   | taplo                                                        |
+| `toml`         | —                   | tombi                                                        |
 | `yaml`         | —                   | yamllint                                                     |
 | `shell`        | —                   | shfmt + shellcheck                                           |
 | `spell`        | `js`                | typos + cspell                                               |
@@ -91,9 +91,8 @@ repo-preset/
     ├── python/       pyproject.overlay.toml / uv 初期化
     ├── markdown/     dprint.json / .rumdl.toml / .markdownlint-cli2.jsonc
     ├── textlint/     .textlintrc.json
-    ├── toml/         taplo.toml
     ├── yaml/         .yamllint.yml
-    ├── shell/        .shfmtrc
+    ├── shell/        .shfmtrc / .shellcheckrc
     ├── spell/        .typos.toml / .cspell.json / .cspell/
     ├── github/       .github/CODEOWNERS / .github/dependabot.yml
     ├── js/           node + pnpm 基盤 (HIDDEN)
@@ -107,7 +106,7 @@ repo-preset/
 | ------------------------- | -------------------------------------------------------------------------- |
 | `meta.sh`                 | `DESCRIPTION` / `DEPENDS_ON` / `HIDDEN` を定義                             |
 | `mise.fragment.toml`      | `[tools]` と領域タスク (`<領域>:lint` 等) を宣言。マージで `mise.toml` に  |
-| 各種設定ファイル          | そのままコピーされる (`dprint.json`, `.rumdl.toml`, `taplo.toml` など)     |
+| 各種設定ファイル          | そのままコピーされる (`dprint.json`, `.rumdl.toml` など)                   |
 | `.gitignore.append`       | `_common/.gitignore` に追記される行                                        |
 | `post_scaffold.sh`        | コピー後に実行されるフック。`uv add` / `pnpm init` / pre-commit 初期化など |
 | `pyproject.overlay.toml`  | python 専用。`pyproject.toml` 末尾に追記される設定                         |
