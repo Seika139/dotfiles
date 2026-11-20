@@ -116,25 +116,25 @@ assert_count() {
 # Store JSON fixtures as data; the helper does not evaluate their contents.
 set_json_fixture() {
   case "$1" in
-    FAKE_CLAUDE_PLUGIN_JSON)
-      FAKE_CLAUDE_PLUGIN_JSON="$2"
-      export FAKE_CLAUDE_PLUGIN_JSON
-      ;;
-    FAKE_CODEX_PLUGIN_JSON)
-      FAKE_CODEX_PLUGIN_JSON="$2"
-      export FAKE_CODEX_PLUGIN_JSON
-      ;;
-    FAKE_CODEX_MARKETPLACES_JSON)
-      FAKE_CODEX_MARKETPLACES_JSON="$2"
-      export FAKE_CODEX_MARKETPLACES_JSON
-      ;;
-    FAKE_CODEX_AVAILABLE_JSON)
-      FAKE_CODEX_AVAILABLE_JSON="$2"
-      export FAKE_CODEX_AVAILABLE_JSON
-      ;;
-    *)
-      fail "unknown JSON fixture variable: $1"
-      ;;
+  FAKE_CLAUDE_PLUGIN_JSON)
+    FAKE_CLAUDE_PLUGIN_JSON="$2"
+    export FAKE_CLAUDE_PLUGIN_JSON
+    ;;
+  FAKE_CODEX_PLUGIN_JSON)
+    FAKE_CODEX_PLUGIN_JSON="$2"
+    export FAKE_CODEX_PLUGIN_JSON
+    ;;
+  FAKE_CODEX_MARKETPLACES_JSON)
+    FAKE_CODEX_MARKETPLACES_JSON="$2"
+    export FAKE_CODEX_MARKETPLACES_JSON
+    ;;
+  FAKE_CODEX_AVAILABLE_JSON)
+    FAKE_CODEX_AVAILABLE_JSON="$2"
+    export FAKE_CODEX_AVAILABLE_JSON
+    ;;
+  *)
+    fail "unknown JSON fixture variable: $1"
+    ;;
   esac
 }
 
