@@ -239,7 +239,7 @@ assert_count 1 "$FAKE_LOG" 'codex|plugin marketplace upgrade'
 for profile in cg-m2-mac default hm-m1-mac win-15034 wsl-ubuntu xsv-linux-1; do
   wrapper="${REPO_ROOT}/bash/daily/profile/${profile}/ponytail_plugins.sh"
   [[ -f "$wrapper" ]] || fail "missing ${profile} wrapper"
-  grep -F 'if ! : >>"$LOG_FILE"; then' "$wrapper" >/dev/null || fail "${profile} wrapper does not preserve existing log content"
+  grep -F "if ! : >>\"\$LOG_FILE\"; then" "$wrapper" >/dev/null || fail "${profile} wrapper does not preserve existing log content"
   grep -F "nohup bash \"\${DAILY_DIR}/common/update_agent_plugins.sh\" >>\"\$LOG_FILE\" 2>&1 </dev/null &" "$wrapper" >/dev/null || fail "${profile} wrapper does not launch common updater in background"
 done
 
