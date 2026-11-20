@@ -8,7 +8,7 @@ if ! mkdir -p "$LOG_DIR"; then
   printf 'Ponytail/plugin update: ログディレクトリを作成できません: %s\n' "$LOG_DIR" >&2
   exit 1
 fi
-if ! : >"$LOG_FILE"; then
+if ! : >>"$LOG_FILE"; then
   printf 'Ponytail/plugin update: ログファイルを作成できません: %s\n' "$LOG_FILE" >&2
   exit 1
 fi
