@@ -4,7 +4,7 @@ set -euo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-DEFAULT_WRAPPER="${REPO_ROOT}/bash/daily/profile/default/ponytail_plugins.sh"
+COMMON_UPDATER="${REPO_ROOT}/bash/daily/common/update_agent_plugins.sh"
 TEST_TEMP="$(mktemp -d "${TEST_DIR}/.daily-plugin-test.XXXXXX")"
 FAKE_BIN="${TEST_TEMP}/bin"
 FAKE_HOME="${TEST_TEMP}/home"
@@ -154,7 +154,7 @@ reset_scenario() {
 run_common() {
   local expected_status="${1:-0}"
   local actual_status=0
-  bash "$DEFAULT_WRAPPER" || actual_status=$?
+  bash "$COMMON_UPDATER" || actual_status=$?
   [[ "$actual_status" == "$expected_status" ]] || fail "expected updater exit ${expected_status}, got ${actual_status}"
 }
 
@@ -235,11 +235,11 @@ assert_count 1 "$FAKE_LOG" 'claude|plugin update first@market --scope user'
 assert_count 1 "$FAKE_LOG" 'claude|plugin update second@market --scope user'
 assert_count 1 "$FAKE_LOG" 'codex|plugin marketplace upgrade'
 
-# All six profiles route through the shared updater.
+# All six profiles launch the shared updater in the background and capture its output.
 for profile in cg-m2-mac default hm-m1-mac win-15034 wsl-ubuntu xsv-linux-1; do
   wrapper="${REPO_ROOT}/bash/daily/profile/${profile}/ponytail_plugins.sh"
   [[ -f "$wrapper" ]] || fail "missing ${profile} wrapper"
-  grep -F "exec bash \"\${DAILY_DIR}/common/update_agent_plugins.sh\"" "$wrapper" >/dev/null || fail "${profile} wrapper does not call common updater"
+  grep -F "nohup bash \"\${DAILY_DIR}/common/update_agent_plugins.sh\" >>\"\$LOG_FILE\" 2>&1 </dev/null &" "$wrapper" >/dev/null || fail "${profile} wrapper does not launch common updater in background"
 done
 
 printf '%s\n' "PASS: daily plugin update behavior"
