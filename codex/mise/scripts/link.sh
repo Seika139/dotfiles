@@ -103,7 +103,7 @@ printf "%s\n" "🦄 Linking Codex settings from profile: $PROFILE"
 config_target="${CODEX_HOME}/config.toml"
 if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ] || [ -f "$PROFILE_PATH/config.local.toml" ]; then
   tmp_config="$(mktemp)"
-  "$render_config" --profile-path "$PROFILE_PATH" --output "$tmp_config"
+  "$render_config" --profile-path "$PROFILE_PATH" --runtime-config "$config_target" --output "$tmp_config"
 
   if [ -L "$config_target" ]; then
     printf "%s\n" "   Replacing config symlink with generated file: $config_target"

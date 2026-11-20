@@ -1,30 +1,5 @@
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "statusMessage": "Loading ponytail mode...",
-            "command": "node \"$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/ponytail-activate.js\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "statusMessage": "Loading ponytail mode...",
-            "command": "node \"$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/ponytail-subagent.js\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -32,16 +7,6 @@
             "type": "command",
             "command": "/bin/bash \"$HOME/dotfiles/codex/mise/scripts/block_downloads.sh\"; result=$?; if [ \"$result\" -eq 0 ]; then exit 0; else exit 2; fi",
             "statusMessage": "Checking Downloads location"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "statusMessage": "Tracking ponytail mode...",
-            "command": "node \"$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/ponytail-mode-tracker.js\"",
-            "timeout": 5
           }
         ]
       }

@@ -18,7 +18,8 @@
     "frontend-design@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "ponytail@ponytail": true
   },
   "env": {
     "API_TIMEOUT_MS": "1200000",
@@ -34,6 +35,12 @@
     "openai-codex": {
       "source": {
         "repo": "openai/codex-plugin-cc",
+        "source": "github"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "repo": "DietrichGebert/ponytail",
         "source": "github"
       }
     }

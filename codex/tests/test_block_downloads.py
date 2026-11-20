@@ -9,6 +9,10 @@ from mise.scripts import block_downloads
 
 
 class BlockDownloadsTest(unittest.TestCase):
+    XDG_FIXTURE_ROOT = Path(__file__).resolve().parent / "xdg fixtures"
+    XDG_FIXTURE_HOME = XDG_FIXTURE_ROOT / "home"
+    XDG_FIXTURE_CONFIG = XDG_FIXTURE_ROOT / "config"
+
     def test_downloads_itself_and_descendants_match_but_prefix_siblings_do_not(self):
         downloads = Path("/home/user/Downloads")
         self.assertTrue(block_downloads.is_in_downloads("/home/user/Downloads", downloads))
@@ -49,28 +53,34 @@ class BlockDownloadsTest(unittest.TestCase):
         )
 
     def test_xdg_download_path_expands_home_and_supports_spaces(self):
-        home = Path("/home/example")
-        config = Path("/tmp/xdg")
+        home = self.XDG_FIXTURE_HOME
+        config = self.XDG_FIXTURE_CONFIG
         with patch.object(Path, "read_text", return_value='XDG_DOWNLOAD_DIR="$HOME/Received Files"\n'):
             result = block_downloads.linux_downloads_dir(home, {"XDG_CONFIG_HOME": str(config)})
         self.assertEqual(result, home / "Received Files")
 
     def test_xdg_download_dir_pointing_to_home_fails_closed(self):
-        home = Path("/home/example")
+        home = self.XDG_FIXTURE_HOME
         with patch.object(Path, "read_text", return_value='XDG_DOWNLOAD_DIR="$HOME"\n'):
             with self.assertRaisesRegex(RuntimeError, "points to HOME"):
-                block_downloads.linux_downloads_dir(home, {"XDG_CONFIG_HOME": "/tmp/xdg"})
+                block_downloads.linux_downloads_dir(
+                    home, {"XDG_CONFIG_HOME": str(self.XDG_FIXTURE_CONFIG)}
+                )
 
     def test_xdg_config_is_not_executed_and_invalid_values_fail_closed(self):
-        home = Path("/home/example")
+        home = self.XDG_FIXTURE_HOME
         with patch.object(Path, "read_text", return_value='XDG_DOWNLOAD_DIR="$HOME/$(touch marker)"\n'):
-            with self.assertRaises(RuntimeError):
-                block_downloads.linux_downloads_dir(home, {"XDG_CONFIG_HOME": "/tmp/xdg"})
+            with self.assertRaisesRegex(RuntimeError, "unsupported or non-absolute XDG_DOWNLOAD_DIR"):
+                block_downloads.linux_downloads_dir(
+                    home, {"XDG_CONFIG_HOME": str(self.XDG_FIXTURE_CONFIG)}
+                )
 
     def test_missing_xdg_config_uses_default_downloads_directory(self):
-        home = Path("/home/example")
+        home = self.XDG_FIXTURE_HOME
         with patch.object(Path, "read_text", side_effect=FileNotFoundError):
-            result = block_downloads.linux_downloads_dir(home, {"XDG_CONFIG_HOME": "/tmp/xdg"})
+            result = block_downloads.linux_downloads_dir(
+                home, {"XDG_CONFIG_HOME": str(self.XDG_FIXTURE_CONFIG)}
+            )
         self.assertEqual(result, home / "Downloads")
 
     def test_wsl_windows_download_path_is_translated(self):
@@ -185,7 +195,8 @@ class BlockDownloadsTest(unittest.TestCase):
             for hook in group["hooks"]
             if hook.get("type") == "command"
         ]
-        self.assertTrue(any("ponytail-mode-tracker.js" in command for command in hm_commands))
+        self.assertTrue(any("block_downloads.sh" in command for command in hm_commands))
+        self.assertFalse(any("ponytail" in command.lower() for command in hm_commands))
 
         windows_hooks = json.loads((profiles / "win-15034/hooks.base.json").read_text(encoding="utf-8"))["hooks"]
         self.assertIn("Stop", windows_hooks)

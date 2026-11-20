@@ -121,7 +121,7 @@ config_target="${HOME}/.codex/config.toml"
 render_script="${ROOT_DIR}/mise/scripts/render_config.py"
 if [ -f "$PROFILE_PATH/config.base.toml" ] || [ -f "$PROFILE_PATH/config.toml" ] || [ -f "$PROFILE_PATH/config.local.toml" ]; then
   tmp_config="$(mktemp)"
-  if "$render_script" --profile-path "$PROFILE_PATH" --output "$tmp_config"; then
+  if "$render_script" --profile-path "$PROFILE_PATH" --runtime-config "$config_target" --output "$tmp_config"; then
     if [ -L "$config_target" ]; then
       printf "%s" "   ⚠️  "
       print_dim "$config_target"

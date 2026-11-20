@@ -18,6 +18,31 @@ def hook(command: str) -> dict:
     return {"matcher": "", "hooks": [{"type": "command", "command": command}]}
 
 
+def legacy_ponytail_command(hook_file: str) -> str:
+    return (
+        "node -e \"const p=require('path'),o=require('os');"
+        "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
+        "'DietrichGebert','ponytail');"
+        f"require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/{hook_file}'))\""
+    )
+
+
+def raw_ponytail_command(hook_file: str) -> str:
+    return (
+        "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
+        ".split(String.fromCharCode(92)).join('/'), 'hooks/"
+        f"{hook_file}'))\""
+    )
+
+
+def legacy_raw_ponytail_command(hook_file: str) -> str:
+    return (
+        "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT"
+        ".replaceAll(String.fromCharCode(92), '/'), 'hooks/"
+        f"{hook_file}'))\""
+    )
+
+
 def write_json(path: Path, document: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(document), encoding="utf-8")
@@ -98,6 +123,7 @@ class RecoverSettingsTest(unittest.TestCase):
         self.link_marker = base / "link-called"
         stub = self.config_root / "mise" / "scripts" / "link.sh"
         stub.parent.mkdir(parents=True)
+        shutil.copy2(MERGE_JQ, stub.with_name("merge-settings.jq"))
         # link.sh は本物の ~/.claude を触らないようスタブに差し替える
         stub.write_text(f'#!/bin/bash\ntouch "{self.link_marker.as_posix()}"\n', encoding="utf-8")
         self.profile.mkdir(parents=True)
@@ -154,6 +180,50 @@ class RecoverSettingsTest(unittest.TestCase):
         merged = merge_files(self.profile / "settings.json", self.profile / "settings.local.json")
         self.assertEqual(merged.returncode, 0, merged.stderr)
         self.assertEqual(json.loads(merged.stdout), source)
+
+    def test_recover_does_not_restore_legacy_ponytail_hooks(self):
+        write_json(self.profile / "settings.json", {"hooks": {"Stop": [hook("tracked-stop")]}})
+        edited_legacy = legacy_ponytail_command("ponytail-mode-tracker.js") + " --edited"
+        write_json(
+            self.target,
+            {
+                "hooks": {
+                    "Stop": [hook("tracked-stop")],
+                    "SessionStart": [
+                        hook(legacy_ponytail_command("ponytail-activate.js")),
+                        hook(raw_ponytail_command("ponytail-activate.js")),
+                    ],
+                    "UserPromptSubmit": [
+                        hook(legacy_ponytail_command("ponytail-mode-tracker.js")),
+                        hook(raw_ponytail_command("ponytail-mode-tracker.js")),
+                        hook(edited_legacy),
+                        hook("user-prompt-hook"),
+                    ],
+                    "SubagentStart": [
+                        hook(legacy_raw_ponytail_command("ponytail-subagent.js"))
+                    ],
+                }
+            },
+        )
+
+        result = self.recover()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        local_hooks = self.read("settings.local.json")["hooks"]
+        self.assertEqual(
+            local_hooks,
+            {"UserPromptSubmit": [hook(edited_legacy), hook("user-prompt-hook")]},
+        )
+        merged = merge_files(self.profile / "settings.json", self.profile / "settings.local.json")
+        self.assertEqual(merged.returncode, 0, merged.stderr)
+        rendered_hooks = json.loads(merged.stdout)["hooks"]
+        self.assertEqual(
+            rendered_hooks,
+            {
+                "Stop": [hook("tracked-stop")],
+                "UserPromptSubmit": [hook(edited_legacy), hook("user-prompt-hook")],
+            },
+        )
 
     def assert_aborted_without_writes(self, result: subprocess.CompletedProcess, message: str):
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)

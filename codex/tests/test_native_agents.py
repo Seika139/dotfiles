@@ -1,5 +1,4 @@
 import os
-import shlex
 import shutil
 import subprocess
 import tempfile
@@ -10,27 +9,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SYNC = ROOT / "mise" / "scripts" / "sync_agents.sh"
 MANIFEST_NAME = ".codex-dotfiles-native-agents.manifest"
+BASH = shutil.which("bash") or "bash"
 
 
 def bash_path(path: Path) -> str:
     value = str(path)
-    converter = shutil.which("cygpath") or shutil.which("wslpath")
-    if not converter:
-        probe = subprocess.run(
-            ["bash", "-lc", "command -v cygpath || command -v wslpath"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        converter = probe.stdout.strip() or None
-    if converter:
-        return subprocess.run(
-            ["bash", "-lc", f"{shlex.quote(converter)} -u {shlex.quote(value)}"],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-    return value.replace("\\", "/")
+    if os.name != "nt":
+        return value
+
+    return subprocess.run(
+        [BASH, "--noprofile", "--norc", "-c", 'cygpath -u "$1"', "bash", value],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
 
 
 class NativeAgentSyncTest(unittest.TestCase):
@@ -39,7 +31,7 @@ class NativeAgentSyncTest(unittest.TestCase):
         if env:
             command_env.update(env)
         result = subprocess.run(
-            ["bash", bash_path(SYNC), bash_path(source_root), bash_path(home)],
+            [BASH, bash_path(SYNC), bash_path(source_root), bash_path(home)],
             check=False,
             env=command_env,
             capture_output=True,
@@ -88,18 +80,19 @@ class NativeAgentSyncTest(unittest.TestCase):
     def test_managed_update_replaces_without_new_backup(self):
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp) / "home"
-            first = self.run_sync(home)
+            source_root = Path(temp) / "source"
+            source = source_root / "agents" / "implementor.toml"
+            source.parent.mkdir(parents=True)
+            shutil.copyfile(ROOT / "agents" / "implementor.toml", source)
+
+            first = self.run_sync(home, source_root=source_root)
             self.assertEqual(first.returncode, 0, first.stderr)
             target = home / "agents" / "implementor.toml"
             backups_before = list(target.parent.glob("implementor.toml.backup.*"))
 
-            source = ROOT / "agents" / "implementor.toml"
             original = source.read_text(encoding="utf-8")
-            try:
-                source.write_text(original + "\n# test update\n", encoding="utf-8")
-                second = self.run_sync(home)
-            finally:
-                source.write_text(original, encoding="utf-8")
+            source.write_text(original + "\n# test update\n", encoding="utf-8")
+            second = self.run_sync(home, source_root=source_root)
 
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertIn("# test update", target.read_text(encoding="utf-8"))

@@ -19,7 +19,8 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true
+    "swift-lsp@claude-plugins-official": true,
+    "ponytail@ponytail": true
   },
   "env": {
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1m]",
@@ -37,6 +38,12 @@
     "openai-codex": {
       "source": {
         "repo": "openai/codex-plugin-cc",
+        "source": "github"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "repo": "DietrichGebert/ponytail",
         "source": "github"
       }
     }
@@ -64,19 +71,6 @@
         "matcher": "Edit|Write|NotebookEdit"
       }
     ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "node -e \"const p=require('path'),o=require('os');process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules','DietrichGebert','ponytail');require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-activate.js'))\"",
-            "statusMessage": "Loading ponytail mode...",
-            "timeout": 5,
-            "type": "command"
-          }
-        ],
-        "matcher": "startup|resume|clear|compact"
-      }
-    ],
     "Stop": [
       {
         "hooks": [
@@ -86,32 +80,6 @@
           }
         ],
         "matcher": ""
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "command": "node -e \"const p=require('path'),o=require('os');process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules','DietrichGebert','ponytail');require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-subagent.js'))\"",
-            "statusMessage": "Loading ponytail mode...",
-            "timeout": 5,
-            "type": "command"
-          }
-        ],
-        "matcher": "*"
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "command": "node -e \"const p=require('path'),o=require('os');process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules','DietrichGebert','ponytail');require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/ponytail-mode-tracker.js'))\"",
-            "statusMessage": "Tracking ponytail mode...",
-            "timeout": 5,
-            "type": "command"
-          }
-        ],
-        "matcher": "*"
       }
     ]
   },

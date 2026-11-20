@@ -122,10 +122,6 @@ apm update "${UPDATE_ARGS[@]}"
 printf "%s\n" "   📦 Updating APM dependencies (pass 2/2)..."
 apm update "${UPDATE_ARGS[@]}"
 
-# APM copies Ponytail hooks into Claude settings without a plugin runtime context.
-bash "${ROOT_DIR}/../claude/mise/scripts/run_python.sh" \
-  "${ROOT_DIR}/../claude/mise/scripts/normalize_ponytail_hooks.py" --claude-dir "${HOME}/.claude"
-
 # Step 4: 新規生成 lock を profile/ にコピーバック
 #   private overlay 有効時は profiles/private/apm.lock.yaml (gitignored) に書く。
 if [ "$HAS_PRIVATE" = "true" ]; then

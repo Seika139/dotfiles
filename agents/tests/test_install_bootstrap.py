@@ -185,12 +185,6 @@ class InstallBootstrapTest(unittest.TestCase):
             "  trust) exit 0 ;;\n"
             "  run)\n"
             "    printf 'mise-run-%s\\n' \"$2\" >>\"$EVENT_LOG\"\n"
-            "    if [[ \"$2\" == link ]]; then\n"
-            "      command -v python3 >/dev/null 2>&1 || exit 98\n"
-            "      bash \"$DOTFILES_ROOT/claude/mise/scripts/run_python.sh\" \\\n"
-            "        \"$DOTFILES_ROOT/claude/mise/scripts/normalize_ponytail_hooks.py\" \\\n"
-            "        --claude-dir \"$HOME/.claude\"\n"
-            "    fi\n"
             "    ;;\n"
             "  *) exit 2 ;;\n"
             "esac\n",
@@ -203,10 +197,6 @@ class InstallBootstrapTest(unittest.TestCase):
             ROOT_DIR / "agents/mise/scripts/migrate_cursor_apm_config.py",
         )
         self._copy(root / "claude/mise/scripts/run_python.sh", ROOT_DIR / "claude/mise/scripts/run_python.sh")
-        self._copy(
-            root / "claude/mise/scripts/normalize_ponytail_hooks.py",
-            ROOT_DIR / "claude/mise/scripts/normalize_ponytail_hooks.py",
-        )
         self._copy(
             root / "agents/mise/scripts/load_mise_environment.sh",
             ROOT_DIR / "agents/mise/scripts/load_mise_environment.sh",

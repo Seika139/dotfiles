@@ -117,7 +117,7 @@ provenance は既存 `settings.local.json` を参照する自己参照的な仕�
 `extraKnownMarketplaces` (Claude Code の plugin marketplace 一覧) と `enabledPlugins` (有効化中の plugin 一覧) は、**marketplace 単位のホワイトリスト**で分類する。
 
 ```bash
-PORTABLE_MARKETPLACES=["claude-plugins-official", "openai-codex"]
+PORTABLE_MARKETPLACES=["claude-plugins-official", "openai-codex", "ponytail"]
 ```
 
 - **PORTABLE 行き**: ホワイトリストにある marketplace に紐づくキー
@@ -131,6 +131,10 @@ PORTABLE_MARKETPLACES=["claude-plugins-official", "openai-codex"]
 - marketplace 名と plugin 名 (`<plugin>@<marketplace>`) で命名が連動しているため、marketplace 単位の判定で両方のキーを整合的に振り分けられる。
 
 ホワイトリストに新しい公開 OK な marketplace を追加するときは、`recover-settings.sh` の `PORTABLE_MARKETPLACES` 変数を編集する。
+
+Ponytail は GitHub marketplace `DietrichGebert/ponytail` と plugin key `ponytail@ponytail` を各 Claude profile の `settings.json` に宣言する。新しい profile でもこの両方を追加すると、`recover` で public 設定として保持される。
+
+既存端末を APM 配布から移行するときは、`~/.apm/apm.lock.yaml` の所有情報が残っている間に `apm uninstall -g DietrichGebert/ponytail` を一度実行する。続けて `agents` で `mise run update --prof <profile>` を実行し、最後に Claude と Codex の `mise run link --prof <profile>` を実行する。`agents` の install は古い profile lock を `~/.apm/` に再コピーする可能性があるため、この移行では update を先に使う。
 
 ## タスクの責任分界
 
@@ -168,7 +172,7 @@ dotfiles/.../settings.local.json
 - `settings.json` 系は **マージ書き出し方式**（symlink ではない）。
 - `CLAUDE.md` / `commands` / `skills` / `rules` / `custom-config` は引き続き **symlink**。
 - `~/.claude/settings.local.json` の symlink は **削除**（Claude Code が読まない）。
-- APM が user settings に配備する Ponytail hook は plugin runtime 外で実行されるため、hook command 内でだけ APM package root を設定する。全 hook 共通の `env.CLAUDE_PLUGIN_ROOT` には設定しない。
+- Ponytail は各 profile で native Claude plugin として有効化する。Claude が plugin runtime と marketplace を管理するため、APM 配布の Ponytail hook command は profile 設定に含めない。
 
 ### `mise run status`
 

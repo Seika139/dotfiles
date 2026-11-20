@@ -137,65 +137,92 @@ class RenderHooksTest(unittest.TestCase):
         result = self.render_with(base=base, local=local)
         self.assertEqual(result, {"hooks": {"Stop": [{"matcher": "dup", "hooks": []}]}})
 
-    def test_profile_ponytail_hooks_replace_stale_apm_and_direct_commands(self):
-        hook_files = {
-            "SessionStart": ("ponytail-activate.js", "startup|resume|clear|compact"),
-            "UserPromptSubmit": ("ponytail-mode-tracker.js", None),
-            "SubagentStart": ("ponytail-subagent.js", None),
-            "PreToolUse": ("ponytail-subagent.js", "Agent"),
+    def test_known_legacy_ponytail_commands_are_removed_from_all_sources(self):
+        commands = []
+        for hook_file in (
+            "ponytail-activate.js",
+            "ponytail-mode-tracker.js",
+            "ponytail-subagent.js",
+        ):
+            commands.extend(
+                [
+                    f'node "$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/{hook_file}"',
+                    f'node "C:\\Users\\someone\\.codex\\hooks\\ponytail\\hooks\\{hook_file}"',
+                    (
+                        "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
+                        ".split(String.fromCharCode(92)).join('/'), 'hooks/"
+                        f"{hook_file}'))\""
+                    ),
+                    (
+                        "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT"
+                        ".replaceAll(String.fromCharCode(92), '/'), 'hooks/"
+                        f"{hook_file}'))\""
+                    ),
+                    (
+                        "node -e \"const p=require('path'),o=require('os');"
+                        "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
+                        "'DietrichGebert','ponytail');"
+                        f"require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/{hook_file}'))\""
+                    ),
+                ]
+            )
+
+        def group_with_legacy(commands_for_group, retained_command, **metadata):
+            return {
+                **metadata,
+                "hooks": [
+                    *[{"type": "command", "command": command} for command in commands_for_group],
+                    {"type": "command", "command": retained_command},
+                ],
+            }
+
+        changed_command = commands[0] + " --user-edited"
+        base = {
+            "hooks": {
+                "SessionStart": [group_with_legacy(commands[:5], "base-session-hook")],
+                "PreToolUse": [group_with_legacy(commands[5:10], "base-tool-hook")],
+            }
         }
-        local_hooks = {}
-        target_hooks = {}
-        for event, (hook_file, matcher) in hook_files.items():
-            command = f'node "$HOME/.apm/apm_modules/DietrichGebert/ponytail/hooks/{hook_file}"'
-            group = {"hooks": [{"type": "command", "command": command, "timeout": 5}]}
-            if matcher is not None:
-                group["matcher"] = matcher
-            local_hooks[event] = [group]
-
-            direct = f'node "C:\\Users\\someone\\.codex\\hooks\\ponytail\\hooks\\{hook_file}"'
-            raw_apm = (
-                "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
-                ".split(String.fromCharCode(92)).join('/'), 'hooks/"
-                f"{hook_file}'))\""
-            )
-            legacy_apm = (
-                "node -e \"require(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT"
-                ".replaceAll(String.fromCharCode(92), '/'), 'hooks/"
-                f"{hook_file}'))\""
-            )
-            canonical_apm = (
-                "node -e \"const p=require('path'),o=require('os');"
-                "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
-                "'DietrichGebert','ponytail');"
-                f"require(p.join(process.env.CLAUDE_PLUGIN_ROOT,'hooks/{hook_file}'))\""
-            )
-            for stale_command in (direct, raw_apm, legacy_apm, canonical_apm, command):
-                stale_group = {
-                    "hooks": [{"type": "command", "command": stale_command, "timeout": 15}]
-                }
-                if matcher is not None:
-                    stale_group["matcher"] = matcher
-                target_hooks.setdefault(event, []).append(stale_group)
-
-        target_hooks["Stop"] = [{"hooks": [{"type": "command", "command": "custom-stop-hook"}]}]
-        target_hooks["SessionStart"].append(
-            {"hooks": [{"type": "command", "command": "external-session-hook"}]}
-        )
-        result = self.render_with(
-            local={"hooks": local_hooks},
-            target_content={"hooks": target_hooks},
-        )
+        local = {
+            "hooks": {
+                "UserPromptSubmit": [group_with_legacy(commands[10:], "local-prompt-hook")],
+            }
+        }
+        target = {
+            "hooks": {
+                "SessionStart": [group_with_legacy([], "external-session-hook")],
+                "UserPromptSubmit": [
+                    group_with_legacy([commands[0], changed_command], "external-prompt-hook", matcher="*")
+                ],
+                "Stop": [{"hooks": [{"type": "command", "command": "custom-stop-hook"}]}],
+            }
+        }
+        result = self.render_with(base=base, local=local, target_content=target)
         self.assertEqual(
             result["hooks"],
             {
-                **local_hooks,
-                "SessionStart": [*local_hooks["SessionStart"], target_hooks["SessionStart"][-1]],
-                "Stop": target_hooks["Stop"],
+                "SessionStart": [
+                    {"hooks": [{"type": "command", "command": "base-session-hook"}]},
+                    {"hooks": [{"type": "command", "command": "external-session-hook"}]},
+                ],
+                "PreToolUse": [
+                    {"hooks": [{"type": "command", "command": "base-tool-hook"}]}
+                ],
+                "UserPromptSubmit": [
+                    {"hooks": [{"type": "command", "command": "local-prompt-hook"}]},
+                    {
+                        "matcher": "*",
+                        "hooks": [
+                            {"type": "command", "command": changed_command},
+                            {"type": "command", "command": "external-prompt-hook"},
+                        ],
+                    },
+                ],
+                "Stop": target["hooks"]["Stop"],
             },
         )
 
-    def test_list_sources_excludes_profile_replaced_ponytail_hooks(self):
+    def test_list_sources_excludes_legacy_ponytail_commands(self):
         command = (
             "node -e \"const p=require('path'),o=require('os');"
             "process.env.CLAUDE_PLUGIN_ROOT=p.join(o.homedir(),'.apm','apm_modules',"
@@ -225,7 +252,7 @@ class RenderHooksTest(unittest.TestCase):
             self.list_sources_with(local=local, target_content=target),
             [
                 "hooks.base.json: (not present)",
-                "hooks.local.json: 1 entries",
+                "hooks.local.json: 0 entries",
                 "apm (untracked by profile): 1 entries",
             ],
         )

@@ -115,7 +115,7 @@ LOCAL_ENV_KEYS='["SLACK_WEBHOOK_URL"]'
 #   - PORTABLE_MARKETPLACES に含まれる marketplace (= 公開 OK) -> settings.json
 #   - それ以外 (= 社内 marketplace 等)                          -> settings.local.json
 # enabledPlugins のキー "<plugin>@<marketplace>" は @ の右側で判定する。
-PORTABLE_MARKETPLACES='["claude-plugins-official", "openai-codex"]'
+PORTABLE_MARKETPLACES='["claude-plugins-official", "openai-codex", "ponytail"]'
 
 # provenance の入力: 既存 settings.local.json (無い/空なら {} として扱う)
 if [ -f "$REPO_LOCAL" ] && [ -s "$REPO_LOCAL" ]; then
@@ -134,7 +134,7 @@ fi
 # ---------------------------------------------------------------------------
 # jq で分離
 # ---------------------------------------------------------------------------
-SOURCE=$(cat "$TARGET")
+SOURCE=$(printf '{}' | jq -s -f "${MISE_CONFIG_ROOT}/mise/scripts/merge-settings.jq" "$TARGET" -)
 
 # 両フィルタで共通の provenance 判定ロジック (existing_local の各キーを SOURCE と比較)。
 # 出力: [{key, mode: "whole"}] または [{key, mode: "partial", subkeys: [...]}] の配列。

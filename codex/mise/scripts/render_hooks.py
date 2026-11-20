@@ -7,8 +7,8 @@
 Merges <profile>/hooks.base.json + <profile>/hooks.local.json, and preserves
 external matcher groups already present in the deploy target (e.g. hooks an
 `apm install -g` package writes directly into the deploy target). Ponytail
-commands already managed by the active profile are removed from the preserved
-target so stale APM commands cannot shadow or duplicate them. Exact duplicates
+commands from the known legacy APM/direct-command forms are removed from every
+source so stale APM commands cannot survive profile changes. Exact duplicates
 between remaining sources are deduped by `merge_hooks`.
 """
 
@@ -41,7 +41,7 @@ PONYTAIL_APM_COMMAND = re.compile(
 
 
 def ponytail_hook_file(command: str) -> str | None:
-    """Identify current and legacy profile-managed Ponytail commands."""
+    """Identify exact known old Ponytail APM/direct-hook commands."""
     for hook_file in PONYTAIL_HOOK_FILES:
         raw = (
             "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT"
@@ -68,22 +68,11 @@ def ponytail_hook_file(command: str) -> str | None:
     return match.group(1) if match else None
 
 
-def remove_profile_managed_ponytail_hooks(
-    external: dict[str, list[Any]], profile_sources: list[dict[str, list[Any]]]
+def remove_legacy_ponytail_hooks(
+    source: dict[str, list[Any]],
 ) -> dict[str, list[Any]]:
-    """Drop only external Ponytail hooks already supplied by the active profile."""
-    managed: dict[str, set[str]] = {}
-    for source in profile_sources:
-        for event, groups in source.items():
-            for group in groups:
-                for hook in group.get("hooks", []):
-                    command = hook.get("command")
-                    if isinstance(command, str):
-                        hook_file = ponytail_hook_file(command)
-                        if hook_file:
-                            managed.setdefault(event, set()).add(hook_file)
-
-    for event, groups in list(external.items()):
+    """Drop only exact known legacy Ponytail commands, preserving other hooks."""
+    for event, groups in list(source.items()):
         retained_groups = []
         for group in groups:
             group_hooks = group.get("hooks")
@@ -94,8 +83,9 @@ def remove_profile_managed_ponytail_hooks(
                 hook
                 for hook in group_hooks
                 if not (
-                    isinstance(hook.get("command"), str)
-                    and ponytail_hook_file(hook["command"]) in managed.get(event, set())
+                    isinstance(hook, dict)
+                    and isinstance(hook.get("command"), str)
+                    and ponytail_hook_file(hook["command"]) is not None
                 )
             ]
             if retained_hooks:
@@ -104,10 +94,10 @@ def remove_profile_managed_ponytail_hooks(
             elif not group_hooks:
                 retained_groups.append(group)
         if retained_groups:
-            external[event] = retained_groups
+            source[event] = retained_groups
         else:
-            external.pop(event, None)
-    return external
+            source.pop(event, None)
+    return source
 
 
 def load_hooks(path: Path) -> dict[str, list[Any]]:
@@ -153,7 +143,7 @@ def load_apm_entries(target: Path) -> dict[str, list[Any]]:
     -g` deploying a package's own hooks fragment straight into the deploy
     target). It's preserved so regenerating the file doesn't drop it. Packages
     are not expected to tag what they write, so this is not a tag lookup.
-    Profile-managed Ponytail entries are removed separately.
+    Known legacy Ponytail commands are removed separately.
 
     Symlinks are followed rather than skipped: legacy deployments pointed
     `target` at a profile-managed hooks.json into which `apm install -g`
@@ -204,9 +194,9 @@ def merge_hooks(*sources: dict[str, list[Any]]) -> dict[str, list[Any]]:
 
 
 def render(profile_path: Path, target: Path) -> dict[str, Any]:
-    base = load_hooks(profile_path / "hooks.base.json")
-    local = load_hooks(profile_path / "hooks.local.json")
-    apm = remove_profile_managed_ponytail_hooks(load_apm_entries(target), [base, local])
+    base = remove_legacy_ponytail_hooks(load_hooks(profile_path / "hooks.base.json"))
+    local = remove_legacy_ponytail_hooks(load_hooks(profile_path / "hooks.local.json"))
+    apm = remove_legacy_ponytail_hooks(load_apm_entries(target))
     return {"hooks": merge_hooks(base, local, apm)}
 
 
@@ -232,9 +222,9 @@ def format_sources(profile_path: Path, target: Path) -> list[str]:
     """
     base_path = profile_path / "hooks.base.json"
     local_path = profile_path / "hooks.local.json"
-    base = load_hooks(base_path)
-    local = load_hooks(local_path)
-    apm = remove_profile_managed_ponytail_hooks(load_apm_entries(target), [base, local])
+    base = remove_legacy_ponytail_hooks(load_hooks(base_path))
+    local = remove_legacy_ponytail_hooks(load_hooks(local_path))
+    apm = remove_legacy_ponytail_hooks(load_apm_entries(target))
 
     _, contributed = merge_hooks_with_attribution(
         [

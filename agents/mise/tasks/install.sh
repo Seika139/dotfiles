@@ -141,10 +141,6 @@ else
   apm install -g $FORCE_FLAG $VERBOSE_FLAG
 fi
 
-# APM copies Ponytail hooks into Claude settings without a plugin runtime context.
-bash "${ROOT_DIR}/../claude/mise/scripts/run_python.sh" \
-  "${ROOT_DIR}/../claude/mise/scripts/normalize_ponytail_hooks.py" --claude-dir "${HOME}/.claude"
-
 # ---------------------------------------------------------------------------
 # Step 4: ~/.apm/apm.lock.yaml が新規生成 / 更新された場合は profile 側へコピーバック
 #   - private overlay 有効時: profiles/private/apm.lock.yaml に書く (gitignored)。
