@@ -41,15 +41,21 @@ gwr() {
   fzf_available || return 1
   main_worktree=$(git rev-parse --path-format=absolute --git-common-dir | sed 's|/\.git$||') || return 1
 
-  # 出力: "<path>\t<branch or (detached)>"。先頭 (メイン) の worktree は除外する
-  selected=$(
-    git worktree list --porcelain |
-      awk -v main="${main_worktree}" '
+  worktrees=$(git worktree list --porcelain |
+    awk -v main="${main_worktree}" '
         function flush() { if (path != "" && path != main) printf "%s\t%s\n", path, (branch == "" ? "(detached)" : branch) }
         /^worktree / { flush(); path = substr($0, 10); branch = "" }
         /^branch refs\/heads\// { branch = substr($0, 19) }
         END { flush() }
-      ' |
+      ')
+
+  if [[ -z "${worktrees}" ]]; then
+    echo_yellow "対象となるワークツリーはありません"
+    return 0
+  fi
+
+  selected=$(
+    printf '%s\n' "$worktrees" |
       fzf --multi --delimiter=$'\t' --header='削除する worktree を選択 (Tab で複数選択)'
   ) || return 0
   [[ -n "${selected}" ]] || return 0
