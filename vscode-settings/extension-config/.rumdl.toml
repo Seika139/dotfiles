@@ -15,10 +15,10 @@ disable = [
 
 # .gitignore されているファイルを無視する
 # rumdl では default で true になっているが明示的に設定しておく
-respect_gitignore = true
+respect-gitignore = true
 
 # node_modules など自身が Markdown のフォーマットをすべきではないファイルをリンティング対象から除外する
-# respect_gitignore で無視されるディレクトリはすでに除外されているが
+# respect-gitignore で無視されるディレクトリはすでに除外されているが
 # git管理されていない状態でも除外されるように明示的に設定しておく
 exclude = [".cursor/", "node_modules/**", "worklog/**"]
 

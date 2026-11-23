@@ -25,7 +25,7 @@ disable = [
 # Respect .gitignore while walking the tree (same semantics as
 # `"gitignore": true` in the cli2 config). Default is already true; keep
 # it explicit so intent is readable.
-respect_gitignore = true
+respect-gitignore = true
 
 # Skip common dependency/build directories.
 exclude = ["node_modules/**", ".venv/**"]
