@@ -27,7 +27,7 @@ prune_mise() {
 #   既定: y/N で確認し、worktree は変更があれば拒否、ブランチは `branch -d` (未マージなら拒否)
 #   -f  : 確認を省略し、`worktree remove --force` と `branch -D` で削除する
 gwr() {
-  local force=0 main_worktree selected path branch answer status=0
+  local force=0 main_worktree worktrees selected path branch answer status=0
 
   case "${1:-}" in
   -f | --force) force=1 ;;
