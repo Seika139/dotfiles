@@ -30,7 +30,6 @@ tool_namespace = "agents"
 [desktop]
 preventSleepWhileRunning = true
 keepRemoteControlAwakeWhilePluggedIn = true
-followUpQueueMode = "queue"
 dock-icon-preference = "codex-system"
 conversationDetailMode = "STEPS_COMMANDS"
 show-context-window-usage = true
