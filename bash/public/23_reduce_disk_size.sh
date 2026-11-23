@@ -61,8 +61,9 @@ gwr() {
   [[ -n "${selected}" ]] || return 0
 
   # 通常は -d / 無オプション、-f のときは最初から -D / --force
-  local branch_opt=-d wt_opt=
-  [[ "${force}" -eq 1 ]] && branch_opt=-D wt_opt=--force
+  local branch_opt=-d
+  local -a wt_opts=()
+  [[ "${force}" -eq 1 ]] && branch_opt=-D wt_opts=(--force)
 
   # ループの stdin を here-string に取られると確認の read が選択結果を読んでしまうため fd 3 で回す
   while IFS=$'\t' read -r -u 3 path branch; do
@@ -75,8 +76,8 @@ gwr() {
     fi
 
     # 通常削除に失敗したら、確認のうえ強制削除で 1 回だけやり直す
-    echo_yellow "git -C ${main_worktree} worktree remove ${wt_opt:+${wt_opt} }${path}"
-    if ! git -C "${main_worktree}" worktree remove ${wt_opt} "${path}"; then
+    echo_yellow "git -C ${main_worktree} worktree remove ${wt_opts:+${wt_opts[@]} }${path}"
+    if ! git -C "${main_worktree}" worktree remove "${wt_opts[@]}" "${path}"; then
       [[ "${force}" -eq 0 ]] && read -r -p "強制削除しますか? [y/N] " answer
       if [[ "${force}" -eq 1 || ! "${answer}" =~ ^[yY]$ ]]; then
         status=1
