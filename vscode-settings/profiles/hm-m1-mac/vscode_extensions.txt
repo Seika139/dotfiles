@@ -115,8 +115,6 @@ tomoki1207.pdf
 tomoki1207.vscode-input-sequence
 unifiedjs.vscode-mdx
 vadimcn.vscode-lldb
-visualstudioexptteam.intellicode-api-usage-examples
-visualstudioexptteam.vscodeintellicode
 visualstudiotoolsforunity.vstuc
 vscode-icons-team.vscode-icons
 vue.volar
