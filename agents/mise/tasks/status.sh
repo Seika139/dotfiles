@@ -250,7 +250,10 @@ list_external_skills() {
     [ -d "$d" ] || continue
     # orca / twg は各 CLI が直接配備する peer tool (marker を持たないので名前で識別する)
     case "$(basename "$d")" in
-      orca-*|orchestration|twg|twg-*) basename "$d"; continue ;;
+    orca-* | orchestration | twg | twg-*)
+      basename "$d"
+      continue
+      ;;
     esac
     if [ -e "${d}.agmsg" ]; then
       basename "$d"
