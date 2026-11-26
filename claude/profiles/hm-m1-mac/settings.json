@@ -16,11 +16,11 @@
     "feature-dev@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "mattpocock-skills@claude-plugins-official": true,
+    "ponytail@ponytail": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true,
-    "ponytail@ponytail": true
+    "swift-lsp@claude-plugins-official": true
   },
   "env": {
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1m]",
