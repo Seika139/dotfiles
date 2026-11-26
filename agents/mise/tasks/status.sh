@@ -248,6 +248,10 @@ list_external_skills() {
   [ -d "$dir" ] || return 0
   for d in "$dir"/*/; do
     [ -d "$d" ] || continue
+    # orca / twg は各 CLI が直接配備する peer tool (marker を持たないので名前で識別する)
+    case "$(basename "$d")" in
+      orca-*|orchestration|twg|twg-*) basename "$d"; continue ;;
+    esac
     if [ -e "${d}.agmsg" ]; then
       basename "$d"
     fi
@@ -299,7 +303,12 @@ print_actual() {
 }
 
 printf "\n🌐 Skills (declared vs actual):\n"
-print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS_CLAUDE" "$(list_actual_claude_skills)"
+CLAUDE_ACTUAL="$(list_actual_claude_skills)"
+CLAUDE_EXTERNAL="$(list_external_skills "$HOME/.claude/skills")"
+if [ -n "$CLAUDE_EXTERNAL" ]; then
+  CLAUDE_ACTUAL="$(comm -23 <(printf "%s\n" "$CLAUDE_ACTUAL") <(printf "%s\n" "$CLAUDE_EXTERNAL"))"
+fi
+print_diff "claude" "$HOME/.claude/skills" "$DECLARED_SKILLS_CLAUDE" "$CLAUDE_ACTUAL"
 
 # agents skills は APM cross-tool 配備先だが、非 APM の peer tool (agmsg) も同居する。
 # external を actual から除いて APM の drift だけを比較し、external は別枠で可視化する。
@@ -310,8 +319,8 @@ if [ -n "$AGENTS_EXTERNAL" ]; then
 fi
 print_diff "agents" "$HOME/.agents/skills" "$DECLARED_SKILLS_AGENTS" "$AGENTS_ACTUAL"
 if [ -n "$AGENTS_EXTERNAL" ]; then
-  printf "     \\033[36m🔌 external (非 APM / agmsg-managed, drift 比較から除外):\\033[0m\n"
-  printf "%s\n" "$AGENTS_EXTERNAL" | sed 's/^/       - /'
+  printf "     \\033[36m🔌 external (非 APM / agmsg・orca・twg-managed, drift 比較から除外):\\033[0m\n"
+  printf "%s\n" "$AGENTS_EXTERNAL" | xargs -n4 | sed 's/ /, /g; s/^/       - /'
 fi
 
 printf "\n🤖 Agents (declared vs actual):\n"
