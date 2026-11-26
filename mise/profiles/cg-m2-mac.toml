@@ -9,6 +9,7 @@ auto_update = true
 "npm:aws-cdk" = "2.1145.0"
 bat = "0.26.1"
 bats = "1.14.0"
+betterleaks = "1.10.1"
 d2 = "0.9.0"
 eza = "0.23.5"
 fd = "10.5.2"

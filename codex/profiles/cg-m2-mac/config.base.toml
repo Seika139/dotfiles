@@ -41,7 +41,6 @@ preventSleepWhileRunning = true
 keepRemoteControlAwakeWhilePluggedIn = true
 conversationDetailMode = "STEPS_COMMANDS"
 default-service-tier = "priority"
-followUpQueueMode = "queue"
 appearanceTheme = "dark"
 dock-icon-preference = "codex-system"
 show-context-window-usage = true
